@@ -150,14 +150,14 @@ public class CinemaModClient implements ClientModInitializer {
         if (CREATE_KEYMAPPING.wasPressed()) {
             System.out.println("Key pressed");
 
-            createScreen(MinecraftClient.getInstance().crosshairTarget.getPos().toVector3f().get(RoundingMode.FLOOR, new Vector3i()));
-
-
-            //screen.startVideo();
             if (!toggle) {
                 CefUtil.init();
                 toggle = true;
             }
+            createScreen(MinecraftClient.getInstance().crosshairTarget.getPos().toVector3f().get(RoundingMode.FLOOR, new Vector3i()));
+
+
+            //screen.startVideo();
         }
         if (START_KEYMAPPING.wasPressed()) {
             screens.forEach((screen, aBoolean) -> {

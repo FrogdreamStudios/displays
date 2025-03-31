@@ -46,7 +46,7 @@ public class CefUtilMixin {
     @Inject(method = "init", at = @At(value = "INVOKE", target = "Ljava/nio/file/Path;toString()Ljava/lang/String;"), locals = LocalCapture.CAPTURE_FAILHARD, remap = false, cancellable = true)
     private static void otherInit(CallbackInfoReturnable<Boolean> cir, @Local MCEFPlatform platform, @Local String[] cefSwitches) {
         ArrayList<String> switches = new ArrayList<>(List.of(cefSwitches));
-        switches.add("--proxy-server=127.0.0.1:2080");
+        //switches.add("--proxy-server=127.0.0.1:2080");
         cefSwitches = switches.toArray(new String[0]);
         if (!CefApp.startup(cefSwitches)) {
             cir.setReturnValue(false);
