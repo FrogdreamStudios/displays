@@ -24,8 +24,6 @@ public class ScreenManager {
             old.closeBrowser();
         }
 
-        screen.register();
-
         screens.put(screen.getPos(), screen);
     }
 

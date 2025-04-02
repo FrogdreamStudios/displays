@@ -1,4 +1,4 @@
-package ru.l0sty.frogdisplays.utils;
+package ru.l0sty.frogdisplays.util;
 
 public enum Facing {
     NORTH, EAST, SOUTH, WEST;

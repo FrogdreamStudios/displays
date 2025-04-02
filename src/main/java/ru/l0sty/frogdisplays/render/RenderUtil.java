@@ -1,4 +1,4 @@
-package ru.l0sty.frogdisplays.block.render;
+package ru.l0sty.frogdisplays.render;
 
 import net.minecraft.client.render.*;
 import org.joml.Matrix4f;

@@ -1,8 +1,6 @@
 package ru.l0sty.frogdisplays.mixins;
 
 import net.minecraft.client.render.RenderTickCounter;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
 import ru.l0sty.frogdisplays.CinemaModClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.InGameHud;
@@ -10,8 +8,6 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import ru.l0sty.frogdisplays.screen.Screen;
-import ru.l0sty.frogdisplays.utils.RaycastUtil;
 
 @Mixin(InGameHud.class)
 public class CrossHairMixin {

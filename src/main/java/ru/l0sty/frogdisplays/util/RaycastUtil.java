@@ -1,4 +1,4 @@
-package ru.l0sty.frogdisplays.utils;
+package ru.l0sty.frogdisplays.util;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.hit.BlockHitResult;

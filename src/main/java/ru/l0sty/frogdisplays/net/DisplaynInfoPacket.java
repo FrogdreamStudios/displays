@@ -6,9 +6,8 @@ import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Uuids;
-import net.minecraft.util.math.BlockPos;
 import org.joml.Vector3i;
-import ru.l0sty.frogdisplays.utils.Facing;
+import ru.l0sty.frogdisplays.util.Facing;
 
 import java.util.UUID;
 

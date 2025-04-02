@@ -1,18 +1,12 @@
 package ru.l0sty.frogdisplays.screen;
 
 import com.cinemamod.mcef.MCEFBrowser;
-import ru.l0sty.frogdisplays.block.ScreenBlock;
+import net.minecraft.client.texture.NativeImageBackedTexture;
 import ru.l0sty.frogdisplays.buffer.DisplaysCustomPayload;
-import ru.l0sty.frogdisplays.buffer.PacketByteBufSerializable;
-import ru.l0sty.frogdisplays.cef.CefBrowserCinema;
 import ru.l0sty.frogdisplays.cef.CefUtil;
+import ru.l0sty.frogdisplays.util.ImageUtil;
 import ru.l0sty.frogdisplays.video.Video;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
-import net.minecraft.block.Blocks;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.network.PacketByteBuf;
 import net.minecraft.util.math.BlockPos;
-import org.apache.commons.lang3.NotImplementedException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +22,6 @@ public class Screen extends DisplaysCustomPayload<Screen> {
     private boolean visible;
     private boolean muted;
 
-    private transient List<PreviewScreen> previewScreens;
     private transient MCEFBrowser browser;
     private transient Video video;
     private transient boolean unregistered;
@@ -67,7 +60,6 @@ public class Screen extends DisplaysCustomPayload<Screen> {
 
     public Screen() {
         super("screens");
-        previewScreens = new ArrayList<>();
     }
 
     public int getX() {
@@ -110,14 +102,6 @@ public class Screen extends DisplaysCustomPayload<Screen> {
         return muted;
     }
 
-    public List<PreviewScreen> getPreviewScreens() {
-        return previewScreens;
-    }
-
-    public void addPreviewScreen(PreviewScreen previewScreen) {
-        previewScreens.add(previewScreen);
-    }
-
     public MCEFBrowser getBrowser() {
         return browser;
     }
@@ -134,6 +118,11 @@ public class Screen extends DisplaysCustomPayload<Screen> {
 
     public void loadVideo(Video video) {
         this.video = video;
+
+        ImageUtil.fetchImageTextureFromUrl(video.getVideoInfo().getThumbnailUrl()).thenAccept((nativeImageBackedTexture ->
+                texture = nativeImageBackedTexture
+        ));
+
         closeBrowser();
         browser = CefUtil.createBrowser(video.getVideoInfo().getVideoService().getUrl(), this);
     }
@@ -196,6 +185,27 @@ public class Screen extends DisplaysCustomPayload<Screen> {
         }
     }
 
+    public void waitForMFInit(Runnable action) {
+        Thread waitForBrowserInitThread = new Thread(() -> {
+            boolean isInit = false;
+            while (!isInit) {
+                if (getBrowser().getMainFrame() != null) {
+                    isInit = true;
+                    try {
+                        Thread.sleep(300);
+                        action.run();
+
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+        });
+
+        waitForBrowserInitThread.start();
+    }
+
     public void seekVideo(int seconds) {
         if (browser != null && video != null) {
             String js = video.getVideoInfo().getVideoService().getSeekJs();
@@ -213,36 +223,17 @@ public class Screen extends DisplaysCustomPayload<Screen> {
         return blockPos;
     }
 
-    public void register() {
-        if (MinecraftClient.getInstance().world == null) {
-            return;
-        }
-
-        int chunkX = x >> 4;
-        int chunkZ = z >> 4;
-
-        if (MinecraftClient.getInstance().world.isChunkLoaded(chunkX, chunkZ)) {
-            MinecraftClient.getInstance().world.setBlockState(getBlockPos(), ScreenBlock.SCREEN_BLOCK.getDefaultState());
-        }
-
-        ClientChunkEvents.CHUNK_LOAD.register((clientWorld, worldChunk) -> {
-            if (unregistered) {
-                return;
-            }
-
-            // If the loaded chunk has this screen block in it, place it in the world
-            if (worldChunk.getPos().x == chunkX && worldChunk.getPos().z == chunkZ) {
-                clientWorld.setBlockState(getBlockPos(), ScreenBlock.SCREEN_BLOCK.getDefaultState());
-            }
-        });
-    }
-
     public void unregister() {
         unregistered = true;
-
-        if (MinecraftClient.getInstance().world != null) {
-            MinecraftClient.getInstance().world.setBlockState(getBlockPos(), Blocks.AIR.getDefaultState());
-        }
     }
 
+    NativeImageBackedTexture texture = null;
+
+    public NativeImageBackedTexture getPreviewTexture() {
+        return texture;
+    }
+
+    public boolean hasPreviewTexture() {
+        return texture != null;
+    }
 }

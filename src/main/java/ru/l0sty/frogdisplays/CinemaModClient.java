@@ -6,31 +6,24 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
+import net.minecraft.util.Util;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
-import org.cef.CefApp;
-import org.joml.RoundingMode;
 import org.joml.Vector3i;
 import org.lwjgl.glfw.GLFW;
-import ru.l0sty.frogdisplays.block.PreviewScreenBlock;
-import ru.l0sty.frogdisplays.block.PreviewScreenBlockEntity;
-import ru.l0sty.frogdisplays.block.ScreenBlock;
-import ru.l0sty.frogdisplays.block.ScreenBlockEntity;
-import ru.l0sty.frogdisplays.block.render.PreviewScreenBlockEntityRenderer;
-import ru.l0sty.frogdisplays.block.render.ScreenBlockEntityRenderer;
+import ru.l0sty.frogdisplays.render.ScreenWorldRenderer;
 import ru.l0sty.frogdisplays.cef.CefUtil;
+import ru.l0sty.frogdisplays.cef.Platform;
 import ru.l0sty.frogdisplays.net.DisplaynInfoPacket;
-import ru.l0sty.frogdisplays.screen.PreviewScreenManager;
 import ru.l0sty.frogdisplays.screen.Screen;
 import ru.l0sty.frogdisplays.screen.ScreenManager;
 import ru.l0sty.frogdisplays.service.VideoService;
 import ru.l0sty.frogdisplays.service.VideoServiceManager;
 import net.fabricmc.api.ClientModInitializer;
-import ru.l0sty.frogdisplays.utils.Facing;
-import ru.l0sty.frogdisplays.utils.RaycastUtil;
+import ru.l0sty.frogdisplays.util.Facing;
+import ru.l0sty.frogdisplays.util.RaycastUtil;
 import ru.l0sty.frogdisplays.video.Video;
 import ru.l0sty.frogdisplays.video.VideoInfo;
 
@@ -42,6 +35,7 @@ public class CinemaModClient implements ClientModInitializer {
 
     public static boolean isOnScreen = false;
     private static CinemaModClient instance;
+    public static String proxyAddress = "";
 
     public static CinemaModClient getInstance() {
         return instance;
@@ -49,7 +43,6 @@ public class CinemaModClient implements ClientModInitializer {
 
     private VideoServiceManager videoServiceManager;
     private ScreenManager screenManager;
-    private PreviewScreenManager previewScreenManager;
     private VideoSettings videoSettings;
 
     public VideoServiceManager getVideoServiceManager() {
@@ -60,10 +53,6 @@ public class CinemaModClient implements ClientModInitializer {
         return screenManager;
     }
 
-    public PreviewScreenManager getPreviewScreenManager() {
-        return previewScreenManager;
-    }
-
     public VideoSettings getVideoSettings() {
         return videoSettings;
     }
@@ -71,15 +60,15 @@ public class CinemaModClient implements ClientModInitializer {
 
     private static void initCefMac() {
         // TODO: fixme
-//        if (Platform.getPlatform().isMacOS()) {
-//            Util.getBootstrapExecutor().execute(() -> {
-//                if (CefUtil.init()) {
-//                    CinemaMod.LOGGER.info("Chromium Embedded Framework initialized for macOS");
-//                } else {
-//                    CinemaMod.LOGGER.warning("Could not initialize Chromium Embedded Framework for macOS");
-//                }
-//            });
-//        }
+        if (Platform.getPlatform().isMacOS()) {
+            Util.getMainWorkerExecutor().execute(() -> {
+                if (CefUtil.init()) {
+                    CinemaMod.LOGGER.info("Chromium Embedded Framework initialized for macOS");
+                } else {
+                    CinemaMod.LOGGER.warning("Could not initialize Chromium Embedded Framework for macOS");
+                }
+            });
+        }
     }
 
     @Override
@@ -91,24 +80,13 @@ public class CinemaModClient implements ClientModInitializer {
             createScreen(payload.pos(), payload.facing(), payload.width(), payload.height(), payload.url());
         });
 
+        ScreenWorldRenderer.register();
+
         // Hack for initializing CEF on macos
         initCefMac();
 
-        // Register ScreenBlock
-        ScreenBlock.register();
-        ScreenBlockEntity.register();
-        ScreenBlockEntityRenderer.register();
-
-        // Register PreviewScreenBlock
-        PreviewScreenBlock.register();
-        PreviewScreenBlockEntity.register();
-        PreviewScreenBlockEntityRenderer.register();
-
-        //NetworkUtil.registerReceivers();
-
         videoServiceManager = new VideoServiceManager();
         screenManager = new ScreenManager();
-        previewScreenManager = new PreviewScreenManager();
         videoSettings = new VideoSettings();
 
         try {
@@ -130,7 +108,6 @@ public class CinemaModClient implements ClientModInitializer {
         );
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            onTick();
             BlockHitResult result = RaycastUtil.raycastBlockClient(32);
             if (result == null) {
                 isOnScreen = false;
@@ -151,7 +128,6 @@ public class CinemaModClient implements ClientModInitializer {
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             RenderSystem.recordRenderCall(() -> {
                 getScreenManager().unloadAll();
-                getPreviewScreenManager().unloadAll();
                 getVideoServiceManager().unregisterAll();
             });
             toggle = false;
@@ -159,7 +135,6 @@ public class CinemaModClient implements ClientModInitializer {
 
         ClientLifecycleEvents.CLIENT_STOPPING.register(client -> {
             getScreenManager().unloadAll();
-            getPreviewScreenManager().unloadAll();
             getVideoServiceManager().unregisterAll();
         });
 
@@ -184,18 +159,7 @@ public class CinemaModClient implements ClientModInitializer {
         var videoInfo = new VideoInfo(videoService, code);
         var video = new Video(videoInfo, System.currentTimeMillis());
         screen.loadVideo(video);
-    }
-    private void onTick() {
-        if (START_KEYMAPPING.wasPressed()) {
-            screens.forEach((screen, aBoolean) -> {
-                if (!aBoolean) {
-                    screen.startVideo();
-                    screen.setVideoVolume(0.1f);
-                    System.out.println("Screen video start");
-                }
-                screens.put(screen, true);
-            });
-        }
+        screen.waitForMFInit(screen::startVideo);
     }
 
     private KeyBinding CREATE_KEYMAPPING;
