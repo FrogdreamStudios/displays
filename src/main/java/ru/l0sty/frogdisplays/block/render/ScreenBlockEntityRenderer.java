@@ -1,5 +1,6 @@
 package ru.l0sty.frogdisplays.block.render;
 
+import org.joml.Quaternionf;
 import ru.l0sty.frogdisplays.CinemaModClient;
 import ru.l0sty.frogdisplays.block.ScreenBlockEntity;
 import ru.l0sty.frogdisplays.screen.Screen;
@@ -32,7 +33,18 @@ public class ScreenBlockEntityRenderer implements BlockEntityRenderer<ScreenBloc
     private static void renderScreenTexture(Screen screen, MatrixStack matrices, Tessellator tessellator) {
         matrices.push();
         matrices.translate(1, 1, 0);
-        RenderUtil.moveForward(matrices, screen.getFacing(), 0.008f);
+        RenderUtil.moveForward(matrices, screen.getFacing(), 1.008f);
+        RenderUtil.moveVertical(matrices, screen.getHeight()-1);
+
+        switch (screen.getFacing()) {
+            case "NORTH":
+                RenderUtil.moveHorizontal(matrices, "NORTH", -(screen.getWidth()-1));
+                break;
+            case "EAST":
+                RenderUtil.moveHorizontal(matrices, "EAST", -(screen.getWidth()-1));
+                break;
+        }
+
         RenderUtil.fixRotation(matrices, screen.getFacing());
         matrices.scale(screen.getWidth(), screen.getHeight(), 0);
         if (screen.hasBrowser()) {

@@ -23,8 +23,8 @@ public class Screen extends DisplaysCustomPayload<Screen> {
     private int y;
     private int z;
     private String facing;
-    private float width;
-    private float height;
+    private int width;
+    private int height;
     private boolean visible;
     private boolean muted;
 
@@ -44,6 +44,25 @@ public class Screen extends DisplaysCustomPayload<Screen> {
         this.height = height;
         this.visible = visible;
         this.muted = muted;
+    }
+
+    public boolean isInScreen(BlockPos pos) {
+        int maxX = x;
+        int maxY = y+height-1;
+        int maxZ = z;
+
+        switch (facing) {
+            case "NORTH", "SOUTH" -> {
+                maxX += width-1;
+            }
+            default -> {
+                maxZ += width-1;
+            }
+        }
+
+        return x <= pos.getX() && maxX >= pos.getX() &&
+                y <= pos.getY() && maxY >= pos.getY() &&
+                z <= pos.getZ() && maxZ >= pos.getZ();
     }
 
     public Screen() {
