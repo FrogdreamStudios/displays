@@ -10,8 +10,7 @@
     "CefRenderMixin",
     "CrossHairMixin",
     "ItemDropKeyMixin",
-    "UnloadScreensMixin",
-    "CefUtilMixin"
+    "UnloadScreensMixin"
   ],
   "injectors": {
     "defaultRequire": 1

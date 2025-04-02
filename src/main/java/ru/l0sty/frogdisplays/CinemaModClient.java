@@ -7,7 +7,7 @@ import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.Util;
 import org.joml.RoundingMode;
 import org.joml.Vector3d;
 import org.joml.Vector3i;
@@ -19,6 +19,7 @@ import ru.l0sty.frogdisplays.block.ScreenBlockEntity;
 import ru.l0sty.frogdisplays.block.render.PreviewScreenBlockEntityRenderer;
 import ru.l0sty.frogdisplays.block.render.ScreenBlockEntityRenderer;
 import ru.l0sty.frogdisplays.cef.CefUtil;
+import ru.l0sty.frogdisplays.cef.Platform;
 import ru.l0sty.frogdisplays.net.DisplayCreatePacket;
 import ru.l0sty.frogdisplays.screen.PreviewScreenManager;
 import ru.l0sty.frogdisplays.screen.Screen;
@@ -67,15 +68,15 @@ public class CinemaModClient implements ClientModInitializer {
 
     private static void initCefMac() {
         // TODO: fixme
-//        if (Platform.getPlatform().isMacOS()) {
-//            Util.getBootstrapExecutor().execute(() -> {
-//                if (CefUtil.init()) {
-//                    CinemaMod.LOGGER.info("Chromium Embedded Framework initialized for macOS");
-//                } else {
-//                    CinemaMod.LOGGER.warning("Could not initialize Chromium Embedded Framework for macOS");
-//                }
-//            });
-//        }
+        if (Platform.getPlatform().isMacOS()) {
+            Util.getMainWorkerExecutor().execute(() -> {
+                if (CefUtil.init()) {
+                    CinemaMod.LOGGER.info("Chromium Embedded Framework initialized for macOS");
+                } else {
+                    CinemaMod.LOGGER.warning("Could not initialize Chromium Embedded Framework for macOS");
+                }
+            });
+        }
     }
 
     @Override
