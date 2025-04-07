@@ -1,41 +1,51 @@
 package ru.l0sty.frogdisplays;
 
-import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.brigadier.Command;
+import com.mojang.brigadier.builder.ArgumentBuilder;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
+import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
-import net.minecraft.util.Util;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import org.joml.Vector3i;
 import org.lwjgl.glfw.GLFW;
+import ru.l0sty.frogdisplays.net.*;
 import ru.l0sty.frogdisplays.render.ScreenWorldRenderer;
-import ru.l0sty.frogdisplays.cef.CefUtil;
-import ru.l0sty.frogdisplays.cef.Platform;
-import ru.l0sty.frogdisplays.net.DisplaynInfoPacket;
+import ru.l0sty.frogdisplays.screen.DisplayConfScreen;
 import ru.l0sty.frogdisplays.screen.Screen;
 import ru.l0sty.frogdisplays.screen.ScreenManager;
 import ru.l0sty.frogdisplays.service.VideoService;
 import ru.l0sty.frogdisplays.service.VideoServiceManager;
 import net.fabricmc.api.ClientModInitializer;
+import ru.l0sty.frogdisplays.testVideo.M3U8Links;
+import ru.l0sty.frogdisplays.testVideo.VideoDecoder;
 import ru.l0sty.frogdisplays.util.Facing;
 import ru.l0sty.frogdisplays.util.RaycastUtil;
 import ru.l0sty.frogdisplays.video.Video;
 import ru.l0sty.frogdisplays.video.VideoInfo;
 
 import java.io.IOException;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class CinemaModClient implements ClientModInitializer {
 
     public static boolean isOnScreen = false;
     private static CinemaModClient instance;
     public static String proxyAddress = "";
+
+    public static double maxDistance = 64;
+    public static boolean displaysEnabled = true;
+
+    private Screen hoveredScreen = null;
 
     public static CinemaModClient getInstance() {
         return instance;
@@ -57,33 +67,65 @@ public class CinemaModClient implements ClientModInitializer {
         return videoSettings;
     }
 
-
-    private static void initCefMac() {
-        // TODO: fixme
-        if (Platform.getPlatform().isMacOS()) {
-            Util.getMainWorkerExecutor().execute(() -> {
-                if (CefUtil.init()) {
-                    CinemaMod.LOGGER.info("Chromium Embedded Framework initialized for macOS");
-                } else {
-                    CinemaMod.LOGGER.warning("Could not initialize Chromium Embedded Framework for macOS");
-                }
-            });
-        }
-    }
-
     @Override
     public void onInitializeClient() {
+
+
+        ClientCommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> {
+            dispatcher.register(
+                    LiteralArgumentBuilder.<FabricClientCommandSource>literal("displays")
+                            .then(LiteralArgumentBuilder.<FabricClientCommandSource>literal("off")
+                                    .executes((context) -> {
+                                        displaysEnabled = false;
+                                        return 1;
+                                    })
+                            )
+                            .then(LiteralArgumentBuilder.<FabricClientCommandSource>literal("on")
+                                    .executes((context) -> {
+                                        displaysEnabled = true;
+                                        return 1;
+                                    })
+                            )
+            );
+        });
+
+
+        testOpenMenu = new KeyBinding(
+                "Open menu to test", InputUtil.Type.KEYSYM,
+                GLFW.GLFW_KEY_H, "key.categories.misc"
+        );
+
         instance = this;
 
         PayloadTypeRegistry.playS2C().register(DisplaynInfoPacket.PACKET_ID, DisplaynInfoPacket.PACKET_CODEC);
+        PayloadTypeRegistry.playS2C().register(DisplaySyncPacket.PACKET_ID, DisplaySyncPacket.PACKET_CODEC);
+
+        PayloadTypeRegistry.playS2C().register(M3U8Packet.PACKET_ID, M3U8Packet.PACKET_CODEC);
+        PayloadTypeRegistry.playS2C().register(VideoInfoPacket.PACKET_ID, VideoInfoPacket.PACKET_CODEC);
+
+        PayloadTypeRegistry.playC2S().register(M3U8RequestPacket.PACKET_ID, M3U8RequestPacket.PACKET_CODEC);
+        PayloadTypeRegistry.playC2S().register(VideoInfoRequestPacket.PACKET_ID, VideoInfoRequestPacket.PACKET_CODEC);
+
+
         ClientPlayNetworking.registerGlobalReceiver(DisplaynInfoPacket.PACKET_ID, (payload, context) -> {
-            createScreen(payload.pos(), payload.facing(), payload.width(), payload.height(), payload.url());
+            createScreen(payload.id(), payload.pos(), payload.facing(), payload.width(), payload.height(), payload.url());
+        });
+
+        ClientPlayNetworking.registerGlobalReceiver(DisplaySyncPacket.PACKET_ID, (payload, context) -> {
+            // TODO: handle DisplaySyncPacket
+        });
+
+        ClientPlayNetworking.registerGlobalReceiver(M3U8Packet.PACKET_ID, (payload, context) -> {
+            CompletableFuture<M3U8Packet> future = M3U8Links.requestedM3U8Data.get(payload.url()+payload.quality());
+            if (future != null) future.complete(payload);
+        });
+
+        ClientPlayNetworking.registerGlobalReceiver(VideoInfoPacket.PACKET_ID, (payload, context) -> {
+            CompletableFuture<VideoInfoPacket> future = M3U8Links.requestedVideoInfo.get(payload.url());
+            if (future != null) future.complete(payload);
         });
 
         ScreenWorldRenderer.register();
-
-        // Hack for initializing CEF on macos
-        initCefMac();
 
         videoServiceManager = new VideoServiceManager();
         screenManager = new ScreenManager();
@@ -98,39 +140,54 @@ public class CinemaModClient implements ClientModInitializer {
 
         new WindowFocusMuteThread().start();
 
-        CREATE_KEYMAPPING = new KeyBinding(
-                "Open Basic Browser", InputUtil.Type.KEYSYM,
-                GLFW.GLFW_KEY_H, "key.categories.misc"
-        );
-        START_KEYMAPPING = new KeyBinding(
-                "Start Video", InputUtil.Type.KEYSYM,
-                GLFW.GLFW_KEY_J, "key.categories.misc"
-        );
+        final boolean[] wasPressed = {false};
+        AtomicBoolean wasInMultiplayer = new AtomicBoolean(false);
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            BlockHitResult result = RaycastUtil.raycastBlockClient(32);
-            if (result == null) {
-                isOnScreen = false;
-                return;
-            }
-            BlockPos pos = result.getBlockPos();
-
-            for (Screen screen : CinemaModClient.getInstance().getScreenManager().getScreens()) {
-                if (screen.isInScreen(pos)) {
-                    isOnScreen = true;
+            if (client.world != null && client.getCurrentServerEntry() != null) {
+                wasInMultiplayer.set(true);
+            } else {
+                if (wasInMultiplayer.get()) {
+                    wasInMultiplayer.set(false);
+                    getScreenManager().unloadAll();
+                    getVideoServiceManager().unregisterAll();
+                    hoveredScreen = null;
                     return;
                 }
             }
 
-            isOnScreen = false;
-        });
+            if (client.player == null) return;
 
-        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
-            RenderSystem.recordRenderCall(() -> {
-                getScreenManager().unloadAll();
-                getVideoServiceManager().unregisterAll();
-            });
-            toggle = false;
+            if (testOpenMenu.isPressed() && hoveredScreen != null) {
+                hoveredScreen.waitForMFInit(() -> {
+                    hoveredScreen.startVideo();
+                    hoveredScreen.setVolume(0);
+                });
+            }
+
+            BlockHitResult result = RaycastUtil.raycastBlockClient(64);
+            hoveredScreen = null;
+            isOnScreen = false;
+
+            for (Screen screen : CinemaModClient.getInstance().getScreenManager().getScreens()) {
+                if (maxDistance < screen.getDistanceToScreen(client.player.getBlockPos()) || !displaysEnabled) getScreenManager().unregisterScreen(screen);
+
+                if (result != null) if (screen.isInScreen(result.getBlockPos())) {
+                    hoveredScreen = screen;
+                    isOnScreen = true;
+                }
+            }
+
+            long window = client.getWindow().getHandle();
+            boolean pressed = GLFW.glfwGetMouseButton(window, GLFW.GLFW_MOUSE_BUTTON_RIGHT) == GLFW.GLFW_PRESS;
+
+            if (pressed && !wasPressed[0]) {
+                if (client.player != null && client.player.isSneaking()) {
+                    checkAndOpenScreen();
+                }
+            }
+
+            wasPressed[0] = pressed;
         });
 
         ClientLifecycleEvents.CLIENT_STOPPING.register(client -> {
@@ -140,29 +197,24 @@ public class CinemaModClient implements ClientModInitializer {
 
     }
 
-    public static boolean toggle = false;
-    private Map<Screen, Boolean> screens = new ConcurrentHashMap<>();
-    void createScreen(Vector3i pos, Facing facing, int width, int height, String code) {
-        if (!toggle) {
-            CefUtil.init();
-            toggle = true;
-        }
-
-        var screen = new Screen(pos.x(), pos.y(), pos.z(), facing.toString(), width, height, true, false);
-        screens.put(screen, false);
-        screenManager.registerScreen(screen);
-        var videoService = new VideoService("youtube", "https://cinemamod-static.ewr1.vultrobjects.com/service/v1/youtube.html",
-                "th_volume(%d);",
-                "th_video('%s', %b);",
-                "th_seek(%d);");
-        videoServiceManager.register(videoService);
-        var videoInfo = new VideoInfo(videoService, code);
-        var video = new Video(videoInfo, System.currentTimeMillis());
-        screen.loadVideo(video);
-        screen.waitForMFInit(screen::startVideo);
+    private void checkAndOpenScreen() {
+        if (hoveredScreen == null) return;
+        DisplayConfScreen.open(hoveredScreen);
     }
 
-    private KeyBinding CREATE_KEYMAPPING;
-    private KeyBinding START_KEYMAPPING;
+    void createScreen(UUID id, Vector3i pos, Facing facing, int width, int height, String code) {
+        var screen = new Screen(id, pos.x(), pos.y(), pos.z(), facing.toString(), width, height, true, false);
+        screenManager.registerScreen(screen);
+        screen.loadVideo(code);
+//        var videoService = new VideoService("youtube", "https://cinemamod-static.ewr1.vultrobjects.com/service/v1/youtube.html",
+//                "th_volume(%d);",
+//                "th_video('%s', %b);",
+//                "th_seek(%d);");
+//        videoServiceManager.register(videoService);
+//        var videoInfo = new VideoInfo(videoService, code);
+//        var video = new Video(videoInfo, System.currentTimeMillis());
+//        screen.loadVideo(video);
+    }
 
+    KeyBinding testOpenMenu;
 }

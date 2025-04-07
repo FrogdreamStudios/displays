@@ -3,11 +3,12 @@ package ru.l0sty.frogdisplays.screen;
 import net.minecraft.util.math.BlockPos;
 
 import java.util.Collection;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ScreenManager {
 
-    private final ConcurrentHashMap<BlockPos, Screen> screens;
+    private final ConcurrentHashMap<UUID, Screen> screens;
 
     public ScreenManager() {
         screens = new ConcurrentHashMap<>();
@@ -18,30 +19,19 @@ public class ScreenManager {
     }
 
     public void registerScreen(Screen screen) {
-        if (screens.containsKey(screen.getPos())) {
-            Screen old = screens.get(screen.getPos());
+        if (screens.containsKey(screen.getID())) {
+            Screen old = screens.get(screen.getID());
             old.unregister();
             old.closeBrowser();
         }
 
-        screens.put(screen.getPos(), screen);
+        screens.put(screen.getID(), screen);
     }
 
-    public Screen getScreen(BlockPos pos) {
-        return screens.get(pos);
-    }
-
-    // Used for CefClient LoadHandler
-    public Screen getScreen(int browserId) {
-        for (Screen screen : screens.values()) {
-            if (screen.hasBrowser()) {
-                if (screen.getBrowser().getIdentifier() == browserId) {
-                    return screen;
-                }
-            }
-        }
-
-        return null;
+    public void unregisterScreen(Screen screen) {
+        screens.remove(screen.getID());
+        screen.closeBrowser();
+        screen.unregister();
     }
 
     public boolean hasActiveScreen() {

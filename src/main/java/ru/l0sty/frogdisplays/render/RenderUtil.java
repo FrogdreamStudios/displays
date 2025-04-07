@@ -74,6 +74,7 @@ public final class RenderUtil {
     }
 
     public static void renderTexture(MatrixStack matrixStack, Tessellator tessellator, int glId) {
+
         RenderSystem.setShader(GameRenderer::getPositionTexColorProgram);
         RenderSystem.setShaderTexture(0, glId);
         Matrix4f matrix4f = matrixStack.peek().getPositionMatrix();
@@ -87,6 +88,7 @@ public final class RenderUtil {
     }
 
     public static void renderColor(MatrixStack matrixStack, Tessellator tessellator, int r, int g, int b) {
+
         RenderSystem.setShader(GameRenderer::getPositionColorProgram);
         Matrix4f matrix4f = matrixStack.peek().getPositionMatrix();
         BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);

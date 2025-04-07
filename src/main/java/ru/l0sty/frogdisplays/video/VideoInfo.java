@@ -63,7 +63,7 @@ public class VideoInfo extends DisplaysCustomPayload<VideoInfo> {
     }
 
     public String getThumbnailUrl() {
-        return thumbnailUrl;
+        return "https://img.youtube.com/vi/"+ id +"/maxresdefault.jpg";
     }
 
     public void setThumbnailUrl(@Nullable String thumbnailUrl) {

@@ -9,6 +9,7 @@ import net.minecraft.client.texture.NativeImageBackedTexture;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import org.lwjgl.opengl.GL11;
 import ru.l0sty.frogdisplays.CinemaModClient;
 import ru.l0sty.frogdisplays.screen.Screen;
 import ru.l0sty.frogdisplays.util.ImageUtil;
@@ -29,6 +30,8 @@ public class ScreenWorldRenderer {
             // Предполагается, что метод getScreens() возвращает коллекцию Screen.
             for (Screen screen : CinemaModClient.getInstance().getScreenManager().getScreens()) {
                 if (screen == null || !screen.isVisible()) continue;
+                if (screen.removalTextureId != -1) GL11.glDeleteTextures(screen.removalTextureId);
+                if (screen.textureId == -1) screen.createTexture();
 
                 matrices.push();
 
@@ -53,7 +56,7 @@ public class ScreenWorldRenderer {
     private static void renderScreenTexture(Screen screen, MatrixStack matrices, Tessellator tessellator) {
         matrices.push();
         matrices.translate(1, 1, 0);
-        RenderUtil.moveForward(matrices, screen.getFacing(), 1.001f);
+        RenderUtil.moveForward(matrices, screen.getFacing(), 1.008f);
         RenderUtil.moveVertical(matrices, screen.getHeight() - 1);
 
         // Применяем корректировку в зависимости от направления экрана
@@ -69,8 +72,9 @@ public class ScreenWorldRenderer {
         RenderUtil.fixRotation(matrices, screen.getFacing());
         matrices.scale(screen.getWidth(), screen.getHeight(), 0);
 
-        if (screen.hasBrowser()) {
-            int glId = screen.getBrowser().getRenderer().getTextureID();
+        if (screen.isVideoStarted()) {
+            screen.fitTexture();
+            int glId = screen.textureId;
             RenderUtil.renderTexture(matrices, tessellator, glId);
         } else if (screen.hasPreviewTexture()) {
             NativeImageBackedTexture texture = screen.getPreviewTexture();

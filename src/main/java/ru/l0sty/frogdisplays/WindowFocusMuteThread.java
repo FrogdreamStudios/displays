@@ -19,12 +19,12 @@ public class WindowFocusMuteThread extends Thread {
                 if (MinecraftClient.getInstance().isWindowFocused() && !previousState) {
                     // if currently focused and was previously not focused
                     for (Screen screen : CinemaModClient.getInstance().getScreenManager().getScreens()) {
-                        screen.setVideoVolume(CinemaModClient.getInstance().getVideoSettings().getVolume());
+                        screen.mute(true);
                     }
                 } else if (!MinecraftClient.getInstance().isWindowFocused() && previousState) {
                     // if not focused and was previous focused
                     for (Screen screen : CinemaModClient.getInstance().getScreenManager().getScreens()) {
-                        screen.setVideoVolume(0f);
+                        screen.mute(false);
                     }
                 }
 
