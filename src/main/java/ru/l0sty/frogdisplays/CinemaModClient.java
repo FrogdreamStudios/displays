@@ -1,9 +1,6 @@
 package ru.l0sty.frogdisplays;
 
-import com.mojang.brigadier.Command;
-import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
@@ -13,7 +10,6 @@ import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
 import org.joml.Vector3i;
 import org.lwjgl.glfw.GLFW;
 import ru.l0sty.frogdisplays.net.*;
@@ -21,15 +17,11 @@ import ru.l0sty.frogdisplays.render.ScreenWorldRenderer;
 import ru.l0sty.frogdisplays.screen.DisplayConfScreen;
 import ru.l0sty.frogdisplays.screen.Screen;
 import ru.l0sty.frogdisplays.screen.ScreenManager;
-import ru.l0sty.frogdisplays.service.VideoService;
 import ru.l0sty.frogdisplays.service.VideoServiceManager;
 import net.fabricmc.api.ClientModInitializer;
 import ru.l0sty.frogdisplays.testVideo.M3U8Links;
-import ru.l0sty.frogdisplays.testVideo.VideoDecoder;
 import ru.l0sty.frogdisplays.util.Facing;
 import ru.l0sty.frogdisplays.util.RaycastUtil;
-import ru.l0sty.frogdisplays.video.Video;
-import ru.l0sty.frogdisplays.video.VideoInfo;
 
 import java.io.IOException;
 import java.util.UUID;

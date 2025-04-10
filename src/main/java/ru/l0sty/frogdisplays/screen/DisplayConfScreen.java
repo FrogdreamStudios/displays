@@ -161,7 +161,7 @@ public class DisplayConfScreen extends Screen {
         int cY = textRenderer.fontHeight + 15 * 2;
 
         // Рисуем прямоугольник и экран
-        context.fill(this.width / 2 - maxSW / 2, cY, this.width / 2 + maxSW / 2, cY + sH, 0xff000000);
+        //context.fill(this.width / 2 - maxSW / 2, cY, this.width / 2 + maxSW / 2, cY + sH, 0xff000000);
         renderScreen(context, sX, cY, sW, sH);
 
         cY += sH;

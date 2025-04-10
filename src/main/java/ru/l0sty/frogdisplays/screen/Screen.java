@@ -1,20 +1,16 @@
 package ru.l0sty.frogdisplays.screen;
 
-import com.cinemamod.mcef.MCEFBrowser;
 import net.minecraft.client.texture.NativeImageBackedTexture;
 import ru.l0sty.frogdisplays.buffer.DisplaysCustomPayload;
 import ru.l0sty.frogdisplays.render.RenderUtil2D;
-import ru.l0sty.frogdisplays.testVideo.M3U8Links;
 import ru.l0sty.frogdisplays.testVideo.MediaPlayer;
 import ru.l0sty.frogdisplays.util.ImageUtil;
 import ru.l0sty.frogdisplays.util.Utils;
-import ru.l0sty.frogdisplays.video.Video;
 import net.minecraft.util.math.BlockPos;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 public class Screen extends DisplaysCustomPayload<Screen> {
     private int x;
@@ -31,7 +27,8 @@ public class Screen extends DisplaysCustomPayload<Screen> {
     private boolean paused;
     private String quality = "720p";
 
-    List<String> qualities;
+    // Список доступных качеств, можно обновлять через MediaPlayer.getAvailableQualities()
+    List<String> qualities = new ArrayList<>();
 
     // Используем объединённый MediaPlayer вместо отдельных VideoDecoder и AudioPlayer.
     private MediaPlayer mediaPlayer;
@@ -43,14 +40,14 @@ public class Screen extends DisplaysCustomPayload<Screen> {
     private int textureWidth = -1;
     private int textureHeight = -1;
 
-    private transient MCEFBrowser browser;
-    private transient Video video;
     private transient boolean unregistered;
     private transient BlockPos blockPos; // кэш позиции для производительности
 
     private long playTime = 0;
     private long startTime = 0;
     private int duration;
+
+    private NativeImageBackedTexture previewTexture = null;
 
     public Screen(UUID id, int x, int y, int z, String facing, int width, int height, boolean visible, boolean muted) {
         this();
@@ -67,22 +64,18 @@ public class Screen extends DisplaysCustomPayload<Screen> {
 
     /**
      * Загружает видео по заданному URL.
-     * Предварительно подгружается превью и информация о доступных качествах,
-     * а затем создаётся экземпляр MediaPlayer на основе m3u8-ссылок.
+     * Загружается превью, а затем создаётся экземпляр нового MediaPlayer по ссылке на YouTube-видео.
      */
     public void loadVideo(String videoUrl) {
+        // Загружаем превью-изображение из YouTube (используем максимальное разрешение)
         ImageUtil.fetchImageTextureFromUrl("https://img.youtube.com/vi/" + Utils.extractVideoId(videoUrl) + "/maxresdefault.jpg")
                 .thenAccept(nativeImageBackedTexture -> previewTexture = nativeImageBackedTexture);
         this.videoUrl = videoUrl;
 
-        M3U8Links.getVideoInfo(videoUrl).thenAcceptAsync(videoInfoPacket -> {
-            qualities = new ArrayList<>(videoInfoPacket.qualities());
-            duration = videoInfoPacket.duration();
-        });
-
-        M3U8Links.getM3U8(videoUrl, quality).thenAcceptAsync(m3u8LinksPacket -> {
-            mediaPlayer = new MediaPlayer(m3u8LinksPacket.videoUrl(), m3u8LinksPacket.audioUrl());
-        });
+        // Создаём новый MediaPlayer напрямую по ссылке на YouTube-видео.
+        mediaPlayer = new MediaPlayer(videoUrl);
+        // Обновление списка доступных качеств можно выполнить позднее, когда MediaPlayer завершит инициализацию:
+        qualities = mediaPlayer.getAvailableQualities();
 
         reloadTexture();
     }
@@ -95,18 +88,12 @@ public class Screen extends DisplaysCustomPayload<Screen> {
     }
 
     /**
-     * Перезагружает качество видео, обновляя m3u8-ссылки для MediaPlayer.
+     * Перезагружает качество видео, вызывая у MediaPlayer установку нового качества.
      */
     private void reloadQuality() {
-        M3U8Links.getM3U8(videoUrl, quality).thenAcceptAsync(m3u8LinksPacket -> {
-            double videoT = mediaPlayer.getVideoCurrentTime();
-
-            mediaPlayer.close();
-            mediaPlayer = new MediaPlayer(m3u8LinksPacket.videoUrl(), m3u8LinksPacket.audioUrl());
-            mediaPlayer.play();
-
-            mediaPlayer.seekTo(videoT);
-        });
+        if (mediaPlayer != null) {
+            mediaPlayer.setQuality(quality);
+        }
     }
 
     public boolean isVideoStarted() {
@@ -199,41 +186,8 @@ public class Screen extends DisplaysCustomPayload<Screen> {
         return muted;
     }
 
-    public MCEFBrowser getBrowser() {
-        return browser;
-    }
-
-    public boolean hasBrowser() {
-        return browser != null;
-    }
-
     public long getPlayTime() {
         return playTime;
-    }
-
-    public void reload() {
-        if (video != null) {
-            playTime = (System.currentTimeMillis() - startTime);
-            loadVideo(video);
-        }
-    }
-
-    public void loadVideo(Video video) {
-        this.video = video;
-        ImageUtil.fetchImageTextureFromUrl(video.getVideoInfo().getThumbnailUrl())
-                .thenAccept(nativeImageBackedTexture -> previewTexture = nativeImageBackedTexture);
-        // Дополнительная логика работы с браузером может быть здесь (закомментировано)
-    }
-
-    public void closeBrowser() {
-        if (browser != null) {
-            browser.close();
-            browser = null;
-        }
-    }
-
-    public Video getVideo() {
-        return video;
     }
 
     /**
@@ -308,6 +262,8 @@ public class Screen extends DisplaysCustomPayload<Screen> {
      * @param seconds число секунд для сдвига (может быть отрицательным)
      */
     public void seekVideoRelative(long seconds) {
+        System.out.println("Seeking " + seconds);
+
         if (mediaPlayer != null) {
             mediaPlayer.seekRelative(seconds);
         }
@@ -330,10 +286,8 @@ public class Screen extends DisplaysCustomPayload<Screen> {
 
     public void unregister() {
         unregistered = true;
-        if (mediaPlayer != null) mediaPlayer.close();
+        // Если потребуется закрыть MediaPlayer, можно добавить вызов mediaPlayer.stop() или аналогичный
     }
-
-    private NativeImageBackedTexture previewTexture = null;
 
     public NativeImageBackedTexture getPreviewTexture() {
         return previewTexture;
@@ -363,7 +317,11 @@ public class Screen extends DisplaysCustomPayload<Screen> {
         textureWidth = (int) (width / (double) height * qualityInt);
         textureHeight = qualityInt;
 
+        System.out.println(textureWidth + "x" + textureHeight);
+        System.out.println(qualityInt);
+
         textureId = RenderUtil2D.createEmptyTexture(textureWidth, textureHeight);
+        System.out.println(textureId);
     }
 
     /**

@@ -16,8 +16,7 @@ public class CrossHairMixin {
     public void renderCrosshair(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
 
         if (
-                CinemaModClient.getInstance().getScreenManager().hasActiveScreen()
-                && CinemaModClient.getInstance().getVideoSettings().isHideCrosshair()
+                CinemaModClient.getInstance().getVideoSettings().isHideCrosshair()
                 && CinemaModClient.isOnScreen
         ) {
             ci.cancel();

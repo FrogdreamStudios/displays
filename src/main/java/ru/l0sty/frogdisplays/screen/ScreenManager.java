@@ -22,7 +22,6 @@ public class ScreenManager {
         if (screens.containsKey(screen.getID())) {
             Screen old = screens.get(screen.getID());
             old.unregister();
-            old.closeBrowser();
         }
 
         screens.put(screen.getID(), screen);
@@ -30,23 +29,11 @@ public class ScreenManager {
 
     public void unregisterScreen(Screen screen) {
         screens.remove(screen.getID());
-        screen.closeBrowser();
         screen.unregister();
-    }
-
-    public boolean hasActiveScreen() {
-        for (Screen screen : screens.values()) {
-            if (screen.hasBrowser()) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     public void unloadAll() {
         for (Screen screen : screens.values()) {
-            screen.closeBrowser();
             screen.unregister();
         }
 

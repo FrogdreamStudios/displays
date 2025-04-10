@@ -1,349 +1,290 @@
 package ru.l0sty.frogdisplays.testVideo;
 
-import org.bytedeco.javacv.FFmpegFrameGrabber;
-import org.bytedeco.javacv.Frame;
-import org.bytedeco.javacv.Java2DFrameConverter;
+import com.github.felipeucelli.javatube.Stream;
+import com.github.felipeucelli.javatube.Youtube;
+import org.freedesktop.gstreamer.Clock;
+import org.freedesktop.gstreamer.Caps;
+import org.freedesktop.gstreamer.Buffer;
+import org.freedesktop.gstreamer.Element;
+import org.freedesktop.gstreamer.Format;
+import org.freedesktop.gstreamer.Gst;
+import org.freedesktop.gstreamer.Pipeline;
+import org.freedesktop.gstreamer.Sample;
+import org.freedesktop.gstreamer.Structure;
+import org.freedesktop.gstreamer.event.SeekFlags;
+import org.freedesktop.gstreamer.event.SeekType;
+import org.freedesktop.gstreamer.elements.AppSink;
+import org.lwjgl.opengl.GL11;
 
-import javax.sound.sampled.*;
-import java.awt.*;
+import java.awt.AlphaComposite;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.ShortBuffer;
-import org.lwjgl.opengl.GL11;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 public class MediaPlayer {
-    // URL для видео и аудио
-    private String videoStreamUrl;
-    private String audioStreamUrl;
-
-    // ======== Видео ==========
-    private FFmpegFrameGrabber videoGrabber;
-    private volatile boolean videoRunning = false;
-    private Thread videoThread;
+    // Исходная ссылка на YouTube-видео
+    private final String youtubeUrl;
+    // Конвейеры GStreamer для видео и аудио
+    private volatile Pipeline videoPipeline;
+    private volatile Pipeline audioPipeline;
+    // Элемент appsink для получения видеокадров
+    private volatile AppSink videoSink;
+    // Последний полученный кадр
     private volatile BufferedImage currentFrame;
-    private Java2DFrameConverter videoConverter = new Java2DFrameConverter();
+    // Текущая громкость (по умолчанию 1.0)
+    private volatile double currentVolume = 0.0;
 
-    // ======== Аудио ==========
-    private FFmpegFrameGrabber audioGrabber;
-    private volatile boolean audioRunning = false;
-    private Thread audioThread;
-    private SourceDataLine audioLine;
+    // Список доступных видео потоков (только видео)
+    private volatile List<Stream> availableVideoStreams;
+    // Текущий выбранный видео поток
+    private volatile Stream currentVideoStream;
 
-    // ======== Синхронизация ==========
-    // syncTime – мастер-время, обновляемое аудиопотоком (в секундах)
-    private volatile double syncTime = 0;
+    // Флаг успешной инициализации (создания пайплайнов и извлечения потоков)
+    private volatile boolean initialized = false;
+    // Экзекутор для асинхронного выполнения операций
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    // Будущий результат инициализации
+    private final Future<?> initFuture;
 
-    // Флаги паузы
-    private volatile boolean videoPaused = false;
-    private volatile boolean audioPaused = false;
+    /**
+     * Конструктор, принимающий ссылку на YouTube-видео.
+     * Долгие операции (извлечение потоков и создание конвейеров) выполняются асинхронно.
+     */
+    public MediaPlayer(String youtubeUrl) {
+        this.youtubeUrl = youtubeUrl;
+        // Инициализация GStreamer (однократно для приложения)
+        Gst.init("MediaPlayer");
+        // Асинхронная инициализация
+        initFuture = executor.submit(() -> {
+            try {
+                // Извлечение потоков с YouTube через библиотеку javatube
+                System.out.println("Started search");
+                Youtube yt = new Youtube(youtubeUrl, "IOS");
+                List<Stream> allStreams = yt.streams().getAll();
 
-    // Флаг, сигнализирующий о том, что выполнен seek (для обработки синхронизации)
-    private volatile boolean justSeeked = false;
+                System.out.println(allStreams.size());
 
-    // ======== Прочие поля ========
-    // Используем системное время для аудио
-    private long audioStartMillis = 0;
+                // Отбираем только видео потоки
+                availableVideoStreams = allStreams.stream()
+                        .filter(s -> "video/webm".equals(s.getMimeType()))
+                        .toList();
 
-    // ======== Конструктор ==========
-    public MediaPlayer(String videoStreamUrl, String audioStreamUrl) {
-        this.videoStreamUrl = videoStreamUrl;
-        this.audioStreamUrl = audioStreamUrl;
-        videoGrabber = new FFmpegFrameGrabber(videoStreamUrl);
-        audioGrabber = new FFmpegFrameGrabber(audioStreamUrl);
+                // Выбираем видео поток по качеству: сначала ищем 480p, если нет – первый доступный
+                Optional<Stream> videoStreamOpt = availableVideoStreams.stream()
+                        .filter(stream -> stream.getResolution() != null)
+                        .filter(s -> s.getResolution().contains("144"))
+                        .findFirst();
+                if (!videoStreamOpt.isPresent()) {
+                    videoStreamOpt = availableVideoStreams.stream().findFirst();
+                }
+
+                // Выбираем аудио поток – последний из списка с mime-типом "mp4"
+                List<Stream> audioStreams = allStreams.stream()
+                        .filter(s -> "audio/webm".equals(s.getMimeType()))
+                        .toList();
+                Optional<Stream> audioStreamOpt = audioStreams.isEmpty()
+                        ? Optional.empty() : Optional.of(audioStreams.get(audioStreams.size() - 1));
+
+                if (!videoStreamOpt.isPresent() || !audioStreamOpt.isPresent()) {
+                    System.err.println("Не удалось выбрать видео или аудио поток.");
+                    return;
+                }
+
+                currentVideoStream = videoStreamOpt.get();
+                String videoStreamUrl = currentVideoStream.getUrl();
+                String audioStreamUrl = audioStreamOpt.get().getUrl();
+
+                // Создание конвейера для видео с использованием appsink (без вывода окна)
+                String videoPipelineDesc = "uridecodebin uri=\"" + videoStreamUrl + "\" ! videoconvert ! video/x-raw,format=RGBA ! appsink name=videosink";
+                videoPipeline = (Pipeline) Gst.parseLaunch(videoPipelineDesc);
+                videoSink = (AppSink) videoPipeline.getElementByName("videosink");
+                videoSink.set("emit-signals", true);
+                videoSink.set("sync", true);
+                videoSink.connect((AppSink.NEW_SAMPLE) elem -> {
+                    Sample sample = elem.pullSample();
+                    if (sample == null)
+                        return org.freedesktop.gstreamer.FlowReturn.OK;
+                    Caps caps = sample.getCaps();
+                    Structure struct = caps.getStructure(0);
+                    int width = struct.getInteger("width");
+                    int height = struct.getInteger("height");
+                    Buffer buffer = sample.getBuffer();
+                    ByteBuffer byteBuffer = buffer.map(false);
+                    byte[] data = new byte[byteBuffer.remaining()];
+                    byteBuffer.get(data);
+                    buffer.unmap();
+                    BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_4BYTE_ABGR);
+                    image.getRaster().setDataElements(0, 0, width, height, data);
+                    currentFrame = image;
+                    sample.dispose();
+
+                    System.out.println("Captured new videoSample");
+
+                    return org.freedesktop.gstreamer.FlowReturn.OK;
+                });
+
+                // Создание аудиоконвейера с элементом volume
+                String audioPipelineDesc = "uridecodebin uri=\"" + audioStreamUrl + "\" ! audioconvert ! audioresample ! volume name=volumeElement volume=" + currentVolume + " ! autoaudiosink";
+                audioPipeline = (Pipeline) Gst.parseLaunch(audioPipelineDesc);
+
+                initialized = true;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     /**
-     * Запускает воспроизведение: инициализирует грабберы, аудиовыход и стартует
-     * отдельные потоки для видео и аудио.
+     * Асинхронно запускает воспроизведение обоих конвейеров.
      */
     public void play() {
-        try {
-            videoGrabber.start();
-            audioGrabber.start();
-            setupAudioLine();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return;
-        }
-        videoRunning = true;
-        audioRunning = true;
-        videoThread = new Thread(this::videoDecodeLoop);
-        audioThread = new Thread(this::audioDecodeLoop);
-        videoThread.start();
-        audioThread.start();
+        executor.submit(() -> {
+            if (!initialized) return;
+            Clock audioClock = audioPipeline.getClock();
+            if (audioClock != null) {
+                videoPipeline.setClock(audioClock);
+            }
+            videoPipeline.play();
+            audioPipeline.play();
+        });
     }
 
     /**
-     * Инициализирует аудиовыход по параметрам аудиограббера.
+     * Асинхронно переводит конвейеры в режим паузы.
      */
-    private void setupAudioLine() throws LineUnavailableException {
-        int sampleRate = audioGrabber.getSampleRate();
-        int channels = audioGrabber.getAudioChannels();
-        AudioFormat format = new AudioFormat(sampleRate, 16, channels, true, false);
-        DataLine.Info info = new DataLine.Info(SourceDataLine.class, format);
-        audioLine = (SourceDataLine) AudioSystem.getLine(info);
-        audioLine.open(format);
-        audioLine.start();
-        // Зафиксируем время старта аудио для системного времени
-        audioStartMillis = System.currentTimeMillis();
-    }
-
-    /**
-     * Поток аудио: захватывает аудиофреймы, выводит их в аудиоустройство и обновляет мастер-время синхронизации.
-     */
-    private void audioDecodeLoop() {
-        while (audioRunning) {
-            try {
-                if (audioPaused) {
-                    Thread.sleep(10);
-                    continue;
-                }
-                Frame frame = audioGrabber.grabSamples();
-                if (frame == null) {
-                    // Перезапускаем аудиопоток при достижении конца
-                    audioGrabber.setTimestamp(0);
-                    audioStartMillis = System.currentTimeMillis();
-                    continue;
-                }
-                // Получаем время по грабберу и системному времени, выбираем большее
-                double tsFromGrabber = audioGrabber.getTimestamp() / 1e6;
-                double systemAudioTime = (System.currentTimeMillis() - audioStartMillis) / 1000.0;
-                double audioCurrentTime = Math.max(tsFromGrabber, systemAudioTime);
-                syncTime = audioCurrentTime;
-
-                if (frame.samples != null && frame.samples.length > 0) {
-                    ShortBuffer channelSamples = (ShortBuffer) frame.samples[0];
-                    channelSamples.rewind();
-                    int numSamples = channelSamples.remaining();
-                    byte[] buffer = new byte[numSamples * 2]; // 2 байта на short
-                    for (int i = 0; i < numSamples; i++) {
-                        short sample = channelSamples.get();
-                        buffer[i * 2] = (byte) (sample & 0xFF);
-                        buffer[i * 2 + 1] = (byte) ((sample >> 8) & 0xFF);
-                    }
-                    audioLine.write(buffer, 0, buffer.length);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        cleanupAudio();
-    }
-
-    /**
-     * Поток видео: захватывает кадры, синхронизует их по времени аудио и обновляет currentFrame.
-     * При выполнении seek флаг justSeeked отключает задержку, чтобы избежать «зависания».
-     *
-     * Основное изменение – если разница между аудио и видео (diff) находится в пределах ±100 мс,
-     * то вместо sleep() используется Thread.yield(), чтобы не добавлять дополнительную задержку.
-     */
-    private void videoDecodeLoop() {
-        while (videoRunning) {
-            try {
-                if (videoPaused) {
-                    Thread.sleep(10);
-                    continue;
-                }
-                // Если был выполнен seek, сбрасываем флаг и пропускаем задержку
-                if (justSeeked) {
-                    justSeeked = false;
-                    Thread.yield();
-                }
-
-                Frame frame = videoGrabber.grab();
-                if (frame == null) {
-                    videoGrabber.setTimestamp(0);
-                    continue;
-                }
-                currentFrame = videoConverter.convert(frame);
-                // Получаем текущее время видео в секундах
-                long videoTS = videoGrabber.getTimestamp();
-                double videoTime = videoTS / 1e6;
-
-                // Вычисляем разницу: diff > 0 – аудио опережает видео, diff < 0 – видео опережает аудио
-                double diff = syncTime - videoTime;
-                System.out.println("VideoTime: " + videoTime + " AudioTime: " + syncTime + " Diff: " + diff);
-
-                // Если разница меньше ±100 мс, не используем sleep, чтобы не вносить дополнительную задержку.
-                if (Math.abs(diff) < 0.1) {
-                    Thread.yield();
-                } else if (diff < -0.1) { // видео опережает аудио более чем на 100 мс
-                    // Пытаемся сократить задержку, спим лишь на половину разницы
-                    long sleepTime = (long)((-diff) * 500);
-                    Thread.sleep(sleepTime);
-                } else if (diff > 0.1) { // видео отстаёт от аудио более чем на 100 мс
-                    // В данном случае можно попробовать не ждать, чтобы быстрее догнать аудио
-                    Thread.yield();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        cleanupVideo();
-    }
-
-    public void setVolume(float volume) {
-        if (audioLine != null && audioLine.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
-            FloatControl gainControl = (FloatControl) audioLine.getControl(FloatControl.Type.MASTER_GAIN);
-            float min = gainControl.getMinimum();
-            float max = gainControl.getMaximum();
-            float newGain = min + (max - min) * volume;
-            gainControl.setValue(newGain);
-        }
-    }
-
-    /**
-     * Останавливает и освобождает аудиограббер и аудиовыход.
-     */
-    private void cleanupAudio() {
-        try {
-            if (audioLine != null) {
-                audioLine.drain();
-                audioLine.stop();
-                audioLine.close();
-            }
-            if (audioGrabber != null) {
-                audioGrabber.stop();
-                audioGrabber.release();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Останавливает и освобождает видеограббер.
-     */
-    private void cleanupVideo() {
-        try {
-            if (videoGrabber != null) {
-                videoGrabber.stop();
-                videoGrabber.close();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    // Управление воспроизведением
     public void pause() {
-        videoPaused = true;
-        audioPaused = true;
-    }
-
-    public void resume() {
-        videoPaused = false;
-        audioPaused = false;
+        executor.submit(() -> {
+            if (!initialized) return;
+            videoPipeline.pause();
+            audioPipeline.pause();
+        });
     }
 
     /**
-     * Останавливает оба потока воспроизведения.
+     * Асинхронно продолжает воспроизведение.
+     */
+    public void resume() {
+        executor.submit(() -> {
+            if (!initialized) return;
+            videoPipeline.play();
+            audioPipeline.play();
+        });
+    }
+
+    /**
+     * Асинхронно останавливает воспроизведение и освобождает ресурсы.
      */
     public void stop() {
-        videoRunning = false;
-        audioRunning = false;
-        try {
-            if (videoThread != null) {
-                videoThread.join();
-            }
-            if (audioThread != null) {
-                audioThread.join();
-            }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        executor.submit(() -> {
+            if (!initialized) return;
+            videoPipeline.stop();
+            audioPipeline.stop();
+        });
+        executor.shutdown();
     }
 
     /**
-     * Относительный seek для видео и аудио.
-     * После seek устанавливается флаг justSeeked, чтобы в следующем цикле видео не зависать.
+     * Асинхронно выполняет seek обоих конвейеров к заданному времени в секундах.
      *
-     * @param offsetSeconds смещение в секундах
+     * @param seconds абсолютное время в секундах.
      */
-    public synchronized void seekRelative(double offsetSeconds) {
-        try {
-            long offsetMicro = (long) (offsetSeconds * 1_000_000);
-            long currentTS = (long) (syncTime * 1_000_000);
-            long newTS = currentTS + offsetMicro;
-            if (newTS < 0) {
-                newTS = 0;
-            }
-            if (videoGrabber != null) {
-                try {
-                    long videoDuration = videoGrabber.getLengthInTime();
-                    if (videoDuration > 0 && newTS > videoDuration) {
-                        newTS = videoDuration;
-                    }
-                } catch (Exception ex) { }
-                videoGrabber.setTimestamp(newTS);
-            }
-            if (audioGrabber != null) {
-                try {
-                    long audioDuration = audioGrabber.getLengthInTime();
-                    if (audioDuration > 0 && newTS > audioDuration) {
-                        newTS = audioDuration;
-                    }
-                } catch (Exception ex) { }
-                audioGrabber.setTimestamp(newTS);
-                // Пересчитываем системное время для аудио
-                audioStartMillis = System.currentTimeMillis() - newTS / 1000;
-                syncTime = (double) newTS / 1_000_000;
-            }
-            justSeeked = true;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public void seekTo(double seconds) {
+        executor.submit(() -> {
+            if (!initialized) return;
+            long nanos = (long) (seconds * 1e9);
+            System.out.println(videoPipeline.getState());
+            System.out.println(seconds);
+
+            EnumSet<SeekFlags> seekFlags = EnumSet.of(SeekFlags.FLUSH, SeekFlags.ACCURATE);
+
+            System.out.println(videoPipeline.seekSimple(Format.TIME, seekFlags, nanos));
+            System.out.println(audioPipeline.seekSimple(Format.TIME, seekFlags, nanos));
+        });
     }
 
     /**
-     * Выполняет seek для видео и аудио к заданному времени.
+     * Асинхронно выполняет относительный seek (смещение в секундах) для обоих конвейеров.
      *
-     * @param seconds время в секундах
+     * @param offsetSeconds смещение в секундах (положительное или отрицательное).
      */
-    public synchronized void seekTo(double seconds) {
-        try {
-            long newTS = (long) (seconds * 1_000_000);
-            if (newTS < 0) {
-                newTS = 0;
+    public void seekRelative(double offsetSeconds) {
+        executor.submit(() -> {
+            if (!initialized) return;
+            long current = videoPipeline.queryPosition(Format.TIME);
+            if (current < 0) {
+                current = 0;
             }
-            if (videoGrabber != null) {
-                try {
-                    long videoDuration = videoGrabber.getLengthInTime();
-                    if (videoDuration > 0 && newTS > videoDuration) {
-                        newTS = videoDuration;
-                    }
-                } catch (Exception ex) { }
-                videoGrabber.setTimestamp(newTS);
+
+            long offset = (long) (offsetSeconds * 1e9);
+
+            long target = current + offset;
+
+            if (target < 0) {
+                target = 0;
             }
-            if (audioGrabber != null) {
-                try {
-                    long audioDuration = audioGrabber.getLengthInTime();
-                    if (audioDuration > 0 && newTS > audioDuration) {
-                        newTS = audioDuration;
-                    }
-                } catch (Exception ex) { }
-                audioGrabber.setTimestamp(newTS);
-                audioStartMillis = System.currentTimeMillis() - newTS / 1000;
-                syncTime = (double) newTS / 1_000_000;
-            }
-            justSeeked = true;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+
+            seekTo(((double) target) / 1e9);
+        });
     }
 
+    /**
+     * Возвращает текущую позицию видео в секундах.
+     * Если конвейеры не инициализированы, возвращает 0.
+     */
     public double getVideoCurrentTime() {
-        return videoGrabber.getTimestamp() / 1e6;
-    }
-
-    public double getAudioCurrentTime() {
-        return audioGrabber.getTimestamp() / 1e6;
+        if (!initialized) return 0;
+        return ((double) videoPipeline.queryPosition(Format.TIME)) / 1e9;
     }
 
     /**
-     * Обновляет содержимое OpenGL-текстуры текущим видео-кадром.
+     * Возвращает текущую позицию аудио в секундах.
+     * Если конвейеры не инициализированы, возвращает 0.
+     */
+    public double getAudioCurrentTime() {
+        if (!initialized) return 0;
+        return ((double) audioPipeline.queryPosition(Format.TIME)) / 1e9;
+    }
+
+    /**
+     * Асинхронно изменяет громкость аудио.
+     *
+     * @param volume значение громкости (например, 0.0 ... 1.0).
+     */
+    public void setVolume(double volume) {
+        currentVolume = volume;
+        executor.submit(() -> {
+            if (!initialized) return;
+            Element volumeElement = audioPipeline.getElementByName("volumeElement");
+            if (volumeElement != null) {
+                volumeElement.set("volume", volume);
+            }
+        });
+    }
+
+    /**
+     * Возвращает текущую громкость.
+     */
+    public double getVolume() {
+        return currentVolume;
+    }
+
+    /**
+     * Позволяет обновить OpenGL-текстуру текущим видеокадром.
+     *
+     * @param textureId     идентификатор текстуры.
+     * @param textureWidth  ширина текстуры.
+     * @param textureHeight высота текстуры.
      */
     public void updateFrame(int textureId, int textureWidth, int textureHeight) {
         if (currentFrame != null) {
@@ -351,6 +292,9 @@ public class MediaPlayer {
         }
     }
 
+    /**
+     * Метод загрузки BufferedImage в OpenGL-текстуру.
+     */
     private void uploadBufferedImageToTexture(BufferedImage image, int textureId, int textureWidth, int textureHeight) {
         BufferedImage textureImage = new BufferedImage(textureWidth, textureHeight, BufferedImage.TYPE_4BYTE_ABGR);
         Graphics2D g = textureImage.createGraphics();
@@ -387,65 +331,104 @@ public class MediaPlayer {
     }
 
     /**
-     * Меняет m3u8-ссылку для аудио, продолжая воспроизведение с того же места.
+     * Возвращает true, если инициализация (извлечение потоков и создание пайплайнов) завершена.
      */
-    public void changeAudioStreamUrl(String newUrl) {
-        long currentTimestamp = 0;
-        if (audioGrabber != null) {
-            currentTimestamp = audioGrabber.getTimestamp();
-        }
-        stopAudio();
-        this.audioStreamUrl = newUrl;
-        audioGrabber = new FFmpegFrameGrabber(newUrl);
-        playAudioInternal(currentTimestamp);
+    public boolean isInitialized() {
+        return initialized;
     }
 
-    private void stopAudio() {
-        audioRunning = false;
-        if (audioThread != null) {
-            audioThread.interrupt();
+    /**
+     * Возвращает список доступных качеств (например, "144p", "240p", "360p", "480p", "720p", ...).
+     * Если инициализация не завершена, возвращается пустой список.
+     */
+    public List<String> getAvailableQualities() {
+        if (!initialized || availableVideoStreams == null) return Collections.emptyList();
+        // Собираем уникальные значения качества
+        return availableVideoStreams.stream()
+                .map(Stream::getResolution)
+                .distinct()
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Асинхронно устанавливает требуемое качество видео.
+     * Если такого качества нет, выбирается ближайшее по числовому значению.
+     *
+     * @param desiredQuality требуемое качество (например, "480p").
+     */
+    public void setQuality(String desiredQuality) {
+        executor.submit(() -> {
+            if (!initialized || availableVideoStreams == null) return;
+            int target;
             try {
-                audioThread.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+                // Извлекаем число из строки (например, из "480p")
+                target = Integer.parseInt(desiredQuality.replaceAll("\\D+", ""));
+            } catch (NumberFormatException e) {
+                System.err.println("Неверный формат качества: " + desiredQuality);
+                return;
             }
-        }
-        audioThread = null;
-    }
+            // Поиск потока, у которого качество максимально близко к заданному
+            Optional<Stream> bestMatch = availableVideoStreams.stream().filter(stream -> stream.getResolution() != null).min((s1, s2) -> {
+                int q1, q2;
+                try {
+                    q1 = Integer.parseInt(s1.getResolution().replaceAll("\\D+", ""));
+                } catch (NumberFormatException e) { q1 = Integer.MAX_VALUE; }
+                try {
+                    q2 = Integer.parseInt(s2.getResolution().replaceAll("\\D+", ""));
+                } catch (NumberFormatException e) { q2 = Integer.MAX_VALUE; }
+                return Integer.compare(Math.abs(q1 - target), Math.abs(q2 - target));
+            });
+            if (!bestMatch.isPresent()) return;
+            Stream chosenStream = bestMatch.get();
+            // Если выбранный поток совпадает с текущим, ничего не делаем
+            if (currentVideoStream != null && chosenStream.getUrl().equals(currentVideoStream.getUrl()))
+                return;
 
-    /**
-     * Запускает аудио с указанного таймстампа.
-     */
-    private void playAudioInternal(long startTimestamp) {
-        try {
-            audioGrabber.start();
-            audioGrabber.setTimestamp(startTimestamp);
-            setupAudioLine();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return;
-        }
-        audioThread = new Thread(this::audioDecodeLoop);
-        audioRunning = true;
-        audioThread.start();
-    }
+            // Создаем новый видео-конвейер для выбранного качества
+            String newVideoPipelineDesc = "uridecodebin uri=\"" + chosenStream.getUrl() + "\" ! videoconvert ! video/x-raw,format=RGBA ! appsink name=videosink";
+            Pipeline newVideoPipeline = (Pipeline) Gst.parseLaunch(newVideoPipelineDesc);
+            AppSink newVideoSink = (AppSink) newVideoPipeline.getElementByName("videosink");
+            newVideoSink.set("emit-signals", true);
+            newVideoSink.set("sync", true);
+            newVideoSink.connect((AppSink.NEW_SAMPLE) elem -> {
+                Sample sample = elem.pullSample();
+                if (sample == null)
+                    return org.freedesktop.gstreamer.FlowReturn.OK;
+                Caps caps = sample.getCaps();
+                Structure struct = caps.getStructure(0);
+                int width = struct.getInteger("width");
+                int height = struct.getInteger("height");
+                Buffer buffer = sample.getBuffer();
+                ByteBuffer byteBuffer = buffer.map(false);
+                byte[] data = new byte[byteBuffer.remaining()];
+                byteBuffer.get(data);
+                buffer.unmap();
+                BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_4BYTE_ABGR);
+                image.getRaster().setDataElements(0, 0, width, height, data);
+                currentFrame = image;
+                sample.dispose();
+                return org.freedesktop.gstreamer.FlowReturn.OK;
+            });
 
-    /**
-     * Завершает работу плеера и освобождает ресурсы.
-     */
-    public void close() {
-        stop();
-        try {
-            if (videoGrabber != null) {
-                videoGrabber.stop();
-                videoGrabber.close();
+            // Синхронизируем новый видео-конвейер с аудио (если возможно)
+            Clock audioClock = audioPipeline.getClock();
+            if (audioClock != null) {
+                newVideoPipeline.setClock(audioClock);
             }
-            if (audioGrabber != null) {
-                audioGrabber.stop();
-                audioGrabber.close();
+            // Запускаем новый видео-конвейер
+            newVideoPipeline.play();
+
+            seekTo(((double) audioPipeline.queryPosition(Format.TIME)) / 1e9);
+
+            // Останавливаем и освобождаем старый видео-конвейер
+            if (videoPipeline != null) {
+                videoPipeline.stop();
+                videoPipeline.dispose();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+            // Обновляем ссылку на текущий видео поток и конвейер
+            videoPipeline = newVideoPipeline;
+            videoSink = newVideoSink;
+            currentVideoStream = chosenStream;
+        });
     }
 }
