@@ -2,10 +2,9 @@ package ru.l0sty.frogdisplays;
 
 import ru.l0sty.frogdisplays.screen.Screen;
 import net.minecraft.client.MinecraftClient;
+import ru.l0sty.frogdisplays.screen.ScreenManager;
 
 public class WindowFocusMuteThread extends Thread {
-
-    private boolean previousState;
 
     public WindowFocusMuteThread() {
         setDaemon(true);
@@ -14,29 +13,36 @@ public class WindowFocusMuteThread extends Thread {
 
     @Override
     public void run() {
-        while (MinecraftClient.getInstance() != null) {
-            if (CinemaModClient.getInstance().getVideoSettings().isMuteWhenAltTabbed()) {
-                if (MinecraftClient.getInstance().isWindowFocused() && !previousState) {
-                    // if currently focused and was previously not focused
-                    for (Screen screen : CinemaModClient.getInstance().getScreenManager().getScreens()) {
-                        screen.mute(true);
-                    }
-                } else if (!MinecraftClient.getInstance().isWindowFocused() && previousState) {
-                    // if not focused and was previous focused
-                    for (Screen screen : CinemaModClient.getInstance().getScreenManager().getScreens()) {
-                        screen.mute(false);
-                    }
-                }
+        boolean previousState = true;
+        while (true) {
+            // Всегда получаем актуальный инстанс клиента
+            MinecraftClient client = MinecraftClient.getInstance();
+            if (client == null) {
+                break;
+            }
 
-                previousState = MinecraftClient.getInstance().isWindowFocused();
+            if (FrogDisplaysMod.getConfig().muteOnAltTab) {
+                boolean focused = client.isWindowFocused();
+
+                // При первом заходе инициализируем previousState,
+                // а при смене состояния фокуса — переключаем mute
+                if (focused != previousState) {
+                    for (Screen screen : ScreenManager.getScreens()) {
+                        screen.mute(!focused);
+                    }
+                    previousState = focused;
+                }
             }
 
             try {
                 Thread.sleep(250);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                Thread.currentThread().interrupt();
+                break;
             }
         }
     }
+
+
 
 }

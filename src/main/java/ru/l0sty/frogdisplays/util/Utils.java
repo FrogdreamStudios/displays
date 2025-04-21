@@ -1,6 +1,4 @@
 package ru.l0sty.frogdisplays.util;
-import ru.l0sty.frogdisplays.CinemaModClient;
-import ru.l0sty.frogdisplays.screen.Screen;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

@@ -1,4 +1,4 @@
-package ru.l0sty.frogdisplays.testVideo;
+package ru.l0sty.frogdisplays.screen;
 
 import com.github.felipeucelli.javatube.Stream;
 import com.github.felipeucelli.javatube.Youtube;
@@ -12,7 +12,6 @@ import org.freedesktop.gstreamer.Pipeline;
 import org.freedesktop.gstreamer.Sample;
 import org.freedesktop.gstreamer.Structure;
 import org.freedesktop.gstreamer.event.SeekFlags;
-import org.freedesktop.gstreamer.event.SeekType;
 import org.freedesktop.gstreamer.elements.AppSink;
 import org.lwjgl.opengl.GL11;
 
@@ -23,10 +22,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -35,6 +31,7 @@ import java.util.stream.Collectors;
 public class MediaPlayer {
     // Исходная ссылка на YouTube-видео
     private final String youtubeUrl;
+    private int lastQuality;
     // Конвейеры GStreamer для видео и аудио
     private volatile Pipeline videoPipeline;
     private volatile Pipeline audioPipeline;
@@ -57,6 +54,8 @@ public class MediaPlayer {
     // Будущий результат инициализации
     private final Future<?> initFuture;
 
+    private boolean paused = true;
+
     /**
      * Конструктор, принимающий ссылку на YouTube-видео.
      * Долгие операции (извлечение потоков и создание конвейеров) выполняются асинхронно.
@@ -70,10 +69,18 @@ public class MediaPlayer {
             try {
                 // Извлечение потоков с YouTube через библиотеку javatube
                 System.out.println("Started search");
-                Youtube yt = new Youtube(youtubeUrl, "IOS");
-                List<Stream> allStreams = yt.streams().getAll();
+                Youtube yt;
 
-                System.out.println(allStreams.size());
+                List<Stream> allStreams;
+                try {
+                    yt = new Youtube(youtubeUrl, "IOS");
+                    System.out.println("Found Youtube object");
+                    allStreams  = yt.streams().getAll();
+                    System.out.println("Stream count: " + allStreams.size());
+                } catch (Exception e) {
+                    System.out.println("Failed to load youtube video" + youtubeUrl);
+                    throw new RuntimeException(e);
+                }
 
                 // Отбираем только видео потоки
                 availableVideoStreams = allStreams.stream()
@@ -85,7 +92,10 @@ public class MediaPlayer {
                         .filter(stream -> stream.getResolution() != null)
                         .filter(s -> s.getResolution().contains("144"))
                         .findFirst();
-                if (!videoStreamOpt.isPresent()) {
+
+                lastQuality = 144;
+
+                if (videoStreamOpt.isEmpty()) {
                     videoStreamOpt = availableVideoStreams.stream().findFirst();
                 }
 
@@ -94,9 +104,9 @@ public class MediaPlayer {
                         .filter(s -> "audio/webm".equals(s.getMimeType()))
                         .toList();
                 Optional<Stream> audioStreamOpt = audioStreams.isEmpty()
-                        ? Optional.empty() : Optional.of(audioStreams.get(audioStreams.size() - 1));
+                        ? Optional.empty() : Optional.of(audioStreams.getLast());
 
-                if (!videoStreamOpt.isPresent() || !audioStreamOpt.isPresent()) {
+                if (videoStreamOpt.isEmpty() || audioStreamOpt.isEmpty()) {
                     System.err.println("Не удалось выбрать видео или аудио поток.");
                     return;
                 }
@@ -157,6 +167,7 @@ public class MediaPlayer {
             }
             videoPipeline.play();
             audioPipeline.play();
+            paused = false;
         });
     }
 
@@ -168,6 +179,7 @@ public class MediaPlayer {
             if (!initialized) return;
             videoPipeline.pause();
             audioPipeline.pause();
+            paused = true;
         });
     }
 
@@ -179,6 +191,7 @@ public class MediaPlayer {
             if (!initialized) return;
             videoPipeline.play();
             audioPipeline.play();
+            paused = false;
         });
     }
 
@@ -187,9 +200,9 @@ public class MediaPlayer {
      */
     public void stop() {
         executor.submit(() -> {
-            if (!initialized) return;
-            videoPipeline.stop();
-            audioPipeline.stop();
+            if (videoPipeline != null) videoPipeline.stop();
+            if (audioPipeline != null) audioPipeline.stop();
+            executor.shutdownNow();
         });
         executor.shutdown();
     }
@@ -292,6 +305,10 @@ public class MediaPlayer {
         }
     }
 
+    public boolean textureFilled() {
+        return currentFrame != null;
+    }
+
     /**
      * Метод загрузки BufferedImage в OpenGL-текстуру.
      */
@@ -341,12 +358,18 @@ public class MediaPlayer {
      * Возвращает список доступных качеств (например, "144p", "240p", "360p", "480p", "720p", ...).
      * Если инициализация не завершена, возвращается пустой список.
      */
-    public List<String> getAvailableQualities() {
+    public List<Integer> getAvailableQualities() {
         if (!initialized || availableVideoStreams == null) return Collections.emptyList();
+
+        System.out.println("Returning non-empty list");
+
         // Собираем уникальные значения качества
         return availableVideoStreams.stream()
                 .map(Stream::getResolution)
+                .filter(Objects::nonNull)
                 .distinct()
+                .map(q -> Integer.parseInt(q.replace("p", "")))
+                .sorted(Integer::compareTo)
                 .collect(Collectors.toList());
     }
 
@@ -367,6 +390,9 @@ public class MediaPlayer {
                 System.err.println("Неверный формат качества: " + desiredQuality);
                 return;
             }
+
+            if (target == lastQuality) return;
+
             // Поиск потока, у которого качество максимально близко к заданному
             Optional<Stream> bestMatch = availableVideoStreams.stream().filter(stream -> stream.getResolution() != null).min((s1, s2) -> {
                 int q1, q2;
@@ -378,7 +404,7 @@ public class MediaPlayer {
                 } catch (NumberFormatException e) { q2 = Integer.MAX_VALUE; }
                 return Integer.compare(Math.abs(q1 - target), Math.abs(q2 - target));
             });
-            if (!bestMatch.isPresent()) return;
+            if (bestMatch.isEmpty()) return;
             Stream chosenStream = bestMatch.get();
             // Если выбранный поток совпадает с текущим, ничего не делаем
             if (currentVideoStream != null && chosenStream.getUrl().equals(currentVideoStream.getUrl()))
@@ -416,9 +442,9 @@ public class MediaPlayer {
                 newVideoPipeline.setClock(audioClock);
             }
             // Запускаем новый видео-конвейер
-            newVideoPipeline.play();
+            if (paused) newVideoPipeline.pause();
+            else newVideoPipeline.play();
 
-            seekTo(((double) audioPipeline.queryPosition(Format.TIME)) / 1e9);
 
             // Останавливаем и освобождаем старый видео-конвейер
             if (videoPipeline != null) {
@@ -427,6 +453,9 @@ public class MediaPlayer {
             }
             // Обновляем ссылку на текущий видео поток и конвейер
             videoPipeline = newVideoPipeline;
+
+            seekTo(((double) audioPipeline.queryPosition(Format.TIME)) / 1e9);
+
             videoSink = newVideoSink;
             currentVideoStream = chosenStream;
         });

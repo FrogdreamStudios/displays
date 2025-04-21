@@ -5,15 +5,14 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Drawable;
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.SliderWidget;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
-import ru.l0sty.frogdisplays.CinemaMod;
-import ru.l0sty.frogdisplays.CinemaModClient;
+import ru.l0sty.frogdisplays.FrogDisplaysMod;
 import ru.l0sty.frogdisplays.render.RenderUtil2D;
 import ru.l0sty.frogdisplays.screen.widgets.IconButtonWidget;
 import ru.l0sty.frogdisplays.screen.widgets.ToggleWidget;
+import ru.l0sty.frogdisplays.screen.widgets.SliderWidget;
 
 import java.util.List;
 
@@ -55,29 +54,29 @@ public class DisplayConfScreen extends Screen {
             }
         };
 
-        backButton = new IconButtonWidget(0, 0, 0, 0, 64, 64, Identifier.of(CinemaMod.MODID, "textures/gui/bbi.png"), 2) {
+        backButton = new IconButtonWidget(0, 0, 0, 0, 64, 64, Identifier.of(FrogDisplaysMod.MOD_ID, "textures/gui/bbi.png"), 2) {
             @Override
             public void onPress() {
                 screen.seekBackward();
             }
         };
 
-        forwardButton = new IconButtonWidget(0, 0, 0, 0, 64, 64, Identifier.of(CinemaMod.MODID, "textures/gui/bfi.png"), 2) {
+        forwardButton = new IconButtonWidget(0, 0, 0, 0, 64, 64, Identifier.of(FrogDisplaysMod.MOD_ID, "textures/gui/bfi.png"), 2) {
             @Override
             public void onPress() {
                 screen.seekForward();
             }
         };
 
-        pauseButton = new IconButtonWidget(0, 0, 0, 0, 64, 64, Identifier.of(CinemaMod.MODID, "textures/gui/bpi.png"), 2) {
+        pauseButton = new IconButtonWidget(0, 0, 0, 0, 64, 64, Identifier.of(FrogDisplaysMod.MOD_ID, "textures/gui/bpi.png"), 2) {
             @Override
             public void onPress() {
                 screen.setPaused(!screen.getPaused());
-                setIconTexture(screen.getPaused() ? Identifier.of(CinemaMod.MODID, "textures/gui/bupi.png") : Identifier.of(CinemaMod.MODID, "textures/gui/bpi.png"));
+                setIconTexture(screen.getPaused() ? Identifier.of(FrogDisplaysMod.MOD_ID, "textures/gui/bupi.png") : Identifier.of(FrogDisplaysMod.MOD_ID, "textures/gui/bpi.png"));
             }
         };
 
-        renderD = new SliderWidget(0, 0, 0, 0, Text.of(String.valueOf((int) CinemaModClient.maxDistance)), (CinemaModClient.maxDistance-24)/(96-24)) {
+        renderD = new SliderWidget(0, 0, 0, 0, Text.of(String.valueOf((int) FrogDisplaysMod.maxDistance)), (FrogDisplaysMod.maxDistance-24)/(96-24)) {
             @Override
             protected void updateMessage() {
                 setMessage(Text.of(String.valueOf((int) (value*(96-24)) + 24)));
@@ -85,36 +84,40 @@ public class DisplayConfScreen extends Screen {
 
             @Override
             protected void applyValue() {
-                CinemaModClient.maxDistance = value * (96-24) + 24;
+                FrogDisplaysMod.maxDistance = value * (96-24) + 24;
             }
         };
 
-        int lq = 4;
-        quality = new SliderWidget(0, 0, 0, 0, Text.of(screen.getQuality()+"p"), (double) fromQuality(screen.getQuality() + "p") /7) {
+        int lq = 0;
+        quality = new SliderWidget(0, 0, 0, 0, Text.of(screen.getQuality()+"p"), ((double) fromQuality(screen.getQuality())) / screen.getQualityList().size()) {
             @Override
             protected void updateMessage() {
-                setMessage(Text.of(toQuality((int) (value*7))));
+                setMessage(Text.of(toQuality((int) (value*screen.getQualityList().size()))));
             }
 
             @Override
             protected void applyValue() {
-                if (lq != (int) (value*7)) {
-                    screen.setQuality(toQuality((int) (value * 7)).replace("p", ""));
+                if (lq != (int) (value*screen.getQualityList().size())) {
+                    screen.setQuality(toQuality((int) (value * screen.getQualityList().size())).replace("p", ""));
                 }
             }
         };
 
-        renderDReset = new IconButtonWidget(0, 0, 0, 0, 64, 64, Identifier.of(CinemaMod.MODID, "textures/gui/bri.png"), 2) {
+        renderDReset = new IconButtonWidget(0, 0, 0, 0, 64, 64, Identifier.of(FrogDisplaysMod.MOD_ID, "textures/gui/bri.png"), 2) {
             @Override
             public void onPress() {
-                CinemaModClient.maxDistance = 64;
+                FrogDisplaysMod.maxDistance = 64;
+                renderD.value = 64;
+                renderD.setMessage(Text.of("64"));
             }
         };
 
-        qualityReset = new IconButtonWidget(0, 0, 0, 0, 64, 64, Identifier.of(CinemaMod.MODID, "textures/gui/bri.png"), 2) {
+        qualityReset = new IconButtonWidget(0, 0, 0, 0, 64, 64, Identifier.of(FrogDisplaysMod.MOD_ID, "textures/gui/bri.png"), 2) {
             @Override
             public void onPress() {
-                screen.setQuality(toQuality(3).replace("p", ""));
+                screen.setQuality(toQuality(2).replace("p", ""));
+                quality.value = (double) 2 /screen.getQualityList().size();
+                quality.setMessage(Text.of(toQuality(2)));
             }
         };
 
@@ -161,7 +164,7 @@ public class DisplayConfScreen extends Screen {
         int cY = textRenderer.fontHeight + 15 * 2;
 
         // Рисуем прямоугольник и экран
-        //context.fill(this.width / 2 - maxSW / 2, cY, this.width / 2 + maxSW / 2, cY + sH, 0xff000000);
+        context.fill(this.width / 2 - maxSW / 2, cY, this.width / 2 + maxSW / 2, cY + sH, 0xff000000);
         renderScreen(context, sX, cY, sW, sH);
 
         cY += sH;
@@ -217,7 +220,7 @@ public class DisplayConfScreen extends Screen {
                 Text.literal("Чтобы полностью отключить все").styled(style -> style.withColor(Formatting.DARK_GRAY)),
                 Text.literal("дисплеи, пропиши /display off").styled(style -> style.withColor(Formatting.DARK_GRAY)),
                 Text.empty(),
-                Text.literal("Сейчас: " + (int) CinemaModClient.maxDistance + " блоков").styled(style -> style.withColor(Formatting.YELLOW))
+                Text.literal("Сейчас: " + (int) FrogDisplaysMod.maxDistance + " блоков").styled(style -> style.withColor(Formatting.YELLOW))
         );
         renderTooltipIfHovered(context, mouseX, mouseY, renderDTextX, renderDTextY,
                 textRenderer.getWidth(renderDText), textRenderer.fontHeight, renderDTooltip);
@@ -284,30 +287,26 @@ public class DisplayConfScreen extends Screen {
     }
 
     private String toQuality(int resolution) {
-        return switch (resolution) {
-            case 0 -> "144p";
-            case 1 -> "240p";
-            case 2 -> "360p";
-            case 4 -> "720p";
-            case 5 -> "1080p";
-            case 6 -> "1440p";
-            case 7 -> "2160p";
-            default -> "480p";
-        };
+        List<Integer> list = screen.getQualityList();
 
+        if (list.isEmpty()) return "144p";
+
+        int i = Math.max(Math.min(resolution, list.size() - 1), 0);
+
+        System.out.println(i);
+
+        return list.get(i).toString()+"p";
     }
 
     private int fromQuality(String quality) {
-        return switch (quality) {
-            case "144p" -> 0;
-            case "240p" -> 1;
-            case "360p" -> 2;
-            case "720p" -> 4;
-            case "1080p" -> 5;
-            case "1440p" -> 6;
-            case "2160p" -> 7;
-            default -> 3;
-        };
+        List<Integer> list = screen.getQualityList();
+
+        if (list.isEmpty()) return 0;
+        int cQ = Integer.parseInt(quality.replace("p", ""));
+
+        int res = list.stream().filter(q -> q==cQ).findAny().orElse(Math.max(Math.min(list.getLast(), cQ), list.getFirst()));
+
+        return list.indexOf(list.contains(res) ? res: list.getFirst());
     }
 
     private void setScreen(ru.l0sty.frogdisplays.screen.Screen screen) {

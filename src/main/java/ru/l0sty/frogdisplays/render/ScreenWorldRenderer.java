@@ -10,9 +10,8 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import org.lwjgl.opengl.GL11;
-import ru.l0sty.frogdisplays.CinemaModClient;
 import ru.l0sty.frogdisplays.screen.Screen;
-import ru.l0sty.frogdisplays.util.ImageUtil;
+import ru.l0sty.frogdisplays.screen.ScreenManager;
 
 public class ScreenWorldRenderer {
 
@@ -28,8 +27,8 @@ public class ScreenWorldRenderer {
 
             // Получаем список экранов, которые надо отрисовать.
             // Предполагается, что метод getScreens() возвращает коллекцию Screen.
-            for (Screen screen : CinemaModClient.getInstance().getScreenManager().getScreens()) {
-                if (screen == null || !screen.isVisible()) continue;
+            for (Screen screen : ScreenManager.getScreens()) {
+                if (screen == null) continue;
                 if (screen.removalTextureId != -1) GL11.glDeleteTextures(screen.removalTextureId);
                 if (screen.textureId == -1) screen.createTexture();
 

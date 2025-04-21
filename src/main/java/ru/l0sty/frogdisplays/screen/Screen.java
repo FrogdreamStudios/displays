@@ -1,34 +1,51 @@
 package ru.l0sty.frogdisplays.screen;
 
 import net.minecraft.client.texture.NativeImageBackedTexture;
-import ru.l0sty.frogdisplays.buffer.DisplaysCustomPayload;
+import ru.l0sty.frogdisplays.net.DisplayInfoPacket;
 import ru.l0sty.frogdisplays.render.RenderUtil2D;
-import ru.l0sty.frogdisplays.testVideo.MediaPlayer;
 import ru.l0sty.frogdisplays.util.ImageUtil;
 import ru.l0sty.frogdisplays.util.Utils;
 import net.minecraft.util.math.BlockPos;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
-public class Screen extends DisplaysCustomPayload<Screen> {
+public class Screen {
+
+    public static Thread safeQualitySwitchThread = new Thread(() -> {
+        boolean isErrored = false;
+        while (!isErrored) {
+            ScreenManager.getScreens().forEach(screen -> {
+                 screen.reloadQuality();
+            });
+
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                isErrored = true;
+            }
+        }
+    });
+
+    static {
+        safeQualitySwitchThread.start();
+    }
+
     private int x;
     private int y;
     private int z;
     private String facing;
     private int width;
     private int height;
-    private boolean visible;
-    private boolean muted;
-    private UUID id;
+    private final UUID id;
     private float volume;
     private boolean videoStarted;
     private boolean paused;
-    private String quality = "720p";
+    private String quality = "144";
 
     // Список доступных качеств, можно обновлять через MediaPlayer.getAvailableQualities()
-    List<String> qualities = new ArrayList<>();
 
     // Используем объединённый MediaPlayer вместо отдельных VideoDecoder и AudioPlayer.
     private MediaPlayer mediaPlayer;
@@ -40,17 +57,11 @@ public class Screen extends DisplaysCustomPayload<Screen> {
     private int textureWidth = -1;
     private int textureHeight = -1;
 
-    private transient boolean unregistered;
     private transient BlockPos blockPos; // кэш позиции для производительности
-
-    private long playTime = 0;
-    private long startTime = 0;
-    private int duration;
 
     private NativeImageBackedTexture previewTexture = null;
 
-    public Screen(UUID id, int x, int y, int z, String facing, int width, int height, boolean visible, boolean muted) {
-        this();
+    public Screen(UUID id, int x, int y, int z, String facing, int width, int height) {
         this.id = id;
         this.x = x;
         this.y = y;
@@ -58,32 +69,35 @@ public class Screen extends DisplaysCustomPayload<Screen> {
         this.facing = facing;
         this.width = width;
         this.height = height;
-        this.visible = visible;
-        this.muted = muted;
     }
 
-    /**
-     * Загружает видео по заданному URL.
-     * Загружается превью, а затем создаётся экземпляр нового MediaPlayer по ссылке на YouTube-видео.
-     */
     public void loadVideo(String videoUrl) {
+        if (mediaPlayer != null) unregister();
         // Загружаем превью-изображение из YouTube (используем максимальное разрешение)
-        ImageUtil.fetchImageTextureFromUrl("https://img.youtube.com/vi/" + Utils.extractVideoId(videoUrl) + "/maxresdefault.jpg")
-                .thenAccept(nativeImageBackedTexture -> previewTexture = nativeImageBackedTexture);
-        this.videoUrl = videoUrl;
-
-        // Создаём новый MediaPlayer напрямую по ссылке на YouTube-видео.
-        mediaPlayer = new MediaPlayer(videoUrl);
-        // Обновление списка доступных качеств можно выполнить позднее, когда MediaPlayer завершит инициализацию:
-        qualities = mediaPlayer.getAvailableQualities();
+        CompletableFuture.runAsync(() -> {
+            ImageUtil.fetchImageTextureFromUrl("https://img.youtube.com/vi/" + Utils.extractVideoId(videoUrl) + "/maxresdefault.jpg")
+                    .thenAcceptAsync(nativeImageBackedTexture -> previewTexture = nativeImageBackedTexture);
+            this.videoUrl = videoUrl;
+            mediaPlayer = new MediaPlayer(videoUrl);
+        });
 
         reloadTexture();
     }
 
+    public void updateData(DisplayInfoPacket packet) {
+        this.x = packet.pos().x;
+        this.y = packet.pos().y;
+        this.z = packet.pos().z;
+
+        this.facing = String.valueOf(packet.facing());
+
+        this.width = packet.width();
+        this.height = packet.height();
+
+        if (!Objects.equals(videoUrl, packet.url())) loadVideo(packet.url());
+    }
+
     private void reloadTexture() {
-        if (textureId != -1) {
-            removalTextureId = textureId;
-        }
         textureId = -1;
     }
 
@@ -97,7 +111,7 @@ public class Screen extends DisplaysCustomPayload<Screen> {
     }
 
     public boolean isVideoStarted() {
-        return videoStarted;
+        return videoStarted && mediaPlayer != null && mediaPlayer.textureFilled();
     }
 
     public boolean isInScreen(BlockPos pos) {
@@ -143,10 +157,6 @@ public class Screen extends DisplaysCustomPayload<Screen> {
         }
     }
 
-    public Screen() {
-        super("screens");
-    }
-
     public int getX() {
         return x;
     }
@@ -178,18 +188,6 @@ public class Screen extends DisplaysCustomPayload<Screen> {
         return height;
     }
 
-    public boolean isVisible() {
-        return visible;
-    }
-
-    public boolean isMuted() {
-        return muted;
-    }
-
-    public long getPlayTime() {
-        return playTime;
-    }
-
     /**
      * Устанавливает громкость для MediaPlayer.
      */
@@ -208,9 +206,13 @@ public class Screen extends DisplaysCustomPayload<Screen> {
         return quality;
     }
 
+    public List<Integer> getQualityList() {
+        return mediaPlayer.getAvailableQualities();
+    }
+
     public void setQuality(String quality) {
         this.quality = quality;
-        reloadQuality();
+        reloadTexture();
     }
 
     /**
@@ -285,8 +287,7 @@ public class Screen extends DisplaysCustomPayload<Screen> {
     }
 
     public void unregister() {
-        unregistered = true;
-        // Если потребуется закрыть MediaPlayer, можно добавить вызов mediaPlayer.stop() или аналогичный
+        mediaPlayer.stop();
     }
 
     public NativeImageBackedTexture getPreviewTexture() {
