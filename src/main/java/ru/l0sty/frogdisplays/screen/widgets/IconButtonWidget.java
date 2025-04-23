@@ -35,6 +35,8 @@ public abstract class IconButtonWidget extends ClickableWidget {
 	private static final ButtonTextures TEXTURES = new ButtonTextures(
 		Identifier.ofVanilla("widget/button"), Identifier.ofVanilla("widget/button_disabled"), Identifier.ofVanilla("widget/button_highlighted")
 	);
+	
+	private ButtonTextures settedTextures = null;
 
 	public IconButtonWidget(int i, int j, int k, int l, int iw, int ih, Identifier iconTexture, int margin) {
 		super(i, j, k, l, Text.empty());
@@ -43,6 +45,10 @@ public abstract class IconButtonWidget extends ClickableWidget {
 		this.ih = ih;
 		this.iconTexture = iconTexture;
 		this.margin = margin;
+	}
+
+	public void setTextures(ButtonTextures settedTextures) {
+		this.settedTextures = settedTextures;
 	}
 
 	public abstract void onPress();
@@ -56,7 +62,7 @@ public abstract class IconButtonWidget extends ClickableWidget {
 		context.setShaderColor(1.0F, 1.0F, 1.0F, this.alpha);
 		RenderSystem.enableBlend();
 		RenderSystem.enableDepthTest();
-		context.drawGuiTexture(TEXTURES.get(this.active, this.isSelected()), this.getX(), this.getY(), this.getWidth(), this.getHeight());
+		context.drawGuiTexture(settedTextures != null ? settedTextures.get(this.active, this.isSelected()) : TEXTURES.get(this.active, this.isSelected()), this.getX(), this.getY(), this.getWidth(), this.getHeight());
 
 		int dW = getWidth() - 2*margin;
 		int dH = getHeight() - 2*margin;

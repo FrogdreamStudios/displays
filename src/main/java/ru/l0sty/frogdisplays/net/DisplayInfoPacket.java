@@ -12,7 +12,7 @@ import ru.l0sty.frogdisplays.util.Facing;
 
 import java.util.UUID;
 
-public record DisplayInfoPacket(UUID id, UUID ownerId, Vector3i pos, int width, int height, String url, Facing facing) implements CustomPayload {
+public record DisplayInfoPacket(UUID id, UUID ownerId, Vector3i pos, int width, int height, String url, Facing facing, boolean isSync) implements CustomPayload {
     public static final CustomPayload.Id<DisplayInfoPacket> PACKET_ID =
             new CustomPayload.Id<>(Identifier.of(FrogDisplaysMod.MOD_ID, "display_info"));
 
@@ -32,6 +32,7 @@ public record DisplayInfoPacket(UUID id, UUID ownerId, Vector3i pos, int width, 
                         PacketCodecs.STRING.encode(buf, packet.url());
 
                         PacketCodecs.BYTE.encode(buf, packet.facing().toPacket());
+                        PacketCodecs.BOOL.encode(buf, packet.isSync());
                     },
                     (buf) -> {
                         UUID id = Uuids.PACKET_CODEC.decode(buf);
@@ -50,7 +51,9 @@ public record DisplayInfoPacket(UUID id, UUID ownerId, Vector3i pos, int width, 
                         byte facingByte = PacketCodecs.BYTE.decode(buf);
                         Facing facing = Facing.fromPacket(facingByte);
 
-                        return new DisplayInfoPacket(id, ownerId, pos, width, height, url, facing);
+                        boolean isSync = PacketCodecs.BOOL.decode(buf);
+
+                        return new DisplayInfoPacket(id, ownerId, pos, width, height, url, facing, isSync);
                     }
             );
 

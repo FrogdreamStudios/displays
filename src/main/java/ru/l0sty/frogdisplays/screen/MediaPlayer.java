@@ -2,15 +2,7 @@ package ru.l0sty.frogdisplays.screen;
 
 import com.github.felipeucelli.javatube.Stream;
 import com.github.felipeucelli.javatube.Youtube;
-import org.freedesktop.gstreamer.Clock;
-import org.freedesktop.gstreamer.Caps;
-import org.freedesktop.gstreamer.Buffer;
-import org.freedesktop.gstreamer.Element;
-import org.freedesktop.gstreamer.Format;
-import org.freedesktop.gstreamer.Gst;
-import org.freedesktop.gstreamer.Pipeline;
-import org.freedesktop.gstreamer.Sample;
-import org.freedesktop.gstreamer.Structure;
+import org.freedesktop.gstreamer.*;
 import org.freedesktop.gstreamer.event.SeekFlags;
 import org.freedesktop.gstreamer.elements.AppSink;
 import org.lwjgl.opengl.GL11;
@@ -53,6 +45,8 @@ public class MediaPlayer {
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     // Будущий результат инициализации
     private final Future<?> initFuture;
+
+    public static boolean captureSamples = true;
 
     private boolean paused = true;
 
@@ -123,8 +117,8 @@ public class MediaPlayer {
                 videoSink.set("sync", true);
                 videoSink.connect((AppSink.NEW_SAMPLE) elem -> {
                     Sample sample = elem.pullSample();
-                    if (sample == null)
-                        return org.freedesktop.gstreamer.FlowReturn.OK;
+                    if (sample == null || !captureSamples)
+                        return FlowReturn.OK;
                     Caps caps = sample.getCaps();
                     Structure struct = caps.getStructure(0);
                     int width = struct.getInteger("width");
@@ -139,9 +133,7 @@ public class MediaPlayer {
                     currentFrame = image;
                     sample.dispose();
 
-                    System.out.println("Captured new videoSample");
-
-                    return org.freedesktop.gstreamer.FlowReturn.OK;
+                    return FlowReturn.OK;
                 });
 
                 // Создание аудиоконвейера с элементом volume
@@ -210,19 +202,15 @@ public class MediaPlayer {
     /**
      * Асинхронно выполняет seek обоих конвейеров к заданному времени в секундах.
      *
-     * @param seconds абсолютное время в секундах.
+     * @param nanos абсолютное время в секундах.
      */
-    public void seekTo(double seconds) {
+    public void seekTo(long nanos) {
         executor.submit(() -> {
             if (!initialized) return;
-            long nanos = (long) (seconds * 1e9);
-            System.out.println(videoPipeline.getState());
-            System.out.println(seconds);
-
             EnumSet<SeekFlags> seekFlags = EnumSet.of(SeekFlags.FLUSH, SeekFlags.ACCURATE);
 
-            System.out.println(videoPipeline.seekSimple(Format.TIME, seekFlags, nanos));
-            System.out.println(audioPipeline.seekSimple(Format.TIME, seekFlags, nanos));
+            videoPipeline.seekSimple(Format.TIME, seekFlags, nanos);
+            audioPipeline.seekSimple(Format.TIME, seekFlags, nanos);
         });
     }
 
@@ -247,26 +235,27 @@ public class MediaPlayer {
                 target = 0;
             }
 
-            seekTo(((double) target) / 1e9);
+            long duration = audioPipeline.queryDuration(Format.TIME);
+
+            if (target > duration) target = duration-1;
+
+            seekTo(target);
         });
     }
 
-    /**
-     * Возвращает текущую позицию видео в секундах.
-     * Если конвейеры не инициализированы, возвращает 0.
-     */
-    public double getVideoCurrentTime() {
-        if (!initialized) return 0;
-        return ((double) videoPipeline.queryPosition(Format.TIME)) / 1e9;
-    }
 
     /**
-     * Возвращает текущую позицию аудио в секундах.
+     * Возвращает текущую позицию (аудио) в наносекундах.
      * Если конвейеры не инициализированы, возвращает 0.
      */
-    public double getAudioCurrentTime() {
+    public long getCurrentTime() {
         if (!initialized) return 0;
-        return ((double) audioPipeline.queryPosition(Format.TIME)) / 1e9;
+        return audioPipeline.queryPosition(Format.TIME);
+    }
+
+    public long getDuration() {
+        if (!initialized) return 0;
+        return audioPipeline.queryDuration(Format.TIME);
     }
 
     /**
@@ -300,9 +289,9 @@ public class MediaPlayer {
      * @param textureHeight высота текстуры.
      */
     public void updateFrame(int textureId, int textureWidth, int textureHeight) {
-        if (currentFrame != null) {
-            uploadBufferedImageToTexture(currentFrame, textureId, textureWidth, textureHeight);
-        }
+        if (currentFrame == null || !captureSamples) return;
+
+        uploadBufferedImageToTexture(currentFrame, textureId, textureWidth, textureHeight);
     }
 
     public boolean textureFilled() {
@@ -454,7 +443,7 @@ public class MediaPlayer {
             // Обновляем ссылку на текущий видео поток и конвейер
             videoPipeline = newVideoPipeline;
 
-            seekTo(((double) audioPipeline.queryPosition(Format.TIME)) / 1e9);
+            seekTo(audioPipeline.queryPosition(Format.TIME));
 
             videoSink = newVideoSink;
             currentVideoStream = chosenStream;

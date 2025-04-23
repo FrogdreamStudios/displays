@@ -1,5 +1,7 @@
 package ru.l0sty.frogdisplays.util;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -21,13 +23,30 @@ public class Utils {
 //    }
 
     public static String extractVideoId(String youtubeUrl) {
-        String videoId = null;
-        String regex = "(?<=watch\\?v=|/videos/|/shorts/|/live/|embed/|youtu.be/|/v/|/e/|watch\\?v%3D|watch\\?feature=player_embedded&v=|%2Fvideos%2F|embed%‌2F|youtu.be%2F|%2Fv%2F)[^#\\&\\?\\n]*";
-        Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(youtubeUrl);
-        if (matcher.find()) {
-            videoId = matcher.group();
+        try {
+            URI uri = new URI(youtubeUrl);
+            String query = uri.getQuery();                // берёт часть после "?"
+            if (query != null) {
+                for (String param : query.split("&")) {
+                    String[] pair = param.split("=", 2);
+                    if (pair.length == 2 && pair[0].equals("v")) {
+                        return pair[1];
+                    }
+                }
+            }
+            // если короткая ссылка youtu.be/ID
+            String host = uri.getHost();
+            if (host != null && host.contains("youtu.be")) {
+                String path = uri.getPath();
+                if (path != null && path.length() > 1) {
+                    return path.substring(1);
+                }
+            }
+        } catch (URISyntaxException e) {
         }
-        return videoId;
+
+        String regex = "(?<=([?&]v=))[^#&?]*";
+        Matcher m = Pattern.compile(regex).matcher(youtubeUrl);
+        return m.find() ? m.group() : null;
     }
 }

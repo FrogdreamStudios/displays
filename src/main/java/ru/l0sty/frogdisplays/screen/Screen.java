@@ -1,7 +1,10 @@
 package ru.l0sty.frogdisplays.screen;
 
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.texture.NativeImageBackedTexture;
 import ru.l0sty.frogdisplays.net.DisplayInfoPacket;
+import ru.l0sty.frogdisplays.net.SyncPacket;
 import ru.l0sty.frogdisplays.render.RenderUtil2D;
 import ru.l0sty.frogdisplays.util.ImageUtil;
 import ru.l0sty.frogdisplays.util.Utils;
@@ -33,6 +36,8 @@ public class Screen {
         safeQualitySwitchThread.start();
     }
 
+    public boolean owner;
+
     private int x;
     private int y;
     private int z;
@@ -44,6 +49,8 @@ public class Screen {
     private boolean videoStarted;
     private boolean paused;
     private String quality = "144";
+    public boolean isSync;
+    public boolean muted;
 
     // Список доступных качеств, можно обновлять через MediaPlayer.getAvailableQualities()
 
@@ -61,7 +68,7 @@ public class Screen {
 
     private NativeImageBackedTexture previewTexture = null;
 
-    public Screen(UUID id, int x, int y, int z, String facing, int width, int height) {
+    public Screen(UUID id, UUID ownerId, int x, int y, int z, String facing, int width, int height, boolean isSync) {
         this.id = id;
         this.x = x;
         this.y = y;
@@ -69,6 +76,7 @@ public class Screen {
         this.facing = facing;
         this.width = width;
         this.height = height;
+        owner = MinecraftClient.getInstance().player != null && ownerId == MinecraftClient.getInstance().player.getUuid();
     }
 
     public void loadVideo(String videoUrl) {
@@ -93,8 +101,31 @@ public class Screen {
 
         this.width = packet.width();
         this.height = packet.height();
+        this.isSync = packet.isSync();
+
+        owner = MinecraftClient.getInstance().player != null && packet.ownerId() == MinecraftClient.getInstance().player.getUuid();
 
         if (!Objects.equals(videoUrl, packet.url())) loadVideo(packet.url());
+    }
+
+    public void updateData(SyncPacket packet) {
+        isSync = packet.isSync();
+        if (!isSync) return;
+
+        long nanos = System.nanoTime();
+
+        waitForMFInit(() -> {
+            if (!videoStarted) {
+                startVideo();
+                setVolume(0);
+            }
+
+            if (paused) setPaused(false);
+
+            long lostTime = System.nanoTime() - nanos;
+
+            seekVideoTo(packet.currentTime() + lostTime);
+        });
     }
 
     private void reloadTexture() {
@@ -234,6 +265,13 @@ public class Screen {
      * Приостанавливает/возобновляет воспроизведение через MediaPlayer.
      */
     public void setPaused(boolean paused) {
+        if (!videoStarted) {
+            waitForMFInit(() -> {
+                startVideo();
+                setVolume(0);
+            });
+            return;
+        }
         this.paused = paused;
         if (mediaPlayer != null) {
             if (paused) {
@@ -274,11 +312,11 @@ public class Screen {
     /**
      * Абсолютный seek видео: переходит к конкретной секунде.
      *
-     * @param seconds время в секундах, к которому нужно перейти
+     * @param nanos время в наносекундах, к которому нужно перейти
      */
-    public void seekVideoTo(long seconds) {
+    public void seekVideoTo(long nanos) {
         if (mediaPlayer != null) {
-            mediaPlayer.seekTo(seconds);
+            mediaPlayer.seekTo(nanos);
         }
     }
 
@@ -303,6 +341,8 @@ public class Screen {
     }
 
     public void mute(boolean b) {
+        if (muted == b) return;
+        muted = b;
         setVideoVolume(b ? volume : 0);
     }
 
@@ -318,11 +358,11 @@ public class Screen {
         textureWidth = (int) (width / (double) height * qualityInt);
         textureHeight = qualityInt;
 
-        System.out.println(textureWidth + "x" + textureHeight);
-        System.out.println(qualityInt);
-
         textureId = RenderUtil2D.createEmptyTexture(textureWidth, textureHeight);
-        System.out.println(textureId);
+    }
+
+    public void sendSync() {
+        ClientPlayNetworking.send(new SyncPacket(id, isSync, paused, mediaPlayer.getCurrentTime(), mediaPlayer.getDuration()));
     }
 
     /**

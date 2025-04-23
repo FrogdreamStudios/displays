@@ -1,5 +1,6 @@
 package ru.l0sty.frogdisplays;
 
+import ru.l0sty.frogdisplays.screen.MediaPlayer;
 import ru.l0sty.frogdisplays.screen.Screen;
 import net.minecraft.client.MinecraftClient;
 import ru.l0sty.frogdisplays.screen.ScreenManager;
@@ -21,18 +22,17 @@ public class WindowFocusMuteThread extends Thread {
                 break;
             }
 
-            if (FrogDisplaysMod.getConfig().muteOnAltTab) {
-                boolean focused = client.isWindowFocused();
 
-                // При первом заходе инициализируем previousState,
-                // а при смене состояния фокуса — переключаем mute
-                if (focused != previousState) {
-                    for (Screen screen : ScreenManager.getScreens()) {
-                        screen.mute(!focused);
-                    }
-                    previousState = focused;
-                }
+            boolean focused = client.isWindowFocused();
+
+            MediaPlayer.captureSamples = focused || FrogDisplaysMod.getConfig().renderOnAltTab;
+
+            if (FrogDisplaysMod.getConfig().muteOnAltTab) for (Screen screen : ScreenManager.getScreens()) {
+                screen.mute(!focused);
             }
+
+            Screen s = ScreenManager.screens.elements().asIterator().next();
+            if (s != null) System.out.println(s.muted);
 
             try {
                 Thread.sleep(250);

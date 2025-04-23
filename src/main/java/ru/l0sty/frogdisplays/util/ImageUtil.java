@@ -10,7 +10,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.concurrent.CompletableFuture;
 
-public final class ImageUtil {
+public class ImageUtil {
 
     public static CompletableFuture<NativeImageBackedTexture> fetchImageTextureFromUrl(String url) {
         return CompletableFuture.supplyAsync(() -> {

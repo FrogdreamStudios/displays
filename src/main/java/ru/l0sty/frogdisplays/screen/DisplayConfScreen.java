@@ -4,6 +4,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Drawable;
 import net.minecraft.client.gui.Element;
+import net.minecraft.client.gui.screen.ButtonTextures;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -20,7 +21,7 @@ public class DisplayConfScreen extends Screen {
     SliderWidget volume = null;
     SliderWidget renderD = null;
     SliderWidget quality = null;
-    ToggleWidget poor = null;
+    ToggleWidget focusMode = null;
     ToggleWidget sync = null;
 
     IconButtonWidget backButton = null;
@@ -29,8 +30,11 @@ public class DisplayConfScreen extends Screen {
 
     IconButtonWidget renderDReset = null;
     IconButtonWidget qualityReset = null;
-    IconButtonWidget poorReset = null;
+    IconButtonWidget focusModeReset = null;
     IconButtonWidget syncReset = null;
+
+    IconButtonWidget deleteButton = null;
+    IconButtonWidget reportButton = null;
 
     ru.l0sty.frogdisplays.screen.Screen screen;
 
@@ -121,6 +125,75 @@ public class DisplayConfScreen extends Screen {
             }
         };
 
+        focusMode = new ToggleWidget(0, 0, 0, 0, Text.of("Выкл."), false) {
+            @Override
+            protected void updateMessage() {
+                setMessage(Text.of(value ? "Вкл." : "Выкл."));
+            }
+
+            @Override
+            protected void applyValue() {
+                FrogDisplaysMod.focusMode = value;
+            }
+        };
+
+        focusModeReset = new IconButtonWidget(0, 0, 0, 0, 64, 64, Identifier.of(FrogDisplaysMod.MOD_ID, "textures/gui/bri.png"), 2) {
+            @Override
+            public void onPress() {
+
+                FrogDisplaysMod.focusMode = false;
+            }
+        };
+
+        sync = new ToggleWidget(0, 0, 0, 0, Text.of("Выкл."), false) {
+            @Override
+            protected void updateMessage() {
+                setMessage(Text.of(value ? "Вкл." : "Выкл."));
+            }
+
+            @Override
+            protected void applyValue() {
+                if (screen.owner) {
+                    screen.isSync = value;
+                    screen.waitForMFInit(() -> screen.sendSync());
+                }
+            }
+        };
+
+        syncReset = new IconButtonWidget(0, 0, 0, 0, 64, 64, Identifier.of(FrogDisplaysMod.MOD_ID, "textures/gui/bri.png"), 2) {
+            @Override
+            public void onPress() {
+                if (screen.owner) {
+                    sync.value = false;
+                    screen.waitForMFInit(() -> screen.sendSync());
+                }
+            }
+        };
+
+        sync.active = screen.owner;
+        syncReset.active = screen.owner;
+
+        deleteButton = new IconButtonWidget(0, 0, 0, 0, 64, 64, Identifier.of(FrogDisplaysMod.MOD_ID, "textures/gui/delete.png"), 2) {
+            @Override
+            public void onPress() {
+
+            }
+        };
+
+        deleteButton.active = screen.owner;
+
+        reportButton = new IconButtonWidget(0, 0, 0, 0, 64, 64, Identifier.of(FrogDisplaysMod.MOD_ID, "textures/gui/report.png"), 2) {
+            @Override
+            public void onPress() {
+
+            }
+        };
+
+        ButtonTextures textures = new ButtonTextures(Identifier.of(FrogDisplaysMod.MOD_ID, "widgets/red_button"), Identifier.of(FrogDisplaysMod.MOD_ID, "widgets/red_button_disabled"), Identifier.of(FrogDisplaysMod.MOD_ID, "widgets/red_button_highlighted"));
+
+        deleteButton.setTextures(textures);
+        reportButton.setTextures(textures);
+
         addDrawableChild(volume);
         addDrawableChild(backButton);
         addDrawableChild(forwardButton);
@@ -129,6 +202,12 @@ public class DisplayConfScreen extends Screen {
         addDrawableChild(quality);
         addDrawableChild(qualityReset);
         addDrawableChild(renderDReset);
+        addDrawableChild(sync);
+        addDrawableChild(syncReset);
+        addDrawableChild(deleteButton);
+        addDrawableChild(reportButton);
+        addDrawableChild(focusMode);
+        addDrawableChild(focusModeReset);
     }
 
 
@@ -192,6 +271,10 @@ public class DisplayConfScreen extends Screen {
         pauseButton.setHeight(vCH);
         pauseButton.setWidth(vCH);
 
+        backButton.active = !(screen.isSync && !screen.owner);
+        forwardButton.active = !(screen.isSync && !screen.owner);
+        pauseButton.active = !(screen.isSync && !screen.owner);
+
         cY += 10 + vCH;
 
         // Настройка кнопок renderD и renderDReset
@@ -249,16 +332,84 @@ public class DisplayConfScreen extends Screen {
                 Text.literal("Качество").styled(style -> style.withColor(Formatting.WHITE).withBold(true)),
                 Text.literal("Качество дисплея").styled(style -> style.withColor(Formatting.GRAY)),
                 Text.empty(),
-                Text.literal("Сейчас: " + screen.getQuality() + "p").styled(style -> style.withColor(Formatting.GOLD))
-                //Text.literal(""),
-                //Text.literal("С Premium можно смотреть").styled(style -> style.withColor(Formatting.DARK_GREEN)),
-                //Text.literal("качественные дисплеи 1080p").styled(style -> style.withColor(Formatting.GREEN)))
+                Text.literal("Сейчас: " + screen.getQuality() + "p").styled(style -> style.withColor(Formatting.GOLD)),
+                Text.literal(""),
+                Text.literal("С Premium можно смотреть").styled(style -> style.withColor(Formatting.DARK_GREEN)),
+                Text.literal("качественные дисплеи 1080p").styled(style -> style.withColor(Formatting.GREEN))
 
         );
+
         renderTooltipIfHovered(context, mouseX, mouseY, qualityTextX, qualityTextY,
                 textRenderer.getWidth(qualityText), textRenderer.fontHeight, qualityTooltip);
 
         cY += 5 + vCH;
+
+        // Настройка кнопок quality и qualityReset
+        focusMode.setX(this.width / 2 + maxSW / 2 - 80 - vCH - 5);
+        focusMode.setY(cY);
+        focusMode.setHeight(vCH);
+        focusMode.setWidth(80);
+
+        focusModeReset.setX(this.width / 2 + maxSW / 2 - vCH);
+        focusModeReset.setY(cY);
+        focusModeReset.setHeight(vCH);
+        focusModeReset.setWidth(vCH);
+
+        // Рисуем текст кнопки "Качество" и вычисляем координаты для tooltip
+        Text focusModeText = Text.literal("Режим концентрации");
+        int focusModeTextX = this.width / 2 - maxSW / 2;
+        int focusModeTextY = cY + vCH / 2 - textRenderer.fontHeight / 2;
+        context.drawText(textRenderer, focusModeText, focusModeTextX, focusModeTextY, 0xFFFFFF, true);
+
+        List<Text> focusModeTooltip = List.of(
+                Text.literal("Режим концентрации").styled(style -> style.withColor(Formatting.WHITE).withBold(true)),
+                Text.literal("Устанавливает, будет ли игрок получать эффект слепоты.").styled(style -> style.withColor(Formatting.GRAY)),
+                Text.empty(),
+                Text.literal("Сейчас: " + (FrogDisplaysMod.focusMode ? "вкл." : "выкл.")).styled(style -> style.withColor(Formatting.GOLD))
+        );
+
+        renderTooltipIfHovered(context, mouseX, mouseY, focusModeTextX, focusModeTextY,
+                textRenderer.getWidth(focusModeText), textRenderer.fontHeight, focusModeTooltip);
+
+        cY += 15 + vCH;
+
+        // Настройка кнопок quality и qualityReset
+        sync.setX(this.width / 2 + maxSW / 2 - 80 - vCH - 5);
+        sync.setY(cY);
+        sync.setHeight(vCH);
+        sync.setWidth(80);
+
+        syncReset.setX(this.width / 2 + maxSW / 2 - vCH);
+        syncReset.setY(cY);
+        syncReset.setHeight(vCH);
+        syncReset.setWidth(vCH);
+
+        // Рисуем текст кнопки "Качество" и вычисляем координаты для tooltip
+        Text syncText = Text.literal("Качество");
+        int syncTextX = this.width / 2 - maxSW / 2;
+        int syncTextY = cY + vCH / 2 - textRenderer.fontHeight / 2;
+        context.drawText(textRenderer, syncText, syncTextX, syncTextY, 0xFFFFFF, true);
+
+        List<Text> syncTooltip = List.of(
+                Text.literal("Синхронизация").styled(style -> style.withColor(Formatting.WHITE).withBold(true)),
+                Text.literal("Опция доступна только для владельца дисплея.").styled(style -> style.withColor(Formatting.GRAY)),
+                Text.literal("Устанавливает, будет ли дисплей синхронизироваться между игроками.").styled(style -> style.withColor(Formatting.GRAY)),
+                Text.empty(),
+                Text.literal("Сейчас: " + (sync.value ? "выкл." : "вкл.")).styled(style -> style.withColor(Formatting.GOLD))
+        );
+
+        renderTooltipIfHovered(context, mouseX, mouseY, syncTextX, syncTextY,
+                textRenderer.getWidth(syncText), textRenderer.fontHeight, syncTooltip);
+
+        deleteButton.setX(10);
+        deleteButton.setY(this.height - vCH - 10);
+        deleteButton.setHeight(vCH);
+        deleteButton.setWidth(vCH);
+
+        reportButton.setX(this.width - vCH - 10);
+        reportButton.setY(this.height - vCH - 10);
+        reportButton.setHeight(vCH);
+        reportButton.setWidth(vCH);
 
         // Рендер дочерних элементов
         for (Element child : children()) {
@@ -292,8 +443,6 @@ public class DisplayConfScreen extends Screen {
         if (list.isEmpty()) return "144p";
 
         int i = Math.max(Math.min(resolution, list.size() - 1), 0);
-
-        System.out.println(i);
 
         return list.get(i).toString()+"p";
     }
