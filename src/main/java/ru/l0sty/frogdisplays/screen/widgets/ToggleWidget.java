@@ -71,6 +71,8 @@ public abstract class ToggleWidget extends ClickableWidget {
 	@Override
 	public void onClick(double mouseX, double mouseY) {
 		this.setValueFromMouse(mouseX);
+		applyValue();
+		updateMessage();
 	}
 
 	@Override

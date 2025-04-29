@@ -22,6 +22,10 @@ public class Utils {
 //        return browser;
 //    }
 
+    public static void main(String[] args) {
+        System.out.println("https://img.youtube.com/vi/" + Utils.extractVideoId("https://www.youtube.com/watch?v=_LLCz1FCWrY") + "/maxresdefault.jpg");
+    }
+
     public static String extractVideoId(String youtubeUrl) {
         try {
             URI uri = new URI(youtubeUrl);

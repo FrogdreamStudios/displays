@@ -38,8 +38,6 @@ public class DisplayConfScreen extends Screen {
 
     ru.l0sty.frogdisplays.screen.Screen screen;
 
-    private float textScale;
-
     protected DisplayConfScreen() {
         super(Text.of("FrogDisplays"));
     }
@@ -79,6 +77,8 @@ public class DisplayConfScreen extends Screen {
                 setIconTexture(screen.getPaused() ? Identifier.of(FrogDisplaysMod.MOD_ID, "textures/gui/bupi.png") : Identifier.of(FrogDisplaysMod.MOD_ID, "textures/gui/bpi.png"));
             }
         };
+
+        pauseButton.setIconTexture(screen.getPaused() ? Identifier.of(FrogDisplaysMod.MOD_ID, "textures/gui/bupi.png") : Identifier.of(FrogDisplaysMod.MOD_ID, "textures/gui/bpi.png"));
 
         renderD = new SliderWidget(0, 0, 0, 0, Text.of(String.valueOf((int) FrogDisplaysMod.maxDistance)), (FrogDisplaysMod.maxDistance-24)/(96-24)) {
             @Override
@@ -125,7 +125,7 @@ public class DisplayConfScreen extends Screen {
             }
         };
 
-        focusMode = new ToggleWidget(0, 0, 0, 0, Text.of("Выкл."), false) {
+        focusMode = new ToggleWidget(0, 0, 0, 0, Text.of(FrogDisplaysMod.focusMode ? "Вкл." : "Выкл."), FrogDisplaysMod.focusMode) {
             @Override
             protected void updateMessage() {
                 setMessage(Text.of(value ? "Вкл." : "Выкл."));
@@ -134,6 +134,7 @@ public class DisplayConfScreen extends Screen {
             @Override
             protected void applyValue() {
                 FrogDisplaysMod.focusMode = value;
+                System.out.println("Focus: " + value);
             }
         };
 
@@ -385,7 +386,7 @@ public class DisplayConfScreen extends Screen {
         syncReset.setWidth(vCH);
 
         // Рисуем текст кнопки "Качество" и вычисляем координаты для tooltip
-        Text syncText = Text.literal("Качество");
+        Text syncText = Text.literal("Синхронизация");
         int syncTextX = this.width / 2 - maxSW / 2;
         int syncTextY = cY + vCH / 2 - textRenderer.fontHeight / 2;
         context.drawText(textRenderer, syncText, syncTextX, syncTextY, 0xFFFFFF, true);

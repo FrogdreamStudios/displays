@@ -10,6 +10,7 @@ import ru.l0sty.frogdisplays.util.ImageUtil;
 import ru.l0sty.frogdisplays.util.Utils;
 import net.minecraft.util.math.BlockPos;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -52,8 +53,6 @@ public class Screen {
     public boolean isSync;
     public boolean muted;
 
-    // Список доступных качеств, можно обновлять через MediaPlayer.getAvailableQualities()
-
     // Используем объединённый MediaPlayer вместо отдельных VideoDecoder и AudioPlayer.
     private MediaPlayer mediaPlayer;
 
@@ -61,8 +60,8 @@ public class Screen {
     public int textureId = -1;
     public int removalTextureId = -1;
 
-    private int textureWidth = -1;
-    private int textureHeight = -1;
+    public int textureWidth = 0;
+    public int textureHeight = 0;
 
     private transient BlockPos blockPos; // кэш позиции для производительности
 
@@ -80,13 +79,18 @@ public class Screen {
     }
 
     public void loadVideo(String videoUrl) {
+        System.out.println("Loading video: " + videoUrl);
+
         if (mediaPlayer != null) unregister();
         // Загружаем превью-изображение из YouTube (используем максимальное разрешение)
         CompletableFuture.runAsync(() -> {
+            this.videoUrl = videoUrl;
+            mediaPlayer = new MediaPlayer(videoUrl, this);
+            int qualityInt = Integer.parseInt(this.quality.replace("p", ""));
+            textureWidth = (int) (width / (double) height * qualityInt);
+            textureHeight = qualityInt;
             ImageUtil.fetchImageTextureFromUrl("https://img.youtube.com/vi/" + Utils.extractVideoId(videoUrl) + "/maxresdefault.jpg")
                     .thenAcceptAsync(nativeImageBackedTexture -> previewTexture = nativeImageBackedTexture);
-            this.videoUrl = videoUrl;
-            mediaPlayer = new MediaPlayer(videoUrl);
         });
 
         reloadTexture();
@@ -138,6 +142,7 @@ public class Screen {
     private void reloadQuality() {
         if (mediaPlayer != null) {
             mediaPlayer.setQuality(quality);
+            reloadTexture();
         }
     }
 
@@ -184,7 +189,7 @@ public class Screen {
      */
     public void fitTexture() {
         if (mediaPlayer != null) {
-            mediaPlayer.updateFrame(textureId, textureWidth, textureHeight);
+            mediaPlayer.updateFrame(textureId);
         }
     }
 
@@ -238,12 +243,12 @@ public class Screen {
     }
 
     public List<Integer> getQualityList() {
+        if (mediaPlayer == null) return Collections.emptyList();
         return mediaPlayer.getAvailableQualities();
     }
 
     public void setQuality(String quality) {
         this.quality = quality;
-        reloadTexture();
     }
 
     /**
@@ -277,7 +282,7 @@ public class Screen {
             if (paused) {
                 mediaPlayer.pause();
             } else {
-                mediaPlayer.resume();
+                mediaPlayer.play();
             }
         }
     }
@@ -325,7 +330,7 @@ public class Screen {
     }
 
     public void unregister() {
-        mediaPlayer.stop();
+        if (mediaPlayer != null) mediaPlayer.stop();
     }
 
     public NativeImageBackedTexture getPreviewTexture() {
@@ -343,7 +348,8 @@ public class Screen {
     public void mute(boolean b) {
         if (muted == b) return;
         muted = b;
-        setVideoVolume(b ? volume : 0);
+
+        setVideoVolume(!b ? volume : 0);
     }
 
     public double getVolume() {
@@ -371,7 +377,7 @@ public class Screen {
      */
     public void waitForMFInit(Runnable action) {
         new Thread(() -> {
-            while (mediaPlayer == null) {
+            while (mediaPlayer == null || !mediaPlayer.isInitialized()) {
                 try {
                     Thread.sleep(100);
                 } catch (InterruptedException e) {
@@ -379,6 +385,7 @@ public class Screen {
                 }
             }
             action.run();
+            System.out.println("Started action!");
         }).start();
     }
 }

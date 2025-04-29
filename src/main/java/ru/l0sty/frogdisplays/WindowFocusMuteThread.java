@@ -6,9 +6,11 @@ import net.minecraft.client.MinecraftClient;
 import ru.l0sty.frogdisplays.screen.ScreenManager;
 
 public class WindowFocusMuteThread extends Thread {
+    public static WindowFocusMuteThread instance;
 
     public WindowFocusMuteThread() {
         setDaemon(true);
+        instance = this;
         setName("window-focus-cef-mute-thread");
     }
 
@@ -22,17 +24,11 @@ public class WindowFocusMuteThread extends Thread {
                 break;
             }
 
-
             boolean focused = client.isWindowFocused();
-
-            MediaPlayer.captureSamples = focused || FrogDisplaysMod.getConfig().renderOnAltTab;
 
             if (FrogDisplaysMod.getConfig().muteOnAltTab) for (Screen screen : ScreenManager.getScreens()) {
                 screen.mute(!focused);
             }
-
-            Screen s = ScreenManager.screens.elements().asIterator().next();
-            if (s != null) System.out.println(s.muted);
 
             try {
                 Thread.sleep(250);

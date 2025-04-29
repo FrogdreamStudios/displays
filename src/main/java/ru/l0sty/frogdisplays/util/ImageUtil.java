@@ -13,6 +13,7 @@ import java.util.concurrent.CompletableFuture;
 public class ImageUtil {
 
     public static CompletableFuture<NativeImageBackedTexture> fetchImageTextureFromUrl(String url) {
+        System.out.println("Loading image from " + url);
         return CompletableFuture.supplyAsync(() -> {
             try {
                 BufferedImage bufferedImage = ImageIO.read(new URL(url));

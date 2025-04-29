@@ -8,6 +8,7 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.entity.effect.StatusEffectInstance;
@@ -115,15 +116,6 @@ public class FrogDisplaysMod implements ClientModInitializer {
         final boolean[] wasPressed = {false};
         AtomicBoolean wasInMultiplayer = new AtomicBoolean(false);
 
-        StatusEffectInstance blindness = new StatusEffectInstance(
-                StatusEffects.BLINDNESS,
-                20 * 2, // 10 секунд
-                0,
-                false,
-                false,
-                true
-        );
-
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
 
 
@@ -172,12 +164,21 @@ public class FrogDisplaysMod implements ClientModInitializer {
             wasPressed[0] = pressed;
 
             if (focusMode && client.player != null && hoveredScreen != null) {
-                client.player.addStatusEffect(blindness);
+                System.out.println("Applied blindness");
+                client.player.addStatusEffect(new StatusEffectInstance(
+                        StatusEffects.BLINDNESS,
+                        20 * 2, // 10 секунд
+                        1,
+                        false,
+                        false,
+                        false
+                ));
             }
         });
 
         ClientLifecycleEvents.CLIENT_STOPPING.register(client -> {
             ScreenManager.unloadAll();
+            WindowFocusMuteThread.instance.interrupt();
         });
 
     }
@@ -189,6 +190,7 @@ public class FrogDisplaysMod implements ClientModInitializer {
 
     void createScreen(UUID id, UUID ownerId, Vector3i pos, Facing facing, int width, int height, String code, boolean isSync) {
         Screen screen = new Screen(id, ownerId, pos.x(), pos.y(), pos.z(), facing.toString(), width, height, isSync);
+        if (screen.getDistanceToScreen(MinecraftClient.getInstance().player.getBlockPos()) > maxDistance) return;
         ScreenManager.registerScreen(screen);
         screen.loadVideo(code);
     }

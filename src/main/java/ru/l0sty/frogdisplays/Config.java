@@ -16,11 +16,6 @@ public class Config extends AbstractConfig {
     @Path("mute-on-alt-tab")
     public boolean muteOnAltTab = true;
 
-    @Comment("Отключать рендер видео если игра свёрнутая?")
-    @Comment("Рекомендуется оставить false")
-    @Path("render-on-alt-tab")
-    public boolean renderOnAltTab = false;
-
     public Config(File baseDir) {
         super(baseDir, "config.yml");
     }
