@@ -1,7 +1,7 @@
 package ru.l0sty.frogdisplays.render;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.textures.GpuTexture;      // если рендеришь GpuTexture
+import com.mojang.blaze3d.textures.GpuTexture;
 import com.mojang.blaze3d.vertex.VertexFormat;
 
 import net.minecraft.client.render.*;
@@ -9,8 +9,6 @@ import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
-
-import static net.minecraft.client.render.RenderPhase.ENABLE_LIGHTMAP;
 
 public final class RenderUtil {
 
@@ -70,10 +68,6 @@ public final class RenderUtil {
                 matrixStack.translate(amount, 0, 0);
                 break;
         }
-    }
-
-    public static void moveVertical(MatrixStack matrixStack, float amount) {
-        matrixStack.translate(0, amount, 0);
     }
 
     public static void renderGpuTexture(MatrixStack matrices, Tessellator tess, GpuTexture gpuTex, RenderLayer layer) {

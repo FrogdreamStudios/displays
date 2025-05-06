@@ -1,7 +1,6 @@
 package ru.l0sty.frogdisplays.downloader;
 
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.util.math.MatrixStack;
@@ -30,19 +29,19 @@ public class GStreamerDownloaderMenu extends Screen {
         poseStack.push();
         poseStack.translate(cx, cy, 0);
         poseStack.translate(-progressBarWidth / 2d, -progressBarHeight / 2d, 0);
-        graphics.fill( // bar border
+        graphics.fill(
                 0, 0,
                 (int) progressBarWidth,
                 (int) progressBarHeight,
                 -1
         );
-        graphics.fill( // bar padding
+        graphics.fill(
                 2, 2,
                 (int) progressBarWidth - 2,
                 (int) progressBarHeight - 2,
                 -16777215
         );
-        graphics.fill( // bar bar
+        graphics.fill(
                 4, 4,
                 (int) ((progressBarWidth - 4) * GStreamerDownloadListener.INSTANCE.getProgress()),
                 (int) progressBarHeight - 4,
@@ -56,11 +55,6 @@ public class GStreamerDownloaderMenu extends Screen {
                 GStreamerDownloadListener.INSTANCE.getTask(),
                 Math.round(GStreamerDownloadListener.INSTANCE.getProgress() * 100) + "%",
         };
-
-        /* Draw Text */
-        // calculate offset for the top line
-
-        TextRenderer renderer = MinecraftClient.getInstance().textRenderer;
 
         int oSet = ((textRenderer.fontHeight / 2) + ((textRenderer.fontHeight + 2) * (text.length + 2))) + 4;
         poseStack.push();

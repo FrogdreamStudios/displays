@@ -15,9 +15,7 @@ public record DeletePacket(UUID id) implements CustomPayload {
 
     public static final PacketCodec<PacketByteBuf, DeletePacket> PACKET_CODEC =
             PacketCodec.ofStatic(
-                    (buf, packet) -> {
-                        Uuids.PACKET_CODEC.encode(buf, packet.id());
-                    },
+                    (buf, packet) -> Uuids.PACKET_CODEC.encode(buf, packet.id()),
                     (buf) -> {
                         UUID id = Uuids.PACKET_CODEC.decode(buf);
                         return new DeletePacket(id);

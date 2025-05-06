@@ -5,7 +5,6 @@ import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Uuids;
-import ru.l0sty.frogdisplays.FrogDisplaysMod;
 import ru.l0sty.frogdisplays.PlatformlessInitializer;
 
 import java.util.UUID;
@@ -16,9 +15,7 @@ public record ReportPacket(UUID id) implements CustomPayload {
 
     public static final PacketCodec<PacketByteBuf, ReportPacket> PACKET_CODEC =
             PacketCodec.ofStatic(
-                    (buf, packet) -> {
-                        Uuids.PACKET_CODEC.encode(buf, packet.id());
-                    },
+                    (buf, packet) -> Uuids.PACKET_CODEC.encode(buf, packet.id()),
                     (buf) -> {
                         UUID id = Uuids.PACKET_CODEC.decode(buf);
                         return new ReportPacket(id);

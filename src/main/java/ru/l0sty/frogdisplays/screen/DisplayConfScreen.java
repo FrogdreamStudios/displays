@@ -24,7 +24,6 @@ public class DisplayConfScreen extends Screen {
     SliderWidget volume = null;
     SliderWidget renderD = null;
     SliderWidget quality = null;
-//    ToggleWidget focusMode = null;
     ToggleWidget sync = null;
 
     IconButtonWidget backButton = null;
@@ -33,7 +32,6 @@ public class DisplayConfScreen extends Screen {
 
     IconButtonWidget renderDReset = null;
     IconButtonWidget qualityReset = null;
-//    IconButtonWidget focusModeReset = null;
     IconButtonWidget syncReset = null;
 
     IconButtonWidget deleteButton = null;
@@ -125,26 +123,6 @@ public class DisplayConfScreen extends Screen {
             }
         };
 
-//        focusMode = new ToggleWidget(0, 0, 0, 0, Text.of(PlatformlessInitializer.focusMode ? "Вкл." : "Выкл."), PlatformlessInitializer.focusMode) {
-//            @Override
-//            protected void updateMessage() {
-//                setMessage(Text.of(value ? "Вкл." : "Выкл."));
-//            }
-//
-//            @Override
-//            protected void applyValue() {
-//                PlatformlessInitializer.focusMode = value;
-//            }
-//        };
-//
-//        focusModeReset = new IconButtonWidget(0, 0, 0, 0, 64, 64, Identifier.of(PlatformlessInitializer.MOD_ID, "bri"), 2) {
-//            @Override
-//            public void onPress() {
-//
-//                PlatformlessInitializer.focusMode = false;
-//            }
-//        };
-
         sync = new ToggleWidget(0, 0, 0, 0, Text.of(screen.isSync ? "Вкл." : "Выкл."), screen.isSync) {
             @Override
             protected void updateMessage() {
@@ -208,8 +186,6 @@ public class DisplayConfScreen extends Screen {
         addDrawableChild(syncReset);
         addDrawableChild(deleteButton);
         addDrawableChild(reportButton);
-//        addDrawableChild(focusMode);
-//        addDrawableChild(focusModeReset);
     }
 
 
@@ -345,15 +321,7 @@ public class DisplayConfScreen extends Screen {
         cY += 10 + vCH;
 
         // Настройка кнопок renderD и renderDReset
-        renderD.setX(this.width / 2 + maxSW / 2 - 80 - vCH - 5);
-        renderD.setY(cY);
-        renderD.setHeight(vCH);
-        renderD.setWidth(80);
-
-        renderDReset.setX(this.width / 2 + maxSW / 2 - vCH);
-        renderDReset.setY(cY);
-        renderDReset.setHeight(vCH);
-        renderDReset.setWidth(vCH);
+        placeButton(vCH, maxSW, cY, renderD, renderDReset);
 
         // Рисуем текст кнопки "Прорисовка" и вычисляем координаты для tooltip
         Text renderDText = Text.literal("Прорисовка");
@@ -376,15 +344,7 @@ public class DisplayConfScreen extends Screen {
         cY += 5 + vCH;
 
         // Настройка кнопок quality и qualityReset
-        quality.setX(this.width / 2 + maxSW / 2 - 80 - vCH - 5);
-        quality.setY(cY);
-        quality.setHeight(vCH);
-        quality.setWidth(80);
-
-        qualityReset.setX(this.width / 2 + maxSW / 2 - vCH);
-        qualityReset.setY(cY);
-        qualityReset.setHeight(vCH);
-        qualityReset.setWidth(vCH);
+        placeButton(vCH, maxSW, cY, quality, qualityReset);
 
         // Рисуем текст кнопки "Качество" и вычисляем координаты для tooltip
         Text qualityText = Text.literal("Качество");
@@ -404,44 +364,8 @@ public class DisplayConfScreen extends Screen {
 
         );
 
-//        cY += 5 + vCH;
-
-//        focusMode.setX(this.width / 2 + maxSW / 2 - 80 - vCH - 5);
-//        focusMode.setY(cY);
-//        focusMode.setHeight(vCH);
-//        focusMode.setWidth(80);
-//
-//        focusModeReset.setX(this.width / 2 + maxSW / 2 - vCH);
-//        focusModeReset.setY(cY);
-//        focusModeReset.setHeight(vCH);
-//        focusModeReset.setWidth(vCH);
-//
-//        // Рисуем текст кнопки "Качество" и вычисляем координаты для tooltip
-//        Text focusModeText = Text.literal("Режим концентрации");
-//        int focusModeTextX = this.width / 2 - maxSW / 2;
-//        int focusModeTextY = cY + vCH / 2 - textRenderer.fontHeight / 2;
-//        context.drawText(textRenderer, focusModeText, focusModeTextX, focusModeTextY, 0xFFFFFF, true);
-//
-//        List<Text> focusModeTooltip = List.of(
-//                Text.literal("Режим концентрации").styled(style -> style.withColor(Formatting.WHITE).withBold(true)),
-//                Text.literal("Устанавливает, будет ли игрок получать эффект слепоты.").styled(style -> style.withColor(Formatting.GRAY)),
-//                Text.empty(),
-//                Text.literal("Сейчас: " + (PlatformlessInitializer.focusMode ? "вкл." : "выкл.")).styled(style -> style.withColor(Formatting.GOLD))
-//        );
-
-
         cY += 15 + vCH;
-
-        // Настройка кнопок quality и qualityReset
-        sync.setX(this.width / 2 + maxSW / 2 - 80 - vCH - 5);
-        sync.setY(cY);
-        sync.setHeight(vCH);
-        sync.setWidth(80);
-
-        syncReset.setX(this.width / 2 + maxSW / 2 - vCH);
-        syncReset.setY(cY);
-        syncReset.setHeight(vCH);
-        syncReset.setWidth(vCH);
+        placeButton(vCH, maxSW, cY, quality, qualityReset);
 
         // Рисуем текст кнопки "Качество" и вычисляем координаты для tooltip
         Text syncText = Text.literal("Синхронизация");
@@ -461,8 +385,6 @@ public class DisplayConfScreen extends Screen {
                 textRenderer.getWidth(renderDText), textRenderer.fontHeight, renderDTooltip);
         renderTooltipIfHovered(context, mouseX, mouseY, qualityTextX, qualityTextY,
                 textRenderer.getWidth(qualityText), textRenderer.fontHeight, qualityTooltip);
-//        renderTooltipIfHovered(context, mouseX, mouseY, focusModeTextX, focusModeTextY,
-//                textRenderer.getWidth(focusModeText), textRenderer.fontHeight, focusModeTooltip);
         renderTooltipIfHovered(context, mouseX, mouseY, syncTextX, syncTextY,
                 textRenderer.getWidth(syncText), textRenderer.fontHeight, syncTooltip);
 
@@ -472,6 +394,18 @@ public class DisplayConfScreen extends Screen {
                 drawable.render(context, mouseX, mouseY, delta);
             }
         }
+    }
+
+    private void placeButton(int vCH, int maxSW, int cY, SliderWidget renderD, IconButtonWidget renderDReset) {
+        renderD.setX(this.width / 2 + maxSW / 2 - 80 - vCH - 5);
+        renderD.setY(cY);
+        renderD.setHeight(vCH);
+        renderD.setWidth(80);
+
+        renderDReset.setX(this.width / 2 + maxSW / 2 - vCH);
+        renderDReset.setY(cY);
+        renderDReset.setHeight(vCH);
+        renderDReset.setWidth(vCH);
     }
 
 

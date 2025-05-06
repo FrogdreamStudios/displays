@@ -12,7 +12,7 @@ import java.util.UUID;
 
 public record SyncPacket(UUID id, boolean isSync, boolean currentState, long currentTime, long limitTime) implements CustomPayload {
     public static final CustomPayload.Id<SyncPacket> PACKET_ID =
-            new CustomPayload.Id<SyncPacket>(Identifier.of(PlatformlessInitializer.MOD_ID, "sync"));
+            new CustomPayload.Id<>(Identifier.of(PlatformlessInitializer.MOD_ID, "sync"));
 
     public static final PacketCodec<PacketByteBuf, SyncPacket> PACKET_CODEC =
             PacketCodec.ofStatic(

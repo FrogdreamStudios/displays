@@ -13,6 +13,7 @@ public class Config extends AbstractConfig {
     }
 
     @Comment("Отключать звук видео если игра свёрнутая?")
+
     @Path("mute-on-alt-tab")
     public boolean muteOnAltTab = true;
 

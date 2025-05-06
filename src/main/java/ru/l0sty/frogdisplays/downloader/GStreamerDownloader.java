@@ -1,23 +1,3 @@
-/*
- *     MCEF (Minecraft Chromium Embedded Framework)
- *     Copyright (C) 2023 CinemaMod Group
- *
- *     This library is free software; you can redistribute it and/or
- *     modify it under the terms of the GNU Lesser General Public
- *     License as published by the Free Software Foundation; either
- *     version 2.1 of the License, or (at your option) any later version.
- *
- *     This library is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *     Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public
- *     License along with this library; if not, write to the Free Software
- *     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
- *     USA
- */
-
 package ru.l0sty.frogdisplays.downloader;
 
 import me.inotsleep.utils.LoggerFactory;
@@ -74,7 +54,7 @@ public class GStreamerDownloader {
         if (gStreamerHashFile.exists()) {
             boolean sameContent = FileUtils.contentEquals(gStreamerHashFile, gStreamerHashFileTemp);
             if (sameContent) {
-                gStreamerHashFileTemp.delete();
+                if (!gStreamerHashFileTemp.delete()) LoggerFactory.getLogger().warning("Unable to delete directory");
                 return true;
             } else {
                 LoggerFactory.getLogger().warning("GStreamer Hash does not match.");
@@ -83,7 +63,7 @@ public class GStreamerDownloader {
             LoggerFactory.getLogger().warning("Failed to download GStreamer hash.");
         }
 
-        gStreamerHashFileTemp.renameTo(gStreamerHashFile);
+        if (!gStreamerHashFileTemp.renameTo(gStreamerHashFile)) LoggerFactory.getLogger().warning("Unable to rename directory");
 
         return false;
     }
@@ -94,7 +74,7 @@ public class GStreamerDownloader {
         extractZip(tarGzArchive, gStreamerLibrariesPath);
         if (delete) {
             if (tarGzArchive.exists()) {
-                tarGzArchive.delete();
+                if (!tarGzArchive.delete()) LoggerFactory.getLogger().warning("Unable to delete file");
             }
         }
     }
@@ -135,7 +115,7 @@ public class GStreamerDownloader {
 
     private static void extractZip(File zipFile, File outputDirectory) {
         GStreamerDownloadListener.INSTANCE.setTask("Extracting");
-        outputDirectory.mkdirs();
+        if (!outputDirectory.getParentFile().mkdirs()) LoggerFactory.getLogger().warning("Unable to mk directory");
 
         long fileSize = zipFile.length();
         long totalBytesRead = 0;
@@ -147,12 +127,12 @@ public class GStreamerDownloader {
                 File outputFile = new File(outputDirectory, entry.getName());
 
                 if (entry.isDirectory()) {
-                    outputFile.mkdirs();
+                    if (!outputFile.getParentFile().mkdirs()) LoggerFactory.getLogger().warning("Unable to mk directory");
                     continue;
                 }
 
                 // Создаём папки, если нужно
-                outputFile.getParentFile().mkdirs();
+                if (!outputFile.getParentFile().mkdirs()) LoggerFactory.getLogger().warning("Unable to mk directory");
 
                 try (InputStream inputStream = zip.getInputStream(entry);
                      OutputStream outputStream = new FileOutputStream(outputFile)) {

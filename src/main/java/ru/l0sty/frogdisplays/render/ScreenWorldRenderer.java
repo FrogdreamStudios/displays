@@ -1,7 +1,5 @@
 package ru.l0sty.frogdisplays.render;
 
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.util.math.MatrixStack;
@@ -60,10 +58,6 @@ public class ScreenWorldRenderer {
 
         RenderUtil.fixRotation(matrices, screen.getFacing());
         matrices.scale(screen.getWidth(), screen.getHeight(), 0);
-
-//        if (screen.hasPreviewTexture()) {
-//            RenderUtil.renderGpuTexture(matrices, tessellator, screen.getPreviewTexture().getGlTexture(), screen.previewTextureId);
-//        }
 
 
         if (screen.isVideoStarted()) {

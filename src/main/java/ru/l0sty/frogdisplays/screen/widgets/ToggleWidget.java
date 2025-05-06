@@ -1,32 +1,22 @@
 package ru.l0sty.frogdisplays.screen.widgets;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.navigation.GuiNavigationType;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
-import net.minecraft.client.gui.screen.narration.NarrationPart;
 import net.minecraft.client.gui.widget.ClickableWidget;
-import net.minecraft.client.input.KeyCodes;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.sound.SoundManager;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
-import org.lwjgl.glfw.GLFW;
 
-@Environment(EnvType.CLIENT)
 public abstract class ToggleWidget extends ClickableWidget {
 	private static final Identifier TEXTURE = Identifier.ofVanilla("widget/slider");
 	private static final Identifier HIGHLIGHTED_TEXTURE = Identifier.ofVanilla("widget/slider_highlighted");
 	private static final Identifier HANDLE_TEXTURE = Identifier.ofVanilla("widget/slider_handle");
 	private static final Identifier HANDLE_HIGHLIGHTED_TEXTURE = Identifier.ofVanilla("widget/slider_handle_highlighted");
-	protected static final int field_43054 = 2;
-	private static final int field_41790 = 8;
-	private static final int field_41789 = 4;
 	private double dValue;
 	public boolean value;
 	private boolean sliderFocused;
@@ -67,7 +57,7 @@ public abstract class ToggleWidget extends ClickableWidget {
 
 	@Override
 	public void onClick(double mouseX, double mouseY) {
-		this.setValueFromMouse(mouseX);
+		this.setValueFromMouse();
 		applyValue();
 		updateMessage();
 	}
@@ -92,7 +82,7 @@ public abstract class ToggleWidget extends ClickableWidget {
 	 * slider.
 	 *
      */
-	private void setValueFromMouse(double mouseX) {
+	private void setValueFromMouse() {
 		value = !value;
 		dValue = value ? 1 : 0;
 	}

@@ -5,9 +5,6 @@
 
 package ru.l0sty.frogdisplays.screen.widgets;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.navigation.GuiNavigationType;
@@ -22,7 +19,6 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 
-@Environment(EnvType.CLIENT)
 public abstract class SliderWidget extends ClickableWidget {
     private static final Identifier TEXTURE = Identifier.ofVanilla("widget/slider");
     private static final Identifier HIGHLIGHTED_TEXTURE = Identifier.ofVanilla("widget/slider_highlighted");
