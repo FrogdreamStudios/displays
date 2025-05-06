@@ -5,9 +5,9 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.Vec3d;
 
-public class RaycastUtil {
+public class RCUtil {
 
-    public static BlockHitResult raycastBlockClient(double maxDistance) {
+    public static BlockHitResult rCBlock(double maxDistance) {
         MinecraftClient client = MinecraftClient.getInstance();
 
         if (client.player == null || client.world == null)
@@ -17,7 +17,7 @@ public class RaycastUtil {
         Vec3d direction = client.player.getRotationVec(1.0f);
         Vec3d end = start.add(direction.multiply(maxDistance));
 
-        HitResult hit = client.world.raycast(new net.minecraft.world.RaycastContext(
+        BlockHitResult hit = client.world.raycast(new net.minecraft.world.RaycastContext(
             start,
             end,
             net.minecraft.world.RaycastContext.ShapeType.OUTLINE,
@@ -26,7 +26,7 @@ public class RaycastUtil {
         ));
 
         if (hit.getType() == HitResult.Type.BLOCK) {
-            return (BlockHitResult) hit;
+            return hit;
         }
 
         return null;

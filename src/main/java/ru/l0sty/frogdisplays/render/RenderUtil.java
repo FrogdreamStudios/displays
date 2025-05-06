@@ -1,18 +1,21 @@
 package ru.l0sty.frogdisplays.render;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.textures.GpuTexture;      // если рендеришь GpuTexture
+import com.mojang.blaze3d.vertex.VertexFormat;
+
 import net.minecraft.client.render.*;
+
+import net.minecraft.client.util.math.MatrixStack;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-
-import net.minecraft.client.util.math.MatrixStack;
+import static net.minecraft.client.render.RenderPhase.ENABLE_LIGHTMAP;
 
 public final class RenderUtil {
 
     public static void fixRotation(MatrixStack matrixStack, String facing) {
         final Quaternionf rotation;
-
 
         switch (facing) {
             case "NORTH":
@@ -73,34 +76,98 @@ public final class RenderUtil {
         matrixStack.translate(0, amount, 0);
     }
 
-    public static void renderTexture(MatrixStack matrixStack, Tessellator tessellator, int glId) {
+    public static void renderGpuTexture(MatrixStack matrices, Tessellator tess, GpuTexture gpuTex, RenderLayer layer) {
+        RenderSystem.setShaderTexture(0, gpuTex);
+        Matrix4f mat = matrices.peek().getPositionMatrix();
 
-        RenderSystem.setShader(GameRenderer::getPositionTexColorProgram);
-        RenderSystem.setShaderTexture(0, glId);
-        Matrix4f matrix4f = matrixStack.peek().getPositionMatrix();
-        BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
-        buffer.vertex(matrix4f, 0.0F, -1.0F, 1.0F).color(255, 255, 255, 255).texture(0.0f, 1.0f);
-        buffer.vertex(matrix4f, 1.0F, -1.0F, 1.0F).color(255, 255, 255, 255).texture(1.0f, 1.0f);
-        buffer.vertex(matrix4f, 1.0F, 0.0F, 0.0F).color(255, 255, 255, 255).texture(1.0f, 0.0f);
-        buffer.vertex(matrix4f, 0, 0, 0).color(255, 255, 255, 255).texture(0.0f, 0.0f);
-        BufferRenderer.drawWithGlobalProgram(buffer.end());
-        RenderSystem.setShaderTexture(0, 0);
+        BufferBuilder buf = tess.begin(
+                VertexFormat.DrawMode.QUADS,
+                VertexFormats.POSITION_COLOR_TEXTURE_LIGHT_NORMAL
+        );
+
+        buf
+                .vertex(mat, 0f, 0f, 0f)
+                .color(255, 255, 255, 255)
+                .texture(0f, 1f)
+                .light(0xF000F0)
+                .normal(0f, 0f, 1f);
+
+        buf
+
+                .vertex(mat, 1f, 0f, 0f)
+                .color(255, 255, 255, 255)
+                .texture(1f, 1f)
+                .light(0xF000F0)
+                .normal(0f, 0f, 1f);
+
+        buf
+
+                .vertex(mat, 1f, 1f, 0f)
+                .color(255, 255, 255, 255)
+                .texture(1f, 0f)
+                .light(0xF000F0)
+                .normal(0f, 0f, 1f);
+
+        buf
+
+                .vertex(mat, 0f, 1f, 0f)
+                .color(255, 255, 255, 255)
+                .texture(0f, 0f)
+                .light(0xF000F0)
+                .normal(0f, 0f, 1f);
+
+        BuiltBuffer built = buf.end();
+        layer.draw(built);
     }
 
-    public static void renderColor(MatrixStack matrixStack, Tessellator tessellator, int r, int g, int b) {
 
-        RenderSystem.setShader(GameRenderer::getPositionColorProgram);
-        Matrix4f matrix4f = matrixStack.peek().getPositionMatrix();
-        BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
-        buffer.vertex(matrix4f, 0.0F, -1.0F, 1.0F).color(r, g, b, 255);
-        buffer.vertex(matrix4f, 1.0F, -1.0F, 1.0F).color(r, g, b, 255);
-        buffer.vertex(matrix4f, 1.0F, 0.0F, 0.0F).color(r, g, b, 255);
-        buffer.vertex(matrix4f, 0, 0, 0).color(r, g, b, 255);
-        BufferRenderer.drawWithGlobalProgram(buffer.end());
+    public static void renderColor(MatrixStack matrices, Tessellator tess, int r, int g, int b) {
+        Matrix4f mat = matrices.peek().getPositionMatrix();
+
+        BufferBuilder buf = tess.begin(
+                VertexFormat.DrawMode.QUADS,
+                VertexFormats.POSITION_COLOR_TEXTURE_LIGHT_NORMAL
+        );
+
+        buf
+                .vertex(mat, 0f, 0f, 0f)
+                .color(r, g, b, 255)
+                .texture(0f, 1f)
+                .light(0xF000F0)
+                .normal(0f, 0f, 1f);
+
+        buf
+
+                .vertex(mat, 1f, 0f, 0f)
+                .color(r, g, b, 255)
+                .texture(1f, 1f)
+                .light(0xF000F0)
+                .normal(0f, 0f, 1f);
+
+        buf
+
+                .vertex(mat, 1f, 1f, 0f)
+                .color(r, g, b, 255)
+                .texture(1f, 0f)
+                .light(0xF000F0)
+                .normal(0f, 0f, 1f);
+
+        buf
+
+                .vertex(mat, 0f, 1f, 0f)
+                .color(r, g, b, 255)
+                .texture(0f, 0f)
+                .light(0xF000F0)
+                .normal(0f, 0f, 1f);
+
+        BuiltBuffer built = buf.end();
+        RenderLayer.getSolid().draw(built);
     }
 
     public static void renderBlack(MatrixStack matrixStack, Tessellator tessellator) {
         renderColor(matrixStack, tessellator, 0, 0, 0);
     }
+
+
 
 }

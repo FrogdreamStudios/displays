@@ -8,11 +8,14 @@ import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ButtonTextures;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
+import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.input.KeyCodes;
 import net.minecraft.client.render.GameRenderer;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.ColorHelper;
 import net.minecraft.util.math.MathHelper;
 import ru.l0sty.frogdisplays.render.RenderUtil2D;
 
@@ -24,6 +27,7 @@ import ru.l0sty.frogdisplays.render.RenderUtil2D;
 public abstract class IconButtonWidget extends ClickableWidget {
 	private int iw, ih;
 	private int margin;
+
 	private Identifier iconTexture;
 	private Identifier backgroundTexture;
 
@@ -58,11 +62,7 @@ public abstract class IconButtonWidget extends ClickableWidget {
 
 	@Override
 	protected void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
-		MinecraftClient minecraftClient = MinecraftClient.getInstance();
-		context.setShaderColor(1.0F, 1.0F, 1.0F, this.alpha);
-		RenderSystem.enableBlend();
-		RenderSystem.enableDepthTest();
-		context.drawGuiTexture(settedTextures != null ? settedTextures.get(this.active, this.isSelected()) : TEXTURES.get(this.active, this.isSelected()), this.getX(), this.getY(), this.getWidth(), this.getHeight());
+		context.drawGuiTexture(RenderLayer::getGuiTextured, settedTextures != null ? settedTextures.get(this.active, this.isSelected()) : TEXTURES.get(this.active, this.isSelected()), this.getX(), this.getY(), this.getWidth(), this.getHeight(), ColorHelper.getWhite(this.alpha));
 
 		int dW = getWidth() - 2*margin;
 		int dH = getHeight() - 2*margin;
@@ -74,16 +74,9 @@ public abstract class IconButtonWidget extends ClickableWidget {
 		int dx = getX() + getWidth()/2-iconW/2;
 		int dy = getY() + getHeight()/2-iconH/2;
 
-		RenderUtil2D.drawScaledTexture(context, iconTexture, dx, dy, iconW, iconH);
+		//RenderUtil2D.drawScaledTexture(context, iconTexture, dx, dy, iconW, iconH);
+		context.drawGuiTexture(RenderLayer::getGuiTextured, iconTexture, this.getX(), this.getY(), this.getWidth(), this.getHeight(), ColorHelper.getWhite(this.alpha));
 
-		context.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-
-		int i = this.active ? 16777215 : 10526880;
-		this.drawMessage(context, minecraftClient.textRenderer, i | MathHelper.ceil(this.alpha * 255.0F) << 24);
-	}
-
-	public void drawMessage(DrawContext context, TextRenderer textRenderer, int color) {
-		this.drawScrollableText(context, textRenderer, 2, color);
 	}
 
 	@Override

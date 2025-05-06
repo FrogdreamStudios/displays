@@ -1,11 +1,17 @@
 package ru.l0sty.frogdisplays.screen;
 
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gl.RenderPipelines;
+import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.RenderPhase;
 import net.minecraft.client.texture.NativeImageBackedTexture;
+import net.minecraft.client.texture.TextureManager;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.TriState;
+import ru.l0sty.frogdisplays.PlatformlessInitializer;
 import ru.l0sty.frogdisplays.net.DisplayInfoPacket;
+import ru.l0sty.frogdisplays.net.RequestSyncPacket;
 import ru.l0sty.frogdisplays.net.SyncPacket;
-import ru.l0sty.frogdisplays.render.RenderUtil2D;
 import ru.l0sty.frogdisplays.util.ImageUtil;
 import ru.l0sty.frogdisplays.util.Utils;
 import net.minecraft.util.math.BlockPos;
@@ -16,14 +22,14 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+import static net.minecraft.client.render.RenderPhase.ENABLE_LIGHTMAP;
+
 public class Screen {
 
     public static Thread safeQualitySwitchThread = new Thread(() -> {
         boolean isErrored = false;
         while (!isErrored) {
-            ScreenManager.getScreens().forEach(screen -> {
-                 screen.reloadQuality();
-            });
+            ScreenManager.getScreens().forEach(Screen::reloadQuality);
 
             try {
                 Thread.sleep(5000);
@@ -39,6 +45,8 @@ public class Screen {
 
     public boolean owner;
 
+    public boolean errored;
+
     private int x;
     private int y;
     private int z;
@@ -49,7 +57,7 @@ public class Screen {
     private float volume;
     private boolean videoStarted;
     private boolean paused;
-    private String quality = "144";
+    private String quality = "480";
     public boolean isSync;
     public boolean muted;
 
@@ -57,8 +65,10 @@ public class Screen {
     private MediaPlayer mediaPlayer;
 
     private String videoUrl;
-    public int textureId = -1;
-    public int removalTextureId = -1;
+
+    public NativeImageBackedTexture texture = null;
+    public Identifier textureId = null;
+    public RenderLayer renderLayer = null;
 
     public int textureWidth = 0;
     public int textureHeight = 0;
@@ -66,6 +76,8 @@ public class Screen {
     private transient BlockPos blockPos; // кэш позиции для производительности
 
     private NativeImageBackedTexture previewTexture = null;
+    public Identifier previewTextureId = null;
+    public RenderLayer previewRenderLayer = null;
 
     public Screen(UUID id, UUID ownerId, int x, int y, int z, String facing, int width, int height, boolean isSync) {
         this.id = id;
@@ -75,14 +87,17 @@ public class Screen {
         this.facing = facing;
         this.width = width;
         this.height = height;
-        owner = MinecraftClient.getInstance().player != null && ownerId == MinecraftClient.getInstance().player.getUuid();
+        owner = MinecraftClient.getInstance().player != null && (ownerId + "").equals(MinecraftClient.getInstance().player.getUuid() + "");
+
+        if (isSync) {
+            sendRequestSyncPacket();
+        }
     }
 
     public void loadVideo(String videoUrl) {
-        System.out.println("Loading video: " + videoUrl);
-
         if (mediaPlayer != null) unregister();
         // Загружаем превью-изображение из YouTube (используем максимальное разрешение)
+        this.videoUrl = videoUrl;
         CompletableFuture.runAsync(() -> {
             this.videoUrl = videoUrl;
             mediaPlayer = new MediaPlayer(videoUrl, this);
@@ -90,10 +105,29 @@ public class Screen {
             textureWidth = (int) (width / (double) height * qualityInt);
             textureHeight = qualityInt;
             ImageUtil.fetchImageTextureFromUrl("https://img.youtube.com/vi/" + Utils.extractVideoId(videoUrl) + "/maxresdefault.jpg")
-                    .thenAcceptAsync(nativeImageBackedTexture -> previewTexture = nativeImageBackedTexture);
+                    .thenAcceptAsync(nativeImageBackedTexture -> {
+                        previewTexture = nativeImageBackedTexture;
+                        previewTextureId = Identifier.of(PlatformlessInitializer.MOD_ID, "screen-preview-"+id+"-"+UUID.randomUUID());
+
+                        MinecraftClient.getInstance().getTextureManager().registerTexture(previewTextureId, previewTexture);
+                        previewRenderLayer = createRenderLayer(previewTextureId);
+                    });
         });
 
-        reloadTexture();
+        waitForMFInit(this::startVideo);
+
+        MinecraftClient.getInstance().execute(this::reloadTexture);
+    }
+
+    private static RenderLayer createRenderLayer(Identifier id) {
+        return RenderLayer.of(
+                "frog-displays",
+                4194304,
+                true,
+                false,
+                RenderPipelines.SOLID,
+                RenderLayer.MultiPhaseParameters.builder().lightmap(ENABLE_LIGHTMAP).texture(new RenderPhase.Texture(id, TriState.FALSE, false)).build(true)
+        );
     }
 
     public void updateData(DisplayInfoPacket packet) {
@@ -107,9 +141,18 @@ public class Screen {
         this.height = packet.height();
         this.isSync = packet.isSync();
 
-        owner = MinecraftClient.getInstance().player != null && packet.ownerId() == MinecraftClient.getInstance().player.getUuid();
+        owner = MinecraftClient.getInstance().player != null && (packet.ownerId() + "").equals(MinecraftClient.getInstance().player.getUuid() + "");
 
-        if (!Objects.equals(videoUrl, packet.url())) loadVideo(packet.url());
+        if (!Objects.equals(videoUrl, packet.url())) {
+            loadVideo(packet.url());
+            if (isSync) {
+                sendRequestSyncPacket();
+            }
+        }
+    }
+
+    private void sendRequestSyncPacket() {
+        PlatformlessInitializer.sendPacket(new RequestSyncPacket(id));
     }
 
     public void updateData(SyncPacket packet) {
@@ -129,25 +172,25 @@ public class Screen {
             long lostTime = System.nanoTime() - nanos;
 
             seekVideoTo(packet.currentTime() + lostTime);
+            setPaused(packet.currentState());
         });
     }
 
-    private void reloadTexture() {
-        textureId = -1;
+    public void reloadTexture() {
+        this.createTexture();
     }
 
     /**
      * Перезагружает качество видео, вызывая у MediaPlayer установку нового качества.
      */
-    private void reloadQuality() {
+    public void reloadQuality() {
         if (mediaPlayer != null) {
             mediaPlayer.setQuality(quality);
-            reloadTexture();
         }
     }
 
     public boolean isVideoStarted() {
-        return videoStarted && mediaPlayer != null && mediaPlayer.textureFilled();
+        return mediaPlayer != null && mediaPlayer.textureFilled();
     }
 
     public boolean isInScreen(BlockPos pos) {
@@ -189,20 +232,8 @@ public class Screen {
      */
     public void fitTexture() {
         if (mediaPlayer != null) {
-            mediaPlayer.updateFrame(textureId);
+            mediaPlayer.updateFrame(texture.getGlTexture());
         }
-    }
-
-    public int getX() {
-        return x;
-    }
-
-    public int getY() {
-        return y;
-    }
-
-    public int getZ() {
-        return z;
     }
 
     public BlockPos getPos() {
@@ -271,13 +302,14 @@ public class Screen {
      */
     public void setPaused(boolean paused) {
         if (!videoStarted) {
+            this.paused = false;
             waitForMFInit(() -> {
                 startVideo();
                 setVolume(0);
             });
             return;
         }
-        this.paused = paused;
+            this.paused = paused;
         if (mediaPlayer != null) {
             if (paused) {
                 mediaPlayer.pause();
@@ -285,6 +317,7 @@ public class Screen {
                 mediaPlayer.play();
             }
         }
+        if (owner && isSync) sendSync();
     }
 
     /**
@@ -307,8 +340,6 @@ public class Screen {
      * @param seconds число секунд для сдвига (может быть отрицательным)
      */
     public void seekVideoRelative(long seconds) {
-        System.out.println("Seeking " + seconds);
-
         if (mediaPlayer != null) {
             mediaPlayer.seekRelative(seconds);
         }
@@ -321,16 +352,21 @@ public class Screen {
      */
     public void seekVideoTo(long nanos) {
         if (mediaPlayer != null) {
-            mediaPlayer.seekTo(nanos);
+            mediaPlayer.seekTo(nanos, false);
         }
-    }
-
-    public BlockPos getBlockPos() {
-        return blockPos;
     }
 
     public void unregister() {
         if (mediaPlayer != null) mediaPlayer.stop();
+
+        TextureManager manager = MinecraftClient.getInstance().getTextureManager();
+
+        if (textureId != null) manager.destroyTexture(textureId);
+        if (previewTextureId != null) manager.destroyTexture(previewTextureId);
+
+        if (MinecraftClient.getInstance().currentScreen instanceof DisplayConfScreen displayConfScreen) {
+            if (displayConfScreen.screen == this) displayConfScreen.close();
+        }
     }
 
     public NativeImageBackedTexture getPreviewTexture() {
@@ -338,7 +374,7 @@ public class Screen {
     }
 
     public boolean hasPreviewTexture() {
-        return previewTexture != null;
+        return false;
     }
 
     public UUID getID() {
@@ -364,11 +400,22 @@ public class Screen {
         textureWidth = (int) (width / (double) height * qualityInt);
         textureHeight = qualityInt;
 
-        textureId = RenderUtil2D.createEmptyTexture(textureWidth, textureHeight);
+        //textureId = RenderUtil2D.createEmptyTexture(textureWidth, textureHeight);
+        if (texture != null) {
+            texture.close();
+            if (textureId != null) MinecraftClient.getInstance()
+                    .getTextureManager()
+                    .destroyTexture(textureId);
+        }
+        texture = new NativeImageBackedTexture(UUID.randomUUID().toString(), textureWidth, textureHeight, true);
+        textureId = Identifier.of(PlatformlessInitializer.MOD_ID, "screen-main-texture-" + id + "-" + UUID.randomUUID());
+
+        MinecraftClient.getInstance().getTextureManager().registerTexture(textureId, texture);
+        renderLayer = createRenderLayer(textureId);
     }
 
     public void sendSync() {
-        ClientPlayNetworking.send(new SyncPacket(id, isSync, paused, mediaPlayer.getCurrentTime(), mediaPlayer.getDuration()));
+        PlatformlessInitializer.sendPacket(new SyncPacket(id, isSync, paused, mediaPlayer.getCurrentTime(), mediaPlayer.getDuration()));
     }
 
     /**
@@ -385,7 +432,14 @@ public class Screen {
                 }
             }
             action.run();
-            System.out.println("Started action!");
         }).start();
+    }
+
+    public void tick(BlockPos pos) {
+        if (mediaPlayer != null) mediaPlayer.tick(pos, PlatformlessInitializer.maxDistance);
+    }
+
+    public void afterSeek() {
+        if (owner && isSync) sendSync();
     }
 }

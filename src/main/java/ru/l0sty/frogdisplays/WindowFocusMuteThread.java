@@ -1,6 +1,5 @@
 package ru.l0sty.frogdisplays;
 
-import ru.l0sty.frogdisplays.screen.MediaPlayer;
 import ru.l0sty.frogdisplays.screen.Screen;
 import net.minecraft.client.MinecraftClient;
 import ru.l0sty.frogdisplays.screen.ScreenManager;
@@ -16,9 +15,7 @@ public class WindowFocusMuteThread extends Thread {
 
     @Override
     public void run() {
-        boolean previousState = true;
         while (true) {
-            // Всегда получаем актуальный инстанс клиента
             MinecraftClient client = MinecraftClient.getInstance();
             if (client == null) {
                 break;
@@ -26,7 +23,7 @@ public class WindowFocusMuteThread extends Thread {
 
             boolean focused = client.isWindowFocused();
 
-            if (FrogDisplaysMod.getConfig().muteOnAltTab) for (Screen screen : ScreenManager.getScreens()) {
+            if (PlatformlessInitializer.getConfig().muteOnAltTab) for (Screen screen : ScreenManager.getScreens()) {
                 screen.mute(!focused);
             }
 

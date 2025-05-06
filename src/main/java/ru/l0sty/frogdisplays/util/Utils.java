@@ -2,28 +2,22 @@ package ru.l0sty.frogdisplays.util;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Utils {
-//    public static MCEFBrowser createBrowser(String startUrl, Screen screen) {
-//        MCEFBrowser browser = MCEF.createBrowser(startUrl, true);
-//        browser.setCloseAllowed();
-//        browser.createImmediately();
-//
-//        {
-//            float widthBlocks = screen.getWidth();
-//            float heightBlocks = screen.getHeight();
-//            float scale = widthBlocks / heightBlocks;
-//            int height = Integer.parseInt(screen.getQuality());
-//            int width = (int) Math.floor(height * scale);
-//            browser.resize(width, height);
-//        }
-//        return browser;
-//    }
-
-    public static void main(String[] args) {
-        System.out.println("https://img.youtube.com/vi/" + Utils.extractVideoId("https://www.youtube.com/watch?v=_LLCz1FCWrY") + "/maxresdefault.jpg");
+    public static String detectPlatform() {
+        String os = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
+        if (os.contains("win")) {
+            return "windows";
+        } else if (os.contains("mac")) {
+            return "macos";
+        } else if (os.contains("nux") || os.contains("nix") || os.contains("aix")) {
+            return "linux";
+        }
+        throw new UnsupportedOperationException("Unsupported OS: " + os);
     }
 
     public static String extractVideoId(String youtubeUrl) {
@@ -45,8 +39,13 @@ public class Utils {
                 if (path != null && path.length() > 1) {
                     return path.substring(1);
                 }
+            } else if (host != null && host.contains("youtube.com")) {
+                String path = uri.getPath();
+                if (path != null && path.contains("shorts")) {
+                    return List.of(path.split("/")).getLast();
+                }
             }
-        } catch (URISyntaxException e) {
+        } catch (URISyntaxException ignored) {
         }
 
         String regex = "(?<=([?&]v=))[^#&?]*";

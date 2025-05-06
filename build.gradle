@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '1.7-SNAPSHOT'
+	id 'fabric-loom' version '1.10.1'
 	id 'maven-publish'
 	//id "org.jetbrains.kotlin.jvm" version "2.0.0"
 	id 'com.github.johnrengelman.shadow' version '8.1.1'
@@ -19,17 +19,19 @@ repositories {
 	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
 	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
 	// for more information about repositories.
+//	maven {
+//		url "https://nexus.inotsleep.com/repository/maven-public/"
+//		credentials {
+//			username = "INotSleep"
+//			password = System.getenv("NEXUS_PASSWORD")
+//		}
+//	}
 	maven {
-		url "https://nexus.inotsleep.com/repository/maven-public/"
-		credentials {
-			username = "INotSleep"
-			password = System.getenv("NEXUS_PASSWORD")
-		}
+		url "https://repo.l0sty.ru/releases"
 	}
 
 	maven { url 'https://jitpack.io' }
 }
-
 
 dependencies {
 	// To change the versions see the gradle.properties file
@@ -48,7 +50,7 @@ dependencies {
 	implementation 'net.java.dev.jna:jna-platform:5.9.0'
 	implementation 'me.inotsleep:utils:1.1.2'
 
-	implementation 'com.github.felipeucelli:javatube:ded2fb43cb'
+	implementation 'com.github.felipeucelli:javatube:6692a32'
 
 	compileOnly("org.lwjgl:lwjgl:3.3.6")
 }

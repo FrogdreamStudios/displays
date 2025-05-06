@@ -1,7 +1,7 @@
 package ru.l0sty.frogdisplays.mixins;
 
 import net.minecraft.client.render.RenderTickCounter;
-import ru.l0sty.frogdisplays.FrogDisplaysMod;
+import ru.l0sty.frogdisplays.PlatformlessInitializer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.InGameHud;
 import org.spongepowered.asm.mixin.Mixin;
@@ -16,7 +16,7 @@ public class CrossHairMixin {
     public void renderCrosshair(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
 
         if (
-                FrogDisplaysMod.isOnScreen
+                PlatformlessInitializer.isOnScreen
         ) {
             ci.cancel();
         }

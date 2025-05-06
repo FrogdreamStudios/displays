@@ -2,141 +2,145 @@ package ru.l0sty.frogdisplays.screen;
 
 import com.github.felipeucelli.javatube.Stream;
 import com.github.felipeucelli.javatube.Youtube;
+import com.mojang.blaze3d.systems.CommandEncoder;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.textures.GpuTexture;
+import me.inotsleep.utils.LoggerFactory;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.texture.NativeImage;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.util.math.BlockPos;
 import org.freedesktop.gstreamer.*;
-import org.freedesktop.gstreamer.event.SeekFlags;
 import org.freedesktop.gstreamer.elements.AppSink;
-import org.lwjgl.opengl.GL11;
+import org.freedesktop.gstreamer.event.SeekFlags;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.IntBuffer;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 /**
  * MediaPlayer – компактная, стабильная версия.
- * Публичный интерфейс сохранён.
+ * Защита от 403 YouTube и двойного dispose.
  */
 public class MediaPlayer {
-    // GStreamer constants
+    // === CONSTANTS =======================================================================
     private static final String MIME_VIDEO = "video/webm";
     private static final String MIME_AUDIO = "audio/webm";
-    private static final String USER_AGENT = "IOS";
+    private static final String USER_AGENT = "ANDROID_VR";
 
-    // Public API fields
+    private static final ExecutorService INIT_EXECUTOR =
+            Executors.newSingleThreadExecutor(r -> new Thread(r, "MediaPlayer-init"));
+
+    // === PUBLIC API FIELDS ===============================================================
     private final String youtubeUrl;
     private volatile double currentVolume;
     public static boolean captureSamples = true;
 
-    // GStreamer pipelines
+    // === GST OBJECTS =====================================================================
     private volatile Pipeline videoPipeline;
     private volatile Pipeline audioPipeline;
-    private volatile AppSink videoSink;
 
     private volatile List<Stream> availableVideoStreams;
     private volatile Stream currentVideoStream;
     private volatile boolean initialized;
     private int lastQuality;
 
-    // Frame buffers
-    private volatile BufferedImage currentFrame;
-    private volatile ByteBuffer preparedBuffer;
+    // === FRAME BUFFERS ===================================================================
+    private BufferedImage currentFrame;
+    private volatile ByteBuffer   preparedBuffer;
 
-    // Для динамической переаллокации под новую ширину/высоту
-    private volatile int lastTexW = 0;
-    private volatile int lastTexH = 0;
-    private volatile int preparedW = 0;
-    private volatile int preparedH = 0;
+    private volatile int lastTexW = 0, lastTexH = 0;
+    private volatile int preparedW = 0, preparedH = 0;
 
-    // Executors
-    private final ExecutorService gstExecutor = Executors.newSingleThreadExecutor(r -> new Thread(r, "MediaPlayer-gst"));
+    private volatile double userVolume = 0.0;
+    private volatile double lastAttenuation = 1.0;
+
+    // === EXECUTORS & CONCURRENCY =========================================================
+    private final ExecutorService gstExecutor   = Executors.newSingleThreadExecutor(r -> new Thread(r, "MediaPlayer-gst"));
     private final ExecutorService frameExecutor = Executors.newSingleThreadExecutor(r -> new Thread(r, "MediaPlayer-frame"));
-    private final Future<?> initFuture;
+    private final AtomicBoolean   terminated    = new AtomicBoolean(false);
 
     private BufferedImage textureImage;
     private final Screen screen;
 
-    // Constructor
+    // === CONSTRUCTOR =====================================================================
     public MediaPlayer(String youtubeUrl, Screen screen) {
         this.youtubeUrl = youtubeUrl;
-        this.screen = screen;
+        this.screen     = screen;
         Gst.init("MediaPlayer");
-        initFuture = gstExecutor.submit(this::initialize);
+        INIT_EXECUTOR.submit(this::initialize);
     }
 
-    // PUBLIC API
-    public void play()   { gstExecutor.submit(this::doPlay); }
-    public void pause()  { gstExecutor.submit(this::doPause); }
-    public void stop() {
-        gstExecutor.submit(this::doStop);
-        gstExecutor.shutdownNow();
-        frameExecutor.shutdownNow();
-    }
-
-    public void seekTo(long nanos) { gstExecutor.submit(() -> doSeek(nanos)); }
-    public void seekRelative(double sec) {
-        gstExecutor.submit(() -> {
+    // === PUBLIC API ======================================================================
+    public void play()               { safeExecute(this::doPlay);  }
+    public void pause()              { safeExecute(this::doPause); }
+    public void seekTo(long ns, boolean b)      { safeExecute(() -> doSeek(ns, b)); }
+    public void seekRelative(double s) {
+        safeExecute(() -> {
             if (!initialized) return;
-            long cur = Math.max(0, audioPipeline.queryPosition(Format.TIME));
-            long tgt = Math.max(0, cur + (long)(sec * 1e9));
+            long cur = audioPipeline.queryPosition(Format.TIME);
+            long tgt = Math.max(0, cur + (long)(s * 1e9));
             long dur = Math.max(0, audioPipeline.queryDuration(Format.TIME) - 1);
-            doSeek(Math.min(tgt, dur));
+            doSeek(Math.min(tgt, dur), true);
+        });
+    }
+    public long  getCurrentTime()    { return initialized ? audioPipeline.queryPosition(Format.TIME) : 0; }
+    public long  getDuration()       { return initialized ? audioPipeline.queryDuration(Format.TIME) : 0; }
+
+    public boolean isInitialized()   { return initialized; }
+
+    public void stop() {
+        if (terminated.getAndSet(true)) return;
+        safeExecute(() -> {
+            doStop();
+            gstExecutor.shutdown();
+            frameExecutor.shutdown();
         });
     }
 
-    public long getCurrentTime() { return initialized ? audioPipeline.queryPosition(Format.TIME) : 0; }
-    public long getDuration()    { return initialized ? audioPipeline.queryDuration(Format.TIME) : 0; }
-
-    public void setVolume(double v) { currentVolume = v; gstExecutor.submit(this::applyVolume); }
-    public double getVolume()       { return currentVolume; }
-
-    public boolean isInitialized()  { return initialized; }
-
-    /** Готовность текстуры по не-нулевым размерам экрана. */
-    public boolean textureFilled() {
-        return screen != null
-                && screen.textureWidth  > 0
-                && screen.textureHeight > 0;
+    public void setVolume(double v) {
+        userVolume = Math.max(0, Math.min(1, v));
+        currentVolume = userVolume * lastAttenuation;
+        safeExecute(this::applyVolume);
     }
 
-    /**
-     * Обновляем содержимое OpenGL-текстуры.
-     * Размеры берём из screen.textureWidth/Height.
-     * При изменении размеров — TexImage2D, иначе — TexSubImage2D.
-     */
-    public void updateFrame(int texId) {
-        if (preparedBuffer == null) return;
+    /** Экранная текстура готова? */
+    public boolean textureFilled() {
+        return screen != null && screen.textureWidth > 0 && screen.textureHeight > 0;
+    }
 
+    /** Обновляем содержимое OpenGL-текстуры. */
+    public void updateFrame(GpuTexture glTexture) {
+        if (preparedBuffer == null) return;
         int w = screen.textureWidth, h = screen.textureHeight;
-        // guard: буфер ещё не пересоздан под текущий размер
         if (w != preparedW || h != preparedH) return;
 
-        GL11.glPixelStorei(GL11.GL_UNPACK_ALIGNMENT, 1);
-        GL11.glBindTexture(GL11.GL_TEXTURE_2D, texId);
+        CommandEncoder encoder = RenderSystem.getDevice().createCommandEncoder();
+        preparedBuffer.position(0);
+        IntBuffer intBuf = preparedBuffer.asIntBuffer();
 
         if (w != lastTexW || h != lastTexH) {
-            // сначала аллоцируем хранилище
-            GL11.glTexImage2D(
-                    GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA,
-                    w, h, 0,
-                    GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE,
-                    preparedBuffer
-            );
-            lastTexW = w;
-            lastTexH = h;
-        } else {
-            // быстрый апдейт
-            GL11.glTexSubImage2D(
-                    GL11.GL_TEXTURE_2D, 0,
-                    0, 0, w, h,
-                    GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE,
-                    preparedBuffer
-            );
+            lastTexW = w; lastTexH = h;
         }
+
+        if (!glTexture.isClosed()) encoder.writeToTexture(
+                glTexture,
+                intBuf,
+                NativeImage.Format.RGBA,
+                0,
+                0, 0,
+                glTexture.getWidth(0), glTexture.getHeight(0)
+        );
     }
 
     public List<Integer> getAvailableQualities() {
@@ -150,67 +154,97 @@ public class MediaPlayer {
                 .collect(Collectors.toList());
     }
 
-    public void setQuality(String q) {
-        gstExecutor.submit(() -> changeQuality(q));
-    }
+    public void setQuality(String q) { safeExecute(() -> changeQuality(q)); }
 
-    // INITIALIZATION
+    // === INITIALIZATION ==================================================================
     private void initialize() {
         try {
             Youtube yt = new Youtube(youtubeUrl, USER_AGENT);
             List<Stream> all = yt.streams().getAll();
 
-            // все видео-потоки
             availableVideoStreams = all.stream()
                     .filter(s -> MIME_VIDEO.equals(s.getMimeType()))
                     .toList();
 
-            // выбрали одну «по умолчанию» для видео
-            Optional<Stream> videoOpt = pickVideo(144).or(() -> availableVideoStreams.stream().findFirst());
-
-            // выбрали аудио один раз и навсегда (можно тут же сортировать по bitrate)
+            Optional<Stream> videoOpt = pickVideo(Integer.parseInt(screen.getQuality().replace("p", ""))).or(() -> availableVideoStreams.stream().findFirst());
             Optional<Stream> audioOpt = all.stream()
                     .filter(s -> MIME_AUDIO.equals(s.getMimeType()))
-                    .reduce((first, next) -> next);
+                    .reduce((f, n) -> n);
 
             if (videoOpt.isEmpty() || audioOpt.isEmpty()) {
-                System.err.println("No streams available");
+                LoggerFactory.getLogger().severe("No streams available");
                 return;
             }
 
             currentVideoStream = videoOpt.get();
-            lastQuality = parseQuality(currentVideoStream);
+            lastQuality        = parseQuality(currentVideoStream);
 
-            // строим аудио-пайплайн один раз
             audioPipeline = buildAudioPipeline(audioOpt.get().getUrl());
-
-            // строим видео-пайплайн под текущее качество
             videoPipeline = buildVideoPipeline(currentVideoStream.getUrl());
 
+            videoPipeline.getState();
             initialized = true;
         } catch (Exception e) {
-            e.printStackTrace();
+            LoggerFactory.getLogger().log(Level.SEVERE, "Failed to initialize MediaPlayer ", e);
         }
     }
 
     private Pipeline buildVideoPipeline(String uri) {
-        // GStreamer отдаёт RGBA
-        String desc = "uridecodebin uri=\"" + uri + "\" ! videoconvert ! video/x-raw,format=RGBA ! appsink name=videosink";
+        String desc = String.join(" ",
+                "souphttpsrc location=\"" + uri + "\"",
+                "user-agent=\"" + USER_AGENT + "\"",
+                "extra-headers=\"origin:https://www.youtube.com\\nreferer:https://www.youtube.com\\n\"",
+                "! matroskademux ! decodebin ! videoconvert ! video/x-raw,format=RGBA ! appsink name=videosink");
+
         Pipeline p = (Pipeline) Gst.parseLaunch(desc);
-        configureVideoSink((AppSink)p.getElementByName("videosink"));
+        configureVideoSink((AppSink) p.getElementByName("videosink"));
         p.pause();
+
+        Bus bus = p.getBus();
+        final AtomicReference<Bus.ERROR> errRef = new AtomicReference<>();
+        errRef.set((source, code, message) -> {
+            LoggerFactory.getLogger().severe("[MediaPlayer V][ERROR] GStreamer: " + message);
+            bus.disconnect(errRef.get());
+            screen.errored = true;
+            initialized = false;
+        });
+        bus.connect(errRef.get());
         return p;
     }
 
     private Pipeline buildAudioPipeline(String uri) {
-        String desc = "uridecodebin uri=\"" + uri + "\" ! audioconvert ! audioresample"
-                + " ! volume name=volumeElement volume=" + currentVolume
-                + " ! autoaudiosink";
-        return (Pipeline) Gst.parseLaunch(desc);
+        String desc = "uridecodebin uri=\"" + uri + "\" ! audioconvert ! audioresample " +
+                "! volume name=volumeElement volume=" + currentVolume + " ! autoaudiosink";
+        Pipeline p = (Pipeline) Gst.parseLaunch(desc);
+        p.getBus().connect((Bus.ERROR) (source, code, message) ->
+                LoggerFactory.getLogger().severe("[MediaPlayer A][ERROR] GStreamer: " + message));
+
+        p.getBus().connect((Bus.EOS) source -> {
+            LoggerFactory.getLogger().info("Got EOS, looping back to start");
+            safeExecute(() -> {
+                audioPipeline.seekSimple(
+                        Format.TIME,
+                        EnumSet.of(SeekFlags.FLUSH, SeekFlags.ACCURATE),
+                        0L
+                );
+                audioPipeline.play();
+
+                // перематываем видео
+                if (videoPipeline != null) {
+                    videoPipeline.seekSimple(
+                            Format.TIME,
+                            EnumSet.of(SeekFlags.FLUSH, SeekFlags.ACCURATE),
+                            0L
+                    );
+                    videoPipeline.play();
+                }
+            });
+        });
+
+        return p;
     }
 
     private void configureVideoSink(AppSink sink) {
-        this.videoSink = sink;
         sink.set("emit-signals", true);
         sink.set("sync", true);
         sink.connect((AppSink.NEW_SAMPLE) elem -> {
@@ -226,32 +260,23 @@ public class MediaPlayer {
         });
     }
 
-    // FRAME PROCESSING
-
-    /** RGBA→ABGR для BufferedImage */
+    // === FRAME PROCESSING ================================================================
     private static BufferedImage sampleToImage(Sample sample, BufferedImage reuse) {
         Structure st = sample.getCaps().getStructure(0);
         int w = st.getInteger("width"), h = st.getInteger("height");
         Buffer buf = sample.getBuffer();
         ByteBuffer bb = buf.map(false);
         try {
-            if (reuse == null || reuse.getWidth() != w || reuse.getHeight() != h) {
+            if (reuse == null || reuse.getWidth() != w || reuse.getHeight() != h)
                 reuse = new BufferedImage(w, h, BufferedImage.TYPE_4BYTE_ABGR);
-            }
-            byte[] dst = ((DataBufferByte)reuse.getRaster().getDataBuffer()).getData();
+            byte[] dst = ((DataBufferByte) reuse.getRaster().getDataBuffer()).getData();
             byte[] src = new byte[dst.length];
             bb.get(src);
-            // конвертируем: R G B A → A B G R
             for (int i = 0; i < src.length; i += 4) {
-                byte r = src[i], g = src[i+1], b = src[i+2], a = src[i+3];
-                dst[i]   = a;
-                dst[i+1] = b;
-                dst[i+2] = g;
-                dst[i+3] = r;
+                byte r = src[i], g = src[i + 1], b = src[i + 2], a = src[i + 3];
+                dst[i] = a; dst[i + 1] = b; dst[i + 2] = g; dst[i + 3] = r;
             }
-        } finally {
-            buf.unmap();
-        }
+        } finally { buf.unmap(); }
         return reuse;
     }
 
@@ -259,67 +284,58 @@ public class MediaPlayer {
         if (currentFrame == null) return;
         int w = screen.textureWidth, h = screen.textureHeight;
         if (w == 0 || h == 0) return;
-        try {
-            frameExecutor.submit(this::prepareBuffer);
-        } catch (RejectedExecutionException ignored) {}
+        try { frameExecutor.submit(this::prepareBuffer); }
+        catch (RejectedExecutionException ignored) {}
     }
 
     private void prepareBuffer() {
         int w = screen.textureWidth, h = screen.textureHeight;
         if (w == 0 || h == 0) return;
 
-        if (textureImage == null || textureImage.getWidth()  != w
-                || textureImage.getHeight() != h) {
+        if (textureImage == null || textureImage.getWidth() != w || textureImage.getHeight() != h)
             textureImage = new BufferedImage(w, h, BufferedImage.TYPE_4BYTE_ABGR);
-        }
+
         Graphics2D g = textureImage.createGraphics();
-        // очистка
         g.setComposite(AlphaComposite.Clear);
         g.fillRect(0, 0, w, h);
         g.setComposite(AlphaComposite.SrcOver);
 
-        // aspect-fit отрисовка кадра
-        double scale = Math.max((double)w/currentFrame.getWidth(),
-                (double)h/currentFrame.getHeight());
-        int sw = (int)Math.round(currentFrame.getWidth()*scale);
-        int sh = (int)Math.round(currentFrame.getHeight()*scale);
-        int x  = (w - sw)/2, y = (h - sh)/2;
+        double scale = Math.max((double) w / currentFrame.getWidth(),
+                (double) h / currentFrame.getHeight());
+        int sw = (int) Math.round(currentFrame.getWidth()  * scale);
+        int sh = (int) Math.round(currentFrame.getHeight() * scale);
+        int x  = (w - sw) / 2, y = (h - sh) / 2;
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
                 RenderingHints.VALUE_INTERPOLATION_BILINEAR);
         g.drawImage(currentFrame, x, y, sw, sh, null);
         g.dispose();
 
         preparedBuffer = imageToDirect(textureImage);
-        preparedW = w;
-        preparedH = h;
+        preparedW = w; preparedH = h;
     }
 
     private static ByteBuffer imageToDirect(BufferedImage img) {
-        byte[] abgr = ((DataBufferByte)img.getRaster().getDataBuffer()).getData();
-        ByteBuffer buf = ByteBuffer.allocateDirect(abgr.length)
-                .order(ByteOrder.nativeOrder());
-        // ABGR → RGBA
+        byte[] abgr = ((DataBufferByte) img.getRaster().getDataBuffer()).getData();
+        ByteBuffer buf = ByteBuffer.allocateDirect(abgr.length).order(ByteOrder.nativeOrder());
         for (int i = 0; i < abgr.length; i += 4) {
-            byte a = abgr[i];
-            byte b = abgr[i+1];
-            byte g = abgr[i+2];
-            byte r = abgr[i+3];
+            byte a = abgr[i], b = abgr[i + 1], g = abgr[i + 2], r = abgr[i + 3];
             buf.put(r).put(g).put(b).put(a);
         }
         buf.flip();
         return buf;
     }
 
-    // PLAYBACK HELPERS
-
+    // === PLAYBACK HELPERS ================================================================
     private void doPlay() {
         if (!initialized) return;
         audioPipeline.play();
         Clock c = audioPipeline.getClock();
-        if (c != null && videoPipeline != null) {
-            videoPipeline.setClock(c);
+        if (c != null && videoPipeline != null) videoPipeline.setClock(c);
+        if (!screen.getPaused()) videoPipeline.play();
+        else {
+            videoPipeline.play();
+            videoPipeline.pause();
         }
-        videoPipeline.play();
     }
 
     private void doPause() {
@@ -329,16 +345,24 @@ public class MediaPlayer {
     }
 
     private void doStop() {
-        if (videoPipeline != null) { videoPipeline.stop(); videoPipeline.dispose(); }
-        if (audioPipeline != null) { audioPipeline.stop(); audioPipeline.dispose(); }
+        safeStopAndDispose(videoPipeline);
+        safeStopAndDispose(audioPipeline);
+        videoPipeline = null;
+        audioPipeline = null;
     }
 
-    private void doSeek(long ns) {
+    private void doSeek(long ns, boolean b) {
         if (!initialized) return;
-        // оба, если нужна синхронность
         EnumSet<SeekFlags> flags = EnumSet.of(SeekFlags.FLUSH, SeekFlags.ACCURATE);
-        videoPipeline.seekSimple(Format.TIME, flags, ns);
+        audioPipeline.pause();
+        if (videoPipeline != null) videoPipeline.pause();
+        if (videoPipeline != null) videoPipeline.seekSimple(Format.TIME, flags, ns);
         audioPipeline.seekSimple(Format.TIME, flags, ns);
+        if (videoPipeline != null) videoPipeline.getState(); // дождаться преролла
+        audioPipeline.play();
+        if (videoPipeline != null && !screen.getPaused()) videoPipeline.play();
+
+        if (b) screen.afterSeek();
     }
 
     private void applyVolume() {
@@ -347,59 +371,77 @@ public class MediaPlayer {
         if (v != null) v.set("volume", currentVolume);
     }
 
-    // QUALITY HELPERS
-
+    // === QUALITY HELPERS =================================================================
     private Optional<Stream> pickVideo(int target) {
         return availableVideoStreams.stream()
-                .filter(s -> s.getResolution()!=null)
+                .filter(s -> s.getResolution() != null)
                 .min(Comparator.comparingInt(s -> Math.abs(parseQuality(s) - target)));
     }
 
     private static int parseQuality(Stream s) {
-        try {
-            return Integer.parseInt(s.getResolution().replaceAll("\\D+", ""));
-        } catch (Exception e) {
-            return Integer.MAX_VALUE;
-        }
+        try { return Integer.parseInt(s.getResolution().replaceAll("\\D+", "")); }
+        catch (Exception e) { return Integer.MAX_VALUE; }
     }
 
     private void changeQuality(String desired) {
-        if (!initialized || availableVideoStreams==null) return;
+        if (!initialized || availableVideoStreams == null) return;
         int target;
-        try {
-            target = Integer.parseInt(desired.replaceAll("\\D+", ""));
-        } catch (NumberFormatException e) {
-            return;
-        }
+        try { target = Integer.parseInt(desired.replaceAll("\\D+", "")); }
+        catch (NumberFormatException e) { return; }
         if (target == lastQuality) return;
+        MinecraftClient.getInstance().execute(screen::reloadTexture);
 
         Optional<Stream> best = pickVideo(target);
         if (best.isEmpty()) return;
         Stream chosen = best.get();
         if (chosen.getUrl().equals(currentVideoStream.getUrl())) return;
 
-        // текущая позиция по аудио
         long pos = audioPipeline.queryPosition(Format.TIME);
+        audioPipeline.pause();
 
-        // остановить старый videoPipeline
-        videoPipeline.stop();
-        videoPipeline.dispose();
+        safeStopAndDispose(videoPipeline);
 
-        // собрать новый под нужный URL
         Pipeline newVid = buildVideoPipeline(chosen.getUrl());
-        // синхронизировать его по аудио-часам
-        Clock c = audioPipeline.getClock();
-        if (c != null) newVid.setClock(c);
+        Clock clock = audioPipeline.getClock();
+        if (clock != null) newVid.setClock(clock);
+        newVid.pause();
+        newVid.getState();   // ожидаем преролл
 
-        // поставить на нужную позицию и запустить
         EnumSet<SeekFlags> flags = EnumSet.of(SeekFlags.FLUSH, SeekFlags.ACCURATE);
-        newVid.seekSimple(Format.TIME, flags, pos);
-        newVid.play();
+        audioPipeline.seekSimple(Format.TIME, flags, pos);
+        newVid.seekSimple (Format.TIME, flags, pos);
+
         audioPipeline.play();
-        
-        // заменить
-        videoPipeline = newVid;
+        if (!screen.getPaused()) newVid.play();
+
+        videoPipeline      = newVid;
         currentVideoStream = chosen;
-        lastQuality = parseQuality(chosen);
+        lastQuality        = parseQuality(chosen);
+    }
+
+    // === TICK АТТЕНЮАЦИЯ ================================================================
+    public void tick(BlockPos playerPos, double maxRadius) {
+        if (!initialized) return;
+        double dist = screen.getDistanceToScreen(playerPos);
+        double attenuation = Math.pow(1.0 - Math.min(1.0, dist / maxRadius), 2)
+                * MinecraftClient.getInstance().options.getSoundVolume(SoundCategory.MASTER);
+        if (Math.abs(attenuation - lastAttenuation) < 1e-5) return; // без изменений
+
+        lastAttenuation = attenuation;
+        currentVolume = userVolume * attenuation;
+        safeExecute(this::applyVolume);
+    }
+
+    // === CONCURRENCY HELPERS =============================================================
+    private void safeExecute(Runnable r) {
+        if (!gstExecutor.isShutdown()) {
+            try { gstExecutor.submit(r); } catch (RejectedExecutionException ignored) {}
+        }
+    }
+
+    private static void safeStopAndDispose(Element e) {
+        if (e == null) return;
+        try { e.setState(State.NULL); } catch (Exception ignore) {}
+        try { e.dispose(); }           catch (Exception ignore) {}
     }
 }

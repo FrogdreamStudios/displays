@@ -7,14 +7,14 @@ import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Uuids;
 import org.joml.Vector3i;
-import ru.l0sty.frogdisplays.FrogDisplaysMod;
+import ru.l0sty.frogdisplays.PlatformlessInitializer;
 import ru.l0sty.frogdisplays.util.Facing;
 
 import java.util.UUID;
 
 public record DisplayInfoPacket(UUID id, UUID ownerId, Vector3i pos, int width, int height, String url, Facing facing, boolean isSync) implements CustomPayload {
     public static final CustomPayload.Id<DisplayInfoPacket> PACKET_ID =
-            new CustomPayload.Id<>(Identifier.of(FrogDisplaysMod.MOD_ID, "display_info"));
+            new CustomPayload.Id<>(Identifier.of(PlatformlessInitializer.MOD_ID, "display_info"));
 
     public static final PacketCodec<PacketByteBuf, DisplayInfoPacket> PACKET_CODEC =
             PacketCodec.ofStatic(
@@ -32,7 +32,7 @@ public record DisplayInfoPacket(UUID id, UUID ownerId, Vector3i pos, int width, 
                         PacketCodecs.STRING.encode(buf, packet.url());
 
                         PacketCodecs.BYTE.encode(buf, packet.facing().toPacket());
-                        PacketCodecs.BOOL.encode(buf, packet.isSync());
+                        PacketCodecs.BOOLEAN.encode(buf, packet.isSync());
                     },
                     (buf) -> {
                         UUID id = Uuids.PACKET_CODEC.decode(buf);
@@ -51,7 +51,7 @@ public record DisplayInfoPacket(UUID id, UUID ownerId, Vector3i pos, int width, 
                         byte facingByte = PacketCodecs.BYTE.decode(buf);
                         Facing facing = Facing.fromPacket(facingByte);
 
-                        boolean isSync = PacketCodecs.BOOL.decode(buf);
+                        boolean isSync = PacketCodecs.BOOLEAN.decode(buf);
 
                         return new DisplayInfoPacket(id, ownerId, pos, width, height, url, facing, isSync);
                     }
