@@ -17,7 +17,7 @@ import ru.l0sty.frogdisplays.render.ScreenWorldRenderer;
 import ru.l0sty.frogdisplays.screen.ScreenManager;
 import net.fabricmc.api.ClientModInitializer;
 
-public class FrogDisplaysMod implements ClientModInitializer, Mod {
+public class FrogdisplaysMod implements ClientModInitializer, Mod {
     @Override
     public void onInitializeClient() {
         PlatformlessInitializer.onModInit(this);

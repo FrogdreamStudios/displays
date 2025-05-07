@@ -10,7 +10,7 @@ public class GStreamerDownloaderMenu extends Screen {
     public final Screen menu;
 
     public GStreamerDownloaderMenu(Screen menu) {
-        super(Text.of("FrogDisplays устанавливает необходимые библиотеки..."));
+        super(Text.of("Frogdisplays устанавливает необходимые библиотеки..."));
         this.menu = menu;
     }
 

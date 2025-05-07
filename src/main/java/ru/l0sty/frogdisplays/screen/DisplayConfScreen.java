@@ -43,7 +43,7 @@ public class DisplayConfScreen extends Screen {
     public ru.l0sty.frogdisplays.screen.Screen screen;
 
     protected DisplayConfScreen() {
-        super(Text.of("FrogDisplays"));
+        super(Text.of("Frogdisplays"));
     }
 
     @Override
@@ -206,7 +206,7 @@ public class DisplayConfScreen extends Screen {
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         // Рисуем фон
         renderBackground(context, mouseX, mouseY, delta);
-        Text headerText = Text.literal("FrogDisplays");
+        Text headerText = Text.literal("Frogdisplays");
 
         int vCH = 25;
 

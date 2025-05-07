@@ -6,7 +6,7 @@ import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.text.Text;
 
 /**
- * Экран ошибки для FrogDisplays, отображает сообщение об ошибке и кнопку "Продолжить".
+ * Экран ошибки для Frogdisplays, отображает сообщение об ошибке и кнопку "Продолжить".
  */
 public class GStreamerErrorScreen extends Screen {
     private final Screen parent;
@@ -17,7 +17,7 @@ public class GStreamerErrorScreen extends Screen {
      * @param errorMessage текст сообщения об ошибке
      */
     public GStreamerErrorScreen(Screen parent, String errorMessage) {
-        super(Text.of("Ошибка FrogDisplays"));
+        super(Text.of("Ошибка Frogdisplays"));
         this.parent = parent;
         this.errorMessage = errorMessage;
     }

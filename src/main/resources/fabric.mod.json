@@ -6,7 +6,7 @@
   "license": "MIT",
   "entrypoints": {
     "client": [
-      "ru.l0sty.frogdisplays.FrogDisplaysMod"
+      "ru.l0sty.frogdisplays.FrogdisplaysMod"
     ]
   },
   "mixins": [
