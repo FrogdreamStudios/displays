@@ -7,10 +7,10 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
 
 public class GStreamerDownloaderMenu extends Screen {
-    private final Screen menu;
+    public final Screen menu;
 
     public GStreamerDownloaderMenu(Screen menu) {
-        super(Text.of("MCEF is downloading required libraries..."));
+        super(Text.of("FrogDisplays устанавливает необходимые библиотеки..."));
         this.menu = menu;
     }
 
@@ -53,7 +53,7 @@ public class GStreamerDownloaderMenu extends Screen {
         // allows me to generalize the code to not care about line count
         String[] text = new String[]{
                 GStreamerDownloadListener.INSTANCE.getTask(),
-                Math.round(GStreamerDownloadListener.INSTANCE.getProgress() * 100) + "%",
+                (Math.round(GStreamerDownloadListener.INSTANCE.getProgress() * 100)%100) + "%",
         };
 
         int oSet = ((textRenderer.fontHeight / 2) + ((textRenderer.fontHeight + 2) * (text.length + 2))) + 4;
@@ -89,8 +89,6 @@ public class GStreamerDownloaderMenu extends Screen {
             index++;
         }
         poseStack.pop();
-
-        // TODO: if listener.isFailed(), draw some "Failed to initialize MCEF" text with an "OK" button to proceed
     }
 
     @Override

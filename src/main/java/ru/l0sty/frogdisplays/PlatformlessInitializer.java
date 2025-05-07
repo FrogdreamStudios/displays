@@ -9,21 +9,21 @@ import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.hit.BlockHitResult;
 import org.joml.Vector3i;
 import org.lwjgl.glfw.GLFW;
-import ru.l0sty.frogdisplays.downloader.CefDownloadMixin;
-import ru.l0sty.frogdisplays.net.DeletePacket;
-import ru.l0sty.frogdisplays.net.DisplayInfoPacket;
-import ru.l0sty.frogdisplays.net.SyncPacket;
+import ru.l0sty.frogdisplays.downloader.GstreamerDownloadInit;
+import ru.l0sty.frogdisplays.net.*;
 import ru.l0sty.frogdisplays.screen.DisplayConfScreen;
 import ru.l0sty.frogdisplays.screen.Screen;
 import ru.l0sty.frogdisplays.screen.ScreenManager;
 import ru.l0sty.frogdisplays.util.Facing;
 import ru.l0sty.frogdisplays.util.RCUtil;
+import ru.l0sty.frogdisplays.util.Utils;
 
 import java.io.File;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class PlatformlessInitializer {
@@ -54,7 +54,7 @@ public class PlatformlessInitializer {
         config = new Config(new File("./config/" + MOD_ID));
         config.reload();
 
-        CefDownloadMixin.sinit();
+        GstreamerDownloadInit.sinit();
         new WindowFocusMuteThread().start();
     }
 
@@ -99,6 +99,15 @@ public class PlatformlessInitializer {
 
                 ScreenManager.unloadAll();
                 hoveredScreen = null;
+            }
+
+            if (!wasInMultiplayer.get()) {
+                try {
+                    String version = Utils.readResource("version");
+                    sendPacket(new VersionPacket(version));
+                } catch (Exception e) {
+                    LoggerFactory.getLogger().log(Level.SEVERE, "Unable to get version", e);
+                }
             }
 
             wasInMultiplayer.set(true);
@@ -178,5 +187,11 @@ public class PlatformlessInitializer {
         if (screen == null) return;
 
         ScreenManager.unregisterScreen(screen);
+    }
+
+    public static boolean isPremium = false;
+
+    public static void onPremiumPacket(PremiumPacket payload) {
+        isPremium = payload.premium();
     }
 }

@@ -13,6 +13,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import ru.l0sty.frogdisplays.downloader.GStreamerDownloadListener;
 import ru.l0sty.frogdisplays.downloader.GStreamerDownloaderMenu;
+import ru.l0sty.frogdisplays.downloader.GStreamerErrorScreen;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -29,13 +30,13 @@ public abstract class GStreamInitMixin {
 
     @Inject(at = @At("HEAD"), method = "setScreen", cancellable = true)
     public void redirScreen(Screen guiScreen, CallbackInfo ci) {
-        if (downloaded) {
+        if (!downloaded) {
             boolean recursionValue = recursionDetector.get();
             recursionDetector.set(true);
 
             if (
-                    !recursionValue ||
-                            !(guiScreen instanceof GStreamerDownloaderMenu)
+                !(guiScreen instanceof GStreamerDownloaderMenu) &&
+                !(guiScreen instanceof GStreamerErrorScreen)
             ) {
                 if (GStreamerDownloadListener.INSTANCE.isDone() && !GStreamerDownloadListener.INSTANCE.isFailed()) {
                     downloaded = true;
@@ -47,7 +48,8 @@ public abstract class GStreamInitMixin {
                     ci.cancel();
                 }
                 else if (GStreamerDownloadListener.INSTANCE.isFailed()) {
-                    LoggerFactory.getLogger().severe("MCEF failed to initialize!");
+                    LoggerFactory.getLogger().severe("GStreamer failed to initialize!");
+                    setScreen(new GStreamerErrorScreen(guiScreen, "Не удалось инициализировать библиотеки. Обратитесь к разработчику мода"));
                 }
             }
 

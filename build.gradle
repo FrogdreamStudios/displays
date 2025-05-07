@@ -46,8 +46,8 @@ dependencies {
 	//modImplementation "net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}"
 
 	implementation 'org.freedesktop.gstreamer:gst1-java-core:1.4.0'
-	implementation 'net.java.dev.jna:jna:5.9.0'
-	implementation 'net.java.dev.jna:jna-platform:5.9.0'
+	compileOnly 'net.java.dev.jna:jna:5.9.0'
+	compileOnly 'net.java.dev.jna:jna-platform:5.9.0'
 	implementation 'me.inotsleep:utils:1.1.2'
 
 	implementation 'com.github.felipeucelli:javatube:6692a32'
@@ -59,8 +59,8 @@ shadowJar {
 	// По умолчанию используется runtimeClasspath, но можно фильтровать зависимости:
 	dependencies {
 		include(dependency('org.freedesktop.gstreamer:gst1-java-core'))
-		include(dependency('net.java.dev.jna:jna'))
-		include(dependency('net.java.dev.jna:jna-platform'))
+		exclude(dependency('net.java.dev.jna:jna'))
+		exclude(dependency('net.java.dev.jna:jna-platform'))
 		include(dependency('com.github.felipeucelli:javatube'))
 		include(dependency('org.json:json'))
 		include(dependency('me.inotsleep:utils'))
@@ -71,6 +71,10 @@ processResources {
 	inputs.property "version", project.version
 
 	filesMatching("fabric.mod.json") {
+		expand "version": project.version
+	}
+
+	filesMatching("version") {
 		expand "version": project.version
 	}
 }

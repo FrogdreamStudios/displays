@@ -17,7 +17,7 @@ import ru.l0sty.frogdisplays.render.ScreenWorldRenderer;
 import ru.l0sty.frogdisplays.screen.ScreenManager;
 import net.fabricmc.api.ClientModInitializer;
 
-public class FrogDisplaysMod implements ClientModInitializer, Mod{
+public class FrogDisplaysMod implements ClientModInitializer, Mod {
     @Override
     public void onInitializeClient() {
         PlatformlessInitializer.onModInit(this);
@@ -47,10 +47,13 @@ public class FrogDisplaysMod implements ClientModInitializer, Mod{
 
         PayloadTypeRegistry.playC2S().register(DeletePacket.PACKET_ID, DeletePacket.PACKET_CODEC);
         PayloadTypeRegistry.playC2S().register(ReportPacket.PACKET_ID, ReportPacket.PACKET_CODEC);
+        PayloadTypeRegistry.playC2S().register(VersionPacket.PACKET_ID, VersionPacket.PACKET_CODEC);
         PayloadTypeRegistry.playS2C().register(DeletePacket.PACKET_ID, DeletePacket.PACKET_CODEC);
+        PayloadTypeRegistry.playS2C().register(PremiumPacket.PACKET_ID, PremiumPacket.PACKET_CODEC);
 
 
         ClientPlayNetworking.registerGlobalReceiver(DisplayInfoPacket.PACKET_ID, (payload, unused) -> PlatformlessInitializer.onDisplayInfoPacket(payload));
+        ClientPlayNetworking.registerGlobalReceiver(PremiumPacket.PACKET_ID, (payload, unused) -> PlatformlessInitializer.onPremiumPacket(payload));
         ClientPlayNetworking.registerGlobalReceiver(DeletePacket.PACKET_ID, (deletePacket, unused) -> PlatformlessInitializer.onDeletePacket(deletePacket));
 
         ClientPlayNetworking.registerGlobalReceiver(SyncPacket.PACKET_ID, (payload, unused) -> PlatformlessInitializer.onSyncPacket(payload));

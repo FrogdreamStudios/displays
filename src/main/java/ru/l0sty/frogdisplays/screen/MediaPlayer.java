@@ -13,6 +13,7 @@ import net.minecraft.util.math.BlockPos;
 import org.freedesktop.gstreamer.*;
 import org.freedesktop.gstreamer.elements.AppSink;
 import org.freedesktop.gstreamer.event.SeekFlags;
+import ru.l0sty.frogdisplays.PlatformlessInitializer;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -150,6 +151,7 @@ public class MediaPlayer {
                 .filter(Objects::nonNull)
                 .map(r -> Integer.parseInt(r.replaceAll("\\D+", "")))
                 .distinct()
+                .filter(r -> r <= (PlatformlessInitializer.isPremium ? 1080 : 720))
                 .sorted()
                 .collect(Collectors.toList());
     }

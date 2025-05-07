@@ -17,5 +17,6 @@
     "fabric": "*",
     "minecraft": "1.21.5",
     "java": ">=21"
-  }
+  },
+  "icon": "assets/frogdisplays/icon.png"
 }

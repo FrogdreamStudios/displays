@@ -10,7 +10,7 @@ public class WindowFocusMuteThread extends Thread {
     public WindowFocusMuteThread() {
         setDaemon(true);
         instance = this;
-        setName("window-focus-cef-mute-thread");
+        setName("window-focus-mute-thread");
     }
 
     @Override

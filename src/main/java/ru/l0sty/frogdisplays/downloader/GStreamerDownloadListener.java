@@ -1,5 +1,7 @@
 package ru.l0sty.frogdisplays.downloader;
 
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.Screen;
 import org.spongepowered.asm.mixin.Unique;
 
 public class GStreamerDownloadListener {
@@ -22,7 +24,7 @@ public class GStreamerDownloadListener {
     }
 
     public void setProgress(float percent) {
-        this.percent = percent;
+        this.percent =  ((float) (((int) (percent * 100))%100))/100;
     }
 
     public float getProgress() {
@@ -39,6 +41,13 @@ public class GStreamerDownloadListener {
 
     public void setFailed(boolean failed) {
         this.failed = failed;
+
+        Screen screen = MinecraftClient.getInstance().currentScreen;
+        if (screen instanceof GStreamerDownloaderMenu menu) {
+            screen = menu.menu;
+        }
+
+        MinecraftClient.getInstance().setScreen(new GStreamerErrorScreen(screen, "Не удалось инициализировать библиотеки. Обратитесь к разработчику мода"));
     }
 
     public boolean isFailed() {

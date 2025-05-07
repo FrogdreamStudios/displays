@@ -15,18 +15,18 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 public class GStreamerDownloader {
-    private static final String JAVA_CEF_DOWNLOAD_URL = "https://dl.frogdream.xyz/gstreamer-${platform}.zip";
-    private static final String JAVA_CEF_CHECKSUM_DOWNLOAD_URL = JAVA_CEF_DOWNLOAD_URL + ".sha256";
+    private static final String GSTREAMER_DOWNLOAD_URL = "https://dl.frogdream.xyz/gstreamer-${platform}.zip";
+    private static final String GSTREAMER_CHECKSUM_DOWNLOAD_URL = GSTREAMER_DOWNLOAD_URL + ".sha256";
 
     public GStreamerDownloader() {
     }
 
     public String getGStreamerDownloadUrl() {
-        return formatURL(JAVA_CEF_DOWNLOAD_URL);
+        return formatURL(GSTREAMER_DOWNLOAD_URL);
     }
 
     public String getGStreamerChecksumDownloadUrl() {
-        return formatURL(JAVA_CEF_CHECKSUM_DOWNLOAD_URL);
+        return formatURL(GSTREAMER_CHECKSUM_DOWNLOAD_URL);
     }
 
     private String formatURL(String url) {
@@ -115,7 +115,7 @@ public class GStreamerDownloader {
 
     private static void extractZip(File zipFile, File outputDirectory) {
         GStreamerDownloadListener.INSTANCE.setTask("Extracting");
-        if (!outputDirectory.getParentFile().mkdirs()) LoggerFactory.getLogger().warning("Unable to mk directory");
+        if (!outputDirectory.getParentFile().exists() && !outputDirectory.getParentFile().mkdirs()) LoggerFactory.getLogger().warning("Unable to mk directory");
 
         long fileSize = zipFile.length();
         long totalBytesRead = 0;
@@ -126,13 +126,12 @@ public class GStreamerDownloader {
                 ZipEntry entry = entries.nextElement();
                 File outputFile = new File(outputDirectory, entry.getName());
 
+
+                if (!outputFile.getParentFile().exists() && !outputFile.getParentFile().mkdirs()) LoggerFactory.getLogger().warning("Unable to mk directory");
+
                 if (entry.isDirectory()) {
-                    if (!outputFile.getParentFile().mkdirs()) LoggerFactory.getLogger().warning("Unable to mk directory");
                     continue;
                 }
-
-                // Создаём папки, если нужно
-                if (!outputFile.getParentFile().mkdirs()) LoggerFactory.getLogger().warning("Unable to mk directory");
 
                 try (InputStream inputStream = zip.getInputStream(entry);
                      OutputStream outputStream = new FileOutputStream(outputFile)) {

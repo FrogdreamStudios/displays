@@ -6,6 +6,7 @@ import net.minecraft.client.gui.Drawable;
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.ButtonTextures;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
@@ -19,6 +20,8 @@ import ru.l0sty.frogdisplays.screen.widgets.SliderWidget;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class DisplayConfScreen extends Screen {
     SliderWidget volume = null;
@@ -117,9 +120,9 @@ public class DisplayConfScreen extends Screen {
         qualityReset = new IconButtonWidget(0, 0, 0, 0, 64, 64, Identifier.of(PlatformlessInitializer.MOD_ID, "bri"), 2) {
             @Override
             public void onPress() {
-                screen.setQuality(toQuality(2).replace("p", ""));
+                screen.setQuality(toQuality(fromQuality("480")).replace("p", ""));
                 quality.value = (double) 2 /screen.getQualityList().size();
-                quality.setMessage(Text.of(toQuality(2)));
+                quality.setMessage(Text.of(toQuality(2) + "p"));
             }
         };
 
@@ -222,14 +225,12 @@ public class DisplayConfScreen extends Screen {
             volume.active = false;
             renderD.active = false;
             quality.active = false;
-//            focusMode.active = false;
             sync.active = false;
             backButton.active = false;
             forwardButton.active = false;
             pauseButton.active = false;
             renderDReset.active = false;
             qualityReset.active = false;
-//            focusModeReset.active = false;
             syncReset.active = false;
 
             List<Text> errorText = List.of(
@@ -260,7 +261,6 @@ public class DisplayConfScreen extends Screen {
 
 
         syncReset.active = screen.owner && screen.isSync;
-//        focusModeReset.active = PlatformlessInitializer.focusMode;
         renderDReset.active = PlatformlessInitializer.maxDistance != 64;
         qualityReset.active = !Objects.equals(screen.getQuality(), "480");
 
@@ -315,7 +315,6 @@ public class DisplayConfScreen extends Screen {
         pauseButton.active = !(screen.isSync && !screen.owner);
 
         sync.active = (screen.owner);
-        syncReset.active = (screen.owner);
         deleteButton.active = (screen.owner);
 
         cY += 10 + vCH;
@@ -365,7 +364,7 @@ public class DisplayConfScreen extends Screen {
         );
 
         cY += 15 + vCH;
-        placeButton(vCH, maxSW, cY, quality, qualityReset);
+        placeButton(vCH, maxSW, cY, sync, syncReset);
 
         // Рисуем текст кнопки "Качество" и вычисляем координаты для tooltip
         Text syncText = Text.literal("Синхронизация");
@@ -396,7 +395,7 @@ public class DisplayConfScreen extends Screen {
         }
     }
 
-    private void placeButton(int vCH, int maxSW, int cY, SliderWidget renderD, IconButtonWidget renderDReset) {
+    private void placeButton(int vCH, int maxSW, int cY, ClickableWidget renderD, IconButtonWidget renderDReset) {
         renderD.setX(this.width / 2 + maxSW / 2 - 80 - vCH - 5);
         renderD.setY(cY);
         renderD.setHeight(vCH);
@@ -443,6 +442,16 @@ public class DisplayConfScreen extends Screen {
 
         int res = list.stream().filter(q -> q==cQ).findAny().orElse(Math.max(Math.min(list.getLast(), cQ), list.getFirst()));
         return list.indexOf(list.contains(res) ? res: list.getFirst());
+    }
+
+    public static <T> T printTime(Function<Void, T> c, String name) {
+        long nanos = System.nanoTime();
+        T result = c.apply(null);
+        long time = System.nanoTime() - nanos;
+
+        System.out.println(name + " " + time / 1000000 + "ms");
+
+        return result;
     }
 
     private void setScreen(ru.l0sty.frogdisplays.screen.Screen screen) {

@@ -1,5 +1,9 @@
 package ru.l0sty.frogdisplays.util;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
@@ -52,4 +56,20 @@ public class Utils {
         Matcher m = Pattern.compile(regex).matcher(youtubeUrl);
         return m.find() ? m.group() : null;
     }
+
+    public static String readResource(String resourcePath) throws IOException {
+        try (InputStream in = Utils.class.getResourceAsStream(resourcePath)) {
+            if (in == null) {
+                throw new IOException("Ресурс не найден: " + resourcePath);
+            }
+            BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line).append("\n");
+            }
+            return sb.toString();
+        }
+    }
+
 }
