@@ -32,7 +32,7 @@ jobs:
         run: ./gradlew build
       - name: capture build artifacts
         if: ${{ matrix.java == '21' }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: FrogDisplays
           path: build/libs/*.jar
