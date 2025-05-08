@@ -48,7 +48,7 @@ dependencies {
 	implementation 'org.freedesktop.gstreamer:gst1-java-core:1.4.0'
 	compileOnly 'net.java.dev.jna:jna:5.9.0'
 	compileOnly 'net.java.dev.jna:jna-platform:5.9.0'
-	implementation 'me.inotsleep:utils:1.1.2'
+	implementation 'me.inotsleep:utils:1.2.0'
 
 	implementation 'com.github.felipeucelli:javatube:6692a32'
 
