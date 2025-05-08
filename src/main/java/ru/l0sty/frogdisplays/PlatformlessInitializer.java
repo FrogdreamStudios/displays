@@ -104,6 +104,7 @@ public class PlatformlessInitializer {
             if (!wasInMultiplayer.get()) {
                 try {
                     String version = Utils.readResource("version");
+                    System.out.println("Found version " + version);
                     sendPacket(new VersionPacket(version));
                 } catch (Exception e) {
                     LoggerFactory.getLogger().log(Level.SEVERE, "Unable to get version", e);
