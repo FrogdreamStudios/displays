@@ -9,6 +9,8 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
+import static ru.l0sty.frogdisplays.util.Utils.detectPlatform;
+
 
 public class GstreamerDownloadInit {
     private static void setupLibraryPath() throws IOException {
@@ -113,7 +115,14 @@ public class GstreamerDownloadInit {
         return libs;
     }
 
-    public static void sinit() {
+    public static void init() {
+        String platform = detectPlatform();
+        if (!platform.equals("windows")) {
+            GStreamerDownloadListener.INSTANCE.setFailed(true);
+            return;
+        }
+
+
         final File gStreamerLibrariesDir = new File("./libs/gstreamer");
         if (!gStreamerLibrariesDir.exists() && gStreamerLibrariesDir.mkdirs()) LoggerFactory.getLogger().severe("Unable to mk directory");
 

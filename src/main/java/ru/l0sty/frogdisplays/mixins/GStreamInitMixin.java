@@ -14,6 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import ru.l0sty.frogdisplays.downloader.GStreamerDownloadListener;
 import ru.l0sty.frogdisplays.downloader.GStreamerDownloaderMenu;
 import ru.l0sty.frogdisplays.downloader.GStreamerErrorScreen;
+import ru.l0sty.frogdisplays.util.Utils;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -49,7 +50,7 @@ public abstract class GStreamInitMixin {
                 }
                 else if (GStreamerDownloadListener.INSTANCE.isFailed()) {
                     LoggerFactory.getLogger().severe("GStreamer failed to initialize!");
-                    setScreen(new GStreamerErrorScreen(guiScreen, "Не удалось инициализировать библиотеки. Обратитесь к разработчику мода"));
+                    setScreen(new GStreamerErrorScreen(guiScreen, Utils.detectPlatform().equals("windows") ? "Не удалось инициализировать библиотеки. Обратитесь к разработчику мода": "Не удалось загрузить библиотеки. Вам нужно самостоятельно установить GStreamer с помощью brew/apt"));
                 }
             }
 

@@ -41,13 +41,6 @@ public class GStreamerDownloadListener {
 
     public void setFailed(boolean failed) {
         this.failed = failed;
-
-        Screen screen = MinecraftClient.getInstance().currentScreen;
-        if (screen instanceof GStreamerDownloaderMenu menu) {
-            screen = menu.menu;
-        }
-
-        MinecraftClient.getInstance().setScreen(new GStreamerErrorScreen(screen, "Не удалось инициализировать библиотеки. Обратитесь к разработчику мода"));
     }
 
     public boolean isFailed() {

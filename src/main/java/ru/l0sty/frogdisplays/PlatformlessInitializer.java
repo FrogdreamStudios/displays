@@ -54,7 +54,7 @@ public class PlatformlessInitializer {
         config = new Config(new File("./config/" + MOD_ID));
         config.reload();
 
-        GstreamerDownloadInit.sinit();
+        GstreamerDownloadInit.init();
         new WindowFocusMuteThread().start();
     }
 
@@ -90,9 +90,22 @@ public class PlatformlessInitializer {
     private static final AtomicReference<ClientWorld> lastWorld = new AtomicReference<>(null);
     private static final AtomicBoolean wasFocused = new AtomicBoolean(false);
 
+    private static void checkVersionAndSendPacket() {
+        try {
+            String version = Utils.readResource("/version");
+            System.out.println("Found version " + version);
+            sendPacket(new VersionPacket(version));
+        } catch (Exception e) {
+            LoggerFactory.getLogger().log(Level.SEVERE, "Unable to get version", e);
+        }
+    }
+
     public static void onEndTick(MinecraftClient client) {
         if (client.world != null && client.getCurrentServerEntry() != null) {
-            if (lastWorld.get() == null) lastWorld.set(client.world);
+            if (lastWorld.get() == null) {
+                lastWorld.set(client.world);
+                checkVersionAndSendPacket();
+            }
 
             if (client.world != lastWorld.get()) {
                 lastWorld.set(client.world);
@@ -100,13 +113,8 @@ public class PlatformlessInitializer {
                 ScreenManager.unloadAll();
                 hoveredScreen = null;
 
-                try {
-                    String version = Utils.readResource("/version");
-                    System.out.println("Found version " + version);
-                    sendPacket(new VersionPacket(version));
-                } catch (Exception e) {
-                    LoggerFactory.getLogger().log(Level.SEVERE, "Unable to get version", e);
-                }
+                checkVersionAndSendPacket();
+
             }
 
             wasInMultiplayer.set(true);
