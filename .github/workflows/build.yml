@@ -14,7 +14,7 @@ jobs:
         java: [
           21,    # Current Java LTS
         ]
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: checkout repository
         uses: actions/checkout@v4
