@@ -1,68 +1,42 @@
 package ru.l0sty.frogdisplays.screen;
 
-import net.minecraft.util.math.BlockPos;
-
 import java.util.Collection;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ScreenManager {
 
-    private final ConcurrentHashMap<BlockPos, Screen> screens;
+    public static final ConcurrentHashMap<UUID, Screen> screens = new ConcurrentHashMap<>();
 
     public ScreenManager() {
-        screens = new ConcurrentHashMap<>();
     }
 
-    public Collection<Screen> getScreens() {
+    public static Collection<Screen> getScreens() {
         return screens.values();
     }
 
-    public void registerScreen(Screen screen) {
-        if (screens.containsKey(screen.getPos())) {
-            Screen old = screens.get(screen.getPos());
+    public static void registerScreen(Screen screen) {
+        if (screens.containsKey(screen.getID())) {
+            Screen old = screens.get(screen.getID());
             old.unregister();
-            old.closeBrowser();
         }
 
-        screen.register();
-
-        screens.put(screen.getPos(), screen);
+        screens.put(screen.getID(), screen);
     }
 
-    public Screen getScreen(BlockPos pos) {
-        return screens.get(pos);
+    public static void unregisterScreen(Screen screen) {
+        screens.remove(screen.getID());
+        screen.unregister();
     }
 
-    // Used for CefClient LoadHandler
-    public Screen getScreen(int browserId) {
+    public static void unloadAll() {
         for (Screen screen : screens.values()) {
-            if (screen.hasBrowser()) {
-                if (screen.getBrowser().getIdentifier() == browserId) {
-                    return screen;
-                }
-            }
-        }
-
-        return null;
-    }
-
-    public boolean hasActiveScreen() {
-        for (Screen screen : screens.values()) {
-            if (screen.hasBrowser()) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public void unloadAll() {
-        for (Screen screen : screens.values()) {
-            screen.closeBrowser();
             screen.unregister();
         }
 
         screens.clear();
     }
+
+
 
 }

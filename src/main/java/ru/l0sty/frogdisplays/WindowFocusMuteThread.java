@@ -2,41 +2,40 @@ package ru.l0sty.frogdisplays;
 
 import ru.l0sty.frogdisplays.screen.Screen;
 import net.minecraft.client.MinecraftClient;
+import ru.l0sty.frogdisplays.screen.ScreenManager;
 
 public class WindowFocusMuteThread extends Thread {
-
-    private boolean previousState;
+    public static WindowFocusMuteThread instance;
 
     public WindowFocusMuteThread() {
         setDaemon(true);
-        setName("window-focus-cef-mute-thread");
+        instance = this;
+        setName("window-focus-mute-thread");
     }
 
     @Override
     public void run() {
-        while (MinecraftClient.getInstance() != null) {
-            if (CinemaModClient.getInstance().getVideoSettings().isMuteWhenAltTabbed()) {
-                if (MinecraftClient.getInstance().isWindowFocused() && !previousState) {
-                    // if currently focused and was previously not focused
-                    for (Screen screen : CinemaModClient.getInstance().getScreenManager().getScreens()) {
-                        screen.setVideoVolume(CinemaModClient.getInstance().getVideoSettings().getVolume());
-                    }
-                } else if (!MinecraftClient.getInstance().isWindowFocused() && previousState) {
-                    // if not focused and was previous focused
-                    for (Screen screen : CinemaModClient.getInstance().getScreenManager().getScreens()) {
-                        screen.setVideoVolume(0f);
-                    }
-                }
+        while (true) {
+            MinecraftClient client = MinecraftClient.getInstance();
+            if (client == null) {
+                break;
+            }
 
-                previousState = MinecraftClient.getInstance().isWindowFocused();
+            boolean focused = client.isWindowFocused();
+
+            if (PlatformlessInitializer.getConfig().muteOnAltTab) for (Screen screen : ScreenManager.getScreens()) {
+                screen.mute(!focused);
             }
 
             try {
                 Thread.sleep(250);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                Thread.currentThread().interrupt();
+                break;
             }
         }
     }
+
+
 
 }

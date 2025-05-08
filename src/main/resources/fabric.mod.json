@@ -1,28 +1,22 @@
 {
   "schemaVersion": 1,
-  "id": "cinemamod",
-  "name": "CinemaMod",
+  "id": "frogdisplays",
+  "name": "FrogDisplays",
   "version": "${version}",
   "license": "MIT",
   "entrypoints": {
     "client": [
-      "ru.l0sty.frogdisplays.CinemaModClient"
+      "ru.l0sty.frogdisplays.FrogdisplaysMod"
     ]
   },
-  "contact": {
-    "homepage": "https://github.com/CinemaMod/CinemaMod-Fabric",
-    "sources": "https://github.com/CinemaMod/CinemaMod-Fabric",
-    "issues": "https://github.com/CinemaMod/CinemaMod-Fabric/issues",
-    "discord": "https://discord.gg/rNrh5kW8Ty"
-  },
   "mixins": [
-    "cinemamod.mixins.json"
+    "frogdisplays.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=0.15.11",
     "fabric": "*",
-    "minecraft": "1.21",
-    "java": ">=21",
-    "mcef": "2.1.6-1.21"
-  }
+    "minecraft": "1.21.5",
+    "java": ">=21"
+  },
+  "icon": "assets/frogdisplays/icon.png"
 }
