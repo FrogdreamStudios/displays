@@ -99,9 +99,7 @@ public class PlatformlessInitializer {
 
                 ScreenManager.unloadAll();
                 hoveredScreen = null;
-            }
 
-            if (!wasInMultiplayer.get()) {
                 try {
                     String version = Utils.readResource("/version");
                     System.out.println("Found version " + version);
