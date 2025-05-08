@@ -103,7 +103,7 @@ public class PlatformlessInitializer {
 
             if (!wasInMultiplayer.get()) {
                 try {
-                    String version = Utils.readResource("version");
+                    String version = Utils.readResource("/version");
                     System.out.println("Found version " + version);
                     sendPacket(new VersionPacket(version));
                 } catch (Exception e) {
