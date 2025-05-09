@@ -1,14 +1,17 @@
 package ru.l0sty.frogdisplays;
 
-import me.inotsleep.utils.LoggerFactory;
+import me.inotsleep.utils.logging.LoggingManager;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.hit.BlockHitResult;
+import org.apache.logging.log4j.LogManager;
 import org.joml.Vector3i;
 import org.lwjgl.glfw.GLFW;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.l0sty.frogdisplays.downloader.GstreamerDownloadInit;
 import ru.l0sty.frogdisplays.net.*;
 import ru.l0sty.frogdisplays.screen.DisplayConfScreen;
@@ -24,7 +27,6 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class PlatformlessInitializer {
     public static Config config;
@@ -49,7 +51,8 @@ public class PlatformlessInitializer {
 
     public static void onModInit(Mod frogDisplaysMod) {
         mod = frogDisplaysMod;
-        LoggerFactory.setLogger(Logger.getLogger(MOD_ID));
+        LoggingManager.setLogger(LoggerFactory.getLogger(MOD_ID));
+        LoggingManager.info("Starting Frogdisplays");
 
         config = new Config(new File("./config/" + MOD_ID));
         config.reload();
@@ -67,16 +70,16 @@ public class PlatformlessInitializer {
             return;
         }
 
-        createScreen(payload.id(), payload.ownerId(), payload.pos(), payload.facing(), payload.width(), payload.height(), payload.url(), payload.isSync());
+        createScreen(payload.id(), payload.ownerId(), payload.pos(), payload.facing(), payload.width(), payload.height(), payload.url(), payload.lang(), payload.isSync());
     }
 
 
-    public static void createScreen(UUID id, UUID ownerId, Vector3i pos, Facing facing, int width, int height, String code, boolean isSync) {
+    public static void createScreen(UUID id, UUID ownerId, Vector3i pos, Facing facing, int width, int height, String code, String lang, boolean isSync) {
         Screen screen = new Screen(id, ownerId, pos.x(), pos.y(), pos.z(), facing.toString(), width, height, isSync);
         assert MinecraftClient.getInstance().player != null;
         if (screen.getDistanceToScreen(MinecraftClient.getInstance().player.getBlockPos()) > PlatformlessInitializer.maxDistance) return;
         ScreenManager.registerScreen(screen);
-        if (!Objects.equals(code, "")) screen.loadVideo(code);
+        if (!Objects.equals(code, "")) screen.loadVideo(code, lang);
     }
 
     public static void onSyncPacket(SyncPacket payload) {
@@ -96,7 +99,7 @@ public class PlatformlessInitializer {
             System.out.println("Found version " + version);
             sendPacket(new VersionPacket(version));
         } catch (Exception e) {
-            LoggerFactory.getLogger().log(Level.SEVERE, "Unable to get version", e);
+            LoggingManager.error("Unable to get version", e);
         }
     }
 

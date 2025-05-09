@@ -1,6 +1,6 @@
 package ru.l0sty.frogdisplays.util;
 
-import me.inotsleep.utils.LoggerFactory;
+import me.inotsleep.utils.logging.LoggingManager;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.texture.NativeImageBackedTexture;
@@ -24,7 +24,7 @@ public class ImageUtil {
                 }
                 return convertToNativeImage(bi);
             } catch (Exception e) {
-                LoggerFactory.getLogger().log(Level.SEVERE, "Failed to load image from " + url, e);
+                LoggingManager.error("Failed to load image from " + url, e);
                 return null;
             }
         });

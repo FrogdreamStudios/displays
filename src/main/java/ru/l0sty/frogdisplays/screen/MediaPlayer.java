@@ -5,11 +5,12 @@ import com.github.felipeucelli.javatube.Youtube;
 import com.mojang.blaze3d.systems.CommandEncoder;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.textures.GpuTexture;
-import me.inotsleep.utils.LoggerFactory;
+import me.inotsleep.utils.logging.LoggingManager;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.texture.NativeImage;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.util.math.BlockPos;
+import org.apache.commons.logging.Log;
 import org.freedesktop.gstreamer.*;
 import org.freedesktop.gstreamer.elements.AppSink;
 import org.freedesktop.gstreamer.event.SeekFlags;
@@ -26,7 +27,6 @@ import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 /**
@@ -34,10 +34,36 @@ import java.util.stream.Collectors;
  * Защита от 403 YouTube и двойного dispose.
  */
 public class MediaPlayer {
+
+    private final String lang;
+
+    public static void main(String[] args) throws Exception {
+
+        String[] clients = new String[] { "WEB_MUSIC", "ANDROID", "ANDROID_VR", "ANDROID_TESTSUITE", "IOS", "IOS_MUSIC" };
+
+        for (String client : clients) {
+            System.out.println();
+            System.out.println();
+            System.out.println("CLIENT: " + client);
+
+            try {
+                Youtube yt = new Youtube("https://www.youtube.com/watch?v=R-KqGnO6VBQ", client);
+
+                List<Stream> all = yt.streams().getAll();
+
+                for (Stream s : all) {
+                    if (s.getMimeType().contains("audio")) System.out.println(s.getAudioTrackId());
+                }
+            } catch (Exception ignored) {
+            }
+
+        }
+    }
+
     // === CONSTANTS =======================================================================
     private static final String MIME_VIDEO = "video/webm";
     private static final String MIME_AUDIO = "audio/webm";
-    private static final String USER_AGENT = "ANDROID_VR";
+    private static final String USER_AGENT = "ANDROID_TESTSUITE";
 
     private static final ExecutorService INIT_EXECUTOR =
             Executors.newSingleThreadExecutor(r -> new Thread(r, "MediaPlayer-init"));
@@ -75,9 +101,10 @@ public class MediaPlayer {
     private final Screen screen;
 
     // === CONSTRUCTOR =====================================================================
-    public MediaPlayer(String youtubeUrl, Screen screen) {
+    public MediaPlayer(String youtubeUrl, String lang, Screen screen) {
         this.youtubeUrl = youtubeUrl;
         this.screen     = screen;
+        this.lang = lang;
         Gst.init("MediaPlayer");
         INIT_EXECUTOR.submit(this::initialize);
     }
@@ -171,10 +198,19 @@ public class MediaPlayer {
             Optional<Stream> videoOpt = pickVideo(Integer.parseInt(screen.getQuality().replace("p", ""))).or(() -> availableVideoStreams.stream().findFirst());
             Optional<Stream> audioOpt = all.stream()
                     .filter(s -> MIME_AUDIO.equals(s.getMimeType()))
+                    .filter(s -> s.getAudioTrackId().contains(lang) || s.getAudioTrackName().contains(lang))
                     .reduce((f, n) -> n);
 
+            if (audioOpt.isEmpty()) {
+                LoggingManager.warn("No audio stream available with lang " + lang);
+                LoggingManager.warn("Choosing random one...");
+
+                audioOpt = all.stream()
+                        .filter(s -> MIME_AUDIO.equals(s.getMimeType()))
+                        .reduce((f, n) -> n);
+            }
             if (videoOpt.isEmpty() || audioOpt.isEmpty()) {
-                LoggerFactory.getLogger().severe("No streams available");
+                LoggingManager.error("No streams available");
                 return;
             }
 
@@ -187,7 +223,7 @@ public class MediaPlayer {
             videoPipeline.getState();
             initialized = true;
         } catch (Exception e) {
-            LoggerFactory.getLogger().log(Level.SEVERE, "Failed to initialize MediaPlayer ", e);
+            LoggingManager.error("Failed to initialize MediaPlayer ", e);
         }
     }
 
@@ -205,7 +241,7 @@ public class MediaPlayer {
         Bus bus = p.getBus();
         final AtomicReference<Bus.ERROR> errRef = new AtomicReference<>();
         errRef.set((source, code, message) -> {
-            LoggerFactory.getLogger().severe("[MediaPlayer V][ERROR] GStreamer: " + message);
+            LoggingManager.error("[MediaPlayer V][ERROR] GStreamer: " + message);
             bus.disconnect(errRef.get());
             screen.errored = true;
             initialized = false;
@@ -219,10 +255,10 @@ public class MediaPlayer {
                 "! volume name=volumeElement volume=" + currentVolume + " ! autoaudiosink";
         Pipeline p = (Pipeline) Gst.parseLaunch(desc);
         p.getBus().connect((Bus.ERROR) (source, code, message) ->
-                LoggerFactory.getLogger().severe("[MediaPlayer A][ERROR] GStreamer: " + message));
+                LoggingManager.error("[MediaPlayer A][ERROR] GStreamer: " + message));
 
         p.getBus().connect((Bus.EOS) source -> {
-            LoggerFactory.getLogger().info("Got EOS, looping back to start");
+            LoggingManager.info("Got EOS, looping back to start");
             safeExecute(() -> {
                 audioPipeline.seekSimple(
                         Format.TIME,

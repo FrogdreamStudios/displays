@@ -1,6 +1,6 @@
 package ru.l0sty.frogdisplays.mixins;
 
-import me.inotsleep.utils.LoggerFactory;
+import me.inotsleep.utils.logging.LoggingManager;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import org.freedesktop.gstreamer.Gst;
@@ -44,12 +44,13 @@ public abstract class GStreamInitMixin {
                     Gst.init("MediaPlayer");
                 }
                 else if (!GStreamerDownloadListener.INSTANCE.isDone() && !GStreamerDownloadListener.INSTANCE.isFailed()) {
-                    LoggerFactory.getLogger().warning("GStreamer has not finished loading, displaying loading screen.");
+                    LoggingManager.warn("GStreamer has not finished loading, displaying loading screen.");
                     setScreen(new GStreamerDownloaderMenu(guiScreen));
                     ci.cancel();
                 }
                 else if (GStreamerDownloadListener.INSTANCE.isFailed()) {
-                    LoggerFactory.getLogger().severe("GStreamer failed to initialize!");
+                    downloaded = true;
+                    LoggingManager.error("GStreamer failed to initialize!");
                     setScreen(new GStreamerErrorScreen(guiScreen, Utils.detectPlatform().equals("windows") ? "Не удалось инициализировать библиотеки. Обратитесь к разработчику мода": "Не удалось загрузить библиотеки. Вам нужно самостоятельно установить GStreamer с помощью brew/apt"));
                 }
             }

@@ -1,6 +1,6 @@
 package ru.l0sty.frogdisplays.downloader;
 
-import me.inotsleep.utils.LoggerFactory;
+import me.inotsleep.utils.logging.LoggingManager;
 import org.apache.commons.io.FileUtils;
 import ru.l0sty.frogdisplays.util.Utils;
 
@@ -54,16 +54,16 @@ public class GStreamerDownloader {
         if (gStreamerHashFile.exists()) {
             boolean sameContent = FileUtils.contentEquals(gStreamerHashFile, gStreamerHashFileTemp);
             if (sameContent) {
-                if (!gStreamerHashFileTemp.delete()) LoggerFactory.getLogger().warning("Unable to delete directory");
+                if (!gStreamerHashFileTemp.delete()) LoggingManager.warn("Unable to delete directory");
                 return true;
             } else {
-                LoggerFactory.getLogger().warning("GStreamer Hash does not match.");
+                LoggingManager.warn("GStreamer Hash does not match.");
             }
         } else {
-            LoggerFactory.getLogger().warning("Failed to download GStreamer hash.");
+            LoggingManager.warn("Failed to download GStreamer hash.");
         }
 
-        if (!gStreamerHashFileTemp.renameTo(gStreamerHashFile)) LoggerFactory.getLogger().warning("Unable to rename directory");
+        if (!gStreamerHashFileTemp.renameTo(gStreamerHashFile)) LoggingManager.warn("Unable to rename directory");
 
         return false;
     }
@@ -74,14 +74,14 @@ public class GStreamerDownloader {
         extractZip(tarGzArchive, gStreamerLibrariesPath);
         if (delete) {
             if (tarGzArchive.exists()) {
-                if (!tarGzArchive.delete()) LoggerFactory.getLogger().warning("Unable to delete file");
+                if (!tarGzArchive.delete()) LoggingManager.warn("Unable to delete file");
             }
         }
     }
 
     private static void downloadFile(String urlString, File outputFile) throws IOException {
         try {
-            LoggerFactory.getLogger().info(urlString + " -> " + outputFile.getCanonicalPath());
+            LoggingManager.info(urlString + " -> " + outputFile.getCanonicalPath());
 
             URL url = URL.of(new URI(urlString), null);
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
@@ -115,7 +115,7 @@ public class GStreamerDownloader {
 
     private static void extractZip(File zipFile, File outputDirectory) {
         GStreamerDownloadListener.INSTANCE.setTask("Extracting");
-        if (!outputDirectory.getParentFile().exists() && !outputDirectory.getParentFile().mkdirs()) LoggerFactory.getLogger().warning("Unable to mk directory");
+        if (!outputDirectory.getParentFile().exists() && !outputDirectory.getParentFile().mkdirs()) LoggingManager.warn("Unable to mk directory");
 
         long fileSize = zipFile.length();
         long totalBytesRead = 0;
@@ -127,7 +127,7 @@ public class GStreamerDownloader {
                 File outputFile = new File(outputDirectory, entry.getName());
 
 
-                if (!outputFile.getParentFile().exists() && !outputFile.getParentFile().mkdirs()) LoggerFactory.getLogger().warning("Unable to mk directory");
+                if (!outputFile.getParentFile().exists() && !outputFile.getParentFile().mkdirs()) LoggingManager.warn("Unable to mk directory");
 
                 if (entry.isDirectory()) {
                     continue;
@@ -148,8 +148,7 @@ public class GStreamerDownloader {
                 }
             }
         } catch (IOException e) {
-            LoggerFactory.getLogger().log(Level.SEVERE,
-                    "Failed to extract zip file to " + outputDirectory, e);
+            LoggingManager.error("Failed to extract zip file to " + outputDirectory, e);
         }
 
         // Обязательно в конце выставляем 100%

@@ -1,12 +1,11 @@
 package ru.l0sty.frogdisplays.downloader;
 
-import me.inotsleep.utils.LoggerFactory;
+import me.inotsleep.utils.logging.LoggingManager;
 import org.freedesktop.gstreamer.Gst;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.logging.Level;
 import java.util.regex.Pattern;
 
 import static ru.l0sty.frogdisplays.util.Utils.detectPlatform;
@@ -64,8 +63,8 @@ public class GstreamerDownloadInit {
 
             // Если за весь проход ни одной не загрузилось — выходим, чтобы не зациклиться
             if (loadedThisPass == 0) {
-                LoggerFactory.getLogger().severe("Не удалось загрузить следующие библиотеки:");
-                toLoad.forEach(p -> LoggerFactory.getLogger().severe("  " + p));
+                LoggingManager.error("Не удалось загрузить следующие библиотеки:");
+                toLoad.forEach(p -> LoggingManager.error("  " + p));
 
                 GStreamerDownloadListener.INSTANCE.setFailed(true);
                 return;
@@ -124,7 +123,7 @@ public class GstreamerDownloadInit {
 
 
         final File gStreamerLibrariesDir = new File("./libs/gstreamer");
-        if (!gStreamerLibrariesDir.exists() && gStreamerLibrariesDir.mkdirs()) LoggerFactory.getLogger().severe("Unable to mk directory");
+        if (!gStreamerLibrariesDir.exists() && gStreamerLibrariesDir.mkdirs()) LoggingManager.error("Unable to mk directory");
 
         Thread downloadThread = new Thread(() -> {
             GStreamerDownloader downloader = new GStreamerDownloader();
@@ -133,7 +132,7 @@ public class GstreamerDownloadInit {
             try {
                 downloadGStreamer = !downloader.downloadGstreamerChecksum();
             } catch (IOException e) {
-                LoggerFactory.getLogger().log(Level.SEVERE, "Failed to download GStreamer checksum.", e);
+                LoggingManager.error("Failed to download GStreamer checksum.", e);
                 GStreamerDownloadListener.INSTANCE.setFailed(true);
                 return;
             }
@@ -145,7 +144,7 @@ public class GstreamerDownloadInit {
                 try {
                     downloader.downloadGstreamerBuild();
                 } catch (IOException e) {
-                    LoggerFactory.getLogger().log(Level.SEVERE,"Failed to download GStreamer.", e);
+                    LoggingManager.error("Failed to download GStreamer.", e);
                     GStreamerDownloadListener.INSTANCE.setFailed(true);
                     return;
                 }

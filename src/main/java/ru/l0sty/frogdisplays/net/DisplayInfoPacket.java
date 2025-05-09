@@ -12,7 +12,7 @@ import ru.l0sty.frogdisplays.util.Facing;
 
 import java.util.UUID;
 
-public record DisplayInfoPacket(UUID id, UUID ownerId, Vector3i pos, int width, int height, String url, Facing facing, boolean isSync) implements CustomPayload {
+public record DisplayInfoPacket(UUID id, UUID ownerId, Vector3i pos, int width, int height, String url, String lang, Facing facing, boolean isSync) implements CustomPayload {
     public static final CustomPayload.Id<DisplayInfoPacket> PACKET_ID =
             new CustomPayload.Id<>(Identifier.of(PlatformlessInitializer.MOD_ID, "display_info"));
 
@@ -30,6 +30,7 @@ public record DisplayInfoPacket(UUID id, UUID ownerId, Vector3i pos, int width, 
                         PacketCodecs.VAR_INT.encode(buf, packet.height());
 
                         PacketCodecs.STRING.encode(buf, packet.url());
+                        PacketCodecs.STRING.encode(buf, packet.lang());
 
                         PacketCodecs.BYTE.encode(buf, packet.facing().toPacket());
                         PacketCodecs.BOOLEAN.encode(buf, packet.isSync());
@@ -47,13 +48,14 @@ public record DisplayInfoPacket(UUID id, UUID ownerId, Vector3i pos, int width, 
                         int height = PacketCodecs.VAR_INT.decode(buf);
 
                         String url = PacketCodecs.STRING.decode(buf);
+                        String lang = PacketCodecs.STRING.decode(buf);
 
                         byte facingByte = PacketCodecs.BYTE.decode(buf);
                         Facing facing = Facing.fromPacket(facingByte);
 
                         boolean isSync = PacketCodecs.BOOLEAN.decode(buf);
 
-                        return new DisplayInfoPacket(id, ownerId, pos, width, height, url, facing, isSync);
+                        return new DisplayInfoPacket(id, ownerId, pos, width, height, url, lang, facing, isSync);
                     }
             );
 

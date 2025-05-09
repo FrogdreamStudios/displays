@@ -78,6 +78,7 @@ public class Screen {
     private NativeImageBackedTexture previewTexture = null;
     public Identifier previewTextureId = null;
     public RenderLayer previewRenderLayer = null;
+    private String lang;
 
     public Screen(UUID id, UUID ownerId, int x, int y, int z, String facing, int width, int height, boolean isSync) {
         this.id = id;
@@ -94,13 +95,14 @@ public class Screen {
         }
     }
 
-    public void loadVideo(String videoUrl) {
+    public void loadVideo(String videoUrl, String lang) {
         if (mediaPlayer != null) unregister();
         // Загружаем превью-изображение из YouTube (используем максимальное разрешение)
         this.videoUrl = videoUrl;
+        this.lang = lang;
         CompletableFuture.runAsync(() -> {
             this.videoUrl = videoUrl;
-            mediaPlayer = new MediaPlayer(videoUrl, this);
+            mediaPlayer = new MediaPlayer(videoUrl, lang, this);
             int qualityInt = Integer.parseInt(this.quality.replace("p", ""));
             textureWidth = (int) (width / (double) height * qualityInt);
             textureHeight = qualityInt;
@@ -143,8 +145,8 @@ public class Screen {
 
         owner = MinecraftClient.getInstance().player != null && (packet.ownerId() + "").equals(MinecraftClient.getInstance().player.getUuid() + "");
 
-        if (!Objects.equals(videoUrl, packet.url())) {
-            loadVideo(packet.url());
+        if (!Objects.equals(videoUrl, packet.url()) || !Objects.equals(lang, packet.lang())) {
+            loadVideo(packet.url(), packet.lang());
             if (isSync) {
                 sendRequestSyncPacket();
             }
