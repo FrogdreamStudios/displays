@@ -49,6 +49,7 @@ public abstract class GStreamInitMixin {
                     ci.cancel();
                 }
                 else if (GStreamerDownloadListener.INSTANCE.isFailed()) {
+                    downloaded = true;
                     LoggerFactory.getLogger().severe("GStreamer failed to initialize!");
                     setScreen(new GStreamerErrorScreen(guiScreen, Utils.detectPlatform().equals("windows") ? "Не удалось инициализировать библиотеки. Обратитесь к разработчику мода": "Не удалось загрузить библиотеки. Вам нужно самостоятельно установить GStreamer с помощью brew/apt"));
                 }
