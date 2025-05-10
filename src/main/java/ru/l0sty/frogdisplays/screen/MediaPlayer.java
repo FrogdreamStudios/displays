@@ -36,34 +36,13 @@ import java.util.stream.Collectors;
 public class MediaPlayer {
 
     private final String lang;
-
-    public static void main(String[] args) throws Exception {
-
-        String[] clients = new String[] { "WEB_MUSIC", "ANDROID", "ANDROID_VR", "ANDROID_TESTSUITE", "IOS", "IOS_MUSIC" };
-
-        for (String client : clients) {
-            System.out.println();
-            System.out.println();
-            System.out.println("CLIENT: " + client);
-
-            try {
-                Youtube yt = new Youtube("https://www.youtube.com/watch?v=R-KqGnO6VBQ", client);
-
-                List<Stream> all = yt.streams().getAll();
-
-                for (Stream s : all) {
-                    if (s.getMimeType().contains("audio")) System.out.println(s.getAudioTrackId());
-                }
-            } catch (Exception ignored) {
-            }
-
-        }
-    }
+    String[] clients = new String[] { "WEB_MUSIC", "ANDROID", "ANDROID_VR", "ANDROID_TESTSUITE", "IOS", "IOS_MUSIC" };
 
     // === CONSTANTS =======================================================================
     private static final String MIME_VIDEO = "video/webm";
     private static final String MIME_AUDIO = "audio/webm";
-    private static final String USER_AGENT = "ANDROID_TESTSUITE";
+    private static final String USER_AGENT_V = "ANDROID_VR";
+    private static final String USER_AGENT_A = "ANDROID_TESTSUITE";
 
     private static final ExecutorService INIT_EXECUTOR =
             Executors.newSingleThreadExecutor(r -> new Thread(r, "MediaPlayer-init"));
@@ -188,17 +167,20 @@ public class MediaPlayer {
     // === INITIALIZATION ==================================================================
     private void initialize() {
         try {
-            Youtube yt = new Youtube(youtubeUrl, USER_AGENT);
+            Youtube yt = new Youtube(youtubeUrl, USER_AGENT_V);
             List<Stream> all = yt.streams().getAll();
+
+            Youtube ytA = new Youtube(youtubeUrl, USER_AGENT_A);
+            List<Stream> audioS = ytA.streams().getAll();
 
             availableVideoStreams = all.stream()
                     .filter(s -> MIME_VIDEO.equals(s.getMimeType()))
                     .toList();
 
             Optional<Stream> videoOpt = pickVideo(Integer.parseInt(screen.getQuality().replace("p", ""))).or(() -> availableVideoStreams.stream().findFirst());
-            Optional<Stream> audioOpt = all.stream()
+            Optional<Stream> audioOpt = audioS.stream()
                     .filter(s -> MIME_AUDIO.equals(s.getMimeType()))
-                    .filter(s -> s.getAudioTrackId().contains(lang) || s.getAudioTrackName().contains(lang))
+                    .filter(s -> s.getAudioTrackId() != null && s.getAudioTrackId().contains(lang) || s.getAudioTrackName() != null && s.getAudioTrackName().contains(lang))
                     .reduce((f, n) -> n);
 
             if (audioOpt.isEmpty()) {
@@ -230,7 +212,7 @@ public class MediaPlayer {
     private Pipeline buildVideoPipeline(String uri) {
         String desc = String.join(" ",
                 "souphttpsrc location=\"" + uri + "\"",
-                "user-agent=\"" + USER_AGENT + "\"",
+                "user-agent=\"" + USER_AGENT_V + "\"",
                 "extra-headers=\"origin:https://www.youtube.com\\nreferer:https://www.youtube.com\\n\"",
                 "! matroskademux ! decodebin ! videoconvert ! video/x-raw,format=RGBA ! appsink name=videosink");
 

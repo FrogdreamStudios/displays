@@ -96,7 +96,6 @@ public class PlatformlessInitializer {
     private static void checkVersionAndSendPacket() {
         try {
             String version = Utils.readResource("/version");
-            System.out.println("Found version " + version);
             sendPacket(new VersionPacket(version));
         } catch (Exception e) {
             LoggingManager.error("Unable to get version", e);

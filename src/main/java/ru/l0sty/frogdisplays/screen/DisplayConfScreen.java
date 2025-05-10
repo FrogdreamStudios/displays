@@ -444,16 +444,6 @@ public class DisplayConfScreen extends Screen {
         return list.indexOf(list.contains(res) ? res: list.getFirst());
     }
 
-    public static <T> T printTime(Function<Void, T> c, String name) {
-        long nanos = System.nanoTime();
-        T result = c.apply(null);
-        long time = System.nanoTime() - nanos;
-
-        System.out.println(name + " " + time / 1000000 + "ms");
-
-        return result;
-    }
-
     private void setScreen(ru.l0sty.frogdisplays.screen.Screen screen) {
         this.screen = screen;
     }
