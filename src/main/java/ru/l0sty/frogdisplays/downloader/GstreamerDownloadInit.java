@@ -152,6 +152,24 @@ public class GstreamerDownloadInit {
                 downloader.extractGstreamer(true);
             }
 
+//            File powerTunnelJar = new File("./libs/PowerTunnel/PowerTunnel.jar");
+//            powerTunnelJar.getParentFile().mkdirs();
+//            if (!powerTunnelJar.exists()) {
+//                try {
+//                    downloader.downloadPowerTunnel();
+//                } catch (IOException e) {
+//                    throw new RuntimeException(e);
+//                }
+//            }
+//
+//            try {
+//                new PowerTunnelManager(powerTunnelJar.getCanonicalPath()).start();
+//                System.setProperty("http.proxyHost", "127.0.0.1");
+//                System.setProperty("http.proxyPort", "14881");
+//            } catch (IOException e) {
+//                throw new RuntimeException(e);
+//            }
+
             try {
                 setupLibraryPath();
             } catch (IOException e) {

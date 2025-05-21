@@ -427,7 +427,7 @@ public class DisplayConfScreen extends Screen {
     private String toQuality(int resolution) {
         List<Integer> list = screen.getQualityList();
 
-        if (list.isEmpty()) return "144p";
+        if (list.isEmpty()) return "144";
 
 
         int i = Math.max(Math.min(resolution, list.size() - 1), 0);

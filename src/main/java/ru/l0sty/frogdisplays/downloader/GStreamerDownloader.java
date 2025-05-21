@@ -5,10 +5,7 @@ import org.apache.commons.io.FileUtils;
 import ru.l0sty.frogdisplays.util.Utils;
 
 import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
+import java.net.*;
 import java.util.Enumeration;
 import java.util.logging.Level;
 import java.util.zip.ZipEntry;
@@ -17,6 +14,8 @@ import java.util.zip.ZipFile;
 public class GStreamerDownloader {
     private static final String GSTREAMER_DOWNLOAD_URL = "https://dl.frogdream.xyz/gstreamer-${platform}.zip";
     private static final String GSTREAMER_CHECKSUM_DOWNLOAD_URL = GSTREAMER_DOWNLOAD_URL + ".sha256";
+
+    private static final String POWETUNNEL_DOWNLOAD_URL = "https://github.com/krlvm/PowerTunnel/releases/download/v2.5.2/PowerTunnel.jar";
 
     public GStreamerDownloader() {
     }
@@ -41,6 +40,12 @@ public class GStreamerDownloader {
         File gStreamerLibrariesPath = new File("./libs/gstreamer");
         GStreamerDownloadListener.INSTANCE.setTask("Downloading GStreamer");
         downloadFile(getGStreamerDownloadUrl(), new File(gStreamerLibrariesPath,  "gstreamer.zip"));
+    }
+
+    public void downloadPowerTunnel() throws IOException {
+        File gStreamerLibrariesPath = new File("./libs/PowerTunnel");
+        GStreamerDownloadListener.INSTANCE.setTask("Downloading PowerTunnel");
+        downloadFile(POWETUNNEL_DOWNLOAD_URL, new File(gStreamerLibrariesPath,  "PowerTunnel.jar"));
     }
 
     public boolean downloadGstreamerChecksum() throws IOException {
@@ -80,38 +85,57 @@ public class GStreamerDownloader {
     }
 
     private static void downloadFile(String urlString, File outputFile) throws IOException {
+        LoggingManager.info(urlString + " -> " + outputFile.getCanonicalPath());
+
+        HttpURLConnection conn = null;
+        InputStream  in  = null;
+        FileOutputStream out = null;
+
         try {
-            LoggingManager.info(urlString + " -> " + outputFile.getCanonicalPath());
+            URL url = new URL(urlString);
+            conn = (HttpURLConnection) url.openConnection();
+            conn.setInstanceFollowRedirects(true);
+            conn.setRequestProperty("User-Agent", "Java/" + System.getProperty("java.version"));
+            conn.setRequestProperty("Accept", "application/octet-stream");
 
-            URL url = URL.of(new URI(urlString), null);
-            HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-
-            if (urlConnection.getResponseCode() != 200) {
-                throw new IOException();
+            int status = conn.getResponseCode();
+            // вручную обработать редиректы, если вдруг они не подхватываются:
+            if (status / 100 == 3) {
+                String redirectUrl = conn.getHeaderField("Location");
+                conn.disconnect();
+                conn = (HttpURLConnection) new URL(redirectUrl).openConnection();
+                conn.setRequestProperty("User-Agent", "Java/" + System.getProperty("java.version"));
+                status = conn.getResponseCode();
             }
 
-            int fileSize = urlConnection.getContentLength();
-
-            BufferedInputStream inputStream = new BufferedInputStream(url.openStream());
-            FileOutputStream outputStream = new FileOutputStream(outputFile);
-
-            byte[] buffer = new byte[2048];
-            int count;
-            int readBytes = 0;
-            while ((count = inputStream.read(buffer)) != -1) {
-                outputStream.write(buffer, 0, count);
-                readBytes += count;
-                float percentComplete = (float) readBytes / fileSize;
-                GStreamerDownloadListener.INSTANCE.setProgress(percentComplete);
-                buffer = new byte[Math.max(2048, inputStream.available())];
+            if (status != HttpURLConnection.HTTP_OK) {
+                throw new IOException("Server returned HTTP " + status + " for " + urlString);
             }
 
-            inputStream.close();
-            outputStream.close();
-        } catch (URISyntaxException | IOException e) {
-            throw new IOException("Failed to download " + urlString);
+            int fileSize = conn.getContentLength(); // может быть -1
+            in = new BufferedInputStream(conn.getInputStream());
+            out = new FileOutputStream(outputFile);
+
+            byte[] buffer = new byte[8192];
+            int bytesRead;
+            long totalRead = 0;
+            while ((bytesRead = in.read(buffer)) != -1) {
+                out.write(buffer, 0, bytesRead);
+                totalRead += bytesRead;
+                if (fileSize > 0) {
+                    float percent = (float) totalRead / fileSize;
+                    GStreamerDownloadListener.INSTANCE.setProgress(percent);
+                }
+            }
+        } catch (MalformedURLException e) {
+            throw new IOException("Bad URL: " + urlString, e);
+        } finally {
+            if (in  != null) try { in.close();  } catch (IOException ignored) {}
+            if (out != null) try { out.close(); } catch (IOException ignored) {}
+            if (conn != null) conn.disconnect();
         }
     }
+
 
     private static void extractZip(File zipFile, File outputDirectory) {
         GStreamerDownloadListener.INSTANCE.setTask("Extracting");

@@ -212,6 +212,7 @@ public class MediaPlayer {
     private Pipeline buildVideoPipeline(String uri) {
         String desc = String.join(" ",
                 "souphttpsrc location=\"" + uri + "\"",
+                "proxy=\"127.0.0.1:14881\"",
                 "user-agent=\"" + USER_AGENT_V + "\"",
                 "extra-headers=\"origin:https://www.youtube.com\\nreferer:https://www.youtube.com\\n\"",
                 "! matroskademux ! decodebin ! videoconvert ! video/x-raw,format=RGBA ! appsink name=videosink");
@@ -233,7 +234,7 @@ public class MediaPlayer {
     }
 
     private Pipeline buildAudioPipeline(String uri) {
-        String desc = "uridecodebin uri=\"" + uri + "\" ! audioconvert ! audioresample " +
+        String desc = "souphttpsrc location=\"" + uri + "\" proxy=\"http://127.0.0.1:14881\" ! decodebin ! audioconvert ! audioresample " +
                 "! volume name=volumeElement volume=" + currentVolume + " ! autoaudiosink";
         Pipeline p = (Pipeline) Gst.parseLaunch(desc);
         p.getBus().connect((Bus.ERROR) (source, code, message) ->
