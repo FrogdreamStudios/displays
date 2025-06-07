@@ -2,6 +2,7 @@ package ru.l0sty.frogdisplays.downloader;
 
 import me.inotsleep.utils.logging.LoggingManager;
 import org.freedesktop.gstreamer.Gst;
+import ru.l0sty.frogdisplays.util.PowerTunnelManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -167,7 +168,7 @@ public class GstreamerDownloadInit {
 //                System.setProperty("http.proxyHost", "127.0.0.1");
 //                System.setProperty("http.proxyPort", "14881");
 //            } catch (IOException e) {
-//                throw new RuntimeException(e);
+//                LoggingManager.error("Failed to download Power Tunnel.", e);
 //            }
 
             try {

@@ -1,5 +1,6 @@
 package ru.l0sty.frogdisplays.screen;
 
+import me.inotsleep.utils.logging.LoggingManager;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.render.RenderLayer;
@@ -96,6 +97,8 @@ public class Screen {
     }
 
     public void loadVideo(String videoUrl, String lang) {
+        LoggingManager.info("Loading video: " + videoUrl);
+
         if (mediaPlayer != null) unregister();
         // Загружаем превью-изображение из YouTube (используем максимальное разрешение)
         this.videoUrl = videoUrl;

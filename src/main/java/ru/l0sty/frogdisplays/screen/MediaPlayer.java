@@ -39,8 +39,8 @@ public class MediaPlayer {
     String[] clients = new String[] { "WEB_MUSIC", "ANDROID", "ANDROID_VR", "ANDROID_TESTSUITE", "IOS", "IOS_MUSIC" };
 
     // === CONSTANTS =======================================================================
-    private static final String MIME_VIDEO = "video/webm";
-    private static final String MIME_AUDIO = "audio/webm";
+    private static final String MIME_VIDEO = "video";
+    private static final String MIME_AUDIO = "audio";
     private static final String USER_AGENT_V = "ANDROID_VR";
     private static final String USER_AGENT_A = "ANDROID_TESTSUITE";
 
@@ -174,12 +174,12 @@ public class MediaPlayer {
             List<Stream> audioS = ytA.streams().getAll();
 
             availableVideoStreams = all.stream()
-                    .filter(s -> MIME_VIDEO.equals(s.getMimeType()))
+                    .filter(s -> s.getMimeType() != null && s.getMimeType().contains(MIME_VIDEO))
                     .toList();
 
             Optional<Stream> videoOpt = pickVideo(Integer.parseInt(screen.getQuality().replace("p", ""))).or(() -> availableVideoStreams.stream().findFirst());
             Optional<Stream> audioOpt = audioS.stream()
-                    .filter(s -> MIME_AUDIO.equals(s.getMimeType()))
+                    .filter(s -> s.getMimeType() != null && s.getMimeType().contains(MIME_AUDIO))
                     .filter(s -> s.getAudioTrackId() != null && s.getAudioTrackId().contains(lang) || s.getAudioTrackName() != null && s.getAudioTrackName().contains(lang))
                     .reduce((f, n) -> n);
 
@@ -188,11 +188,13 @@ public class MediaPlayer {
                 LoggingManager.warn("Choosing random one...");
 
                 audioOpt = all.stream()
-                        .filter(s -> MIME_AUDIO.equals(s.getMimeType()))
+                        .filter(s -> s.getMimeType() != null && s.getMimeType().contains(MIME_AUDIO))
                         .reduce((f, n) -> n);
             }
             if (videoOpt.isEmpty() || audioOpt.isEmpty()) {
                 LoggingManager.error("No streams available");
+                if (videoOpt.isEmpty()) LoggingManager.error("No video stream available");
+                if (audioOpt.isEmpty()) LoggingManager.error("No audio stream available");
                 return;
             }
 
@@ -211,12 +213,15 @@ public class MediaPlayer {
 
     private Pipeline buildVideoPipeline(String uri) {
         String desc = String.join(" ",
-                "souphttpsrc location=\"" + uri + "\"",
-                "proxy=\"127.0.0.1:14881\"",
-                "user-agent=\"" + USER_AGENT_V + "\"",
-                "extra-headers=\"origin:https://www.youtube.com\\nreferer:https://www.youtube.com\\n\"",
-                "! matroskademux ! decodebin ! videoconvert ! video/x-raw,format=RGBA ! appsink name=videosink");
-
+                "souphttpsrc location=\"" + uri + "\" ",
+                //"proxy=\"127.0.0.1:14881\" ",
+                "user-agent=\"" + USER_AGENT_V + "\" ",
+                "extra-headers=\"origin:https://www.youtube.com\\nreferer:https://www.youtube.com\\n\" ",
+                "! queue ",
+                "! decodebin name=dec ",
+                "dec. ! queue ! videoconvert ! video/x-raw,format=RGBA ! appsink name=videosink ",
+                "dec. ! queue ! fakesink"
+        );
         Pipeline p = (Pipeline) Gst.parseLaunch(desc);
         configureVideoSink((AppSink) p.getElementByName("videosink"));
         p.pause();
@@ -234,7 +239,9 @@ public class MediaPlayer {
     }
 
     private Pipeline buildAudioPipeline(String uri) {
-        String desc = "souphttpsrc location=\"" + uri + "\" proxy=\"http://127.0.0.1:14881\" ! decodebin ! audioconvert ! audioresample " +
+        String desc = "souphttpsrc location=\"" + uri +
+                //"\" proxy=\"http://127.0.0.1:14881\""+
+                " ! decodebin ! audioconvert ! audioresample " +
                 "! volume name=volumeElement volume=" + currentVolume + " ! autoaudiosink";
         Pipeline p = (Pipeline) Gst.parseLaunch(desc);
         p.getBus().connect((Bus.ERROR) (source, code, message) ->
