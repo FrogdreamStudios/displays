@@ -9,11 +9,13 @@ import net.minecraft.text.Text;
 public class GStreamerDownloaderMenu extends Screen {
     public final Screen menu;
 
+    ///  Menu for GStreamer download progress.
     public GStreamerDownloaderMenu(Screen menu) {
-        super(Text.of("Frogdisplays устанавливает необходимые библиотеки..."));
+        super(Text.of("Frog Displays downloads GStreamer for display support"));
         this.menu = menu;
     }
 
+    /// Render the background of the GStreamer download menu.
     @Override
     public void render(DrawContext graphics, int mouseX, int mouseY, float partialTick) {
         renderBackground(graphics, mouseX, mouseY, partialTick);
@@ -21,11 +23,13 @@ public class GStreamerDownloaderMenu extends Screen {
         double cy = height / 2d;
 
         double progressBarHeight = 14;
-        double progressBarWidth = width / 3d; // TODO: base off screen with (1/3 of screen)
+        double progressBarWidth = width / 3d;
+
+        // TODO: base off screen with (1/3 of screen)
 
         MatrixStack poseStack = graphics.getMatrices();
 
-        /* Draw Progress Bar */
+        // Draw progress bar background
         poseStack.push();
         poseStack.translate(cx, cy, 0);
         poseStack.translate(-progressBarWidth / 2d, -progressBarHeight / 2d, 0);
@@ -49,8 +53,6 @@ public class GStreamerDownloaderMenu extends Screen {
         );
         poseStack.pop();
 
-        // putting this here incase I want to re-add a third line later on
-        // allows me to generalize the code to not care about line count
         String[] text = new String[]{
                 GStreamerDownloadListener.INSTANCE.getTask(),
                 (Math.round(GStreamerDownloadListener.INSTANCE.getProgress() * 100)%100) + "%",
@@ -63,7 +65,7 @@ public class GStreamerDownloaderMenu extends Screen {
                 (int) (cy - oSet),
                 0
         );
-        // draw menu name
+
         graphics.drawText(
                 textRenderer,
                 title.getString(),
@@ -71,7 +73,7 @@ public class GStreamerDownloaderMenu extends Screen {
                 0xFFFFFF,
                 true
         );
-        // draw text
+
         int index = 0;
         for (String s : text) {
             if (index == 1) {
@@ -91,6 +93,7 @@ public class GStreamerDownloaderMenu extends Screen {
         poseStack.pop();
     }
 
+    /// Tick the method to check if the download is done or failed.
     @Override
     public void tick() {
         if (GStreamerDownloadListener.INSTANCE.isDone() || GStreamerDownloadListener.INSTANCE.isFailed()) {
@@ -98,6 +101,7 @@ public class GStreamerDownloaderMenu extends Screen {
         }
     }
 
+    /// Check if the screen should close on pressing the Escape key.
     @Override
     public boolean shouldCloseOnEsc() {
         return false;

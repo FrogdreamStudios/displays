@@ -29,10 +29,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
-/**
- * MediaPlayer – компактная, стабильная версия.
- * Защита от 403 YouTube и двойного dispose.
- */
+/// Media player for playing YouTube videos using GStreamer.
+/// Supports audio and video playback, seeking, volume control, and quality selection.
+///
+/// 403 YouTube errors are handled by selecting the best available audio stream based on language.
+///
+/// Supports video texture updates for OpenGL rendering.
+/// Handles initialization, playback control, and resource management.
 public class MediaPlayer {
 
     private final String lang;
@@ -121,12 +124,16 @@ public class MediaPlayer {
         safeExecute(this::applyVolume);
     }
 
-    /** Экранная текстура готова? */
     public boolean textureFilled() {
         return screen != null && screen.textureWidth > 0 && screen.textureHeight > 0;
     }
 
-    /** Обновляем содержимое OpenGL-текстуры. */
+    ///  Updates the OpenGL texture with the current video frame.
+    ///
+    /// If the texture dimensions do not match the screen dimensions, no update is performed.
+    /// If the prepared buffer is null, no update is performed.
+    ///
+    /// @param glTexture the OpenGL texture to update.
     public void updateFrame(GpuTexture glTexture) {
         if (preparedBuffer == null) return;
         int w = screen.textureWidth, h = screen.textureHeight;
@@ -214,7 +221,6 @@ public class MediaPlayer {
     private Pipeline buildVideoPipeline(String uri) {
         String desc = String.join(" ",
                 "souphttpsrc location=\"" + uri + "\" ",
-                //"proxy=\"127.0.0.1:14881\" ",
                 "user-agent=\"" + USER_AGENT_V + "\" ",
                 "extra-headers=\"origin:https://www.youtube.com\\nreferer:https://www.youtube.com\\n\" ",
                 "! queue ",
@@ -240,7 +246,6 @@ public class MediaPlayer {
 
     private Pipeline buildAudioPipeline(String uri) {
         String desc = "souphttpsrc location=\"" + uri +
-                //"\" proxy=\"http://127.0.0.1:14881\""+
                 " ! decodebin ! audioconvert ! audioresample " +
                 "! volume name=volumeElement volume=" + currentVolume + " ! autoaudiosink";
         Pipeline p = (Pipeline) Gst.parseLaunch(desc);
@@ -257,7 +262,7 @@ public class MediaPlayer {
                 );
                 audioPipeline.play();
 
-                // перематываем видео
+                // If a video pipeline exists, seek it too
                 if (videoPipeline != null) {
                     videoPipeline.seekSimple(
                             Format.TIME,
@@ -433,7 +438,9 @@ public class MediaPlayer {
         Clock clock = audioPipeline.getClock();
         if (clock != null) newVid.setClock(clock);
         newVid.pause();
-        newVid.getState();   // ожидаем преролл
+
+        // Pre-roll the pipeline to ensure it's ready
+        newVid.getState();
 
         EnumSet<SeekFlags> flags = EnumSet.of(SeekFlags.FLUSH, SeekFlags.ACCURATE);
         audioPipeline.seekSimple(Format.TIME, flags, pos);

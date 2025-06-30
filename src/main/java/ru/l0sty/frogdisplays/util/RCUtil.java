@@ -5,6 +5,8 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.Vec3d;
 
+///  Utility class for raycasting in Minecraft.
+/// This class provides a method to perform a raycast from the player's camera position in the direction they are looking.
 public class RCUtil {
 
     public static BlockHitResult rCBlock(double maxDistance) {

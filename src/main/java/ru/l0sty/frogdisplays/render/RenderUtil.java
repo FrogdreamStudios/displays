@@ -12,6 +12,9 @@ import org.joml.Quaternionf;
 
 public final class RenderUtil {
 
+    ///  Fixes the rotation of the matrix stack based on the facing direction.
+    /// @param matrixStack the matrix stack to modify.
+    /// @param facing the facing direction of the display (north, south, west, east).
     public static void fixRotation(MatrixStack matrixStack, String facing) {
         final Quaternionf rotation;
 
@@ -36,6 +39,14 @@ public final class RenderUtil {
         matrixStack.multiply(rotation);
     }
 
+    /// Moves the matrix stack forward based on the facing direction.
+    ///
+    /// For example, if facing north, it will move the matrix stack forward by the specified amount in the negative Z direction.
+    ///
+    /// This is because of Minecraft's coordinate system.
+    /// @param matrixStack the matrix stack to modify.
+    /// @param facing the facing direction of the display (north, south, west, east).
+    /// @param amount the amount to move forward.
     public static void moveForward(MatrixStack matrixStack, String facing, float amount) {
         switch (facing) {
             case "NORTH":
@@ -53,6 +64,7 @@ public final class RenderUtil {
         }
     }
 
+    /// Moves the matrix stack horizontally based on the facing direction.
     public static void moveHorizontal(MatrixStack matrixStack, String facing, float amount) {
         switch (facing) {
             case "NORTH":
@@ -70,6 +82,11 @@ public final class RenderUtil {
         }
     }
 
+    ///  Renders a GpuTexture using the specified matrices.
+    /// @param matrices the matrix stack to use for rendering.
+    /// @param tess the tessellator to use for rendering.
+    /// @param gpuTex the GpuTexture to render.
+    /// @param layer the RenderLayer to use for rendering.
     public static void renderGpuTexture(MatrixStack matrices, Tessellator tess, GpuTexture gpuTex, RenderLayer layer) {
         RenderSystem.setShaderTexture(0, gpuTex);
         Matrix4f mat = matrices.peek().getPositionMatrix();
@@ -87,7 +104,6 @@ public final class RenderUtil {
                 .normal(0f, 0f, 1f);
 
         buf
-
                 .vertex(mat, 1f, 0f, 0f)
                 .color(255, 255, 255, 255)
                 .texture(1f, 1f)
@@ -95,7 +111,6 @@ public final class RenderUtil {
                 .normal(0f, 0f, 1f);
 
         buf
-
                 .vertex(mat, 1f, 1f, 0f)
                 .color(255, 255, 255, 255)
                 .texture(1f, 0f)
@@ -103,7 +118,6 @@ public final class RenderUtil {
                 .normal(0f, 0f, 1f);
 
         buf
-
                 .vertex(mat, 0f, 1f, 0f)
                 .color(255, 255, 255, 255)
                 .texture(0f, 0f)
@@ -114,7 +128,7 @@ public final class RenderUtil {
         layer.draw(built);
     }
 
-
+    ///  Just renders a solid color quad with the specified RGB values.
     public static void renderColor(MatrixStack matrices, Tessellator tess, int r, int g, int b) {
         Matrix4f mat = matrices.peek().getPositionMatrix();
 
@@ -131,7 +145,6 @@ public final class RenderUtil {
                 .normal(0f, 0f, 1f);
 
         buf
-
                 .vertex(mat, 1f, 0f, 0f)
                 .color(r, g, b, 255)
                 .texture(1f, 1f)
@@ -139,7 +152,6 @@ public final class RenderUtil {
                 .normal(0f, 0f, 1f);
 
         buf
-
                 .vertex(mat, 1f, 1f, 0f)
                 .color(r, g, b, 255)
                 .texture(1f, 0f)
@@ -147,7 +159,6 @@ public final class RenderUtil {
                 .normal(0f, 0f, 1f);
 
         buf
-
                 .vertex(mat, 0f, 1f, 0f)
                 .color(r, g, b, 255)
                 .texture(0f, 0f)
@@ -158,10 +169,8 @@ public final class RenderUtil {
         RenderLayer.getSolid().draw(built);
     }
 
+    /// Renders a solid black square.
     public static void renderBlack(MatrixStack matrixStack, Tessellator tessellator) {
         renderColor(matrixStack, tessellator, 0, 0, 0);
     }
-
-
-
 }

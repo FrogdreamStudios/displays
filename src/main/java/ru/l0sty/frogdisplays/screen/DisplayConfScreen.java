@@ -20,10 +20,12 @@ import ru.l0sty.frogdisplays.screen.widgets.SliderWidget;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
+/// Configuration screen for Frog Displays.
+/// This screen allows users to configure various settings related to the Frog Displays mod, such as volume, rendering distance, quality, and synchronization options.
+/// It provides a user interface for adjusting these settings and includes buttons for controlling playback, resetting values, and deleting or reporting displays.
 public class DisplayConfScreen extends Screen {
+
     SliderWidget volume = null;
     SliderWidget renderD = null;
     SliderWidget quality = null;
@@ -45,6 +47,7 @@ public class DisplayConfScreen extends Screen {
     protected DisplayConfScreen() {
         super(Text.of("Frogdisplays"));
     }
+
 
     @Override
     protected void init() {
@@ -191,8 +194,11 @@ public class DisplayConfScreen extends Screen {
         addDrawableChild(reportButton);
     }
 
-
-    // Метод для отрисовки tooltip, если курсор находится над элементом
+    /// Renders the background of the display configuration screen.
+    /// @param context the draw context for rendering.
+    /// @param mouseX the x-coordinate of the cursor.
+    /// @param mouseY the y-coordinate of the cursor.
+    /// @return void
     private void renderTooltipIfHovered(DrawContext context, int mouseX, int mouseY,
                                         int elementX, int elementY, int elementWidth, int elementHeight,
                                         List<Text> tooltip) {
@@ -202,9 +208,15 @@ public class DisplayConfScreen extends Screen {
         }
     }
 
+    /// Renders the display configuration screen.
+    /// @param context the draw context for rendering.
+    /// @param mouseX the x-coordinate of the cursor.
+    /// @param mouseY the y-coordinate of the cursor.
+    /// @param delta the time delta since the last frame.
+    /// @return void
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        // Рисуем фон
+
         renderBackground(context, mouseX, mouseY, delta);
         Text headerText = Text.literal("Frogdisplays");
 
@@ -234,12 +246,12 @@ public class DisplayConfScreen extends Screen {
             syncReset.active = false;
 
             List<Text> errorText = List.of(
-                    Text.literal("Произошла ошибка!").styled(style -> style.withColor(0xff0000)),
-                    Text.literal("Данное видно не возможно загрузить.").styled(style -> style.withColor(0xff0000)),
-                    Text.literal("Попробуйте указать другое видео").styled(style -> style.withColor(0xff0000)),
+                    Text.literal("Oops! Error").styled(style -> style.withColor(0xff0000)),
+                    Text.literal("we can't load this video").styled(style -> style.withColor(0xff0000)),
+                    Text.literal("Try to set another one").styled(style -> style.withColor(0xff0000)),
                     Text.literal("").styled(style -> style.withColor(0xff0000)),
-                    Text.literal("Обратите внимание! Видео с пометкой Youtube Детям ").styled(style -> style.withColor(0xff0000)),
-                    Text.literal("воспроизводить невозможно из-за ограничений со стороны Youtube").styled(style -> style.withColor(0xff0000))
+                    Text.literal("Please do not enter YouTube Kids videos").styled(style -> style.withColor(0xff0000)),
+                    Text.literal("because it's not possible due to limitations from YouTube").styled(style -> style.withColor(0xff0000))
             );
 
             int yP = (int) ((double) this.height / 2 - ((double) (textRenderer.fontHeight + 2) * errorText.size()) / 2);
@@ -259,12 +271,10 @@ public class DisplayConfScreen extends Screen {
             return;
         }
 
-
         syncReset.active = screen.owner && screen.isSync;
         renderDReset.active = PlatformlessInitializer.maxDistance != 64;
         qualityReset.active = !Objects.equals(screen.getQuality(), "480");
 
-        // Заголовок
         int headerTextWidth = textRenderer.getWidth(headerText);
         int headerTextX = (this.width - headerTextWidth) / 2;
         int headerTextY = 15;
@@ -272,14 +282,13 @@ public class DisplayConfScreen extends Screen {
 
         int maxSW = this.width / 3;
 
-        // Расчёт размеров экрана
+        // Screen dimensions
         int sW = maxSW;
         int sH = (int) Math.min((int) (screen.getHeight() / screen.getWidth() * sW), this.height / 3.5);
         sW = (int) (screen.getWidth() / screen.getHeight() * sH);
         int sX = this.width / 2 - sW / 2;
         int cY = textRenderer.fontHeight + 15 * 2;
 
-        // Рисуем прямоугольник и экран
         context.fill(this.width / 2 - maxSW / 2, cY, this.width / 2 + maxSW / 2, cY + sH, 0xff000000);
         context.getMatrices().push();
         context.getMatrices().translate(0, 0, 10);
@@ -289,7 +298,7 @@ public class DisplayConfScreen extends Screen {
         cY += sH;
         cY += 5;
 
-        // Настройка элементов управления (volume, backButton, forwardButton, pauseButton)
+        // Settings for volume, backButton, forwardButton, pauseButton
         volume.setX(this.width / 2 - maxSW / 2);
         volume.setY(cY);
         volume.setHeight(vCH);
@@ -319,18 +328,18 @@ public class DisplayConfScreen extends Screen {
 
         cY += 10 + vCH;
 
-        // Настройка кнопок renderD и renderDReset
+        // Volume, backButton, forwardButton, pauseButton
         placeButton(vCH, maxSW, cY, renderD, renderDReset);
 
-        // Рисуем текст кнопки "Прорисовка" и вычисляем координаты для tooltip
-        Text renderDText = Text.literal("Прорисовка");
+        // Tooltip for Render Distance
+        Text renderDText = Text.literal("Render distance");
         int renderDTextX = this.width / 2 - maxSW / 2;
         int renderDTextY = cY + vCH / 2 - textRenderer.fontHeight / 2;
         context.drawText(textRenderer, renderDText, renderDTextX, renderDTextY, 0xFFFFFF, true);
 
-        // Tooltip для "Прорисовка"
+        // Tooltip
         List<Text> renderDTooltip = List.of(
-                Text.literal("Прорисовка").styled(style -> style.withColor(Formatting.WHITE).withBold(true)),
+                Text.literal("Render distance").styled(style -> style.withColor(Formatting.WHITE).withBold(true)),
                 Text.literal("Определяет прорисовку, при которой").styled(style -> style.withColor(Formatting.GRAY)),
                 Text.literal("активируются этот дисплей").styled(style -> style.withColor(Formatting.GRAY)),
                 Text.empty(),
@@ -342,16 +351,16 @@ public class DisplayConfScreen extends Screen {
 
         cY += 5 + vCH;
 
-        // Настройка кнопок quality и qualityReset
+        // quality and qualityReset settings
         placeButton(vCH, maxSW, cY, quality, qualityReset);
 
-        // Рисуем текст кнопки "Качество" и вычисляем координаты для tooltip
+        // Setting the quality text and calculating coordinates for tooltip
         Text qualityText = Text.literal("Качество");
         int qualityTextX = this.width / 2 - maxSW / 2;
         int qualityTextY = cY + vCH / 2 - textRenderer.fontHeight / 2;
         context.drawText(textRenderer, qualityText, qualityTextX, qualityTextY, 0xFFFFFF, true);
 
-        // Tooltip для "Качество"
+        // Tooltip
         List<Text> qualityTooltip = List.of(
                 Text.literal("Качество").styled(style -> style.withColor(Formatting.WHITE).withBold(true)),
                 Text.literal("Качество дисплея").styled(style -> style.withColor(Formatting.GRAY)),
@@ -366,7 +375,7 @@ public class DisplayConfScreen extends Screen {
         cY += 15 + vCH;
         placeButton(vCH, maxSW, cY, sync, syncReset);
 
-        // Рисуем текст кнопки "Качество" и вычисляем координаты для tooltip
+        // Setting the sync text and calculating coordinates for tooltip
         Text syncText = Text.literal("Синхронизация");
         int syncTextX = this.width / 2 - maxSW / 2;
         int syncTextY = cY + vCH / 2 - textRenderer.fontHeight / 2;
@@ -387,7 +396,7 @@ public class DisplayConfScreen extends Screen {
         renderTooltipIfHovered(context, mouseX, mouseY, syncTextX, syncTextY,
                 textRenderer.getWidth(syncText), textRenderer.fontHeight, syncTooltip);
 
-        // Рендер дочерних элементов
+        // Render all buttons
         for (Element child : children()) {
             if (child instanceof Drawable drawable) {
                 drawable.render(context, mouseX, mouseY, delta);
@@ -395,6 +404,13 @@ public class DisplayConfScreen extends Screen {
         }
     }
 
+    /// Places the button at the specified coordinates.
+    /// @param vCH the height for the button.
+    /// @param maxSW the maximum width of the screen.
+    /// @param cY the y-coordinate for placing the button.
+    /// @param renderD the button to be placed.
+    /// @param renderDReset the reset button to be placed next to the main button.
+    /// @return void
     private void placeButton(int vCH, int maxSW, int cY, ClickableWidget renderD, IconButtonWidget renderDReset) {
         renderD.setX(this.width / 2 + maxSW / 2 - 80 - vCH - 5);
         renderD.setY(cY);
@@ -407,7 +423,9 @@ public class DisplayConfScreen extends Screen {
         renderDReset.setWidth(vCH);
     }
 
-
+    /// Renders the background of the display configuration screen.
+    /// @param context the draw context for rendering.
+    /// @return void
     private void renderScreen(DrawContext context, int x, int y, int w, int h) {
         if (screen.isVideoStarted()) {
             RenderUtil2D.drawTexturedQuad(context.getMatrices(), screen.texture.getGlTexture(), x, y, w, h, screen.renderLayer);
@@ -418,22 +436,29 @@ public class DisplayConfScreen extends Screen {
         }
     }
 
+    /// Closes the display configuration screen.
+    /// @return void
     public static void open(ru.l0sty.frogdisplays.screen.Screen screen) {
         DisplayConfScreen displayConfScreen = new DisplayConfScreen();
         displayConfScreen.setScreen(screen);
         MinecraftClient.getInstance().setScreen(displayConfScreen);
     }
 
+    /// Converts a resolution index to a quality str.
+    /// @param resolution the index of the resolution.
+    /// @return the quality string corresponding to the resolution index.
     private String toQuality(int resolution) {
         List<Integer> list = screen.getQualityList();
 
         if (list.isEmpty()) return "144";
 
-
         int i = Math.max(Math.min(resolution, list.size() - 1), 0);
         return list.get(i).toString();
     }
 
+    /// Converts a quality string to a resolution index.
+    /// @param quality the quality str to convert.
+    /// @return the index of the resolution corresponding to the quality str.
     private int fromQuality(String quality) {
         List<Integer> list = screen.getQualityList();
 
@@ -444,6 +469,9 @@ public class DisplayConfScreen extends Screen {
         return list.indexOf(list.contains(res) ? res: list.getFirst());
     }
 
+    /// Sets the screen for the display config screen.
+    /// @param screen the screen to set.
+    /// @return void
     private void setScreen(ru.l0sty.frogdisplays.screen.Screen screen) {
         this.screen = screen;
     }

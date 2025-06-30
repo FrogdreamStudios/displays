@@ -7,18 +7,17 @@ import ru.l0sty.frogdisplays.util.Utils;
 import java.io.*;
 import java.net.*;
 import java.util.Enumeration;
-import java.util.logging.Level;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 public class GStreamerDownloader {
+
+    ///  Download URL for GStreamer.
+    /// In future versions we'll delete this and use the official GStreamer repository to avoid some issues.
     private static final String GSTREAMER_DOWNLOAD_URL = "https://dl.frogdream.xyz/gstreamer-${platform}.zip";
     private static final String GSTREAMER_CHECKSUM_DOWNLOAD_URL = GSTREAMER_DOWNLOAD_URL + ".sha256";
 
-    private static final String POWETUNNEL_DOWNLOAD_URL = "https://github.com/krlvm/PowerTunnel/releases/download/v2.5.2/PowerTunnel.jar";
-
-    public GStreamerDownloader() {
-    }
+    public GStreamerDownloader() {}
 
     public String getGStreamerDownloadUrl() {
         return formatURL(GSTREAMER_DOWNLOAD_URL);
@@ -29,9 +28,10 @@ public class GStreamerDownloader {
     }
 
     private String formatURL(String url) {
-        // Get system platform
-
-
+        if (url == null || url.isEmpty()) {
+            LoggingManager.error("GStreamer download URL is not set.");
+            return null;
+        }
         return url
                 .replace("${platform}", Utils.detectPlatform());
     }
@@ -40,12 +40,6 @@ public class GStreamerDownloader {
         File gStreamerLibrariesPath = new File("./libs/gstreamer");
         GStreamerDownloadListener.INSTANCE.setTask("Downloading GStreamer");
         downloadFile(getGStreamerDownloadUrl(), new File(gStreamerLibrariesPath,  "gstreamer.zip"));
-    }
-
-    public void downloadPowerTunnel() throws IOException {
-        File gStreamerLibrariesPath = new File("./libs/PowerTunnel");
-        GStreamerDownloadListener.INSTANCE.setTask("Downloading PowerTunnel");
-        downloadFile(POWETUNNEL_DOWNLOAD_URL, new File(gStreamerLibrariesPath,  "PowerTunnel.jar"));
     }
 
     public boolean downloadGstreamerChecksum() throws IOException {
@@ -84,6 +78,8 @@ public class GStreamerDownloader {
         }
     }
 
+    ///  Downloads a file from the specified URL and saves it to the given output file.
+    /// @param urlString the URL of the file to download.
     private static void downloadFile(String urlString, File outputFile) throws IOException {
         LoggingManager.info(urlString + " -> " + outputFile.getCanonicalPath());
 
@@ -99,7 +95,6 @@ public class GStreamerDownloader {
             conn.setRequestProperty("Accept", "application/octet-stream");
 
             int status = conn.getResponseCode();
-            // вручную обработать редиректы, если вдруг они не подхватываются:
             if (status / 100 == 3) {
                 String redirectUrl = conn.getHeaderField("Location");
                 conn.disconnect();
@@ -136,7 +131,7 @@ public class GStreamerDownloader {
         }
     }
 
-
+    ///  Extracts a ZIP file to the specified output directory.
     private static void extractZip(File zipFile, File outputDirectory) {
         GStreamerDownloadListener.INSTANCE.setTask("Extracting");
         if (!outputDirectory.getParentFile().exists() && !outputDirectory.getParentFile().mkdirs()) LoggingManager.warn("Unable to mk directory");
@@ -165,7 +160,7 @@ public class GStreamerDownloader {
                     while ((bytesRead = inputStream.read(buffer)) != -1) {
                         outputStream.write(buffer, 0, bytesRead);
                         totalBytesRead += bytesRead;
-                        // Обновляем прогресс
+
                         float percentComplete = (float) totalBytesRead / fileSize;
                         GStreamerDownloadListener.INSTANCE.setProgress(percentComplete);
                     }
@@ -175,7 +170,6 @@ public class GStreamerDownloader {
             LoggingManager.error("Failed to extract zip file to " + outputDirectory, e);
         }
 
-        // Обязательно в конце выставляем 100%
         GStreamerDownloadListener.INSTANCE.setProgress(1.0f);
     }
 }

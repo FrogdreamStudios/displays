@@ -27,6 +27,7 @@ import static net.minecraft.client.render.RenderPhase.ENABLE_LIGHTMAP;
 
 public class Screen {
 
+    ///  TODO: note for INotSleep: remove that?
     public static Thread safeQualitySwitchThread = new Thread(() -> {
         boolean isErrored = false;
         while (!isErrored) {
@@ -62,7 +63,7 @@ public class Screen {
     public boolean isSync;
     public boolean muted;
 
-    // Используем объединённый MediaPlayer вместо отдельных VideoDecoder и AudioPlayer.
+    // Use a combined MediaPlayer instead of the separate VideoDecoder and AudioPlayer.
     private MediaPlayer mediaPlayer;
 
     private String videoUrl;
@@ -74,13 +75,25 @@ public class Screen {
     public int textureWidth = 0;
     public int textureHeight = 0;
 
-    private transient BlockPos blockPos; // кэш позиции для производительности
+    // Cache (good for performance)
+    private transient BlockPos blockPos;
 
     private NativeImageBackedTexture previewTexture = null;
     public Identifier previewTextureId = null;
     public RenderLayer previewRenderLayer = null;
     private String lang;
 
+    ///  Constructs a Screen object with the specified parameters.
+    /// @param id the unique identifier for the screen
+    /// @param ownerId the UUID of the owner of the screen
+    /// @param x the x-coordinate of the screen's position
+    /// @param y the y-coordinate of the screen's position
+    /// @param z the z-coordinate of the screen's position
+    /// @param facing the facing direction of the screen (e.g., "NORTH", "SOUTH", "EAST", "WEST")
+    /// @param width the width of the screen
+    /// @param height the height of the screen
+    /// @param isSync whether the screen is synchronized with the server
+    /// @return a new Screen object
     public Screen(UUID id, UUID ownerId, int x, int y, int z, String facing, int width, int height, boolean isSync) {
         this.id = id;
         this.x = x;
@@ -96,11 +109,16 @@ public class Screen {
         }
     }
 
+    /// Loads a video into the screen with the specified URL and language.
+    /// @param videoUrl the URL of the video to load
+    /// @param lang the language of the video (e.g., "en", "ru")
+    /// @return void
     public void loadVideo(String videoUrl, String lang) {
         LoggingManager.info("Loading video: " + videoUrl);
 
         if (mediaPlayer != null) unregister();
-        // Загружаем превью-изображение из YouTube (используем максимальное разрешение)
+
+        // Load the video URL and language into the screen.
         this.videoUrl = videoUrl;
         this.lang = lang;
         CompletableFuture.runAsync(() -> {
@@ -109,6 +127,8 @@ public class Screen {
             int qualityInt = Integer.parseInt(this.quality.replace("p", ""));
             textureWidth = (int) (width / (double) height * qualityInt);
             textureHeight = qualityInt;
+
+            // TODO: note for INotSleep: we should delete video previews to avoid problems with videos
             ImageUtil.fetchImageTextureFromUrl("https://img.youtube.com/vi/" + Utils.extractVideoId(videoUrl) + "/maxresdefault.jpg")
                     .thenAcceptAsync(nativeImageBackedTexture -> {
                         previewTexture = nativeImageBackedTexture;
@@ -124,6 +144,9 @@ public class Screen {
         MinecraftClient.getInstance().execute(this::reloadTexture);
     }
 
+    /// Creates a RenderLayer for the screen texture.
+    /// @param id the Identifier for the texture
+    /// @return a RenderLayer for the screen texture
     private static RenderLayer createRenderLayer(Identifier id) {
         return RenderLayer.of(
                 "frog-displays",
@@ -135,6 +158,9 @@ public class Screen {
         );
     }
 
+    ///  Updates the screen data based on a DisplayInfoPacket.
+    /// @param packet the DisplayInfoPacket containing the new data
+    /// @return void
     public void updateData(DisplayInfoPacket packet) {
         this.x = packet.pos().x;
         this.y = packet.pos().y;
@@ -156,10 +182,15 @@ public class Screen {
         }
     }
 
+    ///  Sends a request to synchronize the screen data with the server.
+    /// @return void
     private void sendRequestSyncPacket() {
         PlatformlessInitializer.sendPacket(new RequestSyncPacket(id));
     }
 
+    ///  Updates the screen data based on a SyncPacket.
+    /// @param packet the SyncPacket containing the new data
+    /// @return void
     public void updateData(SyncPacket packet) {
         isSync = packet.isSync();
         if (!isSync) return;
@@ -185,19 +216,15 @@ public class Screen {
         this.createTexture();
     }
 
-    /**
-     * Перезагружает качество видео, вызывая у MediaPlayer установку нового качества.
-     */
+    /// Reloads the video quality by calling the MediaPlayer to set the new quality.
     public void reloadQuality() {
         if (mediaPlayer != null) {
             mediaPlayer.setQuality(quality);
         }
     }
 
-    public boolean isVideoStarted() {
-        return mediaPlayer != null && mediaPlayer.textureFilled();
-    }
-
+    /// Checks if a given BlockPos is within the screen's area.
+    /// @param pos the BlockPos to check
     public boolean isInScreen(BlockPos pos) {
         int maxX = x;
         int maxY = y + height - 1;
@@ -213,6 +240,14 @@ public class Screen {
                 z <= pos.getZ() && maxZ >= pos.getZ();
     }
 
+    ///  Checks if the video is started: if the MediaPlayer is not initialized, it will return false :(
+    public boolean isVideoStarted() {
+        return mediaPlayer != null && mediaPlayer.textureFilled();
+    }
+
+    ///  Calculates the distance from a given BlockPos to the screen.
+    /// @param pos the BlockPos to calculate the distance to
+    /// @return the distance to the screen
     public double getDistanceToScreen(BlockPos pos) {
         int maxX = x;
         int maxY = y + height - 1;
@@ -232,15 +267,16 @@ public class Screen {
         return Math.sqrt(pos.getSquaredDistance(closestPoint));
     }
 
-    /**
-     * Вызывает обновление текстуры текущим кадром видео.
-     */
+    /// Fits the texture to the screen: if the MediaPlayer is not initialized, it will wait for it to be initialized and then update the frame.
+    /// @return void
     public void fitTexture() {
         if (mediaPlayer != null) {
             mediaPlayer.updateFrame(texture.getGlTexture());
         }
     }
 
+    /// Returns the position of the screen as a BlockPos object.
+    /// @return the position of the screen
     public BlockPos getPos() {
         if (blockPos == null) {
             blockPos = new BlockPos(x, y, z);
@@ -248,48 +284,62 @@ public class Screen {
         return blockPos;
     }
 
+    /// Returns the facing direction of the screen.
+    /// @return the facing direction of the screen
     public String getFacing() {
         return facing;
     }
 
+    /// Returns the width and height of the screen.
+    /// @return the width and height of the screen
     public float getWidth() {
         return width;
     }
 
+    ///  We return the height of the screen.
+    /// @return the height of the screen
     public float getHeight() {
         return height;
     }
 
-    /**
-     * Устанавливает громкость для MediaPlayer.
-     */
+    ///  Sets the volume of the video: if the MediaPlayer is not initialized, it will wait for it to be initialized and then set the volume.
+    /// @param volume the volume to set (0.0 to 1.0)
+    /// @return void
     public void setVolume(float volume) {
         this.volume = volume;
         setVideoVolume(volume);
     }
 
+    ///  Sets the volume of the video: if the MediaPlayer is not initialized, it will wait for it to be initialized and then set the volume.
+    /// @param volume the volume to set (0.0 to 1.0)
     public void setVideoVolume(float volume) {
         if (mediaPlayer != null) {
             mediaPlayer.setVolume(volume);
         }
     }
 
+    ///  Returns the quality of the video.
+    /// @return the quality of the video
     public String getQuality() {
         return quality;
     }
 
+    ///  Returns a list of available video qualities.
+    /// @return a list of available video qualities
     public List<Integer> getQualityList() {
         if (mediaPlayer == null) return Collections.emptyList();
         return mediaPlayer.getAvailableQualities();
     }
 
+    ///  Sets the quality of the video: if the MediaPlayer is not initialized, it will wait for it to be initialized and then set the quality.
+    /// @param quality the quality to set (e.g., "480", "720", "1080")
+    /// @return void
     public void setQuality(String quality) {
         this.quality = quality;
     }
 
-    /**
-     * Запускает воспроизведение видео и аудио через MediaPlayer.
-     */
+    ///  Starts the video: if the MediaPlayer is not initialized, it will wait for it to be initialized and then start the video.
+    /// @return void
     public void startVideo() {
         if (mediaPlayer != null) {
             mediaPlayer.play();
@@ -298,13 +348,15 @@ public class Screen {
         }
     }
 
+    ///  Returns whether the video is paused.
+    /// @return true if the video is paused, false otherwise
     public boolean getPaused() {
         return paused;
     }
 
-    /**
-     * Приостанавливает/возобновляет воспроизведение через MediaPlayer.
-     */
+    ///  Stop or play video: if the video is not started, it will start it, otherwise it will pause or resume it.
+    /// @param paused true to pause the video, false to resume it
+    /// @return void
     public void setPaused(boolean paused) {
         if (!videoStarted) {
             this.paused = false;
@@ -325,36 +377,26 @@ public class Screen {
         if (owner && isSync) sendSync();
     }
 
-    /**
-     * Перематывает видео на 5 секунд вперёд (относительный seek).
-     */
+    ///  Relative seek video: moves the video by a specified number of seconds (in our case it's +5 seconds) relative to the current position.
     public void seekForward() {
         seekVideoRelative(5);
     }
 
-    /**
-     * Перематывает видео на 5 секунд назад (относительный seek).
-     */
+    ///  Relative seek video: moves the video by a specified number of seconds (in our case it's -5 seconds) relative to the current position.
     public void seekBackward() {
         seekVideoRelative(-5);
     }
 
-    /**
-     * Относительный seek видео: перемещает видео на заданное число секунд относительно текущей позиции.
-     *
-     * @param seconds число секунд для сдвига (может быть отрицательным)
-     */
+    /// Relative seek video: moves the video by a specified number of seconds relative to the current position.
+    /// @param seconds the number of seconds to shift (can be negative)
     public void seekVideoRelative(long seconds) {
         if (mediaPlayer != null) {
             mediaPlayer.seekRelative(seconds);
         }
     }
 
-    /**
-     * Абсолютный seek видео: переходит к конкретной секунде.
-     *
-     * @param nanos время в наносекундах, к которому нужно перейти
-     */
+    /// Absolute (cinema) seek video: moves to a specific second.
+    /// @param nanos time in nanoseconds to seek to
     public void seekVideoTo(long nanos) {
         if (mediaPlayer != null) {
             mediaPlayer.seekTo(nanos, false);
@@ -397,9 +439,7 @@ public class Screen {
         return volume;
     }
 
-    /**
-     * Создаёт текстуру для отображения видео с учётом текущего качества.
-     */
+///  Creates a new texture for the screen based on its dimensions and quality.
     public void createTexture() {
         int qualityInt = Integer.parseInt(this.quality.replace("p", ""));
         textureWidth = (int) (width / (double) height * qualityInt);
@@ -423,10 +463,8 @@ public class Screen {
         PlatformlessInitializer.sendPacket(new SyncPacket(id, isSync, paused, mediaPlayer.getCurrentTime(), mediaPlayer.getDuration()));
     }
 
-    /**
-     * Метод для ожидания инициализации MediaPlayer (например, первого кадра)
-     * и выполнения заданного действия.
-     */
+/// Method for waiting until MediaPlayer is initialized
+/// @param action the action to run once MediaPlayer is initialized
     public void waitForMFInit(Runnable action) {
         new Thread(() -> {
             while (mediaPlayer == null || !mediaPlayer.isInitialized()) {

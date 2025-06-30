@@ -29,6 +29,9 @@ public abstract class GStreamInitMixin {
     @Unique
     private static boolean downloaded = false;
 
+    /// This mixin is used to initialize GStreamer libraries when the game starts.
+    /// It checks if GStreamer libraries are downloaded and initialized
+    /// If not, it redirects the screen to a downloader menu or an error screen
     @Inject(at = @At("HEAD"), method = "setScreen", cancellable = true)
     public void redirScreen(Screen guiScreen, CallbackInfo ci) {
         if (!downloaded) {
@@ -44,14 +47,14 @@ public abstract class GStreamInitMixin {
                     Gst.init("MediaPlayer");
                 }
                 else if (!GStreamerDownloadListener.INSTANCE.isDone() && !GStreamerDownloadListener.INSTANCE.isFailed()) {
-                    LoggingManager.warn("GStreamer has not finished loading, displaying loading screen.");
+                    LoggingManager.warn("GStreamer has not finished loading, displaying loading screen");
                     setScreen(new GStreamerDownloaderMenu(guiScreen));
                     ci.cancel();
                 }
                 else if (GStreamerDownloadListener.INSTANCE.isFailed()) {
                     downloaded = true;
-                    LoggingManager.error("GStreamer failed to initialize!");
-                    setScreen(new GStreamerErrorScreen(guiScreen, Utils.detectPlatform().equals("windows") ? "Не удалось инициализировать библиотеки. Обратитесь к разработчику мода": "Не удалось загрузить библиотеки. Вам нужно самостоятельно установить GStreamer с помощью brew/apt"));
+                    LoggingManager.error("GStreamer failed to initialize");
+                    setScreen(new GStreamerErrorScreen(guiScreen, Utils.detectPlatform().equals("windows") ? "Frog Displays failed to download libraries": "Frogdisplays failed to initialize GStreamer. You need to download GStreamer libraries manually and place them in the ./libs/gstreamer directory"));
                 }
             }
 

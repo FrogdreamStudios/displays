@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "frogdisplays",
-  "name": "FrogDisplays",
+  "name": "Frog Displays",
   "version": "${version}",
   "license": "MIT",
   "entrypoints": {

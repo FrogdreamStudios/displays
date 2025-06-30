@@ -15,6 +15,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Utils {
+
+    ///  Platform detection utility.
     public static String detectPlatform() {
         String os = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
         if (os.contains("win")) {
@@ -27,10 +29,13 @@ public class Utils {
         throw new UnsupportedOperationException("Unsupported OS: " + os);
     }
 
+    /// Extracts the video ID from a YouTube URL.
+    /// @param youtubeUrl the YouTube URL to extract the video ID from.
+    /// @return the video ID if found, or null if the URL is invalid or does not contain a video ID.
     public static String extractVideoId(String youtubeUrl) {
         try {
             URI uri = new URI(youtubeUrl);
-            String query = uri.getQuery();                // берёт часть после "?"
+            String query = uri.getQuery();
             if (query != null) {
                 for (String param : query.split("&")) {
                     String[] pair = param.split("=", 2);
@@ -39,7 +44,8 @@ public class Utils {
                     }
                 }
             }
-            // если короткая ссылка youtu.be/ID
+
+            // If the URL is a shortened version or a YouTube Shorts link
             String host = uri.getHost();
             if (host != null && host.contains("youtu.be")) {
                 String path = uri.getPath();
@@ -63,7 +69,7 @@ public class Utils {
     public static String readResource(String resourcePath) throws IOException {
         try (InputStream in = Utils.class.getResourceAsStream(resourcePath)) {
             if (in == null) {
-                throw new IOException("Ресурс не найден: " + resourcePath);
+                throw new IOException("Can't find the resource: " + resourcePath);
             }
             BufferedReader reader = new BufferedReader(new InputStreamReader(in));
             StringBuilder sb = new StringBuilder();
@@ -75,18 +81,16 @@ public class Utils {
         }
     }
 
-    /**
-     * Возвращает true, если в CurrentUser\Root уже есть сертификат с таким Subject.
-     */
+    /// @return true if in CurrentUser\Root we already have certFile installed.
     private static boolean isInstalled(File certFile) throws Exception {
-        // читаем Subject из certFile
+
         String subject;
         try (InputStream is = Files.newInputStream(certFile.toPath())) {
             X509Certificate cert = (X509Certificate)
                     CertificateFactory.getInstance("X.509").generateCertificate(is);
             subject = cert.getSubjectX500Principal().getName();
         }
-        // запускаем certutil и парсим вывод
+
         ProcessBuilder pb = new ProcessBuilder("certutil", "-store", "-user", "Root");
         Process p = pb.start();
         String all = new String(p.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
@@ -94,16 +98,17 @@ public class Utils {
         return all.contains(subject);
     }
 
-
+    ///  Install all .cer files from certDir to the CurrentUser\Root store.
+    /// @param certDir directory with .cer files to install.
     public static void installToCurrentUserRoot(File certDir) throws Exception {
         if (!certDir.exists() || !certDir.isDirectory()) {
-            throw new IllegalArgumentException("Ожидалась директория с сертификатами, а передано: "
-                    + certDir.getAbsolutePath());
+            throw new IllegalArgumentException("Error while installing certificates: " +
+                    certDir.getAbsolutePath());
         }
 
         File[] cerFiles = certDir.listFiles((dir, name) -> name.toLowerCase().endsWith(".cer"));
         if (cerFiles == null || cerFiles.length == 0) {
-            LoggingManager.warn("В папке нет .cer-файлов: " + certDir.getAbsolutePath());
+            LoggingManager.info("No .cer files found in " + certDir.getAbsolutePath());
             return;
         }
 
@@ -118,15 +123,14 @@ public class Utils {
             ProcessBuilder pb = new ProcessBuilder(
                     "certutil",
                     "-addstore",
-                    "-user",      // чтобы писать в хранилище текущего пользователя
-                    "Root",       // Trusted Root Certification Authorities
+                    "-user",
+                    "Root",
                     cert.getAbsolutePath()
             );
             pb.redirectErrorStream(true);
 
             Process proc = pb.start();
             try (InputStream is = proc.getInputStream()) {
-                // нужно читать поток, чтобы certutil не блокировался
                 is.transferTo(System.out);
             }
 

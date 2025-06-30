@@ -1,8 +1,3 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by FernFlower decompiler)
-//
-
 package ru.l0sty.frogdisplays.screen.widgets;
 
 import net.minecraft.client.MinecraftClient;

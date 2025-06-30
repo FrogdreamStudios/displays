@@ -12,7 +12,7 @@ public class Config extends AbstractConfig {
         System.setProperty("file.encoding", "UTF-8");
     }
 
-    @Comment("Отключать звук видео если игра свёрнутая?")
+    @Comment("Turn off the displays when the Minecraft window is not focused?")
 
     @Path("mute-on-alt-tab")
     public boolean muteOnAltTab = true;

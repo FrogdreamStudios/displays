@@ -21,5 +21,4 @@ public class CrossHairMixin {
             ci.cancel();
         }
     }
-
 }

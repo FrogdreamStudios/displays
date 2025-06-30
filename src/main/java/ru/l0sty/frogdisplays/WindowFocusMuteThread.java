@@ -1,6 +1,5 @@
 package ru.l0sty.frogdisplays;
 
-import org.apache.logging.log4j.LogManager;
 import ru.l0sty.frogdisplays.screen.Screen;
 import net.minecraft.client.MinecraftClient;
 import ru.l0sty.frogdisplays.screen.ScreenManager;
@@ -36,7 +35,4 @@ public class WindowFocusMuteThread extends Thread {
             }
         }
     }
-
-
-
 }

@@ -10,6 +10,8 @@ import ru.l0sty.frogdisplays.PlatformlessInitializer;
 
 import java.util.UUID;
 
+/// Packet for synchronizing display data.
+/// Read more about the synchronization feature RequestSyncPacket.
 public record SyncPacket(UUID id, boolean isSync, boolean currentState, long currentTime, long limitTime) implements CustomPayload {
     public static final CustomPayload.Id<SyncPacket> PACKET_ID =
             new CustomPayload.Id<>(Identifier.of(PlatformlessInitializer.MOD_ID, "sync"));

@@ -11,8 +11,10 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.util.concurrent.CompletableFuture;
-import java.util.logging.Level;
 
+///  Utility class for handling image textures in Minecraft.
+/// This class provides methods to fetch images from URLs and convert them into textures that can be used in Minecraft.
+/// It uses `CompletableFuture` to handle asynchronous image loading, ensuring that the main thread is not blocked while fetching images.
 public class ImageUtil {
 
     public static CompletableFuture<NativeImageBackedTexture> fetchImageTextureFromUrl(String url) {
@@ -33,7 +35,6 @@ public class ImageUtil {
             CompletableFuture<NativeImageBackedTexture> texFuture = new CompletableFuture<>();
 
             MinecraftClient.getInstance().execute(() -> {
-//                RenderSystem.queueFencedTask(() -> {
                     try {
                         NativeImageBackedTexture tex = new NativeImageBackedTexture(() -> url, nativeImage);
                         texFuture.complete(tex);
@@ -41,12 +42,13 @@ public class ImageUtil {
                         texFuture.completeExceptionally(t);
                     }
                 });
-//            });
 
             return texFuture;
         });
     }
 
+    /// Converts a `BufferedImage` to a `NativeImage`.
+    /// @param img the `BufferedImage` to convert.
     private static NativeImage convertToNativeImage(BufferedImage img) {
         int width = img.getWidth();
         int height = img.getHeight();
@@ -67,6 +69,4 @@ public class ImageUtil {
 
         return nativeImage;
     }
-
-
 }

@@ -7,10 +7,8 @@ import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.hit.BlockHitResult;
-import org.apache.logging.log4j.LogManager;
 import org.joml.Vector3i;
 import org.lwjgl.glfw.GLFW;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.l0sty.frogdisplays.downloader.GstreamerDownloadInit;
 import ru.l0sty.frogdisplays.net.*;
@@ -26,8 +24,10 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.logging.Level;
 
+/// This class is the main entry point for the Frog Displays mod.
+/// It initializes the mod, handles packets, and manages screens.
+/// It also provides utility methods for sending packets and managing the configuration.
 public class PlatformlessInitializer {
     public static Config config;
 
@@ -52,7 +52,7 @@ public class PlatformlessInitializer {
     public static void onModInit(Mod frogDisplaysMod) {
         mod = frogDisplaysMod;
         LoggingManager.setLogger(LoggerFactory.getLogger(MOD_ID));
-        LoggingManager.info("Starting Frogdisplays");
+        LoggingManager.info("Starting Frog Displays");
 
         config = new Config(new File("./config/" + MOD_ID));
         config.reload();
@@ -167,7 +167,7 @@ public class PlatformlessInitializer {
         if (PlatformlessInitializer.focusMode && client.player != null && hoveredScreen != null) {
             client.player.addStatusEffect(new StatusEffectInstance(
                     StatusEffects.BLINDNESS,
-                    20 * 2, // 10 секунд
+                    20 * 2,
                     1,
                     false,
                     false,

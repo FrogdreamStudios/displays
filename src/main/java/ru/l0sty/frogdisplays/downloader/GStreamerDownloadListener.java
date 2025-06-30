@@ -1,11 +1,12 @@
 package ru.l0sty.frogdisplays.downloader;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.Screen;
 import org.spongepowered.asm.mixin.Unique;
 
+/// GStreamerDownloadListener is a class that listens for GStreamer download progress updates.
 public class GStreamerDownloadListener {
+
     // TODO: I kinda would like to keep other mods from accessing this, but mixin complicates stuff
+
     @Unique
     public static final GStreamerDownloadListener INSTANCE = new GStreamerDownloadListener();
 

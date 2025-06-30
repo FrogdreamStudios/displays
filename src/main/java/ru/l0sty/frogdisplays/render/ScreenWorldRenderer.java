@@ -9,6 +9,10 @@ import ru.l0sty.frogdisplays.screen.Screen;
 import ru.l0sty.frogdisplays.screen.ScreenManager;
 
 public class ScreenWorldRenderer {
+
+    ///  Renders all screens in the world based on their positions and facing directions.
+    /// @param matrices the matrix stack to use for rendering.
+    /// @param camera the camera we use to get the player's position and orientation (sexual?!).
     public static void render(MatrixStack matrices, Camera camera) {
         Vec3d cameraPos = camera.getPos();
         for (Screen screen : ScreenManager.getScreens()) {
@@ -17,18 +21,14 @@ public class ScreenWorldRenderer {
 
             matrices.push();
 
-            // Вычисляем позицию экрана относительно камеры
+            // Translate the matrix stack to the player's screen position
             BlockPos pos = screen.getPos();
             Vec3d screenCenter = Vec3d.of(pos);
             Vec3d relativePos = screenCenter.subtract(cameraPos);
             matrices.translate(relativePos.x, relativePos.y, relativePos.z);
 
-
+            // Move the matrix stack forward based on the screen's facing direction
             Tessellator tessellator = Tessellator.getInstance();
-
-            // Рендерим текстуру экрана с использованием уже реализованного метода
-
-
 
             renderScreenTexture(screen, matrices, tessellator);
 
@@ -36,11 +36,14 @@ public class ScreenWorldRenderer {
         }
     }
 
+    /// Renders the texture of a screen based on its facing direction and dimensions.
+    /// @param screen the screen to render.
+    /// @param matrices the matrix stack to use for rendering.
+    /// @param tessellator the tessellator to use for rendering.
     private static void renderScreenTexture(Screen screen, MatrixStack matrices, Tessellator tessellator) {
         matrices.push();
         RenderUtil.moveForward(matrices, screen.getFacing(), 0.008f);
 
-        // Применяем корректировку в зависимости от направления экрана
         switch (screen.getFacing()) {
             case "NORTH":
                 RenderUtil.moveHorizontal(matrices, "NORTH", -(screen.getWidth()));
@@ -56,10 +59,11 @@ public class ScreenWorldRenderer {
                 break;
         }
 
+        // Fix the rotation of the matrix stack based on the screen's facing direction
         RenderUtil.fixRotation(matrices, screen.getFacing());
         matrices.scale(screen.getWidth(), screen.getHeight(), 0);
 
-
+        // Render the screen texture or preview texture
         if (screen.isVideoStarted()) {
             screen.fitTexture();
             RenderUtil.renderGpuTexture(matrices, tessellator, screen.texture.getGlTexture(), screen.renderLayer);

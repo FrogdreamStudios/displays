@@ -2,7 +2,6 @@ package ru.l0sty.frogdisplays.downloader;
 
 import me.inotsleep.utils.logging.LoggingManager;
 import org.freedesktop.gstreamer.Gst;
-import ru.l0sty.frogdisplays.util.PowerTunnelManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,8 +10,9 @@ import java.util.regex.Pattern;
 
 import static ru.l0sty.frogdisplays.util.Utils.detectPlatform;
 
-
 public class GstreamerDownloadInit {
+
+    /// Initializes GStreamer libraries for the application.
     private static void setupLibraryPath() throws IOException {
         final File gStreamerLibrariesDir = new File("./libs/gstreamer");
 
@@ -35,6 +35,7 @@ public class GstreamerDownloadInit {
         Gst.init("MediaPlayer");
     }
 
+    ///  Loads the specified libraries into the JVM.
     public static void loadLibraries(Collection<String> libraries) {
         Deque<String> toLoad = new ArrayDeque<>(libraries);
         int total = libraries.size();
@@ -77,18 +78,14 @@ public class GstreamerDownloadInit {
 
     private static final Pattern SO_PATTERN =
             Pattern.compile(".*\\.so(\\.\\d+)*$", Pattern.CASE_INSENSITIVE);
-    // Паттерн для .dylib и старых .jnilib на macOS
+
+    ///  Pattern for macOS dynamic libraries and old libraries.
     private static final Pattern DYLIB_PATTERN =
             Pattern.compile(".*\\.(dylib|jnilib)$", Pattern.CASE_INSENSITIVE);
 
-    /**
-     * Проверяет, выглядит ли имя файла как нативная библиотека
-     * для текущей ОС.
-     * Поддерживается:
-     *   Windows — .dll
-     *   Linux/Unix — .so и .so.<version>
-     *   macOS — .dylib, .jnilib
-     */
+    /// Check if the file name is a library.
+    /// @param name the file name to check
+    /// @return true if the file name is a library, false otherwise
     private static boolean isLib(String name) {
         if (name == null) return false;
         String lower = name.toLowerCase();
@@ -152,24 +149,6 @@ public class GstreamerDownloadInit {
 
                 downloader.extractGstreamer(true);
             }
-
-//            File powerTunnelJar = new File("./libs/PowerTunnel/PowerTunnel.jar");
-//            powerTunnelJar.getParentFile().mkdirs();
-//            if (!powerTunnelJar.exists()) {
-//                try {
-//                    downloader.downloadPowerTunnel();
-//                } catch (IOException e) {
-//                    throw new RuntimeException(e);
-//                }
-//            }
-//
-//            try {
-//                new PowerTunnelManager(powerTunnelJar.getCanonicalPath()).start();
-//                System.setProperty("http.proxyHost", "127.0.0.1");
-//                System.setProperty("http.proxyPort", "14881");
-//            } catch (IOException e) {
-//                LoggingManager.error("Failed to download Power Tunnel.", e);
-//            }
 
             try {
                 setupLibraryPath();

@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+/// ScreenManager is a class that manages all screens in the application.
 public class ScreenManager {
 
     public static final ConcurrentHashMap<UUID, Screen> screens = new ConcurrentHashMap<>();
@@ -36,7 +37,4 @@ public class ScreenManager {
 
         screens.clear();
     }
-
-
-
 }

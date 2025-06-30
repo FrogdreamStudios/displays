@@ -9,6 +9,7 @@ import org.joml.Matrix4f;
 
 public class RenderUtil2D {
 
+    /// Fixes the rotation of the matrix stack based on the facing direction.
     public static void drawTexturedQuad(MatrixStack matrices, GpuTexture glId, float x, float y, float width, float height, RenderLayer layer) {
         RenderSystem.setShaderTexture(0, glId);
 

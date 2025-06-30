@@ -7,6 +7,9 @@ import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 import ru.l0sty.frogdisplays.PlatformlessInitializer;
 
+/// Sent from the server to the client to indicate whether the user has a premium.
+/// This packet is used to enable or disable premium features (in the client)
+/// @param premium true if the user has a premium, false otherwise.
 public record PremiumPacket(boolean premium) implements CustomPayload {
     public static final Id<PremiumPacket> PACKET_ID =
             new Id<>(Identifier.of(PlatformlessInitializer.MOD_ID, "premium"));
