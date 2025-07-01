@@ -1,7 +1,7 @@
 [![](https://img.shields.io/discord/1389303074807353444?label=Discord&logo=discord&style=flat)](https://discord.gg/ydttK689Wg)
 
 ![img](https://i.imgur.com/9duMqc6.png)
-Download our mode & plugin on [Modrinth](https://modrinth.com/mod/frogdisplays)!
+Download our mod or plugin on [Modrinth](https://modrinth.com/mod/frogdisplays)!
 
 ## Available platforms
 - Fabric on Minecraft version 1.21.5
