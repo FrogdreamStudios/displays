@@ -24,3 +24,8 @@ Done! To customize the display, look at it and press `Shift + RMB`
 - Convenient server-side configuration management
 
 [Read more in our wiki](https://github.com/FrogdreamStudios/displays/wiki).
+
+## Support us
+Frog Displays is developed with passion and dedication by a small team. If you enjoy our mod/plugin and want to support further development, [consider making a donation](https://www.patreon.com/c/frogdreamstudios/membership). Your support helps us keep improving the project and adding new features!
+
+Thank you for helping us make Frog Displays even better.
