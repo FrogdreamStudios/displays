@@ -4,7 +4,7 @@ plugins {
 }
 
 group = 'com.inotsleep'
-version = '1.0.5'
+version = '1.0.3'
 
 repositories {
     mavenCentral()
