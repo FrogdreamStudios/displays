@@ -1,4 +1,26 @@
-# Frog Displays
-Frog Displays is a Minecraft mod that lets players create in-game screens to show YouTube videos, with multiplayer support and adjustable settings.
+[![](https://img.shields.io/discord/1389303074807353444?label=Discord&logo=discord&style=flat)](https://discord.gg/ydttK689Wg)
 
-The mod is client-side and works with `Fabric` for Minecraft version `1.21.5`.
+![img](https://i.imgur.com/9duMqc6.png)
+Download our mode & plugin on [Modrinth](https://modrinth.com/mod/frogdisplays)!
+
+## Available platforms
+- Fabric on Minecraft version 1.21.5
+- Paper and other forks on version 1.21.5
+- In the future: Forge, NeoForge and older versions
+
+## How to use this mod?
+Set up a display using black concrete, select it with a diamond axe, and type `/display create`. After the display is created, type `/display video <link to YouTube video> [language]`
+
+Done! To customize the display, look at it and press `Shift + RMB`
+
+![img](https://i.imgur.com/q2CuHSs.png)
+
+## Features
+- YouTube video playback without ads
+- Adjustable resolution settings
+- Configurable screen sizes rangings
+- Multiplayer synchronization
+- Integrated controls for pausing and playing
+- Convenient server-side configuration management
+
+[Read more in our wiki](https://github.com/FrogdreamStudios/displays/wiki).
