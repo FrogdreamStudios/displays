@@ -122,6 +122,8 @@ public class Screen {
      * @param lang the language of the video (e.g., "en", "ru")
      */
     public void loadVideo(String videoUrl, String lang) {
+        if (Objects.equals(videoUrl, "")) return;
+
         LoggingManager.info("Loading video: " + videoUrl);
 
         if (mediaPlayer != null) unregister();
