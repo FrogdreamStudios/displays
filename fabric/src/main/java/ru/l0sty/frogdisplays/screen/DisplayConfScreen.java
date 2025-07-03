@@ -244,12 +244,11 @@ public class DisplayConfScreen extends Screen {
             syncReset.active = false;
 
             List<Text> errorText = List.of(
-                    Text.literal("Oops! Error").styled(style -> style.withColor(0xff0000)),
-                    Text.literal("we can't load this video").styled(style -> style.withColor(0xff0000)),
-                    Text.literal("Try to set another one").styled(style -> style.withColor(0xff0000)),
+                    Text.literal("Oops! We can't load this video.").styled(style -> style.withColor(0xff0000)),
+                    Text.literal("Try to set another one.").styled(style -> style.withColor(0xff0000)),
                     Text.literal("").styled(style -> style.withColor(0xff0000)),
                     Text.literal("Please do not enter YouTube Kids videos").styled(style -> style.withColor(0xff0000)),
-                    Text.literal("because it's not possible due to limitations from YouTube").styled(style -> style.withColor(0xff0000))
+                    Text.literal("because it's not possible due to limitations from YouTube.").styled(style -> style.withColor(0xff0000))
             );
 
             int yP = (int) ((double) this.height / 2 - ((double) (textRenderer.fontHeight + 2) * errorText.size()) / 2);
