@@ -137,12 +137,12 @@ public class Utils {
             int code = proc.waitFor();
             if (code != 0) {
                 throw new RuntimeException(
-                        "Ошибка при добавлении сертификата " +
-                                cert.getName() + ", код возврата: " + code
+                        "Certificate error " +
+                                cert.getName() + ", error code: " + code
                 );
             }
         }
 
-        LoggingManager.info("Все найденные .cer-файлы установлены.");
+        LoggingManager.info("Certificates installed successfully from ");
     }
 }

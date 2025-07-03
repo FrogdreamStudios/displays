@@ -49,7 +49,7 @@ public class Utils {
     public static String extractVideoId(String youtubeUrl) {
         try {
             URI uri = new URI(youtubeUrl);
-            String query = uri.getQuery();                // берёт часть после "?"
+            String query = uri.getQuery(); // Takes part after "?"
             if (query != null) {
                 for (String param : query.split("&")) {
                     String[] pair = param.split("=", 2);
@@ -58,7 +58,7 @@ public class Utils {
                     }
                 }
             }
-            // если короткая ссылка youtu.be/ID
+            // If youtu.be/ID
             String host = uri.getHost();
             if (host != null && host.contains("youtu.be")) {
                 String path = uri.getPath();

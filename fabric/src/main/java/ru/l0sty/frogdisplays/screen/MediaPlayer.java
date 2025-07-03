@@ -391,7 +391,7 @@ public class MediaPlayer {
         if (videoPipeline != null) videoPipeline.pause();
         if (videoPipeline != null) videoPipeline.seekSimple(Format.TIME, flags, ns);
         audioPipeline.seekSimple(Format.TIME, flags, ns);
-        if (videoPipeline != null) videoPipeline.getState(); // дождаться преролла
+        if (videoPipeline != null) videoPipeline.getState(); // Waiting for preroll
         audioPipeline.play();
         if (videoPipeline != null && !screen.getPaused()) videoPipeline.play();
 
@@ -454,13 +454,13 @@ public class MediaPlayer {
         lastQuality        = parseQuality(chosen);
     }
 
-    // === TICK АТТЕНЮАЦИЯ ================================================================
+    // === TICK ================================================================
     public void tick(BlockPos playerPos, double maxRadius) {
         if (!initialized) return;
         double dist = screen.getDistanceToScreen(playerPos);
         double attenuation = Math.pow(1.0 - Math.min(1.0, dist / maxRadius), 2)
                 * MinecraftClient.getInstance().options.getSoundVolume(SoundCategory.MASTER);
-        if (Math.abs(attenuation - lastAttenuation) < 1e-5) return; // без изменений
+        if (Math.abs(attenuation - lastAttenuation) < 1e-5) return;
 
         lastAttenuation = attenuation;
         currentVolume = userVolume * attenuation;

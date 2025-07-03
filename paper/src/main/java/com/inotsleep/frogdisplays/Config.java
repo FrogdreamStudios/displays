@@ -52,25 +52,25 @@ public class Config extends AbstractConfig {
         public String repoOwner = "Frogdream";
 
         @Path("selection_material")
-        @Comment("Предмет для выделения")
+        @Comment("Item for selection")
         private String selectionMaterialR = "DIAMOND_AXE";
         public Material selectionMaterial = Material.DIAMOND_AXE;
 
         @Path("base_material")
-        @Comment("Предмет для выделения")
+        @Comment("Base material for displays")
         private String baseMaterialR = "BLACK_CONCRETE";
         public Material baseMaterial = Material.BLACK_CONCRETE;
 
         @Path("CUI_particle_render_delay")
-        @Comment("Как часто показывать частицы (тики)")
+        @Comment("How often to show particles (ticks)")
         public int particleRenderDelay = 2;
 
         @Path("CUI_particles_per_block")
-        @Comment("Количество частиц на блок")
+        @Comment("Number of particles per block")
         public int particlesPerBlock = 3;
 
         @Path("CUI_particles_color")
-        @Comment("Указывать в Decimal формате")
+        @Comment("Specify in Decimal format")
         public int particlesColor = 0x00FF00;
 
         @Path("min_width")

@@ -114,7 +114,7 @@ public class DisplayManager {
     public static boolean isOverlaps(SelectionData data) {
         World selWorld = data.getPos1().getWorld();
 
-        // Векторы из позиций
+        // Vectors from positions
         int minX = Math.min(data.getPos1().getBlockX(), data.getPos2().getBlockX());
         int minY = Math.min(data.getPos1().getBlockY(), data.getPos2().getBlockY());
         int minZ = Math.min(data.getPos1().getBlockZ(), data.getPos2().getBlockZ());

@@ -107,7 +107,7 @@ public class GStreamerDownloader {
                 throw new IOException("Server returned HTTP " + status + " for " + urlString);
             }
 
-            int fileSize = conn.getContentLength(); // может быть -1
+            int fileSize = conn.getContentLength(); // May be -1
             in = new BufferedInputStream(conn.getInputStream());
             out = new FileOutputStream(outputFile);
 

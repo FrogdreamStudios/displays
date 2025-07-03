@@ -19,7 +19,7 @@ public class GstreamerDownloadInit {
         List<File> files = List.of(Objects.requireNonNull(new File(gStreamerLibrariesDir, "bin").listFiles()));
 
         GStreamerDownloadListener.INSTANCE.setProgress(0f);
-        GStreamerDownloadListener.INSTANCE.setTask("Загрузка библиотек 0/0");
+        GStreamerDownloadListener.INSTANCE.setTask("Loading libraries for Dream Launcher 0/0");
         loadLibraries(recursiveLoadLibs(files));
 
         System.setProperty(
@@ -41,31 +41,31 @@ public class GstreamerDownloadInit {
         int total = libraries.size();
         int loadedCount = 0;
 
-        GStreamerDownloadListener.INSTANCE.setTask(String.format("Загрузка библиотек %d/%d", loadedCount, total));
+        GStreamerDownloadListener.INSTANCE.setTask(String.format("Loading libraries for Dream Displays %d/%d", loadedCount, total));
         while (!toLoad.isEmpty()) {
             int passSize = toLoad.size();
             int loadedThisPass = 0;
 
-            // Пробуем загрузить каждый из оставшихся
+            // Try to load other libraries.
             for (int i = 0; i < passSize; i++) {
                 String path = toLoad.removeFirst();
                 try {
                     System.load(path);
                     loadedCount++;
                     loadedThisPass++;
-                    // обновляем прогресс: сколько из общего уже загружено
+
+                    // Update progress and task message
                     GStreamerDownloadListener.INSTANCE
                             .setProgress(((float) loadedCount) / total);
 
-                    GStreamerDownloadListener.INSTANCE.setTask(String.format("Загрузка библиотек %d/%d (%d/%d)", loadedCount, total, loadedThisPass, passSize));
+                    GStreamerDownloadListener.INSTANCE.setTask(String.format("Loading libraries for Dream Displays %d/%d (%d/%d)", loadedCount, total, loadedThisPass, passSize));
                 } catch (LinkageError e) {
                     toLoad.addLast(path);
                 }
             }
 
-            // Если за весь проход ни одной не загрузилось — выходим, чтобы не зациклиться
             if (loadedThisPass == 0) {
-                LoggingManager.error("Не удалось загрузить следующие библиотеки:");
+                LoggingManager.error("Dream Displays can't load some libraries:");
                 toLoad.forEach(p -> LoggingManager.error("  " + p));
 
                 GStreamerDownloadListener.INSTANCE.setFailed(true);
@@ -97,7 +97,7 @@ public class GstreamerDownloadInit {
         if (DYLIB_PATTERN.matcher(name).matches()) {
             return true;
         }
-        // Linux/Unix (включая версии .so.1, .so.1.2 и т.п.)
+        // Linux/Unix (including .so.1, .so.1.2, etc.)
         return SO_PATTERN.matcher(name).matches();
     }
 

@@ -129,10 +129,10 @@ public class DisplayConfScreen extends Screen {
             }
         };
 
-        sync = new ToggleWidget(0, 0, 0, 0, Text.of(screen.isSync ? "Вкл." : "Выкл."), screen.isSync) {
+        sync = new ToggleWidget(0, 0, 0, 0, Text.of(screen.isSync ? "Enabled" : "Disabled"), screen.isSync) {
             @Override
             protected void updateMessage() {
-                setMessage(Text.of(value ? "Вкл." : "Выкл."));
+                setMessage(Text.of(value ? "Enabled" : "Disabled"));
             }
 
             @Override
@@ -340,13 +340,13 @@ public class DisplayConfScreen extends Screen {
         // Tooltip
         List<Text> renderDTooltip = List.of(
                 Text.literal("Render distance").styled(style -> style.withColor(Formatting.WHITE).withBold(true)),
-                Text.literal("Определяет прорисовку, при которой").styled(style -> style.withColor(Formatting.GRAY)),
-                Text.literal("активируются этот дисплей").styled(style -> style.withColor(Formatting.GRAY)),
+                Text.literal("Determines the rendering distance at which").styled(style -> style.withColor(Formatting.GRAY)),
+                Text.literal("this display is activated").styled(style -> style.withColor(Formatting.GRAY)),
                 Text.empty(),
-                Text.literal("Чтобы полностью отключить все").styled(style -> style.withColor(Formatting.DARK_GRAY)),
-                Text.literal("дисплеи, пропиши /display off").styled(style -> style.withColor(Formatting.DARK_GRAY)),
+                Text.literal("To completely disable all displays, use").styled(style -> style.withColor(Formatting.DARK_GRAY)),
+                Text.literal("/display off").styled(style -> style.withColor(Formatting.DARK_GRAY)),
                 Text.empty(),
-                Text.literal("Сейчас: " + (int) PlatformlessInitializer.maxDistance + " блоков").styled(style -> style.withColor(Formatting.YELLOW))
+                Text.literal("Current: " + (int) PlatformlessInitializer.maxDistance + " blocks").styled(style -> style.withColor(Formatting.YELLOW))
         );
 
         cY += 5 + vCH;
@@ -355,38 +355,34 @@ public class DisplayConfScreen extends Screen {
         placeButton(vCH, maxSW, cY, quality, qualityReset);
 
         // Setting the quality text and calculating coordinates for tooltip
-        Text qualityText = Text.literal("Качество");
+        Text qualityText = Text.literal("Quality");
         int qualityTextX = this.width / 2 - maxSW / 2;
         int qualityTextY = cY + vCH / 2 - textRenderer.fontHeight / 2;
         context.drawText(textRenderer, qualityText, qualityTextX, qualityTextY, 0xFFFFFF, true);
 
         // Tooltip
         List<Text> qualityTooltip = List.of(
-                Text.literal("Качество").styled(style -> style.withColor(Formatting.WHITE).withBold(true)),
-                Text.literal("Качество дисплея").styled(style -> style.withColor(Formatting.GRAY)),
+                Text.literal("Quality").styled(style -> style.withColor(Formatting.WHITE).withBold(true)),
+                Text.literal("Quality of display").styled(style -> style.withColor(Formatting.GRAY)),
                 Text.empty(),
-                Text.literal("Сейчас: " + screen.getQuality() + "p").styled(style -> style.withColor(Formatting.GOLD)),
-                Text.literal(""),
-                Text.literal("С Premium можно смотреть").styled(style -> style.withColor(Formatting.DARK_GREEN)),
-                Text.literal("качественные дисплеи 1080p").styled(style -> style.withColor(Formatting.GREEN))
-
+                Text.literal("Now: " + screen.getQuality() + "p").styled(style -> style.withColor(Formatting.GOLD))
         );
 
         cY += 15 + vCH;
         placeButton(vCH, maxSW, cY, sync, syncReset);
 
-        // Setting the sync text and calculating coordinates for tooltip
-        Text syncText = Text.literal("Синхронизация");
+        // Setting the sync text and calculating coordinates for the tooltip
+        Text syncText = Text.literal("Synchronization");
         int syncTextX = this.width / 2 - maxSW / 2;
         int syncTextY = cY + vCH / 2 - textRenderer.fontHeight / 2;
         context.drawText(textRenderer, syncText, syncTextX, syncTextY, 0xFFFFFF, true);
 
         List<Text> syncTooltip = List.of(
-                Text.literal("Синхронизация").styled(style -> style.withColor(Formatting.WHITE).withBold(true)),
-                Text.literal("Опция доступна только для владельца дисплея.").styled(style -> style.withColor(Formatting.GRAY)),
-                Text.literal("Устанавливает, будет ли дисплей синхронизироваться между игроками.").styled(style -> style.withColor(Formatting.GRAY)),
+                Text.literal("Synchronization").styled(style -> style.withColor(Formatting.WHITE).withBold(true)),
+                Text.literal("Option available only to the display owner.").styled(style -> style.withColor(Formatting.GRAY)),
+                Text.literal("Sets whether the display will be synchronized between players.").styled(style -> style.withColor(Formatting.GRAY)),
                 Text.empty(),
-                Text.literal("Сейчас: " + (sync.value ? "выкл." : "вкл.")).styled(style -> style.withColor(Formatting.GOLD))
+                Text.literal("Now: " + (sync.value ? "disabled" : "enabled")).styled(style -> style.withColor(Formatting.GOLD))
         );
 
         renderTooltipIfHovered(context, mouseX, mouseY, renderDTextX, renderDTextY,
