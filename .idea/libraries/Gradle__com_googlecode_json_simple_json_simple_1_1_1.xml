@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="Gradle: com.googlecode.json-simple:json-simple:1.1.1" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="com.googlecode.json-simple" artifactId="json-simple" version="1.1.1" baseVersion="1.1.1" />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.googlecode.json-simple/json-simple/1.1.1/c9ad4a0850ab676c5c64461a05ca524cdfff59f1/json-simple-1.1.1.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

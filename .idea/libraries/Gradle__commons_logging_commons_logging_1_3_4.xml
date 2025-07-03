@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="Gradle: commons-logging:commons-logging:1.3.4" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="commons-logging" artifactId="commons-logging" version="1.3.4" baseVersion="1.3.4" />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/commons-logging/commons-logging/1.3.4/b9fc14968d63a8b8a8a2c1885fe3e90564239708/commons-logging-1.3.4.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

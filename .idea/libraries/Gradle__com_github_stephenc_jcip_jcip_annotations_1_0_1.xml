@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="Gradle: com.github.stephenc.jcip:jcip-annotations:1.0-1" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="com.github.stephenc.jcip" artifactId="jcip-annotations" version="1.0-1" baseVersion="1.0-1" />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.stephenc.jcip/jcip-annotations/1.0-1/ef31541dd28ae2cefdd17c7ebf352d93e9058c63/jcip-annotations-1.0-1.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

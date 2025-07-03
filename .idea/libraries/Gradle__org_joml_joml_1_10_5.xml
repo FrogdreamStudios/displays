@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="Gradle: org.joml:joml:1.10.5" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="org.joml" artifactId="joml" version="1.10.5" baseVersion="1.10.5" />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.joml/joml/1.10.5/22566d58af70ad3d72308bab63b8339906deb649/joml-1.10.5.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

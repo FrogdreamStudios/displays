@@ -1,0 +1,5 @@
+name: FrogDisplays
+version: '1.0.3'
+author: 'INotSleep'
+main: com.inotsleep.frogdisplays.FrogdisplaysPlugin
+api-version: '1.21'

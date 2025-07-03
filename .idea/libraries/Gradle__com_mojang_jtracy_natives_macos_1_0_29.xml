@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="Gradle: com.mojang:jtracy:natives-macos:1.0.29" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="com.mojang" artifactId="jtracy" version="1.0.29" baseVersion="1.0.29" />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.mojang/jtracy/1.0.29/d620e5b94ca81783b409d50c48b73e0ee7fdcb7d/jtracy-1.0.29-natives-macos.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
