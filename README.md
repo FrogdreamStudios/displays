@@ -1,4 +1,6 @@
-[![](https://img.shields.io/discord/1389303074807353444?label=Discord&logo=discord&style=flat)](https://discord.gg/ydttK689Wg)
+[![Discord](https://img.shields.io/discord/1389303074807353444?label=Discord&logo=discord&style=flat)](https://discord.gg/ydttK689Wg)
+[![Latest release](https://img.shields.io/github/release/FrogdreamStudios/displays.svg)](https://github.com/FrogdreamStudios/displays/releases/latest)
+[![License](https://img.shields.io/github/license/FrogdreamStudios/displays)](https://github.com/FrogdreamStudios/displays/blob/master/LICENSE)
 
 ![img](https://i.imgur.com/9duMqc6.png)
 Download our mod or plugin on [Modrinth](https://modrinth.com/mod/frogdisplays)!
@@ -24,3 +26,8 @@ Done! To customize the display, look at it and press `Shift + RMB`
 - Convenient server-side configuration management
 
 [Read more in our wiki](https://github.com/FrogdreamStudios/displays/wiki).
+
+## Support us
+Frog Displays is developed with passion and dedication by a small team. If you enjoy our mod/plugin and want to support further development, [consider making a donation](https://www.patreon.com/c/frogdreamstudios/membership). Your support helps us keep improving the project and adding new features!
+
+Thank you for helping us make Frog Displays even better.
