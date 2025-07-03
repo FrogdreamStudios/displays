@@ -7,9 +7,11 @@ import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
 import org.joml.Matrix4f;
 
+/**
+ * Utility class for rendering 2D textures in Minecraft.
+ * This class provides methods to draw textured quads using the specified texture and render layer.
+ */
 public class RenderUtil2D {
-
-    /// Fixes the rotation of the matrix stack based on the facing direction.
     public static void drawTexturedQuad(MatrixStack matrices, GpuTexture glId, float x, float y, float width, float height, RenderLayer layer) {
         RenderSystem.setShaderTexture(0, glId);
 

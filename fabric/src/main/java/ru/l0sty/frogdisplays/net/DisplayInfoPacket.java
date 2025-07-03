@@ -12,8 +12,10 @@ import ru.l0sty.frogdisplays.util.Facing;
 
 import java.util.UUID;
 
-/// Packet for displaying information about a display.
-/// This packet is sent from the server to the client to provide information about a display.
+/**
+ * Packet for displaying information about a display.
+ * This packet is sent from the server to the client to provide information about a display.
+ */
 public record DisplayInfoPacket(UUID id, UUID ownerId, Vector3i pos, int width, int height, String url, Facing facing, boolean isSync, String lang) implements CustomPayload {
     public static final CustomPayload.Id<DisplayInfoPacket> PACKET_ID =
             new CustomPayload.Id<>(Identifier.of(PlatformlessInitializer.MOD_ID, "display_info"));
@@ -62,10 +64,8 @@ public record DisplayInfoPacket(UUID id, UUID ownerId, Vector3i pos, int width, 
                     }
             );
 
-
     @Override
     public Id<? extends CustomPayload> getId() {
         return PACKET_ID;
     }
 }
-

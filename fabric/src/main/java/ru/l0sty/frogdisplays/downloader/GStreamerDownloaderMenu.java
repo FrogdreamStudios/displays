@@ -9,13 +9,17 @@ import net.minecraft.text.Text;
 public class GStreamerDownloaderMenu extends Screen {
     public final Screen menu;
 
-    ///  Menu for GStreamer download progress.
+    /**
+     * Menu for GStreamer download progress.
+     */
     public GStreamerDownloaderMenu(Screen menu) {
         super(Text.of("Frog Displays downloads GStreamer for display support"));
         this.menu = menu;
     }
 
-    /// Render the background of the GStreamer download menu.
+    /**
+     * Render the background of the GStreamer download menu.
+     */
     @Override
     public void render(DrawContext graphics, int mouseX, int mouseY, float partialTick) {
         renderBackground(graphics, mouseX, mouseY, partialTick);
@@ -93,7 +97,9 @@ public class GStreamerDownloaderMenu extends Screen {
         poseStack.pop();
     }
 
-    /// Tick the method to check if the download is done or failed.
+    /**
+     * Tick the method to check if the download is done or failed.
+     */
     @Override
     public void tick() {
         if (GStreamerDownloadListener.INSTANCE.isDone() || GStreamerDownloadListener.INSTANCE.isFailed()) {
@@ -101,7 +107,9 @@ public class GStreamerDownloaderMenu extends Screen {
         }
     }
 
-    /// Check if the screen should close on pressing the Escape key.
+    /**
+     * Check if the screen should close on pressing the Escape key.
+     */
     @Override
     public boolean shouldCloseOnEsc() {
         return false;

@@ -29,9 +29,11 @@ public abstract class GStreamInitMixin {
     @Unique
     private static boolean downloaded = false;
 
-    /// This mixin is used to initialize GStreamer libraries when the game starts.
-    /// It checks if GStreamer libraries are downloaded and initialized
-    /// If not, it redirects the screen to a downloader menu or an error screen
+    /**
+     * This mixin is used to initialize GStreamer libraries when the game starts.
+     * It checks if GStreamer libraries are downloaded and initialized
+     * If not, it redirects the screen to a downloader menu or an error screen
+     */
     @Inject(at = @At("HEAD"), method = "setScreen", cancellable = true)
     public void redirScreen(Screen guiScreen, CallbackInfo ci) {
         if (!downloaded) {

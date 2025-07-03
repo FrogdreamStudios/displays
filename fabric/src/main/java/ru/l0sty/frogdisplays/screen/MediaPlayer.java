@@ -29,13 +29,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
-/// Media player for playing YouTube videos using GStreamer.
-/// Supports audio and video playback, seeking, volume control, and quality selection.
-///
-/// 403 YouTube errors are handled by selecting the best available audio stream based on language.
-///
-/// Supports video texture updates for OpenGL rendering.
-/// Handles initialization, playback control, and resource management.
+/**
+ * Media player for playing YouTube videos using GStreamer.
+ * Supports audio and video playback, seeking, volume control, and quality selection.
+ *
+ * 403 YouTube errors are handled by selecting the best available audio stream based on language.
+ *
+ * Supports video texture updates for OpenGL rendering.
+ * Handles initialization, playback control, and resource management.
+ */
 public class MediaPlayer {
 
     private final String lang;
@@ -128,12 +130,14 @@ public class MediaPlayer {
         return screen != null && screen.textureWidth > 0 && screen.textureHeight > 0;
     }
 
-    ///  Updates the OpenGL texture with the current video frame.
-    ///
-    /// If the texture dimensions do not match the screen dimensions, no update is performed.
-    /// If the prepared buffer is null, no update is performed.
-    ///
-    /// @param glTexture the OpenGL texture to update.
+    /**
+     * Updates the OpenGL texture with the current video frame.
+     *
+     * If the texture dimensions do not match the screen dimensions, no update is performed.
+     * If the prepared buffer is null, no update is performed.
+     *
+     * @param glTexture the OpenGL texture to update.
+     */
     public void updateFrame(GpuTexture glTexture) {
         if (preparedBuffer == null) return;
         int w = screen.textureWidth, h = screen.textureHeight;
@@ -391,7 +395,7 @@ public class MediaPlayer {
         if (videoPipeline != null) videoPipeline.pause();
         if (videoPipeline != null) videoPipeline.seekSimple(Format.TIME, flags, ns);
         audioPipeline.seekSimple(Format.TIME, flags, ns);
-        if (videoPipeline != null) videoPipeline.getState(); // Waiting for preroll
+        if (videoPipeline != null) videoPipeline.getState(); // дождаться преролла
         audioPipeline.play();
         if (videoPipeline != null && !screen.getPaused()) videoPipeline.play();
 

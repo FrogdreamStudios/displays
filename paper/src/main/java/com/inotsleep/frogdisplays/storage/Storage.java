@@ -98,13 +98,11 @@ public class Storage {
         return new UUID(msb, lsb);
     }
 
-    /// Save or update a single DisplayData in the table.
     public void saveDisplay(DisplayData data) {
         String sql = "REPLACE INTO " + tablePrefix + "displays " +
                 "(id, ownerId, videoCode, world, pos1, pos2, size, facing, isSync, duration, lang) " +
                 "VALUES (?,?,?,?,?,?,?,?,?,?,?)";
 
-        /// Params for the SQL query
         try {
             connection.executeUpdate(sql,
                     uuidToBytes(data.getId()),
@@ -125,7 +123,7 @@ public class Storage {
                     (byte) data.getFacing().ordinal(),
                     data.isSync(),
 
-                    ///  If duration is null, it will be saved as NULL in the database automatically.
+                    // If duration is null, it will be saved as NULL in the database automatically.
                     data.getDuration(),
                     data.getLang()
             );
@@ -135,9 +133,11 @@ public class Storage {
         }
     }
 
-    /// Fetch all displays from the database and return them as a list of DisplayData.
-    /// This method is called on plugin startup to load existing displays.
-    /// @return List of DisplayData objects representing all displays in the database.
+    /**
+     * Fetch all displays from the database.
+     * This method is called on plugin startup to load existing displays.
+     * @return List of DisplayData objects representing all displays in the database.
+     */
     public List<DisplayData> getAllDisplays() {
         String sql = "SELECT id, ownerId, videoCode, world, pos1, pos2, size, facing, isSync, duration, lang " +
                 "FROM " + tablePrefix + "displays";

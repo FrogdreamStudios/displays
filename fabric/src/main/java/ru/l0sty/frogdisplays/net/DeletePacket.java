@@ -9,9 +9,10 @@ import ru.l0sty.frogdisplays.PlatformlessInitializer;
 
 import java.util.UUID;
 
-///  Packet for deleting a display.
-/// This packet is sent from the client to the server to delete a display with the given ID.
-/// @param id the ID of the display to delete.
+ /** Packet for deleting a display.
+ * This packet is sent from the client to the server to delete a display with the given ID.
+ * @param id the ID of the display to delete.
+ */
 public record DeletePacket(UUID id) implements CustomPayload {
     public static final Id<DeletePacket> PACKET_ID =
             new Id<>(Identifier.of(PlatformlessInitializer.MOD_ID, "delete"));

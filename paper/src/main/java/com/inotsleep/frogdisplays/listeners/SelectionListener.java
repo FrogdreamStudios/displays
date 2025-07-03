@@ -23,10 +23,12 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
 
-/// Listener for handling player interactions related to display selection in the Frog Displays plugin.
-/// This class listens for player clicks on blocks to select points for display creation, manages selection data, and validates the selection.
-///
-/// Handles events such as block breaks, explosions, and piston movements to ensure the integrity of the display selections.
+/**
+ * Listener for handling player interactions related to display selection in the Frog Displays plugin.
+ * This class listens for player clicks on blocks to select points for display creation, manages selection data, and validates the selection.
+ *
+ * Handles events such as block breaks, explosions, and piston movements to ensure the integrity of the display selections.
+ */
 public class SelectionListener implements Listener {
     public static Map<UUID, SelectionData> selectionPoints = new HashMap<>();
 
@@ -175,8 +177,6 @@ public class SelectionListener implements Listener {
 
         return 6;
     }
-
-    //
 
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {

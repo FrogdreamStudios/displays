@@ -2,7 +2,11 @@ package ru.l0sty.frogdisplays.downloader;
 
 import org.spongepowered.asm.mixin.Unique;
 
-/// GStreamerDownloadListener is a class that listens for GStreamer download progress updates.
+/**
+ * GStreamerDownloadListener is a singleton class that listens for GStreamer download progress.
+ * It provides methods to set and get the current task, progress, and status of the download.
+ * This class is used to update the UI with the current download status.
+ */
 public class GStreamerDownloadListener {
 
     // TODO: I kinda would like to keep other mods from accessing this, but mixin complicates stuff

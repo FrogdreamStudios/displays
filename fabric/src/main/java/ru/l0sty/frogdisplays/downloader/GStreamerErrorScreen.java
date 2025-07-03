@@ -5,23 +5,29 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.text.Text;
 
-///  Error screen for GStreamer download issues.
-/// This screen is displayed when there is an error during the GStreamer download process.
-/// It allows the user to return to the previous screen by clicking the "Continue" button.
+/**
+ * Error screen for GStreamer download issues.
+ * This screen is displayed when there is an error during the GStreamer download process.
+ * It allows the user to return to the previous screen by clicking the "Continue" button.
+ */
 public class GStreamerErrorScreen extends Screen {
     private final Screen parent;
     private final String errorMessage;
 
-    /// Constructor for GStreamerErrorScreen.
-    /// @param parent the parent screen to return to when the user clicks "Continue".
-    /// @param errorMessage the error message to display on the screen.
+    /**
+     * Constructor for GStreamerErrorScreen.
+     * @param parent the parent screen to return to when the user clicks "Continue".
+     * @param errorMessage the error message to display on the screen.
+     */
     public GStreamerErrorScreen(Screen parent, String errorMessage) {
         super(Text.of("Error while downloading GStreamer"));
         this.parent = parent;
         this.errorMessage = errorMessage;
     }
 
-    ///  Initializes the GStreamer error screen.
+    /**
+     * Initializes the GStreamer error screen.
+     */
     @Override
     protected void init() {
         super.init();
@@ -37,7 +43,9 @@ public class GStreamerErrorScreen extends Screen {
         );
     }
 
-    ///  Renders the GStreamer error screen.
+    /**
+     * Renders the GStreamer error screen.
+     */
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         this.renderBackground(context, mouseX, mouseY, delta);
@@ -57,8 +65,10 @@ public class GStreamerErrorScreen extends Screen {
         super.render(context, mouseX, mouseY, delta);
     }
 
-    /// Prevents the screen from closing when the Escape key is pressed.
-    /// @return false to indicate that the screen should not close on Escape.
+    /**
+     * Prevents the screen from closing when the Escape key is pressed.
+     * @return false to indicate that the screen should not close on Escape.
+     */
     @Override
     public boolean shouldCloseOnEsc() {
 

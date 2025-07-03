@@ -25,9 +25,13 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-/// This class is the main entry point for the Frog Displays mod.
-/// It initializes the mod, handles packets, and manages screens.
-/// It also provides utility methods for sending packets and managing the configuration.
+/**
+ * The PlatformlessInitializer class serves as the central management and initialization component
+ * for this mod. This class handles configuration loading, screen creation, packet handling,
+ * and various other functionalities essential to the mod's operation. It is responsible for managing
+ * and interacting with screens, handling client-side rendering logic, network communication, and maintaining
+ * state during gameplay.
+ */
 public class PlatformlessInitializer {
     public static Config config;
 

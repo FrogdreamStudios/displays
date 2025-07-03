@@ -17,8 +17,10 @@ import ru.l0sty.frogdisplays.render.ScreenWorldRenderer;
 import ru.l0sty.frogdisplays.screen.ScreenManager;
 import net.fabricmc.api.ClientModInitializer;
 
-/// It initializes the mod, registers commands, and handles networking.
-/// It also registers event listeners for rendering and client lifecycle events.
+ /**
+  * It initializes the mod, registers commands, and handles networking.
+  * It also registers event listeners for rendering and client lifecycle events.
+  */
 public class FrogdisplaysMod implements ClientModInitializer, Mod {
     @Override
     public void onInitializeClient() {

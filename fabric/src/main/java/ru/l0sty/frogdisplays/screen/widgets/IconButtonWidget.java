@@ -11,10 +11,11 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.ColorHelper;
 
-/// Abstract class for a button with an icon.
-/// This class extends ClickableWidget and provides functionality for rendering an icon button with a specified texture.
-///
-/// It allows setting a custom icon texture and provides methods for rendering the button and handling click events.
+/**
+ * Abstract class for a button with an icon.
+ * This class extends ClickableWidget and provides functionality for rendering an icon button with a specified texture.
+ * It allows setting a custom icon texture and provides methods for rendering the button and handling click events.
+ */
 public abstract class IconButtonWidget extends ClickableWidget {
 	private final int iw;
     private final int ih;

@@ -11,8 +11,10 @@ import org.bukkit.util.BoundingBox;
 import java.util.List;
 import java.util.UUID;
 
-/// Represents a display data object that holds information about a display in the game.
-/// It also provides methods to check if a player is within render distance, send update packets, and manage display settings.
+/**
+ * Represents a display data object that holds information about a display in the game.
+ * It also provides methods to check if a player is within render distance, send update packets, and manage display settings.
+ */
 public class DisplayData {
     private final UUID id;
     private final UUID ownerId;

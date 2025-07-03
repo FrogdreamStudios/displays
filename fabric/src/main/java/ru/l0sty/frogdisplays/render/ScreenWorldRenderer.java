@@ -10,9 +10,11 @@ import ru.l0sty.frogdisplays.screen.ScreenManager;
 
 public class ScreenWorldRenderer {
 
-    ///  Renders all screens in the world based on their positions and facing directions.
-    /// @param matrices the matrix stack to use for rendering.
-    /// @param camera the camera we use to get the player's position and orientation (sexual?!).
+    /**
+     * Renders all screens in the world based on their positions and facing directions.
+     * @param matrices the matrix stack to use for rendering.
+     * @param camera the camera we use to get the player's position and orientation.
+     */
     public static void render(MatrixStack matrices, Camera camera) {
         Vec3d cameraPos = camera.getPos();
         for (Screen screen : ScreenManager.getScreens()) {
@@ -36,10 +38,12 @@ public class ScreenWorldRenderer {
         }
     }
 
-    /// Renders the texture of a screen based on its facing direction and dimensions.
-    /// @param screen the screen to render.
-    /// @param matrices the matrix stack to use for rendering.
-    /// @param tessellator the tessellator to use for rendering.
+    /**
+     * Renders the texture of a screen based on its facing direction and dimensions.
+     * @param screen the screen to render.
+     * @param matrices the matrix stack to use for rendering.
+     * @param tessellator the tessellator to use for rendering.
+     */
     private static void renderScreenTexture(Screen screen, MatrixStack matrices, Tessellator tessellator) {
         matrices.push();
         RenderUtil.moveForward(matrices, screen.getFacing(), 0.008f);

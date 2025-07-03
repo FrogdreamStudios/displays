@@ -1,8 +1,10 @@
 package ru.l0sty.frogdisplays.util;
 
-///  Enum representing the facing direction of a display.
-/// This enum is used to determine the orientation of a display in the game world.
-/// @return the facing direction of the display.
+/**
+ * The Facing enum represents the four cardinal compass directions: NORTH, EAST, SOUTH, and WEST.
+ * It provides utility methods for converting between enum constants and their respective byte representations,
+ * allowing easy serialization and deserialization for use in packet-based communication.
+ */
 public enum Facing {
     NORTH, EAST, SOUTH, WEST;
 

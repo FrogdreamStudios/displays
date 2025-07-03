@@ -16,7 +16,9 @@ import java.util.regex.Pattern;
 
 public class Utils {
 
-    ///  Platform detection utility.
+    /**
+     * Platform detection utility.
+     */
     public static String detectPlatform() {
         String os = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
         if (os.contains("win")) {
@@ -29,9 +31,11 @@ public class Utils {
         throw new UnsupportedOperationException("Unsupported OS: " + os);
     }
 
-    /// Extracts the video ID from a YouTube URL.
-    /// @param youtubeUrl the YouTube URL to extract the video ID from.
-    /// @return the video ID if found, or null if the URL is invalid or does not contain a video ID.
+    /**
+     * Extracts the video ID from a YouTube URL.
+     * @param youtubeUrl the YouTube URL to extract the video ID from.
+     * @return the video ID if found, or null if the URL is invalid or does not contain a video ID.
+     */
     public static String extractVideoId(String youtubeUrl) {
         try {
             URI uri = new URI(youtubeUrl);
@@ -81,7 +85,9 @@ public class Utils {
         }
     }
 
-    /// @return true if in CurrentUser\Root we already have certFile installed.
+    /**
+     * @return true if in CurrentUser\Root we already have certFile installed.
+     */
     private static boolean isInstalled(File certFile) throws Exception {
 
         String subject;
@@ -98,8 +104,10 @@ public class Utils {
         return all.contains(subject);
     }
 
-    ///  Install all .cer files from certDir to the CurrentUser\Root store.
-    /// @param certDir directory with .cer files to install.
+    /**
+     * Install all .cer files from certDir to the CurrentUser\Root store.
+     * @param certDir directory with .cer files to install.
+     */
     public static void installToCurrentUserRoot(File certDir) throws Exception {
         if (!certDir.exists() || !certDir.isDirectory()) {
             throw new IllegalArgumentException("Error while installing certificates: " +

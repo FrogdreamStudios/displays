@@ -21,9 +21,11 @@ import ru.l0sty.frogdisplays.screen.widgets.SliderWidget;
 import java.util.List;
 import java.util.Objects;
 
-/// Configuration screen for Frog Displays.
-/// This screen allows users to configure various settings related to the Frog Displays mod, such as volume, rendering distance, quality, and synchronization options.
-/// It provides a user interface for adjusting these settings and includes buttons for controlling playback, resetting values, and deleting or reporting displays.
+/**
+ * Configuration screen for Frog Displays.
+ * This screen allows users to configure various settings related to the Frog Displays mod, such as volume, rendering distance, quality, and synchronization options.
+ * It provides a user interface for adjusting these settings and includes buttons for controlling playback, resetting values, and deleting or reporting displays.
+ */
 public class DisplayConfScreen extends Screen {
 
     SliderWidget volume = null;
@@ -194,11 +196,12 @@ public class DisplayConfScreen extends Screen {
         addDrawableChild(reportButton);
     }
 
-    /// Renders the background of the display configuration screen.
-    /// @param context the draw context for rendering.
-    /// @param mouseX the x-coordinate of the cursor.
-    /// @param mouseY the y-coordinate of the cursor.
-    /// @return void
+    /**
+     * Renders the background of the display configuration screen.
+     * @param context the draw context for rendering.
+     * @param mouseX the x-coordinate of the cursor.
+     * @param mouseY the y-coordinate of the cursor.
+     */
     private void renderTooltipIfHovered(DrawContext context, int mouseX, int mouseY,
                                         int elementX, int elementY, int elementWidth, int elementHeight,
                                         List<Text> tooltip) {
@@ -208,12 +211,13 @@ public class DisplayConfScreen extends Screen {
         }
     }
 
-    /// Renders the display configuration screen.
-    /// @param context the draw context for rendering.
-    /// @param mouseX the x-coordinate of the cursor.
-    /// @param mouseY the y-coordinate of the cursor.
-    /// @param delta the time delta since the last frame.
-    /// @return void
+    /**
+     * Renders the display configuration screen.
+     * @param context the draw context for rendering.
+     * @param mouseX the x-coordinate of the cursor.
+     * @param mouseY the y-coordinate of the cursor.
+     * @param delta the time delta since the last frame.
+     */
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
 
@@ -400,13 +404,14 @@ public class DisplayConfScreen extends Screen {
         }
     }
 
-    /// Places the button at the specified coordinates.
-    /// @param vCH the height for the button.
-    /// @param maxSW the maximum width of the screen.
-    /// @param cY the y-coordinate for placing the button.
-    /// @param renderD the button to be placed.
-    /// @param renderDReset the reset button to be placed next to the main button.
-    /// @return void
+    /**
+     * Places the button at the specified coordinates.
+     * @param vCH the height for the button.
+     * @param maxSW the maximum width of the screen.
+     * @param cY the y-coordinate for placing the button.
+     * @param renderD the button to be placed.
+     * @param renderDReset the reset button to be placed next to the main button.
+     */
     private void placeButton(int vCH, int maxSW, int cY, ClickableWidget renderD, IconButtonWidget renderDReset) {
         renderD.setX(this.width / 2 + maxSW / 2 - 80 - vCH - 5);
         renderD.setY(cY);
@@ -419,9 +424,10 @@ public class DisplayConfScreen extends Screen {
         renderDReset.setWidth(vCH);
     }
 
-    /// Renders the background of the display configuration screen.
-    /// @param context the draw context for rendering.
-    /// @return void
+    /**
+     * Renders the background of the display configuration screen.
+     * @param context the draw context for rendering.
+     */
     private void renderScreen(DrawContext context, int x, int y, int w, int h) {
         if (screen.isVideoStarted()) {
             RenderUtil2D.drawTexturedQuad(context.getMatrices(), screen.texture.getGlTexture(), x, y, w, h, screen.renderLayer);
@@ -432,17 +438,20 @@ public class DisplayConfScreen extends Screen {
         }
     }
 
-    /// Closes the display configuration screen.
-    /// @return void
+    /**
+     * Closes the display configuration screen.
+     */
     public static void open(ru.l0sty.frogdisplays.screen.Screen screen) {
         DisplayConfScreen displayConfScreen = new DisplayConfScreen();
         displayConfScreen.setScreen(screen);
         MinecraftClient.getInstance().setScreen(displayConfScreen);
     }
 
-    /// Converts a resolution index to a quality str.
-    /// @param resolution the index of the resolution.
-    /// @return the quality string corresponding to the resolution index.
+    /**
+     * Converts a resolution index to a quality str.
+     * @param resolution the index of the resolution.
+     * @return the quality string corresponding to the resolution index.
+     */
     private String toQuality(int resolution) {
         List<Integer> list = screen.getQualityList();
 
@@ -452,9 +461,11 @@ public class DisplayConfScreen extends Screen {
         return list.get(i).toString();
     }
 
-    /// Converts a quality string to a resolution index.
-    /// @param quality the quality str to convert.
-    /// @return the index of the resolution corresponding to the quality str.
+    /**
+     * Converts a quality string to a resolution index.
+     * @param quality the quality str to convert.
+     * @return the index of the resolution corresponding to the quality str.
+     */
     private int fromQuality(String quality) {
         List<Integer> list = screen.getQualityList();
 
@@ -465,9 +476,10 @@ public class DisplayConfScreen extends Screen {
         return list.indexOf(list.contains(res) ? res: list.getFirst());
     }
 
-    /// Sets the screen for the display config screen.
-    /// @param screen the screen to set.
-    /// @return void
+    /**
+     * Sets the screen for the display config screen.
+     * @param screen the screen to set.
+     */
     private void setScreen(ru.l0sty.frogdisplays.screen.Screen screen) {
         this.screen = screen;
     }

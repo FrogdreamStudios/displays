@@ -12,8 +12,10 @@ import java.util.zip.ZipFile;
 
 public class GStreamerDownloader {
 
-    /// Download URL for GStreamer.
-    /// In future versions we'll delete this and use the official GStreamer repository to avoid some issues.
+    /**
+     * Download URL for GStreamer.
+     * In future versions we'll delete this and use the official GStreamer repository to avoid some issues.
+     */
     private static final String GSTREAMER_DOWNLOAD_URL = "https://dl.frogdream.xyz/gstreamer-${platform}.zip";
     private static final String GSTREAMER_CHECKSUM_DOWNLOAD_URL = GSTREAMER_DOWNLOAD_URL + ".sha256";
 
@@ -78,8 +80,10 @@ public class GStreamerDownloader {
         }
     }
 
-    ///  Downloads a file from the specified URL and saves it to the given output file.
-    /// @param urlString the URL of the file to download.
+    /**
+     * Downloads a file from the specified URL and saves it to the given output file.
+     * @param urlString the URL of the file to download.
+     */
     private static void downloadFile(String urlString, File outputFile) throws IOException {
         LoggingManager.info(urlString + " -> " + outputFile.getCanonicalPath());
 
@@ -131,7 +135,9 @@ public class GStreamerDownloader {
         }
     }
 
-    ///  Extracts a ZIP file to the specified output directory.
+    /**
+     * Extracts a ZIP file to the specified output directory.
+     */
     private static void extractZip(File zipFile, File outputDirectory) {
         GStreamerDownloadListener.INSTANCE.setTask("Extracting");
         if (!outputDirectory.getParentFile().exists() && !outputDirectory.getParentFile().mkdirs()) LoggingManager.warn("Unable to mk directory");

@@ -15,8 +15,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
 
-///  Utility class for sending various packets to players in the Frog Displays plugin.
-/// This class provides methods to send display information, synchronization packets, deletion packets, and premium status packets.
+/**
+ * Utility class for sending various packets to players in the Frog Displays plugin.
+ * This class provides methods to send display information, synchronization packets, deletion packets, and premium status packets.
+ */
 public class PacketUtils {
     public static void sendDisplayInfoPacket(List<Player> players, UUID id, UUID ownerId, Vector pos, int width, int height, String url, String lang, BlockFace face, boolean isSync) {
         try {

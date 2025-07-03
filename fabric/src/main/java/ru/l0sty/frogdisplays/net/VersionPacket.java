@@ -7,8 +7,10 @@ import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 import ru.l0sty.frogdisplays.PlatformlessInitializer;
 
-/// Packet for sending the version of the mod.
-/// This packet is sent from the server to the client to inform the client about the version of the mod.
+/**
+ * Packet for sending the version of the mod.
+ * This packet is sent from the server to the client to inform the client about the version of the mod.
+ */
 public record VersionPacket(String version) implements CustomPayload {
     public static final Id<VersionPacket> PACKET_ID =
             new Id<>(Identifier.of(PlatformlessInitializer.MOD_ID, "version"));

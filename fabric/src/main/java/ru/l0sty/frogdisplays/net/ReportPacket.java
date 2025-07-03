@@ -9,9 +9,10 @@ import ru.l0sty.frogdisplays.PlatformlessInitializer;
 
 import java.util.UUID;
 
-/// Packet for reporting a display.
-/// This packet is sent from the client to the server to report about a bad display with the given ID.
-/// @param id the ID of the display to report.
+/** Packet for reporting a display.
+ * This packet is sent from the client to the server to report about a bad display with the given ID.
+ * @param id the ID of the display to report.
+ */
 public record ReportPacket(UUID id) implements CustomPayload {
     public static final Id<ReportPacket> PACKET_ID =
             new Id<>(Identifier.of(PlatformlessInitializer.MOD_ID, "report"));

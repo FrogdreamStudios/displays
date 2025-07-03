@@ -21,18 +21,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/// Commands related to the display management system.
-/// This class handles commands for creating, deleting, and managing displays in the Frog Displays plugin.
+/**
+ * Commands related to the display management system.
+ * This class handles commands for creating, deleting, and managing displays in the Frog Displays plugin.
+ */
 public class DisplayCommand extends AbstractCommand {
     public DisplayCommand() {
         super(FrogdisplaysPlugin.getInstance().getName(), "display");
     }
 
-    /// Executes the command based on the provided arguments.
-    /// @param sender the command sender who issued the command.
-    /// @param s the command label.
-    /// @param args the arguments provided with the command.
-    /// @return void
+    /**
+     * Executes the command based on the provided arguments.
+     * @param sender the command sender who issued the command.
+     * @param s the command label.
+     * @param args the arguments provided with the command.
+     */
     @Override
     public void toExecute(CommandSender sender, String s, String[] args) {
         switch (args.length) {
@@ -42,8 +45,10 @@ public class DisplayCommand extends AbstractCommand {
         }
     }
 
-    ///  Handles the video command for setting a YouTube video on a display.
-    /// @param sender the command sender who issued the command.
+    /**
+     * Handles the video command for setting a YouTube video on a display.
+     * @param sender the command sender who issued the command.
+     */
     private void handleVideoCommand(CommandSender sender, String[] args) {
         if (args[0].equals("video")) {
             if (!(sender instanceof Player player)) return;
@@ -81,8 +86,10 @@ public class DisplayCommand extends AbstractCommand {
         }
     }
 
-    ///  Handles commands with one argument, such as creating, deleting, reloading, or listing displays.
-    /// @param sender The command sender who issued the command.
+    /**
+     * Handles commands with one argument, such as creating, deleting, reloading, or listing displays.
+     * @param sender The command sender who issued the command.
+     */
     private void handle1Args(CommandSender sender, String[] args) {
         switch (args[0]) {
             case "create" -> {
@@ -185,15 +192,19 @@ public class DisplayCommand extends AbstractCommand {
         }
     }
 
-    ///  Sends help messages to the command sender.
+    /**
+     * Sends help messages to the command sender.
+     */
     private void sendHelp(CommandSender sender) {
         MessageUtil.sendColoredMessages(sender, FrogdisplaysPlugin.config.messages.displayCommandHelp);
     }
 
-    ///  Completes the command with suggestions based on the arguments provided.
-    /// @param sender The command sender who issued the command.
-    /// @param args The arguments provided with the command.
-    /// @return A list of suggestions for command completion.
+    /**
+     * Completes the command with suggestions based on the arguments provided.
+     * @param sender The command sender who issued the command.
+     * @param args The arguments provided with the command.
+     * @return A list of suggestions for command completion.
+     */
     @Override
     public List<String> complete(CommandSender sender, String[] args) {
         if (args.length == 1) {

@@ -2,8 +2,10 @@ package com.inotsleep.frogdisplays.datatypes;
 
 import java.util.UUID;
 
-/// SyncPacket class represents a synchronization packet used for managing the playback state of displays.
-/// It contains information about the display ID, whether it is in sync, the current state of playback, the current time, and the limit time for playback.
+/**
+ * Represents a synchronization packet for display data.
+ * This packet is used to synchronize the state of a display across different clients.
+ */
 public class SyncPacket {
     private final UUID   id;
     private final boolean isSync;

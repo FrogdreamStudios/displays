@@ -19,7 +19,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-///  Manages the display data, including registration, updates, deletion, and reporting.
+/**
+ * Manages the display data, including registration, updates, deletion, and reporting.
+ */
 public class DisplayManager {
     private static final Map<UUID, DisplayData> displays = new HashMap<>();
     private static final Map<UUID, Long> reportTime = new HashMap<>();
@@ -82,7 +84,7 @@ public class DisplayManager {
             return;
         }
 
-       delete(displayData);
+        delete(displayData);
     }
 
     public static void report(UUID id, Player player) {
