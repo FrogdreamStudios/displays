@@ -1,18 +1,18 @@
 {
   "schemaVersion": 1,
-  "id": "frogdisplays",
-  "name": "Frog Displays",
+  "id": "dreamdisplays",
+  "name": "Dream Displays",
   "version": "${version}",
   "license": "LGPL-3.0",
     "description": "Create in-game displays.",
   "authors": ["Frogdream Studios"],
   "entrypoints": {
     "client": [
-      "ru.l0sty.frogdisplays.FrogdisplaysMod"
+      "ru.l0sty.dreamdisplays.DreamDisplaysMod"
     ]
   },
   "mixins": [
-    "frogdisplays.mixins.json"
+    "dreamdisplays.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=0.15.11",
@@ -20,5 +20,5 @@
     "minecraft": "1.21.5",
     "java": ">=21"
   },
-  "icon": "assets/frogdisplays/icon.png"
+  "icon": "assets/dreamdisplays/icon.png"
 }

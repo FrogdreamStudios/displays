@@ -1,6 +1,6 @@
-name: FrogDisplays
+name: DreamDisplays
 version: '${version}'
 author: 'Frogdream Studios'
 description: 'Plugin for Dream Displays mod.'
-main: com.inotsleep.frogdisplays.FrogdisplaysPlugin
+main: com.inotsleep.dreamdisplays.DreamDisplaysPlugin
 api-version: '1.21'

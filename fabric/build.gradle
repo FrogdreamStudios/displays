@@ -4,7 +4,7 @@ plugins {
 	id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
-group = "ru.l0sty.frogdisplays"
+group = "ru.l0sty.dreamdisplays"
 
 dependencies {
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
