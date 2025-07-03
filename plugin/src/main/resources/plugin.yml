@@ -1,5 +1,7 @@
-name: FrogDisplays
+name: DreamDisplays
 version: '${version}'
-author: 'INotSleep'
-main: com.inotsleep.frogdisplays.FrogdisplaysPlugin
+authors:
+  - 'INotSleep'
+  - 'Frogdream Studios'
+main: com.inotsleep.dreamdisplays.DreamDisplaysPlugin
 api-version: '1.21'

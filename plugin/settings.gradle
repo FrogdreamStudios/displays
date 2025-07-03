@@ -10,4 +10,4 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
-rootProject.name = 'FrogdisplaysPlugin'
+rootProject.name = 'DreamDisplaysPlugin'
