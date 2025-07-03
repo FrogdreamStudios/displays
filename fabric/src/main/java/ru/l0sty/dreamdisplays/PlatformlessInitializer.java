@@ -56,7 +56,7 @@ public class PlatformlessInitializer {
     public static void onModInit(Mod DreamDisplaysMod) {
         mod = DreamDisplaysMod;
         LoggingManager.setLogger(LoggerFactory.getLogger(MOD_ID));
-        LoggingManager.info("Starting Frog Displays");
+        LoggingManager.info("Starting Dream Displays");
 
         config = new Config(new File("./config/" + MOD_ID));
         config.reload();

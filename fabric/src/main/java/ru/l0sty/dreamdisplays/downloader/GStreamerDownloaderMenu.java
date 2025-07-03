@@ -13,7 +13,7 @@ public class GStreamerDownloaderMenu extends Screen {
      * Menu for GStreamer download progress.
      */
     public GStreamerDownloaderMenu(Screen menu) {
-        super(Text.of("Frog Displays downloads GStreamer for display support"));
+        super(Text.of("Dream Displays downloads GStreamer for display support"));
         this.menu = menu;
     }
 

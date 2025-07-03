@@ -23,7 +23,7 @@ import java.util.Map;
 
 /**
  * Commands related to the display management system.
- * This class handles commands for creating, deleting, and managing displays in the Frog Displays plugin.
+ * This class handles commands for creating, deleting, and managing displays in the Dream Displays plugin.
  */
 public class DisplayCommand extends AbstractCommand {
     public DisplayCommand() {

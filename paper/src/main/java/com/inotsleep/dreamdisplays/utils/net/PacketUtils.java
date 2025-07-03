@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Utility class for sending various packets to players in the Frog Displays plugin.
+ * Utility class for sending various packets to players in the Dream Displays plugin.
  * This class provides methods to send display information, synchronization packets, deletion packets, and premium status packets.
  */
 public class PacketUtils {

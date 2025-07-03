@@ -56,7 +56,7 @@ public abstract class GStreamInitMixin {
                 else if (GStreamerDownloadListener.INSTANCE.isFailed()) {
                     downloaded = true;
                     LoggingManager.error("GStreamer failed to initialize");
-                    setScreen(new GStreamerErrorScreen(guiScreen, Utils.detectPlatform().equals("windows") ? "Frog Displays failed to download libraries": "Dream Displays failed to initialize GStreamer. You need to download GStreamer libraries manually and place them in the ./libs/gstreamer directory"));
+                    setScreen(new GStreamerErrorScreen(guiScreen, Utils.detectPlatform().equals("windows") ? "Dream Displays failed to download libraries": "Dream Displays failed to initialize GStreamer. You need to download GStreamer libraries manually and place them in the ./libs/gstreamer directory"));
                 }
             }
 

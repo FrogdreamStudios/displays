@@ -12,8 +12,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(InGameHud.class)
 
 /**
- * Mixin to disable the crosshair rendering when Frog Displays is on screen.
- * This prevents the default crosshair from being displayed when Frog Displays is active.
+ * Mixin to disable the crosshair rendering when Dream Displays is on screen.
+ * This prevents the default crosshair from being displayed when Dream Displays is active.
  */
 public class CrossHairMixin {
     @Inject(method = "renderCrosshair", at = @At("HEAD"), cancellable = true)

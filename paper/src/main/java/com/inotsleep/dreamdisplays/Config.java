@@ -157,11 +157,11 @@ public class Config extends AbstractConfig {
         public String reportSent = "&7D |&f Report has been sent!";
 
         @Path("new_version")
-        public String newVersion = "&7D |&f New version of Frog Displays (%s)! Please update it!";
+        public String newVersion = "&7D |&f New version of Dream Displays (%s)! Please update it!";
 
         @Path("usage_header")
         public List<String> usageHeader = List.of(
-                "&a-== Frog Displays ==-",
+                "&a-== Dream Displays ==-",
                 "&aInstalled: &f{0}&7/&f{1}",
                 "&a-== Versions ==-"
         );

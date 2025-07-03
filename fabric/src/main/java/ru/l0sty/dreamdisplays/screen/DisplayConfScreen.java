@@ -22,8 +22,8 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Configuration screen for Frog Displays.
- * This screen allows users to configure various settings related to the Frog Displays mod, such as volume, rendering distance, quality, and synchronization options.
+ * Configuration screen for Dream Displays.
+ * This screen allows users to configure various settings related to the Dream Displays mod, such as volume, rendering distance, quality, and synchronization options.
  * It provides a user interface for adjusting these settings and includes buttons for controlling playback, resetting values, and deleting or reporting displays.
  */
 public class DisplayConfScreen extends Screen {
