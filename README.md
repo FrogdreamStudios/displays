@@ -2,8 +2,8 @@
 [![Latest release](https://img.shields.io/github/release/FrogdreamStudios/displays.svg)](https://github.com/FrogdreamStudios/displays/releases/latest)
 [![License](https://img.shields.io/github/license/FrogdreamStudios/displays)](https://github.com/FrogdreamStudios/displays/blob/master/LICENSE)
 
-![img](https://i.imgur.com/9duMqc6.png)
-Download our mod or plugin on [Modrinth](https://modrinth.com/mod/frogdisplays)!
+![img](https://i.imgur.com/qMsgLB9.png)
+Download our mod or plugin on [Modrinth](https://modrinth.com/mod/dreamdisplays)!
 
 ## Available platforms
 - Fabric on Minecraft version 1.21.5
@@ -15,7 +15,7 @@ Set up a display using black concrete, select it with a diamond axe, and type `/
 
 Done! To customize the display, look at it and press `Shift + RMB`
 
-![img](https://i.imgur.com/q2CuHSs.png)
+![img](https://i.imgur.com/VvkgLaS.png)
 
 ## Features
 - YouTube video playback without ads
@@ -28,6 +28,6 @@ Done! To customize the display, look at it and press `Shift + RMB`
 [Read more in our wiki](https://github.com/FrogdreamStudios/displays/wiki).
 
 ## Support us
-Frog Displays is developed with passion and dedication by a small team. If you enjoy our mod/plugin and want to support further development, [consider making a donation](https://www.patreon.com/c/frogdreamstudios/membership). Your support helps us keep improving the project and adding new features!
+Dream Displays is developed with passion and dedication by a small team. If you enjoy our mod/plugin and want to support further development, [consider making a donation](https://www.patreon.com/c/frogdreamstudios/membership). Your support helps us keep improving the project and adding new features!
 
-Thank you for helping us make Frog Displays even better.
+Thank you for helping us make Dream Displays even better.
