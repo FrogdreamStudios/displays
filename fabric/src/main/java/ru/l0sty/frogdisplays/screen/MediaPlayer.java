@@ -10,7 +10,6 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.texture.NativeImage;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.util.math.BlockPos;
-import org.apache.commons.logging.Log;
 import org.freedesktop.gstreamer.*;
 import org.freedesktop.gstreamer.elements.AppSink;
 import org.freedesktop.gstreamer.event.SeekFlags;
@@ -44,8 +43,8 @@ public class MediaPlayer {
     String[] clients = new String[] { "WEB_MUSIC", "ANDROID", "ANDROID_VR", "ANDROID_TESTSUITE", "IOS", "IOS_MUSIC" };
 
     // === CONSTANTS =======================================================================
-    private static final String MIME_VIDEO = "video";
-    private static final String MIME_AUDIO = "audio";
+    private static final String MIME_VIDEO = "video/webm";
+    private static final String MIME_AUDIO = "audio/webm";
     private static final String USER_AGENT_V = "ANDROID_VR";
     private static final String USER_AGENT_A = "ANDROID_TESTSUITE";
 
@@ -130,14 +129,6 @@ public class MediaPlayer {
         return screen != null && screen.textureWidth > 0 && screen.textureHeight > 0;
     }
 
-    /**
-     * Updates the OpenGL texture with the current video frame.
-     *
-     * If the texture dimensions do not match the screen dimensions, no update is performed.
-     * If the prepared buffer is null, no update is performed.
-     *
-     * @param glTexture the OpenGL texture to update.
-     */
     public void updateFrame(GpuTexture glTexture) {
         if (preparedBuffer == null) return;
         int w = screen.textureWidth, h = screen.textureHeight;
@@ -185,12 +176,12 @@ public class MediaPlayer {
             List<Stream> audioS = ytA.streams().getAll();
 
             availableVideoStreams = all.stream()
-                    .filter(s -> s.getMimeType() != null && s.getMimeType().contains(MIME_VIDEO))
+                    .filter(s -> MIME_VIDEO.equals(s.getMimeType()))
                     .toList();
 
             Optional<Stream> videoOpt = pickVideo(Integer.parseInt(screen.getQuality().replace("p", ""))).or(() -> availableVideoStreams.stream().findFirst());
             Optional<Stream> audioOpt = audioS.stream()
-                    .filter(s -> s.getMimeType() != null && s.getMimeType().contains(MIME_AUDIO))
+                    .filter(s -> MIME_AUDIO.equals(s.getMimeType()))
                     .filter(s -> s.getAudioTrackId() != null && s.getAudioTrackId().contains(lang) || s.getAudioTrackName() != null && s.getAudioTrackName().contains(lang))
                     .reduce((f, n) -> n);
 
@@ -199,13 +190,13 @@ public class MediaPlayer {
                 LoggingManager.warn("Choosing random one...");
 
                 audioOpt = all.stream()
-                        .filter(s -> s.getMimeType() != null && s.getMimeType().contains(MIME_AUDIO))
+                        .filter(s -> MIME_AUDIO.equals(s.getMimeType()))
                         .reduce((f, n) -> n);
             }
             if (videoOpt.isEmpty() || audioOpt.isEmpty()) {
                 LoggingManager.error("No streams available");
-                if (videoOpt.isEmpty()) LoggingManager.error("No video stream available");
-                if (audioOpt.isEmpty()) LoggingManager.error("No audio stream available");
+
+
                 return;
             }
 
@@ -224,14 +215,11 @@ public class MediaPlayer {
 
     private Pipeline buildVideoPipeline(String uri) {
         String desc = String.join(" ",
-                "souphttpsrc location=\"" + uri + "\" ",
-                "user-agent=\"" + USER_AGENT_V + "\" ",
-                "extra-headers=\"origin:https://www.youtube.com\\nreferer:https://www.youtube.com\\n\" ",
-                "! queue ",
-                "! decodebin name=dec ",
-                "dec. ! queue ! videoconvert ! video/x-raw,format=RGBA ! appsink name=videosink ",
-                "dec. ! queue ! fakesink"
-        );
+                "souphttpsrc location=\"" + uri + "\"",
+                "proxy=\"127.0.0.1:14881\"",
+                "user-agent=\"" + USER_AGENT_V + "\"",
+                "extra-headers=\"origin:https://www.youtube.com\\nreferer:https://www.youtube.com\\n\"",
+                "! matroskademux ! decodebin ! videoconvert ! video/x-raw,format=RGBA ! appsink name=videosink");
         Pipeline p = (Pipeline) Gst.parseLaunch(desc);
         configureVideoSink((AppSink) p.getElementByName("videosink"));
         p.pause();
@@ -249,8 +237,7 @@ public class MediaPlayer {
     }
 
     private Pipeline buildAudioPipeline(String uri) {
-        String desc = "souphttpsrc location=\"" + uri +
-                " ! decodebin ! audioconvert ! audioresample " +
+        String desc = "souphttpsrc location=\"" + uri + "\" proxy=\"http://127.0.0.1:14881\" ! decodebin ! audioconvert ! audioresample " +
                 "! volume name=volumeElement volume=" + currentVolume + " ! autoaudiosink";
         Pipeline p = (Pipeline) Gst.parseLaunch(desc);
         p.getBus().connect((Bus.ERROR) (source, code, message) ->
@@ -395,7 +382,7 @@ public class MediaPlayer {
         if (videoPipeline != null) videoPipeline.pause();
         if (videoPipeline != null) videoPipeline.seekSimple(Format.TIME, flags, ns);
         audioPipeline.seekSimple(Format.TIME, flags, ns);
-        if (videoPipeline != null) videoPipeline.getState(); // дождаться преролла
+        if (videoPipeline != null) videoPipeline.getState(); // Waiting for pre-roll
         audioPipeline.play();
         if (videoPipeline != null && !screen.getPaused()) videoPipeline.play();
 

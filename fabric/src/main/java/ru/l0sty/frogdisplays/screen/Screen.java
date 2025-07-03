@@ -34,10 +34,6 @@ import static net.minecraft.client.render.RenderPhase.ENABLE_LIGHTMAP;
  * media seeking.
  */
 public class Screen {
-
-    /**
-     * TODO: note for INotSleep: remove that?
-     */
     public static Thread safeQualitySwitchThread = new Thread(() -> {
         boolean isErrored = false;
         while (!isErrored) {

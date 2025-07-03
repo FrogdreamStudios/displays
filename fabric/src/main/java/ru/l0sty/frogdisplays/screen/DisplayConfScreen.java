@@ -196,12 +196,6 @@ public class DisplayConfScreen extends Screen {
         addDrawableChild(reportButton);
     }
 
-    /**
-     * Renders the background of the display configuration screen.
-     * @param context the draw context for rendering.
-     * @param mouseX the x-coordinate of the cursor.
-     * @param mouseY the y-coordinate of the cursor.
-     */
     private void renderTooltipIfHovered(DrawContext context, int mouseX, int mouseY,
                                         int elementX, int elementY, int elementWidth, int elementHeight,
                                         List<Text> tooltip) {
@@ -396,7 +390,7 @@ public class DisplayConfScreen extends Screen {
         renderTooltipIfHovered(context, mouseX, mouseY, syncTextX, syncTextY,
                 textRenderer.getWidth(syncText), textRenderer.fontHeight, syncTooltip);
 
-        // Render all buttons
+        // Render all child elements (buttons, sliders, etc.)
         for (Element child : children()) {
             if (child instanceof Drawable drawable) {
                 drawable.render(context, mouseX, mouseY, delta);
@@ -425,7 +419,7 @@ public class DisplayConfScreen extends Screen {
     }
 
     /**
-     * Renders the background of the display configuration screen.
+     * Renders display screen.
      * @param context the draw context for rendering.
      */
     private void renderScreen(DrawContext context, int x, int y, int w, int h) {
@@ -439,7 +433,7 @@ public class DisplayConfScreen extends Screen {
     }
 
     /**
-     * Closes the display configuration screen.
+     * Opens the display configuration screen.
      */
     public static void open(ru.l0sty.frogdisplays.screen.Screen screen) {
         DisplayConfScreen displayConfScreen = new DisplayConfScreen();

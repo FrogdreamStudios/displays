@@ -108,7 +108,7 @@ public class GStreamerDownloaderMenu extends Screen {
     }
 
     /**
-     * Check if the screen should close on pressing the Escape key.
+     * We determine if the screen should close on ESC key press.
      */
     @Override
     public boolean shouldCloseOnEsc() {

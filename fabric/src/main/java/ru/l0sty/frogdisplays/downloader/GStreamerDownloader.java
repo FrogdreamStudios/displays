@@ -30,10 +30,6 @@ public class GStreamerDownloader {
     }
 
     private String formatURL(String url) {
-        if (url == null || url.isEmpty()) {
-            LoggingManager.error("GStreamer download URL is not set.");
-            return null;
-        }
         return url
                 .replace("${platform}", Utils.detectPlatform());
     }
