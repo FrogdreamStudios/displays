@@ -4,25 +4,6 @@ plugins {
 }
 
 group = 'com.inotsleep'
-version = '1.0.3'
-
-repositories {
-    mavenCentral()
-    maven {
-        name = "papermc-repo"
-        url = "https://repo.papermc.io/repository/maven-public/"
-    }
-    maven {
-        name = "sonatype"
-        url = "https://oss.sonatype.org/content/groups/public/"
-    }
-    maven {
-        url = "https://repo.l0sty.ru/releases"
-    }
-    maven { url 'https://jitpack.io' }
-}
-
-
 
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21-R0.1-SNAPSHOT")
@@ -64,5 +45,12 @@ tasks.named('jar') {
 }
 
 tasks.named('build') {
-    dependsOn(tasks.named('shadowJar'))
+    dependsOn shadowJar
+}
+
+shadowJar {
+    archiveClassifier = "paper"
+    destinationDirectory.set(rootProject.layout.buildDirectory.dir("libs"))
+
+    archiveBaseName = "displays-server"
 }

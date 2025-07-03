@@ -1,14 +1,20 @@
 pluginManagement {
     repositories {
         maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+        maven {
+            url "https://oss.sonatype.org/content/repositories/snapshots"
+        }
+        maven {
             name = 'Fabric'
             url = 'https://maven.fabricmc.net/'
         }
-        gradlePluginPortal()
         mavenCentral()
+        gradlePluginPortal()
     }
 }
 
 rootProject.name = 'displays'
-include ':mod'
-include ':plugin'
+include ':fabric'
+include ':paper'
