@@ -2,7 +2,7 @@
 [![Latest release](https://img.shields.io/github/release/FrogdreamStudios/displays.svg)](https://github.com/FrogdreamStudios/displays/releases/latest)
 [![License](https://img.shields.io/github/license/FrogdreamStudios/displays)](https://github.com/FrogdreamStudios/displays/blob/master/LICENSE)
 
-![img](https://i.imgur.com/9duMqc6.png)
+![img](https://i.imgur.com/qMsgLB9.png)
 Download our mod or plugin on [Modrinth](https://modrinth.com/mod/frogdisplays)!
 
 ## Available platforms
@@ -15,7 +15,7 @@ Set up a display using black concrete, select it with a diamond axe, and type `/
 
 Done! To customize the display, look at it and press `Shift + RMB`
 
-![img](https://i.imgur.com/q2CuHSs.png)
+![img](https://i.imgur.com/VvkgLaS.png)
 
 ## Features
 - YouTube video playback without ads
