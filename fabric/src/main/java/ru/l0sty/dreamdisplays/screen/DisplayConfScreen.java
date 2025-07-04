@@ -20,6 +20,8 @@ import ru.l0sty.dreamdisplays.screen.widgets.SliderWidget;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Configuration screen for Dream Displays.
@@ -27,6 +29,145 @@ import java.util.Objects;
  * It provides a user interface for adjusting these settings and includes buttons for controlling playback, resetting values, and deleting or reporting displays.
  */
 public class DisplayConfScreen extends Screen {
+
+    // Language support
+    private static final Map<String, Map<String, String>> TRANSLATIONS = new HashMap<>();
+
+    static {
+        Map<String, String> english = new HashMap<>();
+        english.put("title", "Dream Displays");
+        english.put("enabled", "Enabled");
+        english.put("disabled", "Disabled");
+        english.put("error_cant_load", "Oops! We can't load this video.");
+        english.put("error_try_another", "Try to set another one.");
+        english.put("error_no_kids", "Please do not enter YouTube Kids videos");
+        english.put("error_limitations", "because it's not possible due to limitations from YouTube.");
+        english.put("render_distance", "Render distance");
+        english.put("render_distance_desc", "Determines the rendering distance at which");
+        english.put("render_distance_desc2", "this display is activated");
+        english.put("render_distance_disable", "To completely disable all displays, use");
+        english.put("render_distance_command", "/display off");
+        english.put("render_distance_current", "Current: %d blocks");
+        english.put("quality", "Quality");
+        english.put("quality_desc", "Quality of display");
+        english.put("quality_current", "Now: %sp");
+        english.put("synchronization", "Synchronization");
+        english.put("sync_desc", "Option available only to the display owner");
+        english.put("sync_desc2", "Sets whether the display will be synchronized between players");
+        english.put("sync_current", "Now: %s");
+
+        Map<String, String> russian = new HashMap<>();
+        russian.put("title", "Dream Displays");
+        russian.put("enabled", "Включено");
+        russian.put("disabled", "Выключено");
+        russian.put("error_cant_load", "Упс! Мы не можем загрузить это видео.");
+        russian.put("error_try_another", "Попробуйте установить другое.");
+        russian.put("error_no_kids", "Пожалуйста, не вводите видео YouTube Kids,");
+        russian.put("error_limitations", "потому что это невозможно из-за ограничений YouTube.");
+        russian.put("render_distance", "Рендеринг");
+        russian.put("render_distance_desc", "Определяет расстояние рендеринга, на котором");
+        russian.put("render_distance_desc2", "этот дисплей активируется");
+        russian.put("render_distance_disable", "Чтобы полностью отключить все дисплеи, пропишите");
+        russian.put("render_distance_command", "/display off");
+        russian.put("render_distance_current", "Сейчас: %d блоков");
+        russian.put("quality", "Качество");
+        russian.put("quality_desc", "Качество отображения дисплея");
+        russian.put("quality_current", "Сейчас: %sp");
+        russian.put("synchronization", "Синхронизация");
+        russian.put("sync_desc", "Опция доступна только владельцу дисплея");
+        russian.put("sync_desc2", "Устанавливает, будет ли дисплей синхронизирован между игроками");
+        russian.put("sync_current", "Сейчас: %s");
+
+        Map<String, String> ukrainian = new HashMap<>();
+        ukrainian.put("title", "Dream Displays");
+        ukrainian.put("enabled", "Увімкнено");
+        ukrainian.put("disabled", "Вимкнено");
+        ukrainian.put("error_cant_load", "Упс! Ми не можемо завантажити це відео.");
+        ukrainian.put("error_try_another", "Спробуйте встановити щось інше.");
+        ukrainian.put("error_no_kids", "Будь ласка, не вводьте відео YouTube Kids,");
+        ukrainian.put("error_limitations", "оскільки це неможливо через обмеження YouTube.");
+        ukrainian.put("render_distance", "Дистанція рендеру");
+        ukrainian.put("render_distance_desc", "Визначає дистанцію рендеру, на якій");
+        ukrainian.put("render_distance_desc2", "цей дисплей активується");
+        ukrainian.put("render_distance_disable", "Щоб повністю вимкнути всі дисплеї, пропишіть");
+        ukrainian.put("render_distance_command", "/display off");
+        ukrainian.put("render_distance_current", "Зараз: %d блоків");
+        ukrainian.put("quality", "Якість");
+        ukrainian.put("quality_desc", "Якість відображення дисплея");
+        ukrainian.put("quality_current", "Зараз: %sp");
+        ukrainian.put("synchronization", "Синхронізація");
+        ukrainian.put("sync_desc", "Опція доступна лише власнику дисплея");
+        ukrainian.put("sync_desc2", "Встановлює, чи буде дисплей синхронізовано між гравцями");
+        ukrainian.put("sync_current", "Зараз: %s");
+
+        Map<String, String> deutsch = new HashMap<>();
+        deutsch.put("title", "Dream Displays");
+        deutsch.put("enabled", "Aktiviert");
+        deutsch.put("disabled", "Deaktiviert");
+        deutsch.put("error_cant_load", "Ups! Wir können dieses Video nicht laden.");
+        deutsch.put("error_try_another", "Versuchen Sie, etwas anderes einzustellen.");
+        deutsch.put("error_no_kids", "Bitte geben Sie kein YouTube Kids Video ein,");
+        deutsch.put("error_limitations", "da dies aufgrund von YouTube nicht möglich ist.");
+        deutsch.put("render_distance", "Render-Distanz");
+        deutsch.put("render_distance_desc", "Bestimmt die Render-Distanz, bei der");
+        deutsch.put("render_distance_desc2", "dieses Anzeige aktiviert wird");
+        deutsch.put("render_distance_disable", "Um alle Anzeigen vollständig zu deaktivieren, geben Sie ein");
+        deutsch.put("render_distance_command", "/display off");
+        deutsch.put("render_distance_current", "Aktuell: %d Blöcke");
+        deutsch.put("quality", "Qualität");
+        deutsch.put("quality_desc", "Display-Qualitätsverbesserungseinstellung");
+        deutsch.put("quality_current", "Aktuell: %sp");
+        deutsch.put("synchronization", "Synchronisierung");
+        deutsch.put("sync_desc", "Option nur für den Besitzer der Anzeige verfügbar");
+        deutsch.put("sync_desc2", "Legt fest, ob die Anzeige zwischen Spielern synchronisiert wird");
+        deutsch.put("sync_current", "Aktuell: %s");
+
+        Map<String, String> polish = new HashMap<>();
+        polish.put("title", "Dream Displays");
+        polish.put("enabled", "Aktywne");
+        polish.put("disabled", "Nieaktywne");
+        polish.put("error_cant_load", "Ups! Nie możemy załadować ten filmik.");
+        polish.put("error_try_another", "Spróbuj ustawić coś innego.");
+        polish.put("error_no_kids", "Proszę nie podawać filmu z YouTube Kids,");
+        polish.put("error_limitations", "ponieważ nie jest to możliwe z powodu ograniczeń YouTube");
+        polish.put("render_distance", "Renderowanie");
+        polish.put("render_distance_desc", "Określa dystans renderowania, przy którym");
+        polish.put("render_distance_desc2", "wyświetlacze są aktywowane");
+        polish.put("render_distance_disable", "Aby całkowicie wyłączyć wszystkie wyświetlacze, wpisz");
+        polish.put("render_distance_command", "/display off");
+        polish.put("render_distance_current", "Obecnie: %d bloków");
+        polish.put("quality", "Jakość");
+        polish.put("quality_desc", "Ustawienie jakości wyświetlacza");
+        polish.put("quality_current", "Obecnie: %sp");
+        polish.put("synchronization", "Synchronizacja");
+        polish.put("sync_desc", "Opcja dostępna tylko dla właściciela wyświetlacza");
+        polish.put("sync_desc2", "Określa, czy wyświetlacz jest synchronizowany między graczami");
+        polish.put("sync_current", "Obecnie: %s");
+
+        TRANSLATIONS.put("en", english);
+        TRANSLATIONS.put("ru", russian);
+        TRANSLATIONS.put("ua", ukrainian);
+        TRANSLATIONS.put("uk", ukrainian);
+        TRANSLATIONS.put("de", deutsch);
+        TRANSLATIONS.put("pl", polish);
+    }
+
+    private String getCurrentLanguage() {
+        // Get language from Minecraft client settings
+        String lang = MinecraftClient.getInstance().getLanguageManager().getLanguage();
+        // Extract base language code (e.g., "en" from "en_us")
+        if (lang.contains("_")) {
+            lang = lang.split("_")[0];
+        }
+        // Default to English if the language is not supported
+        return TRANSLATIONS.containsKey(lang) ? lang : "en";
+    }
+
+    private String getTranslation(String key, Object... args) {
+        String lang = getCurrentLanguage();
+        String translation = TRANSLATIONS.get(lang).getOrDefault(key, TRANSLATIONS.get("en").get(key));
+        return args.length > 0 ? String.format(translation, args) : translation;
+    }
 
     SliderWidget volume = null;
     SliderWidget renderD = null;
@@ -131,10 +272,10 @@ public class DisplayConfScreen extends Screen {
             }
         };
 
-        sync = new ToggleWidget(0, 0, 0, 0, Text.of(screen.isSync ? "Enabled" : "Disabled"), screen.isSync) {
+        sync = new ToggleWidget(0, 0, 0, 0, Text.of(screen.isSync ? getTranslation("enabled") : getTranslation("disabled")), screen.isSync) {
             @Override
             protected void updateMessage() {
-                setMessage(Text.of(value ? "Enabled" : "Disabled"));
+                setMessage(Text.of(value ? getTranslation("enabled") : getTranslation("disabled")));
             }
 
             @Override
@@ -216,7 +357,7 @@ public class DisplayConfScreen extends Screen {
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
 
         renderBackground(context, mouseX, mouseY, delta);
-        Text headerText = Text.literal("Dream Displays");
+        Text headerText = Text.literal(getTranslation("title"));
 
         int vCH = 25;
 
@@ -244,11 +385,11 @@ public class DisplayConfScreen extends Screen {
             syncReset.active = false;
 
             List<Text> errorText = List.of(
-                    Text.literal("Oops! We can't load this video.").styled(style -> style.withColor(0xff0000)),
-                    Text.literal("Try to set another one.").styled(style -> style.withColor(0xff0000)),
+                    Text.literal(getTranslation("error_cant_load")).styled(style -> style.withColor(0xff0000)),
+                    Text.literal(getTranslation("error_try_another")).styled(style -> style.withColor(0xff0000)),
                     Text.literal("").styled(style -> style.withColor(0xff0000)),
-                    Text.literal("Please do not enter YouTube Kids videos").styled(style -> style.withColor(0xff0000)),
-                    Text.literal("because it's not possible due to limitations from YouTube.").styled(style -> style.withColor(0xff0000))
+                    Text.literal(getTranslation("error_no_kids")).styled(style -> style.withColor(0xff0000)),
+                    Text.literal(getTranslation("error_limitations")).styled(style -> style.withColor(0xff0000))
             );
 
             int yP = (int) ((double) this.height / 2 - ((double) (textRenderer.fontHeight + 2) * errorText.size()) / 2);
@@ -329,21 +470,21 @@ public class DisplayConfScreen extends Screen {
         placeButton(vCH, maxSW, cY, renderD, renderDReset);
 
         // Tooltip for Render Distance
-        Text renderDText = Text.literal("Render distance");
+        Text renderDText = Text.literal(getTranslation("render_distance"));
         int renderDTextX = this.width / 2 - maxSW / 2;
         int renderDTextY = cY + vCH / 2 - textRenderer.fontHeight / 2;
         context.drawText(textRenderer, renderDText, renderDTextX, renderDTextY, 0xFFFFFF, true);
 
         // Tooltip
         List<Text> renderDTooltip = List.of(
-                Text.literal("Render distance").styled(style -> style.withColor(Formatting.WHITE).withBold(true)),
-                Text.literal("Determines the rendering distance at which").styled(style -> style.withColor(Formatting.GRAY)),
-                Text.literal("this display is activated").styled(style -> style.withColor(Formatting.GRAY)),
+                Text.literal(getTranslation("render_distance")).styled(style -> style.withColor(Formatting.WHITE).withBold(true)),
+                Text.literal(getTranslation("render_distance_desc")).styled(style -> style.withColor(Formatting.GRAY)),
+                Text.literal(getTranslation("render_distance_desc2")).styled(style -> style.withColor(Formatting.GRAY)),
                 Text.empty(),
-                Text.literal("To completely disable all displays, use").styled(style -> style.withColor(Formatting.DARK_GRAY)),
-                Text.literal("/display off").styled(style -> style.withColor(Formatting.DARK_GRAY)),
+                Text.literal(getTranslation("render_distance_disable")).styled(style -> style.withColor(Formatting.DARK_GRAY)),
+                Text.literal(getTranslation("render_distance_command")).styled(style -> style.withColor(Formatting.DARK_GRAY)),
                 Text.empty(),
-                Text.literal("Current: " + (int) PlatformlessInitializer.maxDistance + " blocks").styled(style -> style.withColor(Formatting.YELLOW))
+                Text.literal(getTranslation("render_distance_current", (int) PlatformlessInitializer.maxDistance)).styled(style -> style.withColor(Formatting.YELLOW))
         );
 
         cY += 5 + vCH;
@@ -352,34 +493,34 @@ public class DisplayConfScreen extends Screen {
         placeButton(vCH, maxSW, cY, quality, qualityReset);
 
         // Setting the quality text and calculating coordinates for tooltip
-        Text qualityText = Text.literal("Quality");
+        Text qualityText = Text.literal(getTranslation("quality"));
         int qualityTextX = this.width / 2 - maxSW / 2;
         int qualityTextY = cY + vCH / 2 - textRenderer.fontHeight / 2;
         context.drawText(textRenderer, qualityText, qualityTextX, qualityTextY, 0xFFFFFF, true);
 
         // Tooltip
         List<Text> qualityTooltip = List.of(
-                Text.literal("Quality").styled(style -> style.withColor(Formatting.WHITE).withBold(true)),
-                Text.literal("Quality of display").styled(style -> style.withColor(Formatting.GRAY)),
+                Text.literal(getTranslation("quality")).styled(style -> style.withColor(Formatting.WHITE).withBold(true)),
+                Text.literal(getTranslation("quality_desc")).styled(style -> style.withColor(Formatting.GRAY)),
                 Text.empty(),
-                Text.literal("Now: " + screen.getQuality() + "p").styled(style -> style.withColor(Formatting.GOLD))
+                Text.literal(getTranslation("quality_current", screen.getQuality())).styled(style -> style.withColor(Formatting.GOLD))
         );
 
         cY += 15 + vCH;
         placeButton(vCH, maxSW, cY, sync, syncReset);
 
         // Setting the sync text and calculating coordinates for the tooltip
-        Text syncText = Text.literal("Synchronization");
+        Text syncText = Text.literal(getTranslation("synchronization"));
         int syncTextX = this.width / 2 - maxSW / 2;
         int syncTextY = cY + vCH / 2 - textRenderer.fontHeight / 2;
         context.drawText(textRenderer, syncText, syncTextX, syncTextY, 0xFFFFFF, true);
 
         List<Text> syncTooltip = List.of(
-                Text.literal("Synchronization").styled(style -> style.withColor(Formatting.WHITE).withBold(true)),
-                Text.literal("Option available only to the display owner").styled(style -> style.withColor(Formatting.GRAY)),
-                Text.literal("Sets whether the display will be synchronized between players").styled(style -> style.withColor(Formatting.GRAY)),
+                Text.literal(getTranslation("synchronization")).styled(style -> style.withColor(Formatting.WHITE).withBold(true)),
+                Text.literal(getTranslation("sync_desc")).styled(style -> style.withColor(Formatting.GRAY)),
+                Text.literal(getTranslation("sync_desc2")).styled(style -> style.withColor(Formatting.GRAY)),
                 Text.empty(),
-                Text.literal("Now: " + (sync.value ? "disabled" : "enabled")).styled(style -> style.withColor(Formatting.GOLD))
+                Text.literal(getTranslation("sync_current", sync.value ? getTranslation("disabled") : getTranslation("enabled"))).styled(style -> style.withColor(Formatting.GOLD))
         );
 
         renderTooltipIfHovered(context, mouseX, mouseY, renderDTextX, renderDTextY,
