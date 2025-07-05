@@ -448,8 +448,7 @@ public class MediaPlayer {
     public void tick(BlockPos playerPos, double maxRadius) {
         if (!initialized) return;
         double dist = screen.getDistanceToScreen(playerPos);
-        double attenuation = Math.pow(1.0 - Math.min(1.0, dist / maxRadius), 2)
-                * MinecraftClient.getInstance().options.getSoundVolume(SoundCategory.MASTER);
+        double attenuation = Math.pow(1.0 - Math.min(1.0, dist / maxRadius), 2);
         if (Math.abs(attenuation - lastAttenuation) < 1e-5) return;
 
         lastAttenuation = attenuation;
