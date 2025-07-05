@@ -72,7 +72,7 @@ public class MediaPlayer {
     private volatile int lastTexW = 0, lastTexH = 0;
     private volatile int preparedW = 0, preparedH = 0;
 
-    private volatile double userVolume = 0.0;
+    private volatile double userVolume = (PlatformlessInitializer.config.defaultDisplayVolume);
     private volatile double lastAttenuation = 1.0;
 
     // === EXECUTORS & CONCURRENCY =========================================================

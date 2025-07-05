@@ -14,7 +14,25 @@ Download our mod or plugin on [Modrinth](https://modrinth.com/mod/dreamdisplays)
 Set up a display using black concrete, select it with a diamond axe, and type `/display create`. After the display is created, type `/display video <link to YouTube video> [language]`
 
 Done! To customize the display, look at it and press `Shift + RMB`
+# Dream Displays
 
+A Minecraft mod that adds display functionality with multilingual support.
+
+## Translation Support
+
+This mod uses TOML files for translations and supports Crowdin for community translations.
+
+### Supported Languages
+
+- English (en)
+- Russian (ru) 
+- Ukrainian (uk)
+- German (de)
+- Polish (pl)
+
+### Translation Structure
+
+Translations are stored in `/fabric/src/main/resources/lang/` as TOML files with the following structure:
 ![img](https://i.imgur.com/VvkgLaS.png)
 
 ## Features

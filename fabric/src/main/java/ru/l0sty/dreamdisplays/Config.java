@@ -16,8 +16,14 @@ public class Config extends AbstractConfig {
     @Path("mute-on-alt-tab")
     public boolean muteOnAltTab = true;
 
-    @Path("max-render-distance")
+    @Path("default-render-distance")
     public int maxDistance = 64;
+
+    @Path("default-sync-display-volume")
+    public double syncDisplayVolume = 0.25;
+
+    @Path("default-default-display-volume")
+    public double defaultDisplayVolume = 50;
 
     public Config(File baseDir) {
         super(baseDir, "config.yml");

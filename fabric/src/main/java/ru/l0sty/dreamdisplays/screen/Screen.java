@@ -198,7 +198,7 @@ public class Screen {
         waitForMFInit(() -> {
             if (!videoStarted) {
                 startVideo();
-                setVolume(0);
+                setVolume((float) PlatformlessInitializer.config.syncDisplayVolume);
             }
 
             if (paused) setPaused(false);
@@ -389,7 +389,7 @@ public class Screen {
             this.paused = false;
             waitForMFInit(() -> {
                 startVideo();
-                setVolume(0);
+                setVolume((float) PlatformlessInitializer.config.defaultDisplayVolume);
             });
             return;
         }
