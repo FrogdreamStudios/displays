@@ -76,10 +76,7 @@ public class DreamDisplaysMod implements ClientModInitializer, Mod {
 
         ClientTickEvents.END_CLIENT_TICK.register(PlatformlessInitializer::onEndTick);
 
-        ClientLifecycleEvents.CLIENT_STOPPING.register(client -> {
-            ScreenManager.unloadAll();
-            WindowFocusMuteThread.instance.interrupt();
-        });
+        ClientLifecycleEvents.CLIENT_STOPPING.register(minecraftClient -> PlatformlessInitializer.onStop());
     }
 
     @Override

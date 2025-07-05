@@ -34,23 +34,6 @@ import static net.minecraft.client.render.RenderPhase.ENABLE_LIGHTMAP;
  * media seeking.
  */
 public class Screen {
-    public static Thread safeQualitySwitchThread = new Thread(() -> {
-        boolean isErrored = false;
-        while (!isErrored) {
-            ScreenManager.getScreens().forEach(Screen::reloadQuality);
-
-            try {
-                Thread.sleep(5000);
-            } catch (InterruptedException e) {
-                isErrored = true;
-            }
-        }
-    });
-
-    static {
-        safeQualitySwitchThread.start();
-    }
-
     public boolean owner;
 
     public boolean errored;
@@ -519,7 +502,7 @@ public class Screen {
     }
 
     public void tick(BlockPos pos) {
-        if (mediaPlayer != null) mediaPlayer.tick(pos, PlatformlessInitializer.maxDistance);
+        if (mediaPlayer != null) mediaPlayer.tick(pos, PlatformlessInitializer.config.maxDistance);
     }
 
     public void afterSeek() {

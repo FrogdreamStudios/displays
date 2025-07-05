@@ -12,10 +12,12 @@ public class Config extends AbstractConfig {
         System.setProperty("file.encoding", "UTF-8");
     }
 
-    @Comment("Turn off the displays when the Minecraft window is not focused?")
-
+    @Comment("Turn off sound when the Minecraft window is not focused?")
     @Path("mute-on-alt-tab")
     public boolean muteOnAltTab = true;
+
+    @Path("max-render-distance")
+    public int maxDistance = 64;
 
     public Config(File baseDir) {
         super(baseDir, "config.yml");
