@@ -1,7 +1,7 @@
 {
+  "dreamdisplays.ui.title": "Dream Displays",
   "dreamdisplays.button.enabled": "Zapnuto",
   "dreamdisplays.button.disabled": "Vypnuto",
-  "dreamdisplays.ui.title": "Dream Displays",
 
   "dreamdisplays.error.loadingerror.1": "Jejda! Toto video se nám nepodařilo načíst.",
   "dreamdisplays.error.loadingerror.2": "Zkuste nastavit jiné.",

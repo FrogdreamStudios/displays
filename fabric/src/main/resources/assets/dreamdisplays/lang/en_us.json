@@ -1,7 +1,7 @@
 {
+  "dreamdisplays.ui.title": "Dream Displays",
   "dreamdisplays.button.enabled": "Enabled",
   "dreamdisplays.button.disabled": "Disabled",
-  "dreamdisplays.ui.title": "Dream Displays",
 
   "dreamdisplays.error.loadingerror.1": "Oops! We can't load this video.",
   "dreamdisplays.error.loadingerror.2": "Try to set another one.",

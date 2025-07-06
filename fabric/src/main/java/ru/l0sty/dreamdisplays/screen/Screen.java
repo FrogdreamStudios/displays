@@ -48,7 +48,7 @@ public class Screen {
     private float volume;
     private boolean videoStarted;
     private boolean paused;
-    private String quality = "480";
+    private String quality = "720";
     public boolean isSync;
     public boolean muted;
 

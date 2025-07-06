@@ -23,7 +23,7 @@ public class Config extends AbstractConfig {
     public double syncDisplayVolume = 0.25;
 
     @Path("default-default-display-volume")
-    public double defaultDisplayVolume = 50;
+    public double defaultDisplayVolume = 0.5;
 
     public Config(File baseDir) {
         super(baseDir, "config.yml");

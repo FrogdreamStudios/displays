@@ -127,13 +127,13 @@ public class DisplayConfScreen extends Screen {
         qualityReset = new IconButtonWidget(0, 0, 0, 0, 64, 64, Identifier.of(PlatformlessInitializer.MOD_ID, "bri"), 2) {
             @Override
             public void onPress() {
-                screen.setQuality(toQuality(fromQuality("480")).replace("p", ""));
+                screen.setQuality(toQuality(fromQuality("720")).replace("p", ""));
                 quality.value = (double) 2 /screen.getQualityList().size();
                 quality.setMessage(Text.of(toQuality(2) + "p"));
             }
         };
 
-        sync = new ToggleWidget(0, 0, 0, 0, Text.translatable(screen.isSync ? "dreamdisplays.button.enabled" : "dreamdisplays.buttons.disabled"), screen.isSync) {
+        sync = new ToggleWidget(0, 0, 0, 0, Text.translatable(screen.isSync ? "dreamdisplays.button.enabled" : "dreamdisplays.button.disabled"), screen.isSync) {
             @Override
             protected void updateMessage() {
                 setMessage(Text.translatable(screen.isSync ? "dreamdisplays.button.enabled" : "dreamdisplays.button.disabled"));
@@ -272,7 +272,7 @@ public class DisplayConfScreen extends Screen {
 
         syncReset.active = screen.owner && screen.isSync;
         renderDReset.active = PlatformlessInitializer.config.maxDistance != 64;
-        qualityReset.active = !Objects.equals(screen.getQuality(), "480");
+        qualityReset.active = !Objects.equals(screen.getQuality(), "720");
 
         int headerTextWidth = textRenderer.getWidth(headerText);
         int headerTextX = (this.width - headerTextWidth) / 2;
