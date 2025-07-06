@@ -23,9 +23,7 @@ public class Utils {
 
         if (minX > location.getBlockX() || location.getBlockX() > maxX) return false;
         if (minY > location.getBlockY() || location.getBlockY() > maxY) return false;
-        if (minZ > location.getBlockZ() || location.getBlockZ() > maxZ) return false;
-
-        return true;
+        return minZ <= location.getBlockZ() && location.getBlockZ() <= maxZ;
     }
 
     public static double getDistanceToScreen(Location location, DisplayData displayData) {

@@ -76,10 +76,6 @@ public class GStreamerDownloader {
         }
     }
 
-    /**
-     * Downloads a file from the specified URL and saves it to the given output file.
-     * @param urlString the URL of the file to download.
-     */
     private static void downloadFile(String urlString, File outputFile) throws IOException {
         LoggingManager.info(urlString + " -> " + outputFile.getCanonicalPath());
 

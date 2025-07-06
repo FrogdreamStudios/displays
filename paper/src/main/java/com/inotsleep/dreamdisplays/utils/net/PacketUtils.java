@@ -61,14 +61,14 @@ public class PacketUtils {
             ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
             DataOutputStream out = new DataOutputStream(byteStream);
 
-            out.writeLong(packet.getId().getMostSignificantBits());
-            out.writeLong(packet.getId().getLeastSignificantBits());
+            out.writeLong(packet.id().getMostSignificantBits());
+            out.writeLong(packet.id().getLeastSignificantBits());
 
             out.writeBoolean(packet.isSync());
-            out.writeBoolean(packet.getCurrentState());
+            out.writeBoolean(packet.currentState());
 
-            writeVarLong(out, packet.getCurrentTime());
-            writeVarLong(out, packet.getLimitTime());
+            writeVarLong(out, packet.currentTime());
+            writeVarLong(out, packet.limitTime());
 
             byte[] arr = byteStream.toByteArray();
 

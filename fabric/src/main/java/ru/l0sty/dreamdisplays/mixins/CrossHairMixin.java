@@ -1,13 +1,13 @@
 package ru.l0sty.dreamdisplays.mixins;
 
-import net.minecraft.client.render.RenderTickCounter;
-import ru.l0sty.dreamdisplays.PlatformlessInitializer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.InGameHud;
+import net.minecraft.client.render.RenderTickCounter;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import ru.l0sty.dreamdisplays.PlatformlessInitializer;
 
 @Mixin(InGameHud.class)
 

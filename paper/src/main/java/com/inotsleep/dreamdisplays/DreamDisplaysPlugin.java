@@ -2,8 +2,8 @@ package com.inotsleep.dreamdisplays;
 
 import com.github.zafarkhaja.semver.Version;
 import com.inotsleep.dreamdisplays.commands.DisplayCommand;
-import com.inotsleep.dreamdisplays.listeners.SelectionListener;
 import com.inotsleep.dreamdisplays.listeners.PlayerListener;
+import com.inotsleep.dreamdisplays.listeners.SelectionListener;
 import com.inotsleep.dreamdisplays.managers.DisplayManager;
 import com.inotsleep.dreamdisplays.storage.Storage;
 import com.inotsleep.dreamdisplays.utils.GithubReleaseFetcher;

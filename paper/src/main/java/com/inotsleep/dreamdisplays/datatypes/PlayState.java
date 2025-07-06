@@ -22,10 +22,10 @@ public class PlayState {
     }
 
     public void update(SyncPacket packet) {
-        this.paused = packet.getCurrentState();
-        this.lastReportedTime = packet.getCurrentTime();
+        this.paused = packet.currentState();
+        this.lastReportedTime = packet.currentTime();
         this.lastReportedTimeTimestamp = System.nanoTime();
-        limitTime = packet.getLimitTime();
+        limitTime = packet.limitTime();
     }
 
     public SyncPacket createPacket() {

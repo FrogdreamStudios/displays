@@ -42,24 +42,22 @@ public class PlatformlessInitializer {
         while (!isErrored) {
             ScreenManager.getScreens().forEach(Screen::reloadQuality);
             if (
-                    config.maxDistance != lastDistance
+                    config.defaultDistance != lastDistance
             ) {
-                config.maxDistance = lastDistance;
+                config.defaultDistance = lastDistance;
                 config.save();
             }
             try {
-                Thread.sleep(5000);
+                Thread.sleep(2500);
             } catch (InterruptedException e) {
                 isErrored = true;
             }
         }
     });
 
-
     public static boolean isOnScreen = false;
     public static boolean focusMode = false;
 
-    public static double maxDistance = 64;
     public static boolean displaysEnabled = true;
 
     public static Config getConfig() {
@@ -67,8 +65,6 @@ public class PlatformlessInitializer {
     }
 
     public static final String MOD_ID = "dreamdisplays";
-
-    public static String proxyAddress = "";
 
     private static Screen hoveredScreen = null;
 
@@ -100,11 +96,10 @@ public class PlatformlessInitializer {
         createScreen(payload.id(), payload.ownerId(), payload.pos(), payload.facing(), payload.width(), payload.height(), payload.url(), payload.lang(), payload.isSync());
     }
 
-
     public static void createScreen(UUID id, UUID ownerId, Vector3i pos, Facing facing, int width, int height, String code, String lang, boolean isSync) {
         Screen screen = new Screen(id, ownerId, pos.x(), pos.y(), pos.z(), facing.toString(), width, height, isSync);
         assert MinecraftClient.getInstance().player != null;
-        if (screen.getDistanceToScreen(MinecraftClient.getInstance().player.getBlockPos()) > PlatformlessInitializer.config.maxDistance) return;
+        if (screen.getDistanceToScreen(MinecraftClient.getInstance().player.getBlockPos()) > PlatformlessInitializer.config.defaultDistance) return;
         ScreenManager.registerScreen(screen);
         if (!Objects.equals(code, "")) screen.loadVideo(code, lang);
     }
@@ -164,7 +159,7 @@ public class PlatformlessInitializer {
         PlatformlessInitializer.isOnScreen = false;
 
         for (Screen screen : ScreenManager.getScreens()) {
-            if (PlatformlessInitializer.config.maxDistance < screen.getDistanceToScreen(client.player.getBlockPos()) || !PlatformlessInitializer.displaysEnabled) {
+            if (PlatformlessInitializer.config.defaultDistance < screen.getDistanceToScreen(client.player.getBlockPos()) || !PlatformlessInitializer.displaysEnabled) {
                 ScreenManager.unregisterScreen(screen);
                 if (hoveredScreen == screen) {
                     hoveredScreen = null;

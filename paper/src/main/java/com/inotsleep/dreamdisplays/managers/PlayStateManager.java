@@ -2,8 +2,8 @@ package com.inotsleep.dreamdisplays.managers;
 
 import com.inotsleep.dreamdisplays.datatypes.DisplayData;
 import com.inotsleep.dreamdisplays.datatypes.PlayState;
-import com.inotsleep.dreamdisplays.utils.net.PacketUtils;
 import com.inotsleep.dreamdisplays.datatypes.SyncPacket;
+import com.inotsleep.dreamdisplays.utils.net.PacketUtils;
 import me.inotsleep.utils.logging.LoggingManager;
 import org.bukkit.entity.Player;
 
@@ -13,11 +13,11 @@ public class PlayStateManager {
     private static final Map<UUID, PlayState> playStates = new HashMap<>();
 
     public static void processSyncPacket(SyncPacket packet, Player player) {
-        DisplayData data = DisplayManager.getDisplayData(packet.getId());
+        DisplayData data = DisplayManager.getDisplayData(packet.id());
         if (data != null) data.setSync(packet.isSync());
 
         if (!packet.isSync()) {
-            playStates.remove(packet.getId());
+            playStates.remove(packet.id());
             return;
         }
 
@@ -28,9 +28,9 @@ public class PlayStateManager {
             return;
         }
 
-        PlayState state = playStates.computeIfAbsent(packet.getId(), PlayState::new);
+        PlayState state = playStates.computeIfAbsent(packet.id(), PlayState::new);
         state.update(packet);
-        data.setDuration(packet.getLimitTime());
+        data.setDuration(packet.limitTime());
         List<Player> receivers = data.getReceivers();
 
         PacketUtils.sendSyncPacket(receivers.stream().filter(p -> !p.getUniqueId().equals(player.getUniqueId())).toList(), packet);

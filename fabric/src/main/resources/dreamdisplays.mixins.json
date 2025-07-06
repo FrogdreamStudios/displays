@@ -4,8 +4,8 @@
   "package": "ru.l0sty.dreamdisplays.mixins",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "GStreamInitMixin",
-    "CrossHairMixin"
+    "CrossHairMixin",
+    "GStreamInitMixin"
   ],
   "injectors": {
     "defaultRequire": 1

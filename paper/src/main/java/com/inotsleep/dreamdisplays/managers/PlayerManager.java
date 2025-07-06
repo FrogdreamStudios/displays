@@ -3,7 +3,10 @@ package com.inotsleep.dreamdisplays.managers;
 import com.github.zafarkhaja.semver.Version;
 import org.bukkit.entity.Player;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public class PlayerManager {
     private static final Map<UUID, Version> versions = new HashMap<>();

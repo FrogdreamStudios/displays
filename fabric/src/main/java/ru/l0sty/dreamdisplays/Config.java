@@ -17,7 +17,7 @@ public class Config extends AbstractConfig {
     public boolean muteOnAltTab = true;
 
     @Path("default-render-distance")
-    public int maxDistance = 64;
+    public int defaultDistance = 64;
 
     @Path("default-sync-display-volume")
     public double syncDisplayVolume = 0.25;

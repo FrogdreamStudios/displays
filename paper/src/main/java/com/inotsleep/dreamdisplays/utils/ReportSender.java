@@ -1,5 +1,10 @@
 package com.inotsleep.dreamdisplays.utils;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import org.bukkit.Location;
+import org.bukkit.entity.Player;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -8,11 +13,6 @@ import java.net.http.HttpResponse;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
-
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import org.bukkit.Location;
-import org.bukkit.entity.Player;
 
 public class ReportSender {
 

@@ -15,13 +15,11 @@ import ru.l0sty.dreamdisplays.net.DeletePacket;
 import ru.l0sty.dreamdisplays.net.ReportPacket;
 import ru.l0sty.dreamdisplays.render.RenderUtil2D;
 import ru.l0sty.dreamdisplays.screen.widgets.IconButtonWidget;
-import ru.l0sty.dreamdisplays.screen.widgets.ToggleWidget;
 import ru.l0sty.dreamdisplays.screen.widgets.SliderWidget;
+import ru.l0sty.dreamdisplays.screen.widgets.ToggleWidget;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Configuration screen for Dream Displays.
@@ -91,7 +89,7 @@ public class DisplayConfScreen extends Screen {
 
         pauseButton.setIconTexture(screen.getPaused() ? Identifier.of(PlatformlessInitializer.MOD_ID, "bupi") : Identifier.of(PlatformlessInitializer.MOD_ID, "bpi"));
 
-        renderD = new SliderWidget(0, 0, 0, 0, Text.of(String.valueOf((int) PlatformlessInitializer.config.maxDistance)), (PlatformlessInitializer.config.maxDistance-24)/(96-24)) {
+        renderD = new SliderWidget(0, 0, 0, 0, Text.of(String.valueOf(PlatformlessInitializer.config.defaultDistance)), (PlatformlessInitializer.config.defaultDistance-24)/(96-24)) {
             @Override
             protected void updateMessage() {
                 setMessage(Text.of(String.valueOf((int) (value*(96-24)) + 24)));
@@ -99,7 +97,7 @@ public class DisplayConfScreen extends Screen {
 
             @Override
             protected void applyValue() {
-                PlatformlessInitializer.config.maxDistance = (int) (value * (96-24) + 24);
+                PlatformlessInitializer.config.defaultDistance = (int) (value * (96-24) + 24);
             }
         };
 
@@ -118,7 +116,7 @@ public class DisplayConfScreen extends Screen {
         renderDReset = new IconButtonWidget(0, 0, 0, 0, 64, 64, Identifier.of(PlatformlessInitializer.MOD_ID, "bri"), 2) {
             @Override
             public void onPress() {
-                PlatformlessInitializer.config.maxDistance = 64;
+                PlatformlessInitializer.config.defaultDistance = 64;
                 renderD.value = 64;
                 renderD.setMessage(Text.of("64"));
             }
@@ -271,7 +269,7 @@ public class DisplayConfScreen extends Screen {
         }
 
         syncReset.active = screen.owner && screen.isSync;
-        renderDReset.active = PlatformlessInitializer.config.maxDistance != 64;
+        renderDReset.active = PlatformlessInitializer.config.defaultDistance != 64;
         qualityReset.active = !Objects.equals(screen.getQuality(), "720");
 
         int headerTextWidth = textRenderer.getWidth(headerText);
@@ -345,7 +343,7 @@ public class DisplayConfScreen extends Screen {
                 Text.translatable("dreamdisplays.button.render-distance.tooltip.5").styled(style -> style.withColor(Formatting.DARK_GRAY)),
                 Text.translatable("dreamdisplays.button.render-distance.tooltip.6").styled(style -> style.withColor(Formatting.DARK_GRAY)),
                 Text.translatable("dreamdisplays.button.render-distance.tooltip.7"),
-                Text.translatable("dreamdisplays.button.render-distance.tooltip.8", (int) PlatformlessInitializer.config.maxDistance).styled(style -> style.withColor(Formatting.YELLOW))
+                Text.translatable("dreamdisplays.button.render-distance.tooltip.8", PlatformlessInitializer.config.defaultDistance).styled(style -> style.withColor(Formatting.YELLOW))
         );
 
         cY += 5 + vCH;

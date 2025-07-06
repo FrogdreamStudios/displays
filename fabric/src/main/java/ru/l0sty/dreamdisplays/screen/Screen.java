@@ -9,13 +9,13 @@ import net.minecraft.client.texture.NativeImageBackedTexture;
 import net.minecraft.client.texture.TextureManager;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.TriState;
+import net.minecraft.util.math.BlockPos;
 import ru.l0sty.dreamdisplays.PlatformlessInitializer;
 import ru.l0sty.dreamdisplays.net.DisplayInfoPacket;
 import ru.l0sty.dreamdisplays.net.RequestSyncPacket;
 import ru.l0sty.dreamdisplays.net.SyncPacket;
 import ru.l0sty.dreamdisplays.util.ImageUtil;
 import ru.l0sty.dreamdisplays.util.Utils;
-import net.minecraft.util.math.BlockPos;
 
 import java.util.Collections;
 import java.util.List;
@@ -502,7 +502,7 @@ public class Screen {
     }
 
     public void tick(BlockPos pos) {
-        if (mediaPlayer != null) mediaPlayer.tick(pos, PlatformlessInitializer.config.maxDistance);
+        if (mediaPlayer != null) mediaPlayer.tick(pos, PlatformlessInitializer.config.defaultDistance);
     }
 
     public void afterSeek() {

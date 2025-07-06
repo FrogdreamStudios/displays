@@ -1,6 +1,7 @@
 package ru.l0sty.dreamdisplays;
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
@@ -14,8 +15,6 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.network.packet.CustomPayload;
 import ru.l0sty.dreamdisplays.net.*;
 import ru.l0sty.dreamdisplays.render.ScreenWorldRenderer;
-import ru.l0sty.dreamdisplays.screen.ScreenManager;
-import net.fabricmc.api.ClientModInitializer;
 
  /**
   * It initializes the mod, registers commands, and handles networking.

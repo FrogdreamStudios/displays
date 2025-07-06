@@ -1,7 +1,7 @@
 package ru.l0sty.dreamdisplays;
 
-import ru.l0sty.dreamdisplays.screen.Screen;
 import net.minecraft.client.MinecraftClient;
+import ru.l0sty.dreamdisplays.screen.Screen;
 import ru.l0sty.dreamdisplays.screen.ScreenManager;
 
 public class WindowFocusMuteThread extends Thread {
