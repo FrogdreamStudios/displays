@@ -133,7 +133,7 @@ public class DisplayConfScreen extends Screen {
             }
         };
 
-        sync = new ToggleWidget(0, 0, 0, 0, Text.translatable(screen.isSync ? "dreamdisplays.button.enabled" : "dreamdisplays.buttons.disabled"), screen.isSync) {
+        sync = new ToggleWidget(0, 0, 0, 0, Text.translatable(screen.isSync ? "dreamdisplays.button.enabled" : "dreamdisplays.button.disabled"), screen.isSync) {
             @Override
             protected void updateMessage() {
                 setMessage(Text.translatable(screen.isSync ? "dreamdisplays.button.enabled" : "dreamdisplays.button.disabled"));
