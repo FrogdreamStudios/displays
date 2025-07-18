@@ -1,11 +1,14 @@
 allprojects {
     repositories {
+        mavenCentral()
+
         maven {
             name = 'Fabric'
             url = 'https://maven.fabricmc.net/'
         }
         maven {
-            url "https://repo.l0sty.ru/releases"
+            name = "l0sty-ru"
+            url = "https://repo.l0sty.ru/releases"
         }
         maven {
             name = "papermc-repo"
@@ -15,7 +18,10 @@ allprojects {
             name = "sonatype"
             url = "https://oss.sonatype.org/content/groups/public/"
         }
-        mavenCentral()
-        maven { url 'https://jitpack.io' }
+
+        maven {
+            name = "jitpack"
+            url = 'https://jitpack.io'
+        }
     }
 }

@@ -1,12 +1,12 @@
 package ru.l0sty.dreamdisplays.screen.widgets;
 
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ButtonTextures;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.input.KeyCodes;
-import net.minecraft.client.render.RenderLayer;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.ColorHelper;
@@ -53,7 +53,7 @@ public abstract class IconButtonWidget extends ClickableWidget {
 
 	@Override
 	protected void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
-		context.drawGuiTexture(RenderLayer::getGuiTextured, settedTextures != null ? settedTextures.get(this.active, this.isSelected()) : TEXTURES.get(this.active, this.isSelected()), this.getX(), this.getY(), this.getWidth(), this.getHeight(), ColorHelper.getWhite(this.alpha));
+		context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, settedTextures != null ? settedTextures.get(this.active, this.isSelected()) : TEXTURES.get(this.active, this.isSelected()), this.getX(), this.getY(), this.getWidth(), this.getHeight(), ColorHelper.getWhite(this.alpha));
 
 		int dW = getWidth() - 2*margin;
 		int dH = getHeight() - 2*margin;
@@ -65,7 +65,7 @@ public abstract class IconButtonWidget extends ClickableWidget {
 		int dx = getX() + getWidth()/2-iconW/2;
 		int dy = getY() + getHeight()/2-iconH/2;
 
-		context.drawGuiTexture(RenderLayer::getGuiTextured, iconTexture, dx, dy, iconW, iconH, ColorHelper.getWhite(this.alpha));
+		context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, iconTexture, dx, dy, iconW, iconH, ColorHelper.getWhite(this.alpha));
 
 	}
 

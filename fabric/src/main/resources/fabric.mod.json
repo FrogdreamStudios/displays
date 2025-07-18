@@ -15,9 +15,9 @@
     "dreamdisplays.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=0.15.11",
+    "fabricloader": "${fabricLoaderVersion}",
     "fabric": "*",
-    "minecraft": "1.21.5",
+    "minecraft": "${minecraftVersion}",
     "java": ">=21"
   },
   "icon": "assets/dreamdisplays/icon.png"

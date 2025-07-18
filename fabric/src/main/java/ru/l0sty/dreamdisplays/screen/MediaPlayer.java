@@ -142,10 +142,13 @@ public class MediaPlayer {
             lastTexW = w; lastTexH = h;
         }
 
+
+        // TODO: depth value in CommandEncoder is not used in implementation of method. Value 0 can cause some problems in future
         if (!glTexture.isClosed()) encoder.writeToTexture(
                 glTexture,
                 intBuf,
                 NativeImage.Format.RGBA,
+                0,
                 0,
                 0, 0,
                 glTexture.getWidth(0), glTexture.getHeight(0)

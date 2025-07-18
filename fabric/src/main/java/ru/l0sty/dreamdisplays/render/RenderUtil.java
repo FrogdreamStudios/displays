@@ -2,6 +2,7 @@ package ru.l0sty.dreamdisplays.render;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.textures.GpuTexture;
+import com.mojang.blaze3d.textures.GpuTextureView;
 import com.mojang.blaze3d.vertex.VertexFormat;
 
 import net.minecraft.client.render.*;
@@ -95,7 +96,7 @@ public final class RenderUtil {
      * @param gpuTex the GpuTexture to render.
      * @param layer the RenderLayer to use for rendering.
      */
-    public static void renderGpuTexture(MatrixStack matrices, Tessellator tess, GpuTexture gpuTex, RenderLayer layer) {
+    public static void renderGpuTexture(MatrixStack matrices, Tessellator tess, GpuTextureView gpuTex, RenderLayer layer) {
         RenderSystem.setShaderTexture(0, gpuTex);
         Matrix4f mat = matrices.peek().getPositionMatrix();
 

@@ -52,7 +52,6 @@ public class Screen {
     public boolean isSync;
     public boolean muted;
 
-    // Use a combined MediaPlayer instead of the separate VideoDecoder and AudioPlayer.
     private MediaPlayer mediaPlayer;
 
     private String videoUrl;
@@ -63,8 +62,6 @@ public class Screen {
 
     public int textureWidth = 0;
     public int textureHeight = 0;
-
-    // Cache (good for performance)
     private transient BlockPos blockPos;
 
     private NativeImageBackedTexture previewTexture = null;
@@ -149,7 +146,7 @@ public class Screen {
                 true,
                 false,
                 RenderPipelines.SOLID,
-                RenderLayer.MultiPhaseParameters.builder().lightmap(ENABLE_LIGHTMAP).texture(new RenderPhase.Texture(id, TriState.FALSE, false)).build(true)
+                RenderLayer.MultiPhaseParameters.builder().lightmap(ENABLE_LIGHTMAP).texture(new RenderPhase.Texture(id, false)).build(true)
         );
     }
 

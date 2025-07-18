@@ -1,6 +1,7 @@
 package ru.l0sty.dreamdisplays.screen;
 
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Drawable;
 import net.minecraft.client.gui.Element;
@@ -20,8 +21,6 @@ import ru.l0sty.dreamdisplays.screen.widgets.SliderWidget;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Configuration screen for Dream Displays.
@@ -133,7 +132,7 @@ public class DisplayConfScreen extends Screen {
             }
         };
 
-        sync = new ToggleWidget(0, 0, 0, 0, Text.translatable(screen.isSync ? "dreamdisplays.button.enabled" : "dreamdisplays.buttons.disabled"), screen.isSync) {
+        sync = new ToggleWidget(0, 0, 0, 0, Text.translatable(screen.isSync ? "dreamdisplays.button.enabled" : "dreamdisplays.button.disabled"), screen.isSync) {
             @Override
             protected void updateMessage() {
                 setMessage(Text.translatable(screen.isSync ? "dreamdisplays.button.enabled" : "dreamdisplays.button.disabled"));
@@ -216,8 +215,8 @@ public class DisplayConfScreen extends Screen {
      */
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-
-        renderBackground(context, mouseX, mouseY, delta);
+        // Removed as mojang rendering background already.
+        // renderBackground(context, mouseX, mouseY, delta);
         Text headerText = Text.translatable("dreamdisplays.ui.title");
 
         int vCH = 25;
@@ -289,10 +288,7 @@ public class DisplayConfScreen extends Screen {
         int cY = textRenderer.fontHeight + 15 * 2;
 
         context.fill(this.width / 2 - maxSW / 2, cY, this.width / 2 + maxSW / 2, cY + sH, 0xff000000);
-        context.getMatrices().push();
-        context.getMatrices().translate(0, 0, 10);
         renderScreen(context, sX, cY, sW, sH);
-        context.getMatrices().pop();
 
         cY += sH;
         cY += 5;
@@ -425,9 +421,11 @@ public class DisplayConfScreen extends Screen {
      */
     private void renderScreen(DrawContext context, int x, int y, int w, int h) {
         if (screen.isVideoStarted()) {
-            RenderUtil2D.drawTexturedQuad(context.getMatrices(), screen.texture.getGlTexture(), x, y, w, h, screen.renderLayer);
+            //context.drawTexture(RenderPipelines.GUI_TEXTURED, screen.textureId, x, y, 0f, 0f, w, h, screen.textureWidth, screen.textureHeight);
+            RenderUtil2D.drawTexturedQuad(context.getMatrices(), screen.texture.getGlTextureView(), x, y, w, h, screen.renderLayer);
         } else if (screen.hasPreviewTexture()) {
-            RenderUtil2D.drawTexturedQuad(context.getMatrices(), screen.getPreviewTexture().getGlTexture(), x, y, w, h, screen.previewRenderLayer);
+            //context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, screen.previewTextureId, x, y, w, h);
+            RenderUtil2D.drawTexturedQuad(context.getMatrices(), screen.getPreviewTexture().getGlTextureView(), x, y, w, h, screen.previewRenderLayer);
         } else {
             context.fill(x, y, x + w, y + h, 0xFF000000);
         }
