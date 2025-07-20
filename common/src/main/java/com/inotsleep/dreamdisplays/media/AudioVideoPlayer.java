@@ -38,6 +38,8 @@ public class AudioVideoPlayer {
 
     private static final int BLOCK_SIZE = 512;
 
+    private volatile double currentAudioUs;
+
     public AudioVideoPlayer(String code) {
         this.code = code;
     }
@@ -134,14 +136,28 @@ public class AudioVideoPlayer {
                 short[] allSamples = new short[totalSamples];
                 sb.get(allSamples);
 
+                long frameEndUs = audioGrabber.getTimestamp();
+                double frameEndMs = frameEndUs / 1000.0;
+
+                double sampleRate    = audioGrabber.getSampleRate();
+                double frameDurationMs = totalSamples * 1000.0 / sampleRate;
+
+                double frameStartMs = frameEndMs - frameDurationMs;
+
                 int offset = 0;
                 while (offset < totalSamples) {
                     int chunkSize = Math.min(BLOCK_SIZE, totalSamples - offset);
-                    // Конвертируем кусок
+
+                    currentAudioUs = (frameStartMs + offset * 1000.0 / sampleRate)*1000;
+
+                    if (currentAudioUs < 0) {
+                        currentAudioUs = 0;
+                    }
+
                     byte[] buf = new byte[chunkSize * 2];
                     for (int i = 0; i < chunkSize; i++) {
                         short s = allSamples[offset + i];
-                        buf[2*i]     = (byte) (s & 0xff);
+                        buf[2*i] = (byte) (s & 0xff);
                         buf[2*i + 1] = (byte) ((s >> 8) & 0xff);
                     }
 
@@ -172,6 +188,7 @@ public class AudioVideoPlayer {
         }
     }
 
+
     private boolean createVideoGrabber(YouTubeCacheEntry cacheEntry) throws FFmpegFrameGrabber.Exception {
         List<Format> videoFormats = cacheEntry.getVideoFormats(quality);
 
@@ -201,7 +218,13 @@ public class AudioVideoPlayer {
         DataLine.Info info = new DataLine.Info(SourceDataLine.class, format);
         audioLine = (SourceDataLine) AudioSystem.getLine(info);
 
-        audioLine.open(format);
+        float frameRate = format.getFrameRate();
+        int frameSize = format.getFrameSize();
+        int bufferMillis = 10;
+
+        int bufferSize = Math.round(bufferMillis * frameRate * frameSize / 1000f);
+
+        audioLine.open(format, bufferSize);
         audioLine.start();
 
         volumeControl = (FloatControl) audioLine.getControl(FloatControl.Type.MASTER_GAIN);
