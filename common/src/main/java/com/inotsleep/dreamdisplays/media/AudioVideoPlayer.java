@@ -245,6 +245,10 @@ public class AudioVideoPlayer {
                 videoFrame = videoGrabber.grabImage();
                 isNull = videoFrame == null;
 
+                while (!isNull && videoFrame.image == null) {
+                    videoFrame = videoGrabber.grabImage();
+                }
+
                 if (paused) {
                     Thread.sleep(10);
                 }

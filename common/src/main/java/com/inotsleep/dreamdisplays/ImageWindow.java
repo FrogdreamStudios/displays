@@ -43,7 +43,7 @@ public class ImageWindow extends JFrame {
     public void setFrame(Frame frame) {
         SwingUtilities.invokeLater(() -> {
             Java2DFrameConverter converter = panel.getConverter();
-            BufferedImage img = converter.getBufferedImage(frame, 1.0, true, ColorSpace.getInstance(ColorSpace.CS_sRGB));
+            BufferedImage img = converter.getBufferedImage(frame, 1.0, false, ColorSpace.getInstance(ColorSpace.CS_sRGB));
             if (img != null) panel.setImage(img);
         });
     }
