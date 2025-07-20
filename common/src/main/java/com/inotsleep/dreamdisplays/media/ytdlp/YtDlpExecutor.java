@@ -5,6 +5,7 @@ import me.inotsleep.utils.Pair;
 import me.inotsleep.utils.logging.LoggingManager;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
@@ -26,6 +27,10 @@ public class YtDlpExecutor {
 
     public YtDlpExecutor(Path ytDlpPath) {
         this.ytDlpPath = ytDlpPath;
+        File ytDlpFile = new File(ytDlpPath.toFile().getAbsolutePath());
+        if (ytDlpFile.exists()) {
+            ytDlpFile.setExecutable(true, true);
+        }
         instance = this;
     }
 
