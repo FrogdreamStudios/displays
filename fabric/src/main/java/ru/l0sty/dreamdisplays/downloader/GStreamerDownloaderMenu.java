@@ -3,108 +3,49 @@ package ru.l0sty.dreamdisplays.downloader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
-import org.joml.Matrix3x2fStack;
 
 public class GStreamerDownloaderMenu extends Screen {
-    public final Screen menu;
+    private final Screen parent;
 
-    /**
-     * Menu for GStreamer download progress.
-     */
-    public GStreamerDownloaderMenu(Screen menu) {
-        super(Text.of("Dream Displays downloads GStreamer for display support"));
-        this.menu = menu;
+    public GStreamerDownloaderMenu(Screen parent) {
+        super(Text.literal("Dream Displays downloads GStreamer for display support"));
+        this.parent = parent;
     }
 
-    /**
-     * Render the background of the GStreamer download menu.
-     */
     @Override
-    public void render(DrawContext graphics, int mouseX, int mouseY, float partialTick) {
-        renderBackground(graphics, mouseX, mouseY, partialTick);
-        double cx = width / 2d;
-        double cy = height / 2d;
+    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+        context.createNewRootLayer();
 
-        double progressBarHeight = 14;
-        double progressBarWidth = width / 3d;
+        int cx = width / 2;
+        int cy = height / 2;
+        int barW = width / 3;
+        int barH = 14;
+        int xPB = cx - barW / 2;
+        int yPB = cy - barH / 2;
 
-        // TODO: base off screen with (1/3 of screen)
+        context.fill(xPB, yPB, xPB + barW, yPB + barH, 0xFFFFFFFF);
+        context.fill(xPB + 2, yPB + 2, xPB + barW - 2, yPB + barH - 2, 0xFF000000);
+        float progress = GStreamerDownloadListener.INSTANCE.getProgress();
+        int fillW = (int) ((barW - 4) * progress);
+        context.fill(xPB + 2, yPB + 2, xPB + 2 + fillW, yPB + barH - 2, 0xFFFFFFFF);
 
-        int progressBarX = (int) (cx - progressBarWidth / 2d);
-        int progressBarY = (int) (cy - progressBarHeight / 2d);
+        Text taskText    = Text.literal(GStreamerDownloadListener.INSTANCE.getTask());
+        Text percentText = Text.literal(Math.round(progress * 100) + "%");
+        int lineHeight = textRenderer.fontHeight + 2;
 
-        graphics.fill(
-                progressBarX, progressBarY,
-                (int) progressBarWidth + progressBarX,
-                (int) progressBarHeight +progressBarY,
-                -1
-        );
-        graphics.fill(
-                progressBarX + 2, progressBarY + 2,
-                (int) progressBarWidth + progressBarX - 2,
-                (int) progressBarHeight + progressBarY - 2,
-                -16777215
-        );
-        graphics.fill(
-                4, 4,
-                (int) ((progressBarWidth - 4) * GStreamerDownloadListener.INSTANCE.getProgress()),
-                (int) progressBarHeight - 4,
-                -1
-        );
-
-        String[] text = new String[]{
-                GStreamerDownloadListener.INSTANCE.getTask(),
-                (Math.round(GStreamerDownloadListener.INSTANCE.getProgress() * 100)%100) + "%",
-        };
-
-        int oSet = ((textRenderer.fontHeight / 2) + ((textRenderer.fontHeight + 2) * (text.length + 2))) + 4;
-
-        int textX = (int) (cx -(textRenderer.getWidth(title.getString()) / 2d));
-        int textY = (int) (cy - oSet);
-
-        graphics.drawText(
-                textRenderer,
-                title.getString(),
-                (int) textX, textY,
-                0xFFFFFF,
-                true
-        );
-
-        int index = 0;
-
-        int yPosition = textY;
-        for (String s : text) {
-            if (index == 1) {
-                yPosition+= textRenderer.fontHeight + 2;
-            }
-
-            yPosition+= textRenderer.fontHeight + 2;
-            graphics.drawText(
-                    textRenderer,
-                    s,
-                    (int) -(textRenderer.getWidth(s) / 2d), yPosition,
-                    0xFFFFFF,
-                    true
-            );
-            index++;
-        }
+        context.drawCenteredTextWithShadow(textRenderer, this.title, cx, yPB - lineHeight * 2, 0xFFFFFFFF);
+        context.drawCenteredTextWithShadow(textRenderer, taskText, cx, yPB - lineHeight, 0xFFFFFFFF);
+        context.drawCenteredTextWithShadow(textRenderer, percentText, cx, yPB + barH + lineHeight / 2, 0xFFFFFFff);
     }
 
-    /**
-     * Tick the method to check if the download is done or failed.
-     */
     @Override
     public void tick() {
         if (GStreamerDownloadListener.INSTANCE.isDone() || GStreamerDownloadListener.INSTANCE.isFailed()) {
-            MinecraftClient.getInstance().setScreen(menu);
+            MinecraftClient.getInstance().setScreen(parent);
         }
     }
 
-    /**
-     * We determine if the screen should close on ESC key press.
-     */
     @Override
     public boolean shouldCloseOnEsc() {
         return false;

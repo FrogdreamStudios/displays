@@ -31,6 +31,8 @@ dependencies {
     shadow "org.apache.maven.resolver:maven-resolver-transport-file:2.0.3"
 
     shadow 'me.inotsleep:utils:1.4.6'
+
+    shadow "net.bytebuddy:byte-buddy-agent:1.17.6"
 //    shadow "org.bytedeco:ffmpeg-platform:7.1-1.5.11"
 //    shadow "org.bytedeco:javacv-platform:1.5.11"
 

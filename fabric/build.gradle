@@ -1,3 +1,5 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
 	id 'fabric-loom' version '1.10.5'
 	id 'maven-publish'
@@ -17,11 +19,13 @@ dependencies {
 	implementation 'org.freedesktop.gstreamer:gst1-java-core:1.4.0'
 	compileOnly 'net.java.dev.jna:jna:5.9.0'
 	compileOnly 'net.java.dev.jna:jna-platform:5.9.0'
-	implementation 'me.inotsleep:utils:1.3.1'
+	compileOnly 'me.inotsleep:utils:1.4.6'
 
 	implementation 'com.github.felipeucelli:javatube:6692a32'
 
 	compileOnly("org.lwjgl:lwjgl:3.3.6")
+
+	implementation(project(":common"))
 }
 
 shadowJar {
@@ -34,6 +38,11 @@ shadowJar {
 		include(dependency('org.json:json'))
 		include(dependency('me.inotsleep:utils'))
 	}
+
+
+
+
+	exclude 'org/objectweb/asm/**'
 }
 
 processResources {
@@ -84,4 +93,9 @@ remapJar {
 	destinationDirectory.set(rootProject.layout.buildDirectory.dir("libs"))
 
 	archiveBaseName = "displays-client"
+}
+
+tasks.named("shadowJar", ShadowJar) {
+	dependsOn(project(":common").tasks.named("shadowJar"))
+	from(project(":common").tasks.named("shadowJar").flatMap { it.archiveFile }.map { zipTree(it) })
 }

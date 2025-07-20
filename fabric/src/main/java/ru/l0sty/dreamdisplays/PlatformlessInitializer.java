@@ -1,5 +1,8 @@
 package ru.l0sty.dreamdisplays;
 
+import com.inotsleep.dreamdisplays.downloader.DependencyConfig;
+import com.inotsleep.dreamdisplays.downloader.ytdlp.YtDlpDownloader;
+import com.inotsleep.dreamdisplays.media.ytdlp.YtDlpExecutor;
 import me.inotsleep.utils.logging.LoggingManager;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
@@ -20,6 +23,7 @@ import ru.l0sty.dreamdisplays.util.RCUtil;
 import ru.l0sty.dreamdisplays.util.Utils;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -76,6 +80,8 @@ public class PlatformlessInitializer {
 
     public static void onModInit(Mod DreamDisplaysMod) {
         mod = DreamDisplaysMod;
+
+
         LoggingManager.setLogger(LoggerFactory.getLogger(MOD_ID));
         LoggingManager.info("Starting Dream Displays");
 

@@ -260,7 +260,7 @@ public class DisplayConfScreen extends Screen {
             }
 
             for (Text text : errorText) {
-                context.drawText(textRenderer, text, this.width / 2 - textRenderer.getWidth(text) / 2, yP += 2 + textRenderer.fontHeight, 0xFFFFFF, true);
+                context.drawText(textRenderer, text, this.width / 2 - textRenderer.getWidth(text) / 2, yP += 2 + textRenderer.fontHeight, 0xFFFFFFFF, true);
             }
 
             deleteButton.render(context, mouseX, mouseY, delta);
@@ -276,7 +276,7 @@ public class DisplayConfScreen extends Screen {
         int headerTextWidth = textRenderer.getWidth(headerText);
         int headerTextX = (this.width - headerTextWidth) / 2;
         int headerTextY = 15;
-        context.drawText(textRenderer, headerText, headerTextX, headerTextY, 0xFFFFFF, true);
+        context.drawText(textRenderer, headerText, headerTextX, headerTextY, 0xFFFFFFFF, true);
 
         int maxSW = this.width / 3;
 
@@ -330,7 +330,7 @@ public class DisplayConfScreen extends Screen {
         Text renderDText = Text.translatable("dreamdisplays.button.render-distance");
         int renderDTextX = this.width / 2 - maxSW / 2;
         int renderDTextY = cY + vCH / 2 - textRenderer.fontHeight / 2;
-        context.drawText(textRenderer, renderDText, renderDTextX, renderDTextY, 0xFFFFFF, true);
+        context.drawText(textRenderer, renderDText, renderDTextX, renderDTextY, 0xFFFFFFFF, true);
 
         // Tooltip
         List<Text> renderDTooltip = List.of(
@@ -353,7 +353,7 @@ public class DisplayConfScreen extends Screen {
         Text qualityText = Text.translatable("dreamdisplays.button.quality");
         int qualityTextX = this.width / 2 - maxSW / 2;
         int qualityTextY = cY + vCH / 2 - textRenderer.fontHeight / 2;
-        context.drawText(textRenderer, qualityText, qualityTextX, qualityTextY, 0xFFFFFF, true);
+        context.drawText(textRenderer, qualityText, qualityTextX, qualityTextY, 0xFFFFFFFF, true);
 
         // Tooltip
         List<Text> qualityTooltip = List.of(
@@ -370,7 +370,7 @@ public class DisplayConfScreen extends Screen {
         Text syncText = Text.translatable("dreamdisplays.button.synchronization");
         int syncTextX = this.width / 2 - maxSW / 2;
         int syncTextY = cY + vCH / 2 - textRenderer.fontHeight / 2;
-        context.drawText(textRenderer, syncText, syncTextX, syncTextY, 0xFFFFFF, true);
+        context.drawText(textRenderer, syncText, syncTextX, syncTextY, 0xFFFFFFFF, true);
 
         List<Text> syncTooltip = List.of(
                 Text.translatable("dreamdisplays.button.synchronization.tooltip.1").styled(style -> style.withColor(Formatting.WHITE).withBold(true)),

@@ -48,8 +48,6 @@ public class GStreamerErrorScreen extends Screen {
      */
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        this.renderBackground(context, mouseX, mouseY, delta);
-
         String titleText = this.title.getString();
 
         // Centered title

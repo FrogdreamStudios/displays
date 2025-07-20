@@ -18,24 +18,17 @@ import java.util.List;
 import java.util.Optional;
 
 public class YtDlpDownloader {
-    private static volatile Status status;
+    private static volatile Status status = Status.NOT_STARTED;;
     private static volatile long downloadedBytes;
     private static volatile long totalBytes;
     private static volatile double percentage;
 
-    // единый HttpClient, всегда следует редиректам
     private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
             .followRedirects(HttpClient.Redirect.ALWAYS)
             .build();
 
-    /**
-     * Скачивает (или берёт из кеша) yt-dlp для текущей платформы.
-     * @param config    конфиг с URL и URL для контрольных сумм
-     * @param outputDir директория для сохранения binary
-     * @return путь к файлу или null при ошибке
-     */
     public static Path download(DependencyConfig config, Path outputDir) {
-        status = Status.NOT_STARTED;
+        status = Status.STARTED;
         downloadedBytes = 0;
         totalBytes = -1;
         percentage = 0.0;
@@ -61,7 +54,6 @@ public class YtDlpDownloader {
         }
 
         try {
-            // Проверка кеша
             if (Files.exists(outputFile)) {
                 String expected = fetchChecksum(sumUrl, fileName);
                 System.out.println("Checksum found: " + expected);
@@ -71,7 +63,7 @@ public class YtDlpDownloader {
                         status = Status.COMPLETED;
                         totalBytes = Files.size(outputFile);
                         downloadedBytes = totalBytes;
-                        percentage = 100.0;
+                        percentage = 1.0;
                         LoggingManager.info("yt-dlp already present, checksum OK: " + outputFile);
                         return outputFile;
                     } else {
@@ -84,7 +76,6 @@ public class YtDlpDownloader {
                 LoggingManager.info("yt-dlp is not present. Downloading to: " + outputFile);
             }
 
-            // Скачиваем бинарник
             HttpRequest req = HttpRequest.newBuilder()
                     .uri(URI.create(url))
                     .GET()
@@ -101,7 +92,6 @@ public class YtDlpDownloader {
             Optional<String> len = resp.headers().firstValue("Content-Length");
             totalBytes = len.map(Long::parseLong).orElse(-1L);
 
-            status = Status.STARTED;
             try (InputStream in = resp.body();
                  OutputStream out = Files.newOutputStream(outputFile)) {
 
@@ -111,12 +101,11 @@ public class YtDlpDownloader {
                     out.write(buf, 0, read);
                     downloadedBytes += read;
                     if (totalBytes > 0) {
-                        percentage = downloadedBytes * 100.0 / totalBytes;
+                        percentage = (double) downloadedBytes / totalBytes;
                     }
                 }
             }
 
-            // Валидация контрольной суммы
             String expected = fetchChecksum(sumUrl, fileName);
             if (expected != null) {
                 String actual = sha256(outputFile);
@@ -130,7 +119,7 @@ public class YtDlpDownloader {
             }
 
             status = Status.COMPLETED;
-            percentage = 100.0;
+            percentage = 1.0;
             return outputFile;
 
         } catch (Exception e) {
@@ -140,7 +129,6 @@ public class YtDlpDownloader {
         }
     }
 
-    /** Парсит SHA2-256SUMS и возвращает checksum для fileName */
     private static String fetchChecksum(String sumsUrl, String fileName) {
         try {
             HttpRequest req = HttpRequest.newBuilder()
@@ -162,7 +150,6 @@ public class YtDlpDownloader {
         return null;
     }
 
-    /** Вычисляет SHA-256 hex для файла */
     private static String sha256(Path path) {
         try (InputStream in = Files.newInputStream(path);
              DigestInputStream dis = new DigestInputStream(in, MessageDigest.getInstance("SHA-256"))) {

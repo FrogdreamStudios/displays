@@ -1,10 +1,16 @@
 package ru.l0sty.dreamdisplays.downloader;
 
+import com.inotsleep.dreamdisplays.downloader.DependencyConfig;
+import com.inotsleep.dreamdisplays.downloader.Status;
+import com.inotsleep.dreamdisplays.downloader.ytdlp.YtDlpDownloader;
+import com.inotsleep.dreamdisplays.media.ytdlp.YtDlpExecutor;
 import me.inotsleep.utils.logging.LoggingManager;
 import org.freedesktop.gstreamer.Gst;
+import ru.l0sty.dreamdisplays.PlatformlessInitializer;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -127,11 +133,45 @@ public class GstreamerDownloadInit {
             return;
         }
 
-
         final File gStreamerLibrariesDir = new File("./libs/gstreamer");
         if (!gStreamerLibrariesDir.exists() && gStreamerLibrariesDir.mkdirs()) LoggingManager.error("Unable to mk directory");
 
         Thread downloadThread = new Thread(() -> {
+            DependencyConfig dependencyConfig = new DependencyConfig(PlatformlessInitializer.class.getResourceAsStream("/dependencies.yml"));
+            dependencyConfig.reload();
+
+            Thread statusMonitor = new Thread(() -> {
+
+                while (
+                        YtDlpDownloader.getStatus() != Status.FAILED && YtDlpDownloader.getStatus() != Status.COMPLETED
+                ) {
+                    if (YtDlpDownloader.getStatus() == Status.NOT_STARTED) continue;
+
+                    double downloadedMB = (double) YtDlpDownloader.getDownloadedBytes() / (1024*1024);
+                    double totalMB      = (double) YtDlpDownloader.getTotalBytes() / (1024*1024);
+
+                    GStreamerDownloadListener.INSTANCE.setTask(String.format(
+                            "Downloading yt-dlp... (%.2f/%.2f MB)",
+                            downloadedMB, totalMB
+                    ));
+                    GStreamerDownloadListener.INSTANCE.setProgress((float) YtDlpDownloader.getPercentage());
+
+                    try {
+                        Thread.sleep(200);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+
+                if (YtDlpDownloader.getStatus() == Status.COMPLETED) GStreamerDownloadListener.INSTANCE.setProgress(1);
+                else if (YtDlpDownloader.getStatus() == Status.FAILED) GStreamerDownloadListener.INSTANCE.setFailed(true);
+            });
+
+            statusMonitor.start();
+
+            Path ytDlpPath = YtDlpDownloader.download(dependencyConfig, Path.of("./libs"));
+            new YtDlpExecutor(ytDlpPath);
+
             GStreamerDownloader downloader = new GStreamerDownloader();
             boolean downloadGStreamer;
 
