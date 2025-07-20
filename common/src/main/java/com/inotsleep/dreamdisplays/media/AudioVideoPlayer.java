@@ -303,7 +303,7 @@ public class AudioVideoPlayer {
 
         int bufferSize = Math.round(bufferMillis * frameRate * frameSize / 1000f);
 
-        audioLine.open(format, bufferSize);
+        audioLine.open(format);
         audioLine.start();
 
         volumeControl = (FloatControl) audioLine.getControl(FloatControl.Type.MASTER_GAIN);
