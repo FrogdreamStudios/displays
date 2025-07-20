@@ -4,11 +4,12 @@ import com.inotsleep.dreamdisplays.media.AudioVideoPlayer;
 import com.inotsleep.dreamdisplays.media.ytdlp.YtDlpExecutor;
 import org.bytedeco.javacv.Frame;
 
+import java.awt.image.BufferedImage;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class MediaRunner {
     public static void run() throws Exception {
-        AudioVideoPlayer player = new AudioVideoPlayer("3UCI4cUFlVs");
+        AudioVideoPlayer player = new AudioVideoPlayer("3UCI4cUFlVs", 144, "default");
 
         ImageWindow window = new ImageWindow("Video display", 640, 480);
 
@@ -19,12 +20,12 @@ public class MediaRunner {
 
                 while (true) {
                     frameIndex.getAndIncrement();
-                    Frame frame = player.getFrame();
-                    if (frame != null) window.setFrame(frame);
+                    BufferedImage image = player.getImage();
+                    if (image != null) window.setImage(image);
                     try {
                         Thread.sleep(1000/60);
                     } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
+                        return;
                     }
                 }
             });
@@ -33,8 +34,17 @@ public class MediaRunner {
             renderThread.start();
 
             player.setPaused(false);
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                return;
+            }
+
+            player.setQuality(480);
+            player.setCode("glQjLPFd2M8");
+            player.updateQualityAndLanguage();
         });
 
-        player.initialize(YtDlpExecutor.getInstance());
+        player.initialize();
     }
 }

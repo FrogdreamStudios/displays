@@ -27,21 +27,8 @@ public class ImageWindow extends JFrame {
         });
     }
 
-    public void setFrame(Frame frame) {
-        SwingUtilities.invokeLater(() -> {
-            Java2DFrameConverter converter = panel.getConverter();
-            BufferedImage img = converter.getBufferedImage(frame, 1.0, false, ColorSpace.getInstance(ColorSpace.CS_sRGB));
-            if (img != null) panel.setImage(img);
-        });
-    }
-
     private static class ImagePanel extends JPanel {
         private BufferedImage image;
-        private final Java2DFrameConverter converter = new Java2DFrameConverter();
-
-        public Java2DFrameConverter getConverter() {
-            return converter;
-        }
 
         public void setImage(BufferedImage img) {
             this.image = img;
