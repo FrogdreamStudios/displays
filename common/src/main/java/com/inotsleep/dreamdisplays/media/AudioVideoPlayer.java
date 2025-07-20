@@ -297,12 +297,6 @@ public class AudioVideoPlayer {
         DataLine.Info info = new DataLine.Info(SourceDataLine.class, format);
         audioLine = (SourceDataLine) AudioSystem.getLine(info);
 
-        float frameRate = format.getFrameRate();
-        int frameSize = format.getFrameSize();
-        int bufferMillis = 10;
-
-        int bufferSize = Math.round(bufferMillis * frameRate * frameSize / 1000f);
-
         audioLine.open(format);
         audioLine.start();
 
