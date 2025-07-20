@@ -6,13 +6,19 @@ import com.inotsleep.dreamdisplays.media.ytdlp.YtDlpExecutor;
 import me.inotsleep.utils.logging.LoggingManager;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.Frame;
+import org.bytedeco.javacv.FrameGrabber;
 import org.jetbrains.annotations.NotNull;
 
 import javax.sound.sampled.*;
 import java.nio.ShortBuffer;
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class AudioVideoPlayer {
+    private final Queue<Runnable> tasks = new ConcurrentLinkedQueue<>();
+
     private String code;
 
     private int quality = 480;
@@ -27,7 +33,7 @@ public class AudioVideoPlayer {
     private FFmpegFrameGrabber videoGrabber;
     private FFmpegFrameGrabber audioGrabber;
 
-    private volatile boolean paused = false;
+    private volatile boolean paused = true;
     private volatile boolean muted = false;
     private volatile boolean initialized = false;
 
@@ -39,9 +45,36 @@ public class AudioVideoPlayer {
     private static final int BLOCK_SIZE = 512;
 
     private volatile double currentAudioUs;
+    private volatile Frame videoFrame;
+
+    private static final ExecutorService EXECUTOR_SERVICE = Executors.newSingleThreadExecutor(r -> new Thread(r, "AudioVideoPlayer executor"));
+
 
     public AudioVideoPlayer(String code) {
         this.code = code;
+    }
+
+    public Frame getFrame() {
+        return videoFrame;
+    }
+
+    public void onInit(Runnable task) {
+        if (initialized) {
+            EXECUTOR_SERVICE.execute(task);
+            return;
+        }
+        tasks.add(task);
+    }
+
+    private void runInitializedTasks() {
+        Runnable task;
+        while ((task = tasks.poll()) != null) {
+            try {
+                EXECUTOR_SERVICE.execute(task);
+            } catch (Exception e) {
+                LoggingManager.getLogger().error("Error encountered while enqueuing task", e);
+            }
+        }
     }
 
     public boolean mute(boolean muted) {
@@ -93,10 +126,7 @@ public class AudioVideoPlayer {
         if (createVideoGrabber(cacheEntry)) return;
 
         initialized = true;
-
-        System.out.println("Initializing Audio Video Player");
-
-        audioGrabberThread.join();
+        runInitializedTasks();
     }
 
     private boolean createAudioGrabber(YouTubeCacheEntry cacheEntry) throws FFmpegFrameGrabber.Exception, LineUnavailableException {
@@ -188,7 +218,6 @@ public class AudioVideoPlayer {
         }
     }
 
-
     private boolean createVideoGrabber(YouTubeCacheEntry cacheEntry) throws FFmpegFrameGrabber.Exception {
         List<Format> videoFormats = cacheEntry.getVideoFormats(quality);
 
@@ -202,8 +231,31 @@ public class AudioVideoPlayer {
         videoGrabber = new FFmpegFrameGrabber(videoFormat.getUrl());
         configureGrabber(videoGrabber, videoFormat);
 
+        videoGrabberThread = new Thread(this::runVideoGrabber, "Video Grabber Thread");
+        videoGrabberThread.start();
+
         videoGrabber.start();
         return false;
+    }
+
+    private void runVideoGrabber() {
+        try {
+            boolean isNull = false;
+            while (!isNull && !stopped) {
+                videoFrame = videoGrabber.grabImage();
+                isNull = videoFrame == null;
+
+                if (paused) {
+                    Thread.sleep(10);
+                }
+
+                while (currentAudioUs < videoGrabber.getTimestamp()) {
+                    Thread.sleep(10);
+                }
+            }
+        } catch (FrameGrabber.Exception | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void configureAudioLine() throws LineUnavailableException {
