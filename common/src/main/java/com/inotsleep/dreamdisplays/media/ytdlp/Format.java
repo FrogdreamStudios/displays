@@ -57,7 +57,6 @@ public class Format {
     @SerializedName("manifest_url")
     private String manifestUrl;
 
-    /** Если в JSON это массив простых значений или объектов — можно заменить Object на нужный тип */
     @SerializedName("fragments")
     private List<Object> fragments;
 

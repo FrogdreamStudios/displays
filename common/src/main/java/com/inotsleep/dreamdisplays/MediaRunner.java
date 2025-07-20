@@ -4,6 +4,8 @@ import com.inotsleep.dreamdisplays.media.AudioVideoPlayer;
 import com.inotsleep.dreamdisplays.media.ytdlp.YtDlpExecutor;
 import org.bytedeco.javacv.Frame;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 public class MediaRunner {
     public static void run() throws Exception {
         AudioVideoPlayer player = new AudioVideoPlayer("3UCI4cUFlVs");
@@ -12,9 +14,11 @@ public class MediaRunner {
 
         player.onInit(() -> {
             player.setVolume(0.5f);
-
+            AtomicInteger frameIndex = new AtomicInteger();
             Thread renderThread = new Thread(() -> {
+
                 while (true) {
+                    frameIndex.getAndIncrement();
                     Frame frame = player.getFrame();
                     if (frame != null) window.setFrame(frame);
                     try {

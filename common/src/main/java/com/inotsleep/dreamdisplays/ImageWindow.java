@@ -7,11 +7,6 @@ import java.awt.image.BufferedImage;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.Java2DFrameConverter;
 
-/**
- * Окно для вывода одного кадра VideoGrabber-а.
- * Можно передавать либо уже готовый BufferedImage,
- * либо Frame — он будет конвертирован при отрисовке.
- */
 public class ImageWindow extends JFrame {
     private final ImagePanel panel;
 
@@ -26,20 +21,12 @@ public class ImageWindow extends JFrame {
         setVisible(true);
     }
 
-    /**
-     * Устанавливает новый BufferedImage (готовый к рисованию).
-     * Обычно конвертация Frame→BufferedImage делается до вызова этого метода.
-     */
     public void setImage(BufferedImage img) {
         SwingUtilities.invokeLater(() -> {
             panel.setImage(img);
         });
     }
 
-    /**
-     * Устанавливает новый кадр Frame из JavaCV.
-     * Конвертация происходит внутри invokeLater, в UI-потоке.
-     */
     public void setFrame(Frame frame) {
         SwingUtilities.invokeLater(() -> {
             Java2DFrameConverter converter = panel.getConverter();
@@ -65,7 +52,6 @@ public class ImageWindow extends JFrame {
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
             if (image != null) {
-                // Пропорционально вписать в панель
                 int panelW = getWidth(), panelH = getHeight();
                 int imgW = image.getWidth(), imgH = image.getHeight();
                 double scale = Math.min((double)panelW/imgW, (double)panelH/imgH);

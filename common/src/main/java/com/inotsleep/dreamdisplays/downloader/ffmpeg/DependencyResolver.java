@@ -27,9 +27,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Решение через DependencyRequest + кастомный фильтр по classifier
- */
 public class DependencyResolver {
     private static final DependencyFilter filter = DependencyFilterUtils.andFilter(
             (node, parents) -> {

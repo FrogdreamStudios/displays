@@ -24,7 +24,6 @@ public class RenderUtil2D {
                 VertexFormats.POSITION_COLOR_TEXTURE_LIGHT_NORMAL
         );
 
-        // 4) Трансформируем четыре угла
         Vector2f p1 = new Vector2f(), p2 = new Vector2f(),
                 p3 = new Vector2f(), p4 = new Vector2f();
         matrices.transformPosition(x,           y + height, p1); // нижний-левый

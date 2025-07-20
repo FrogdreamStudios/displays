@@ -15,6 +15,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class AudioVideoPlayer {
     private final Queue<Runnable> tasks = new ConcurrentLinkedQueue<>();
@@ -38,6 +39,8 @@ public class AudioVideoPlayer {
     private volatile boolean initialized = false;
 
     private volatile boolean stopped = false;
+
+    private AtomicBoolean seeked = new AtomicBoolean(false);
 
     Thread audioGrabberThread;
     Thread videoGrabberThread;
@@ -195,27 +198,47 @@ public class AudioVideoPlayer {
                         Thread.sleep(10);
                     }
 
+                    if (seeked.get()) {
+                        seeked.getAndSet(false);
+                        break;
+                    }
+
                     audioLine.write(buf, 0, buf.length);
                     offset += chunkSize;
                 }
             }
             audioLine.drain();
+
+            onEOF();
         } catch (Exception e) {
             LoggingManager.error("Audio Grabber Thread: " + e);
-        } finally {
-            if (audioLine != null) {
-                audioLine.stop();
-                audioLine.close();
-            }
-            try {
-                if (audioGrabber != null) {
-                    audioGrabber.stop();
-                    audioGrabber.release();
-                }
-            } catch (FFmpegFrameGrabber.Exception e) {
-                LoggingManager.error("Audio cleanup: " + e);
-            }
         }
+    }
+
+    private void onEOF() {
+        boolean latestPaused = paused;
+        paused = false;
+        try {
+            audioGrabber.stop();
+            videoGrabber.stop();
+
+            audioGrabberThread.interrupt();
+            videoGrabberThread.interrupt();
+
+            audioGrabber.start();
+            videoGrabber.start();
+
+            audioGrabberThread = new Thread(this::runAudioGrabber, "Audio Grabber Thread");
+            audioGrabberThread.start();
+
+            videoGrabberThread = new Thread(this::runVideoGrabber, "Video Grabber Thread");
+            videoGrabberThread.start();
+
+        } catch (FFmpegFrameGrabber.Exception e) {
+            LoggingManager.error("Audio Grabber Thread: " + e);
+            return;
+        }
+        paused = latestPaused;
     }
 
     private boolean createVideoGrabber(YouTubeCacheEntry cacheEntry) throws FFmpegFrameGrabber.Exception {
@@ -302,6 +325,11 @@ public class AudioVideoPlayer {
             }
             grabber.setOption("headers", sb.toString());
         }
+
+        grabber.setOption("reconnect", "1");
+        grabber.setOption("reconnect_streamed", "1");
+        grabber.setOption("reconnect_delay_max", "5");
+        grabber.setOption("stream_loop",    "-1");
     }
 
     private static final List<String> CODEC_PRIORITY = List.of(

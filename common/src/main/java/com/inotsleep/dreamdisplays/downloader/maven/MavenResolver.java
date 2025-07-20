@@ -20,19 +20,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-/**
- * Обёртка для Aether, позволяющая резолвить и скачивать зависимости.
- * Поддерживает отслеживание статуса и прогресса загрузки по каждому артефакту.
- */
 public class MavenResolver {
     private final RepositorySystem system;
     private final DefaultRepositorySystemSession session;
     private final Map<String, RemoteRepository> reposById;
 
-    // Общий статус загрузки
     private volatile Status downloadStatus = Status.NOT_STARTED;
 
-    // Прогресс по каждому артефакту: resourceName -> percent
     private final ConcurrentMap<String, Double> artifactProgressMap = new ConcurrentHashMap<>();
     private final AtomicLong downloadedBytes = new AtomicLong(0);
 
@@ -54,7 +48,6 @@ public class MavenResolver {
                 )
                 .build());
 
-        // TransferListener для отслеживания прогресса каждого артефакта
         session.setTransferListener(new TransferListener() {
             @Override
             public void transferInitiated(TransferEvent event) {
