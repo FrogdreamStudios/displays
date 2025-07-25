@@ -76,7 +76,6 @@ public class YouTubeCacheEntry {
         Map.Entry<Integer, List<Format>> entry = videoFormats.floorEntry(quality);
 
         if (entry != null) {
-            System.out.println("Got entry");
             return entry.getValue();
         }
         return videoFormats.firstEntry().getValue();

@@ -89,7 +89,6 @@ public class AudioVideoPlayer {
     }
 
     public BufferedImage getImage(ColorSpace cs) {
-        System.out.println(videoQueue.size());
         VFrame head = videoQueue.peek();
         if (head != null) {
             long diff = head.ptsUs - getPlayedAudioUs();
@@ -341,8 +340,7 @@ public class AudioVideoPlayer {
                 }
                 Frame raw = videoGrabber.grabImage();
                 if (raw == null) {
-                    System.out.println("EOF at ts=" + videoGrabber.getTimestamp());
-                    break;
+                    break; // EOS
                 }
                 if (raw.image == null) { raw.close(); continue; }
                 long pts = videoGrabber.getTimestamp();

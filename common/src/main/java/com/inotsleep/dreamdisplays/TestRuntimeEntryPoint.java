@@ -24,8 +24,6 @@ public class TestRuntimeEntryPoint {
 
         List<Path> libs = DependencyResolver.resolve(new MavenResolver(Path.of("./target/libs"), config.repositories), config);
 
-        System.out.println(ytDlpPath);
-
         if (ytDlpPath == null) return;
 
         new YtDlpExecutor(ytDlpPath);

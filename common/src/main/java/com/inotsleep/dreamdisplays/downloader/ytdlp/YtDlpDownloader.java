@@ -56,7 +56,6 @@ public class YtDlpDownloader {
         try {
             if (Files.exists(outputFile)) {
                 String expected = fetchChecksum(sumUrl, fileName);
-                System.out.println("Checksum found: " + expected);
                 if (expected != null) {
                     String actual = sha256(outputFile);
                     if (expected.equalsIgnoreCase(actual)) {
