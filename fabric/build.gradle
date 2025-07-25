@@ -39,25 +39,21 @@ shadowJar {
 		include(dependency('me.inotsleep:utils'))
 	}
 
-
-
-
 	exclude 'org/objectweb/asm/**'
 }
 
 processResources {
-	inputs.property "version", project.version
+	var replaceProperties = [
+			"version"            : project.version,
+			"minecraftVersion"   : minecraft_version,
+			"fabricLoaderVersion": loader_version,
+			"mod_id"             : mod_id
+	]
 
-	filesMatching("fabric.mod.json") {
-		expand (
-			"version": project.version,
-			"minecraftVersion": project.properties.get("minecraft_version"),
-			"fabricLoaderVersion": project.properties.get("loader_version")
-		)
-	}
+	inputs.properties replaceProperties
 
-	filesMatching("version") {
-		expand "version": project.version
+	filesMatching(["fabric.mod.json", "version"]) {
+		expand replaceProperties
 	}
 }
 
@@ -66,10 +62,6 @@ compileJava {
 }
 
 java {
-	// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
-	// if it is present.
-
-    // If you remove this line, sources will not be generated.
 	withSourcesJar()
 
 	sourceCompatibility = JavaVersion.VERSION_21

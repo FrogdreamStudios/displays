@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "id": "dreamdisplays",
+  "id": "${mod_id}",
   "name": "Dream Displays",
   "version": "${version}",
   "license": "LGPL-3.0",

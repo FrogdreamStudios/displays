@@ -1,14 +1,20 @@
 pluginManagement {
     repositories {
         maven {
-            url "https://plugins.gradle.org/m2/"
+            name = "gradle-repo"
+            url = "https://plugins.gradle.org/m2/"
         }
         maven {
-            url "https://oss.sonatype.org/content/repositories/snapshots"
+            name = "sonatype"
+            url = "https://oss.sonatype.org/content/repositories/snapshots"
         }
         maven {
             name = 'Fabric'
             url = 'https://maven.fabricmc.net/'
+        }
+        maven {
+            name = "sponge-powered"
+            url = 'https://repo.spongepowered.org/repository/maven-public/'
         }
         mavenCentral()
         gradlePluginPortal()
@@ -17,5 +23,6 @@ pluginManagement {
 
 rootProject.name = 'displays'
 include ':fabric'
+include ':forge'
 include ':paper'
 include ':common'
