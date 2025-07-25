@@ -346,11 +346,7 @@ public class AudioVideoPlayer {
                 }
                 if (raw.image == null) { raw.close(); continue; }
                 long pts = videoGrabber.getTimestamp();
-//                TODO: remove in next commit
-//                long diff = pts - getPlayedAudioUs();
-//                if (diff > MAX_VIDEO_LEAD_US) {
-//                    LockSupport.parkNanos((diff - MAX_VIDEO_LEAD_US) * 1000);
-//                }
+
                 Frame copy = raw.clone();
                 raw.close();
                 VFrame pkt = new VFrame(copy, pts);

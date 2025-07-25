@@ -1,6 +1,5 @@
 package com.inotsleep.agent;
 
-import net.bytebuddy.agent.Attacher;
 import net.bytebuddy.agent.ByteBuddyAgent;
 
 import java.lang.instrument.Instrumentation;

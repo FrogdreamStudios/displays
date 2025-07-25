@@ -16,7 +16,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class YtDlpExecutor {
-    Path ytDlpPath;
+    private final Path ytDlpPath;
     private static YtDlpExecutor instance;
 
     private final YouTubeQueryCache videoCache = new YouTubeQueryCache();
@@ -184,7 +184,7 @@ public class YtDlpExecutor {
                     stdout.add(line);
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                LoggingManager.error("Unable to get video link", e);
             }
         };
 
@@ -195,7 +195,7 @@ public class YtDlpExecutor {
                     stderr.add(line);
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                LoggingManager.error("Unable to get video link", e);
             }
         };
 

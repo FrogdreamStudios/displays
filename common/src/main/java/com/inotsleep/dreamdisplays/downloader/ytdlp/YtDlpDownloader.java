@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Optional;
 
 public class YtDlpDownloader {
-    private static volatile Status status = Status.NOT_STARTED;;
+    private static volatile Status status = Status.NOT_STARTED;
     private static volatile long downloadedBytes;
     private static volatile long totalBytes;
     private static volatile double percentage;

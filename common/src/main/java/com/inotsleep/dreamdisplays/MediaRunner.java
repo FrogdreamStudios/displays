@@ -17,7 +17,7 @@ public class MediaRunner {
     private static final ColorSpace SRGB = ColorSpace.getInstance(ColorSpace.CS_sRGB);
     private static final long LEAD_US = 200_000; // ограничение опережения при выводе
 
-    public static void run() throws Exception {
+    public static void run() {
         AudioVideoPlayer player = new AudioVideoPlayer("glQjLPFd2M8", 720, "default");
         ImageWindow window = new ImageWindow("Video display", 640, 480);
         AtomicBoolean running = new AtomicBoolean(true);
