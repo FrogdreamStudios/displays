@@ -1,0 +1,23 @@
+repositories:
+  mavenCentral: "https://repo.maven.apache.org/maven2/"
+  Fabric: "https://maven.fabricmc.net/"
+  l0sty-ru: "https://repo.l0sty.ru/releases"
+  papermc-repo: "https://repo.papermc.io/repository/maven-public/"
+  sonatype: "https://oss.sonatype.org/content/groups/public/"
+  jitpack: "https://jitpack.io"
+
+dependencies:
+  - "org.bytedeco:ffmpeg-platform:jar:${ffmpeg_version}"
+  - "org.bytedeco:javacv-platform:jar:${javacv_version}"
+  - "org.bytedeco:ffmpeg:${ffmpeg_version}"
+  - "org.bytedeco:javacv:${javacv_version}"
+
+yt-dlp:
+  windows-x86: "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe"
+  windows-x86_64: "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe"
+  macosx-arm64: "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_macos"
+  macosx-x86_64: "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_macos"
+  linux-arm64: "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux_aarch64"
+  linux-x86_64: "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux"
+
+yt-dlp-checksum: "https://github.com/yt-dlp/yt-dlp/releases/latest/download/SHA2-256SUMS"

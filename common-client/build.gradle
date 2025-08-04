@@ -1,0 +1,71 @@
+plugins {
+    id 'fabric-loom' version '1.10.5'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
+    id 'java'
+    id 'application'
+}
+
+application {
+    mainClass.set("com.inotsleep.dreamdisplays.TestRuntimeEntryPoint")
+}
+
+configurations {
+    shadow
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+
+    compileOnly "org.bytedeco:ffmpeg:${project.ffmpeg_version}"
+    compileOnly "org.bytedeco:javacv:${project.javacv_version}"
+    shadow "org.apache.maven.resolver:maven-resolver-supplier-mvn3:2.0.10"
+
+    shadow "org.apache.maven.resolver:maven-resolver-api:2.0.10"
+    shadow "org.apache.maven.resolver:maven-resolver-util:2.0.10"
+
+    shadow "org.apache.maven.resolver:maven-resolver-impl:2.0.10"
+
+    shadow "org.apache.maven.resolver:maven-resolver-connector-basic:2.0.10"
+    shadow "org.apache.maven.resolver:maven-resolver-transport-apache:2.0.10"
+    shadow "org.apache.maven.resolver:maven-resolver-transport-file:2.0.3"
+
+    shadow 'me.inotsleep:utils:1.4.6'
+
+    shadow "net.bytebuddy:byte-buddy-agent:1.17.6"
+//    shadow "org.bytedeco:ffmpeg-platform:7.1-1.5.11"
+//    shadow "org.bytedeco:javacv-platform:1.5.11"
+
+}
+
+shadowJar {
+    configurations = [project.configurations.shadow]
+
+    exclude("META-INF/**")
+
+    archiveClassifier = ""
+}
+
+tasks.named("build") {
+    dependsOn(shadowJar)
+}
+
+processResources {
+    filesMatching("dependencies.yml") {
+        expand(
+                ffmpeg_version: project.properties.get("ffmpeg_version"),
+                javacv_version: project.properties.get("javacv_version")
+        )
+    }
+}
+
+afterEvaluate {
+    tasks.named("remapJar") {
+        enabled = false
+    }
+}
+
+tasks.named("run", JavaExec).configure {
+    dependsOn(shadowJar)                       // сначала делаем fat-jar
+    classpath = files(shadowJar.archiveFile)   // а в classpath кладём его
+}
