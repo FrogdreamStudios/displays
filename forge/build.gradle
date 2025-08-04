@@ -46,7 +46,7 @@ dependencies {
     // Hack fix for now, force jopt-simple to be exactly 5.0.4 because Mojang ships that version, but some transtive dependencies request 6.0+
     implementation('net.sf.jopt-simple:jopt-simple:5.0.4') { version { strictly '5.0.4' } }
 
-    shadow(project(":common"))
+    shadow(project(":common-client"))
 }
 
 shadowJar {
@@ -84,6 +84,6 @@ tasks.named('processResources', ProcessResources).configure {
 }
 
 tasks.named("shadowJar", ShadowJar) {
-    dependsOn(project(":common").tasks.named("shadowJar"))
-    from(project(":common").tasks.named("shadowJar").flatMap { it.archiveFile }.map { zipTree(it) })
+    dependsOn(project(":common-client").tasks.named("shadowJar"))
+    from(project(":common-client").tasks.named("shadowJar").flatMap { it.archiveFile }.map { zipTree(it) })
 }

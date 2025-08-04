@@ -25,7 +25,7 @@ dependencies {
 
 	compileOnly("org.lwjgl:lwjgl:3.3.6")
 
-	implementation(project(":common"))
+	implementation(project(":common-client"))
 }
 
 shadowJar {
@@ -88,6 +88,6 @@ remapJar {
 }
 
 tasks.named("shadowJar", ShadowJar) {
-	dependsOn(project(":common").tasks.named("shadowJar"))
-	from(project(":common").tasks.named("shadowJar").flatMap { it.archiveFile }.map { zipTree(it) })
+	dependsOn(project(":common-client").tasks.named("shadowJar"))
+	from(project(":common-client").tasks.named("shadowJar").flatMap { it.archiveFile }.map { zipTree(it) })
 }
