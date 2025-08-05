@@ -57,3 +57,29 @@ jobs:
           name: DreamDisplays ${{ matrix.loader }} ${{ matrix.side }} ${{ matrix.version }}
           path: temp-jars/displays-${{ matrix.side }}-${{ matrix.version }}-*-${{ matrix.loader }}.jar
           if-no-files-found: ignore
+
+  cleanup-raw:
+    needs: publish
+    runs-on: ubuntu-24.04
+    if: always()
+    steps:
+      - name: Delete raw-jars artifact
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const resp = await github.rest.actions.listArtifactsForRepo({
+              owner: context.repo.owner,
+              repo:  context.repo.repo
+            });
+            const raw = resp.data.artifacts.find(a => a.name === 'raw-jars');
+            if (!raw) {
+              core.info('raw-jars not found. Ignoring...');
+            } else {
+              await github.rest.actions.deleteArtifact({
+                owner:      context.repo.owner,
+                repo:       context.repo.repo,
+                artifact_id: raw.id
+              });
+              core.info(`raw-jars deleted (id=${raw.id})`);
+            }
