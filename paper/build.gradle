@@ -58,7 +58,7 @@ shadowJar {
     archiveClassifier = "paper"
     destinationDirectory.set(rootProject.layout.buildDirectory.dir("libs"))
 
-    archiveBaseName = "displays-server"
+    archiveBaseName = "displays-server-1_21_8"
 
     relocate("com.google.gson", "com.inotsleep.relocated.com.google.gson")
 }

@@ -12,9 +12,10 @@ jobs:
     strategy:
       matrix:
         # Use these Java versions
-        java: [
-          21,    # Current Java LTS
-        ]
+        java: [ 21 ]
+        side: [ client, server ]
+        version: [ 1_21_8 ]
+        loader: [ fabric, forge, paper ]
     runs-on: ubuntu-24.04
     steps:
       - name: checkout repository
@@ -30,15 +31,10 @@ jobs:
         run: chmod +x ./gradlew
       - name: build
         run: ./gradlew build
-      - name: Capture client jar
+      - name: Capture jars
         if: ${{ matrix.java == '21' }}
         uses: actions/upload-artifact@v4
         with:
-          name: displays-client
-          path: build/libs/*client*.jar
-      - name: Capture server jar
-        if: ${{ matrix.java == '21' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: displays server
-          path: build/libs/*server*.jar
+          name: DreamDisplays ${{ matrix.loader }} ${{ matrix.side }} ${{ matrix.version }}
+          path: build/libs/displays-${{ matrix.side }}-${{ matrix.version }}-*-${{ matrix.loader }}.jar
+          if-no-files-found: ignore
