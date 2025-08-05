@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "${mod_id}",
+  "name": "Dream Displays",
+  "version": "${version}",
+  "license": "LGPL-3.0",
+    "description": "Create in-game displays.",
+  "authors": ["Frogdream Studios"],
+  "entrypoints": {
+    "client": [
+      "com.inotsleep.dreamdisplays.client_1_21_8.fabric.DreamDisplaysFabricMod"
+    ]
+  },
+  "mixins": [
+    "dreamdisplays.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": "${fabricLoaderVersion}",
+    "fabric": "*",
+    "minecraft": "${minecraftVersion}",
+    "java": ">=21",
+    "mixinextras": "*"
+  },
+  "icon": "assets/dreamdisplays/icon.png"
+}

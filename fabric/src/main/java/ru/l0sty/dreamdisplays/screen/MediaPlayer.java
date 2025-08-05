@@ -13,7 +13,7 @@ import org.freedesktop.gstreamer.*;
 import org.freedesktop.gstreamer.elements.AppSink;
 import org.freedesktop.gstreamer.event.SeekFlags;
 import ru.l0sty.dreamdisplays.PlatformlessInitializer;
-import com.inotsleep.dreamdisplays.media.ytdlp.YtDlpExecutor;
+import com.inotsleep.dreamdisplays.client.media.ytdlp.YtDlpExecutor;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;

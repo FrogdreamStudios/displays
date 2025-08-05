@@ -1,0 +1,75 @@
+plugins {
+	id 'fabric-loom' version '1.10.5'
+	id 'maven-publish'
+	id 'com.gradleup.shadow' version '9.0.0-rc3'
+}
+
+configurations {
+	shadow
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	mappings loom.layered() {
+		officialMojangMappings()
+		parchment("org.parchmentmc.data:parchment-${minecraft_version}:${parchment_mappings_version}@zip")
+	}
+
+	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+	shadow(project(path: ":common-client-1_21_8", configuration: "shadow")) {
+		transitive = false
+	}
+}
+
+shadowJar {
+	configurations = [project.configurations.shadow]
+
+	exclude("META-INF/**")
+}
+
+processResources {
+	var replaceProperties = [
+			"version"            : project.version,
+			"minecraftVersion"   : minecraft_version,
+			"fabricLoaderVersion": loader_version,
+			"mod_id"             : mod_id
+	]
+
+	inputs.properties replaceProperties
+
+	filesMatching(["fabric.mod.json", "version"]) {
+		expand replaceProperties
+	}
+}
+
+compileJava {
+	options.encoding = 'UTF-8'
+}
+
+java {
+	withSourcesJar()
+
+	sourceCompatibility = JavaVersion.VERSION_21
+	targetCompatibility = JavaVersion.VERSION_21
+
+}
+
+tasks.withType(JavaCompile) {
+	options.encoding = 'UTF-8'
+}
+
+jar {
+	from(rootProject.file('LICENSE'))
+}
+
+remapJar {
+	dependsOn shadowJar
+	input.set(shadowJar.archiveFile)
+
+	archiveClassifier = "fabric"
+	destinationDirectory.set(rootProject.layout.buildDirectory.dir("libs"))
+
+	archiveBaseName = "displays-client-1_21_8"
+}

@@ -16,13 +16,18 @@ pluginManagement {
             name = "sponge-powered"
             url = 'https://repo.spongepowered.org/repository/maven-public/'
         }
+        maven {
+            name = "parchment"
+            url = 'https://maven.parchmentmc.org'
+        }
         mavenCentral()
         gradlePluginPortal()
     }
 }
 
 rootProject.name = 'displays'
-include ':fabric'
-include ':forge'
-include ':paper'
-include ':common-client'
+include ":paper"
+include "common-client:"
+include ":common-client-1_21_8"
+include ':forge-1_21_8'
+include ':fabric-1_21_8'

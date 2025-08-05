@@ -1,0 +1,41 @@
+plugins {
+    id 'fabric-loom' version '1.10.5'
+    id 'com.gradleup.shadow' version '9.0.0-rc3'
+    id 'java'
+}
+
+group = mod_group
+
+configurations {
+    shadow
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings loom.layered() {
+        officialMojangMappings()
+        parchment("org.parchmentmc.data:parchment-${minecraft_version}:${parchment_mappings_version}@zip")
+    }
+
+    shadow(project(path: ":common-client", configuration: "shadow")) {
+        transitive = false
+    }
+}
+
+shadowJar {
+    configurations = [project.configurations.shadow]
+
+    exclude("META-INF/**")
+
+    archiveClassifier = "all"
+}
+
+tasks.named("build") {
+    dependsOn(shadowJar)
+}
+
+afterEvaluate {
+    tasks.named("remapJar") {
+        enabled = false
+    }
+}

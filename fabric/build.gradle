@@ -1,9 +1,7 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-
 plugins {
 	id 'fabric-loom' version '1.10.5'
 	id 'maven-publish'
-	id 'com.github.johnrengelman.shadow' version '8.1.1'
+	id 'com.gradleup.shadow' version '9.0.0-rc3'
 }
 
 group = "ru.l0sty.dreamdisplays"
@@ -24,8 +22,6 @@ dependencies {
 	implementation 'com.github.felipeucelli:javatube:6692a32'
 
 	compileOnly("org.lwjgl:lwjgl:3.3.6")
-
-	implementation(project(":common-client"))
 }
 
 shadowJar {
@@ -85,9 +81,4 @@ remapJar {
 	destinationDirectory.set(rootProject.layout.buildDirectory.dir("libs"))
 
 	archiveBaseName = "displays-client"
-}
-
-tasks.named("shadowJar", ShadowJar) {
-	dependsOn(project(":common-client").tasks.named("shadowJar"))
-	from(project(":common-client").tasks.named("shadowJar").flatMap { it.archiveFile }.map { zipTree(it) })
 }

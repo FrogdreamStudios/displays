@@ -1,9 +1,9 @@
 package ru.l0sty.dreamdisplays.downloader;
 
-import com.inotsleep.dreamdisplays.downloader.DependencyConfig;
-import com.inotsleep.dreamdisplays.downloader.Status;
-import com.inotsleep.dreamdisplays.downloader.ytdlp.YtDlpDownloader;
-import com.inotsleep.dreamdisplays.media.ytdlp.YtDlpExecutor;
+import com.inotsleep.dreamdisplays.client.downloader.DependencyConfig;
+import com.inotsleep.dreamdisplays.client.downloader.Status;
+import com.inotsleep.dreamdisplays.client.downloader.ytdlp.YtDlpDownloader;
+import com.inotsleep.dreamdisplays.client.media.ytdlp.YtDlpExecutor;
 import me.inotsleep.utils.logging.LoggingManager;
 import org.freedesktop.gstreamer.Gst;
 import ru.l0sty.dreamdisplays.PlatformlessInitializer;

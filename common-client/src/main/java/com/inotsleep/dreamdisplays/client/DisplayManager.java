@@ -1,0 +1,78 @@
+package com.inotsleep.dreamdisplays.client;
+
+import com.inotsleep.dreamdisplays.client.display.Display;
+import com.inotsleep.dreamdisplays.client.display.DisplaySettings;
+import me.inotsleep.utils.config.AbstractConfig;
+
+import java.io.File;
+import java.nio.file.Path;
+import java.util.*;
+
+public class DisplayManager {
+    private static final Map<UUID, Display> displays = new HashMap<>();
+    private static WorldDisplaySettingsStorage displaySettings;
+    private static Path savePath;
+
+    public static Collection<Display> getDisplays() {
+        return displays.values();
+    }
+
+    public static Display getDisplay(UUID uuid) {
+        return displays.get(uuid);
+    }
+
+    public static void addDisplay(Display display) {
+        Display old = displays.get(display.getId());
+        if (old != null) {
+            old.close();
+        }
+
+        displays.put(display.getId(), display);
+
+        if (displaySettings != null) {
+            DisplaySettings settings = displaySettings.settings.get(display.getId());
+            if (settings != null) {
+                display.setVolume((float) settings.volume);
+                display.setQuality(settings.quality);
+            }
+        }
+    }
+
+    public static void removeDisplay(UUID id) {
+        Display display = displays.get(id);
+        if (display == null) return;
+
+        display.close();
+        displays.remove(id);
+    }
+
+    public static void setSavePath(Path path) {
+        if (savePath != null) {
+            if (savePath.equals(path)) return;
+        }
+
+        savePath = path;
+
+        displaySettings = new WorldDisplaySettingsStorage(path.toFile());
+    }
+
+    public static void saveSettings(Display display) {
+        if (displaySettings == null) return;
+        DisplaySettings settings = displaySettings.settings.computeIfAbsent(display.getId(), k -> new DisplaySettings());
+        settings.volume = display.getVolume();
+        settings.quality = display.getQuality();
+    }
+
+    public static void saveSettings() {
+        if (displaySettings != null) displaySettings.save();
+    }
+
+    private static class WorldDisplaySettingsStorage extends AbstractConfig {
+        @me.inotsleep.utils.config.Path("displays")
+        Map<UUID, DisplaySettings> settings = new HashMap<>();
+
+        public WorldDisplaySettingsStorage(File configFile) {
+            super(configFile);
+        }
+    }
+}

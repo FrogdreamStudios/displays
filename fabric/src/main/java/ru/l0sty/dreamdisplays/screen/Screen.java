@@ -8,7 +8,6 @@ import net.minecraft.client.render.RenderPhase;
 import net.minecraft.client.texture.NativeImageBackedTexture;
 import net.minecraft.client.texture.TextureManager;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.TriState;
 import ru.l0sty.dreamdisplays.PlatformlessInitializer;
 import ru.l0sty.dreamdisplays.net.DisplayInfoPacket;
 import ru.l0sty.dreamdisplays.net.RequestSyncPacket;

@@ -1,12 +1,6 @@
 plugins {
-    id 'fabric-loom' version '1.10.5'
-    id 'com.github.johnrengelman.shadow' version '8.1.1'
+    id 'com.gradleup.shadow' version '9.0.0-rc3'
     id 'java'
-    id 'application'
-}
-
-application {
-    mainClass.set("com.inotsleep.dreamdisplays.TestRuntimeEntryPoint")
 }
 
 configurations {
@@ -14,9 +8,6 @@ configurations {
 }
 
 dependencies {
-    minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
-
     compileOnly "org.bytedeco:ffmpeg:${project.ffmpeg_version}"
     compileOnly "org.bytedeco:javacv:${project.javacv_version}"
     shadow "org.apache.maven.resolver:maven-resolver-supplier-mvn3:2.0.10"
@@ -30,20 +21,25 @@ dependencies {
     shadow "org.apache.maven.resolver:maven-resolver-transport-apache:2.0.10"
     shadow "org.apache.maven.resolver:maven-resolver-transport-file:2.0.3"
 
-    shadow 'me.inotsleep:utils:1.4.6'
+    shadow 'me.inotsleep:utils:1.4.8'
 
     shadow "net.bytebuddy:byte-buddy-agent:1.17.6"
-//    shadow "org.bytedeco:ffmpeg-platform:7.1-1.5.11"
-//    shadow "org.bytedeco:javacv-platform:1.5.11"
-
 }
 
 shadowJar {
     configurations = [project.configurations.shadow]
 
     exclude("META-INF/**")
+    exclude 'org/objectweb/asm/**'
+    exclude 'org/slf4j/**'
+    exclude 'com/google/gson/**'
 
-    archiveClassifier = ""
+    archiveClassifier = "all"
+    dependsOn(tasks.named('jar'))
+
+    relocate 'org.apache.maven', 'com.inotsleep.relocated.org.apache.maven'
+    relocate 'org.apache.http', 'com.inotsleep.relocated.org.apache.http'
+    relocate 'org.apache.commons', 'com.inotsleep.relocated.org.apache.commons'
 }
 
 tasks.named("build") {
@@ -57,15 +53,10 @@ processResources {
                 javacv_version: project.properties.get("javacv_version")
         )
     }
-}
 
-afterEvaluate {
-    tasks.named("remapJar") {
-        enabled = false
+    filesMatching("version") {
+        expand(
+                version: version
+        )
     }
-}
-
-tasks.named("run", JavaExec).configure {
-    dependsOn(shadowJar)                       // сначала делаем fat-jar
-    classpath = files(shadowJar.archiveFile)   // а в classpath кладём его
 }

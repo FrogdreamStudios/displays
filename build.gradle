@@ -23,5 +23,6 @@ allprojects {
             name = "jitpack"
             url = 'https://jitpack.io'
         }
+        maven { url = 'https://maven.parchmentmc.org' }
     }
 }
