@@ -38,7 +38,7 @@ public record DeletePacket(UUID id) implements CustomPacketPayload, PacketCodec<
      }
 
      @Override
-     public Class<DeletePacket> getPayloadClass() {
-        return DeletePacket.class;
+     public CustomPacketPayload.Type<DeletePacket> getType() {
+        return PACKET_ID;
      }
  }

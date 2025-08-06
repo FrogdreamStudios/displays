@@ -31,17 +31,13 @@ public class PacketReceiver implements PluginMessageListener {
     @Override
     public void onPluginMessageReceived(@NotNull String channel, @NotNull Player player, byte @NotNull [] message) {
         switch (channel) {
-            case "dreamdisplays:sync":
-            case "frogdisplays:sync": {
+            case "dreamdisplays:sync": {
                 processSyncPacket(player, message);
                 break;
             }
             case "dreamdisplays:req_sync":
             case "dreamdisplays:delete":
-            case "dreamdisplays:report":
-            case "frogdisplays:req_sync":
-            case "frogdisplays:delete":
-            case "frogdisplays:report": {
+            case "dreamdisplays:report": {
                 UUID id = processUUIDPacketWithException(message);
 
                 if (id == null) return;
@@ -60,8 +56,7 @@ public class PacketReceiver implements PluginMessageListener {
                 }
                 break;
             }
-            case "dreamdisplays:version":
-            case "frogdisplays:version": {
+            case "dreamdisplays:version": {
                 processVersionPacket(player, message);
             }
         }
@@ -81,6 +76,7 @@ public class PacketReceiver implements PluginMessageListener {
             PacketUtils.sendPremiumPacket(player, player.hasPermission(DreamDisplaysPlugin.config.permissions.premiumPermission));
 
             String version = Utils.sanitize(new String(data, 0, len));
+            LoggingManager.getLogger().info("Received version packet version: " + version);
 
             LoggingManager.log(player.getName() + " has Dream Displays with version: " + version +". Premium: " + player.hasPermission(DreamDisplaysPlugin.config.permissions.premiumPermission));
 

@@ -48,7 +48,6 @@ public class PacketUtils {
 
             players.forEach(player -> {
                 player.sendPluginMessage(DreamDisplaysPlugin.getInstance(), "dreamdisplays:display_info", arr);
-                player.sendPluginMessage(DreamDisplaysPlugin.getInstance(), "frogdisplays:display_info", arr);
             });
 
         } catch (IOException exception) {
@@ -74,7 +73,6 @@ public class PacketUtils {
 
             players.forEach(player -> {
                 player.sendPluginMessage(DreamDisplaysPlugin.getInstance(), "dreamdisplays:sync", arr);
-                player.sendPluginMessage(DreamDisplaysPlugin.getInstance(), "frogdisplays:sync", arr);
             });
         } catch (IOException exception) {
             LoggingManager.warn("Unable to send packet", exception);
@@ -93,7 +91,6 @@ public class PacketUtils {
 
             players.forEach(player -> {
                 player.sendPluginMessage(DreamDisplaysPlugin.getInstance(), "dreamdisplays:delete", arr);
-                player.sendPluginMessage(DreamDisplaysPlugin.getInstance(), "frogdisplays:delete", arr);
             });
         } catch (IOException exception) {
             LoggingManager.warn( "Unable to send packet", exception);
@@ -110,7 +107,6 @@ public class PacketUtils {
             byte[] arr = byteStream.toByteArray();
 
             player.sendPluginMessage(DreamDisplaysPlugin.getInstance(), "dreamdisplays:premium", arr);
-            player.sendPluginMessage(DreamDisplaysPlugin.getInstance(), "frogdisplays:premium", arr);
         } catch (IOException exception) {
             LoggingManager.warn( "Unable to send packet", exception);
         }

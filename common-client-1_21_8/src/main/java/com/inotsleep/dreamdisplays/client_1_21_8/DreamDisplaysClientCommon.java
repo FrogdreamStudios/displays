@@ -7,12 +7,14 @@ import com.inotsleep.dreamdisplays.client.display.Display;
 import com.inotsleep.dreamdisplays.client.utils.Utils;
 import com.inotsleep.dreamdisplays.client_1_21_8.packets.*;
 import com.inotsleep.dreamdisplays.client_1_21_8.util.ClientUtils;
+import com.mojang.authlib.minecraft.client.MinecraftClient;
 import me.inotsleep.utils.logging.LoggingManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.util.UUID;
 
@@ -24,8 +26,8 @@ public class DreamDisplaysClientCommon implements ClientMod {
 
     public static void onModInit(PacketSender packetSender) {
         DreamDisplaysClientCommon.packetSender = packetSender;
-        LoggingManager.info("Hello from common module!");
-        LoggingManager.info(Minecraft.getInstance().toString());
+
+        new Config(new File("./config/" + MOD_ID)).reload();
     }
 
     public static void onDisplayInfoPacket(DisplayInfoPacket payload) {
@@ -67,6 +69,7 @@ public class DreamDisplaysClientCommon implements ClientMod {
             } else {
                 DisplayManager.saveSettings();
                 DisplayManager.closeDisplays();
+                Config.getInstance().save();
             }
         }
 
@@ -102,7 +105,9 @@ public class DreamDisplaysClientCommon implements ClientMod {
 
     private static void checkVersionAndSendPacket() {
         try {
+            LoggingManager.info("Checking version...");
             String version = Utils.readResource("/version");
+            LoggingManager.info(version);
             packetSender.sendPacket(new VersionPacket(version));
         } catch (Exception e) {
             LoggingManager.error("Unable to get version", e);

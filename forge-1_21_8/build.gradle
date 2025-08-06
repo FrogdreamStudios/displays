@@ -18,10 +18,6 @@ plugins {
     id 'org.parchmentmc.librarian.forgegradle' version '1.+'
 }
 
-mixin {
-    config("dreamdisplays.mixins.json")
-}
-
 apply plugin: 'org.spongepowered.mixin'
 
 group = mod_group

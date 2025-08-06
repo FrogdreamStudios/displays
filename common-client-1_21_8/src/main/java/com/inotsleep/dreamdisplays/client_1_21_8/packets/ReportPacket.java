@@ -36,7 +36,7 @@ public record ReportPacket(UUID id) implements CustomPacketPayload, PacketCodec<
     }
 
     @Override
-    public Class<ReportPacket> getPayloadClass() {
-        return ReportPacket.class;
+    public CustomPacketPayload.Type<ReportPacket> getType() {
+        return PACKET_ID;
     }
 }

@@ -40,7 +40,7 @@ public record RequestSyncPacket(UUID id) implements CustomPacketPayload, PacketC
     }
 
     @Override
-    public Class<RequestSyncPacket> getPayloadClass() {
-        return RequestSyncPacket.class;
+    public CustomPacketPayload.Type<RequestSyncPacket> getType() {
+        return PACKET_ID;
     }
 }

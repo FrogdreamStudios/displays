@@ -1,4 +1,4 @@
-package com.inotsleep.dreamdisplays.client_1_21_8.mixins;
+package com.inotsleep.dreamdisplays.client_1_21_8.forge.mixins;
 
 import com.inotsleep.dreamdisplays.client_1_21_8.DreamDisplaysClientCommon;
 import net.minecraft.client.DeltaTracker;

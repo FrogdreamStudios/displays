@@ -10,17 +10,15 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.network.CustomPayloadEvent;
-import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.network.Channel;
 import net.minecraftforge.network.ChannelBuilder;
-import net.minecraftforge.network.SimpleChannel;
+import net.minecraftforge.network.payload.PayloadFlow;
 import org.apache.logging.log4j.LogManager;
 
-import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -29,24 +27,35 @@ import java.util.function.Consumer;
 @Mod(DreamDisplaysClientCommon.MOD_ID)
 public class DreamDisplaysForgeMod implements PacketSender {
 
-    private static Map<ResourceLocation, SimpleChannel> channels = new HashMap<>();
+    Channel<CustomPacketPayload> channel;
 
     public DreamDisplaysForgeMod(FMLJavaModLoadingContext context) {
         LoggingManager.setLogger(LogManager.getLogger(DreamDisplaysClientCommon.MOD_ID));
         DreamDisplaysClientCommon.onModInit(this);
 
-        context.getModBusGroup().register(MethodHandles.lookup(), this);
+        FMLCommonSetupEvent.getBus(context.getModBusGroup()).addListener(this::onCommonSetup);
     }
 
-    @SubscribeEvent
     public void onCommonSetup(final FMLCommonSetupEvent event) {
-        registerChannel(new DeletePacket(null), wrapHandler(DreamDisplaysClientCommon::onDeletePacket));
-        registerChannel(new DisplayInfoPacket(null, null, null, 0, 0, null, null, false, null), wrapHandler(DreamDisplaysClientCommon::onDisplayInfoPacket));
-        registerChannel(new PremiumPacket(false), wrapHandler(DreamDisplaysClientCommon::onPremiumPacket));
-        registerChannel(new ReportPacket(null), emptyHandler(ReportPacket.class));
-        registerChannel(new RequestSyncPacket(null), emptyHandler(RequestSyncPacket.class));
-        registerChannel(new SyncPacket(null, false, false, 0, 0), wrapHandler(DreamDisplaysClientCommon::onSyncPacket));
-        registerChannel(new VersionPacket(null), emptyHandler(VersionPacket.class));
+        PayloadFlow<RegistryFriendlyByteBuf, CustomPacketPayload> payloadFlow = ChannelBuilder
+                .named(ResourceLocation.fromNamespaceAndPath(DreamDisplaysClientCommon.MOD_ID, "main"))
+                .clientAcceptedVersions((status, version) -> true)
+                .serverAcceptedVersions((status, version) -> true)
+                .networkProtocolVersion(1)
+                .payloadChannel()
+                .play()
+                .bidirectional();
+
+
+        registerChannel(payloadFlow, new DeletePacket(null), wrapHandler(DreamDisplaysClientCommon::onDeletePacket));
+        registerChannel(payloadFlow, new DisplayInfoPacket(null, null, null, 0, 0, null, null, false, null), wrapHandler(DreamDisplaysClientCommon::onDisplayInfoPacket));
+        registerChannel(payloadFlow, new PremiumPacket(false), wrapHandler(DreamDisplaysClientCommon::onPremiumPacket));
+        registerChannel(payloadFlow, new ReportPacket(null), emptyHandler(ReportPacket.class));
+        registerChannel(payloadFlow, new RequestSyncPacket(null), emptyHandler(RequestSyncPacket.class));
+        registerChannel(payloadFlow, new SyncPacket(null, false, false, 0, 0), wrapHandler(DreamDisplaysClientCommon::onSyncPacket));
+        registerChannel(payloadFlow, new VersionPacket(null), emptyHandler(VersionPacket.class));
+
+        channel = payloadFlow.build();
     }
 
     private <T extends CustomPacketPayload & PacketCodec<T>> BiConsumer<T, CustomPayloadEvent.Context> emptyHandler(Class<T> claszz) {
@@ -55,38 +64,20 @@ public class DreamDisplaysForgeMod implements PacketSender {
 
     private <T extends CustomPacketPayload & PacketCodec<T>> BiConsumer<T, CustomPayloadEvent.Context> wrapHandler(Consumer<T> handler) {
         return (t, ctx) -> {
-            ctx.enqueueWork(() -> handler.accept(t));
+            handler.accept(t);
+            ctx.setPacketHandled(true);
         };
     }
 
     @Override
     public void sendPacket(CustomPacketPayload payload) {
-        SimpleChannel channel = channels.get(payload.type().id());
-        if (channel == null) {
-            LoggingManager.error("Could not find channel for " + payload.type().id());
-            return;
-        }
-
         if (Minecraft.getInstance().getConnection() == null) return;
 
         channel.send(payload, Minecraft.getInstance().getConnection().getConnection());
     }
 
-    private <T extends CustomPacketPayload & PacketCodec<T>> void registerChannel(T packet, BiConsumer<T, CustomPayloadEvent.Context> handler) {
-        SimpleChannel channel = ChannelBuilder
-                .named(packet.type().id())
-                .clientAcceptedVersions((status, version) -> true)
-                .serverAcceptedVersions((status, version) -> true)
-                .networkProtocolVersion(1)
-                .simpleChannel()
-                    .play()
-                        .clientbound()
-                            .addMain(packet.getPayloadClass(), wrapCodec(packet.getCodec()), handler)
-                        .serverbound()
-                            .addMain(packet.getPayloadClass(), wrapCodec(packet.getCodec()), handler)
-                .build();
-
-        channels.put(packet.type().id(), channel);
+    private <T extends CustomPacketPayload & PacketCodec<T>> void registerChannel(PayloadFlow<RegistryFriendlyByteBuf, CustomPacketPayload> flow, T packet, BiConsumer<T, CustomPayloadEvent.Context> handler) {
+        flow.add(packet.getType(), wrapCodec(packet.getCodec()), handler);
     }
 
     private <T> StreamCodec<RegistryFriendlyByteBuf, T> wrapCodec(

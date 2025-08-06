@@ -2,6 +2,7 @@ package com.inotsleep.dreamdisplays.client_1_21_8.packets;
 
 import com.inotsleep.dreamdisplays.client.display.Display;
 import com.inotsleep.dreamdisplays.client_1_21_8.DreamDisplaysClientCommon;
+import me.inotsleep.utils.logging.LoggingManager;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -22,6 +23,8 @@ public record DisplayInfoPacket(UUID id, UUID ownerId, Vector3i pos, int width, 
     public static final StreamCodec<FriendlyByteBuf, DisplayInfoPacket> PACKET_CODEC =
             StreamCodec.of(
                     (buf, packet) -> {
+                        Thread.dumpStack();
+
                         buf.writeUUID(packet.id());
                         buf.writeUUID(packet.ownerId());
 
@@ -73,7 +76,7 @@ public record DisplayInfoPacket(UUID id, UUID ownerId, Vector3i pos, int width, 
     }
 
     @Override
-    public Class<DisplayInfoPacket> getPayloadClass() {
-        return DisplayInfoPacket.class;
+    public CustomPacketPayload.Type<DisplayInfoPacket> getType() {
+        return PACKET_ID;
     }
 }

@@ -1,6 +1,7 @@
 package com.inotsleep.dreamdisplays.client_1_21_8.packets;
 
 import com.inotsleep.dreamdisplays.client_1_21_8.DreamDisplaysClientCommon;
+import me.inotsleep.utils.logging.LoggingManager;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -22,6 +23,9 @@ public record PremiumPacket(boolean premium) implements CustomPacketPayload, Pac
                     (buf, packet) -> buf.writeBoolean(packet.premium()),
                     (buf) -> {
                         boolean premium = buf.readBoolean();
+
+                        LoggingManager.info(String.valueOf(premium));
+
                         return new PremiumPacket(premium);
                     });
 
@@ -36,7 +40,7 @@ public record PremiumPacket(boolean premium) implements CustomPacketPayload, Pac
     }
 
     @Override
-    public Class<PremiumPacket> getPayloadClass() {
-        return PremiumPacket.class;
+    public CustomPacketPayload.Type<PremiumPacket> getType() {
+        return PACKET_ID;
     }
 }

@@ -49,7 +49,7 @@ public record SyncPacket(UUID id, boolean isSync, boolean currentState, long cur
     }
 
     @Override
-    public Class<SyncPacket> getPayloadClass() {
-        return SyncPacket.class;
+    public CustomPacketPayload.Type<SyncPacket> getType() {
+        return PACKET_ID;
     }
 }

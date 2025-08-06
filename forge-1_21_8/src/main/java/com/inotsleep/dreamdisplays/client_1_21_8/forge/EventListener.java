@@ -10,7 +10,7 @@ import net.minecraftforge.fml.common.Mod;
 public class EventListener {
 
     @SubscribeEvent
-    public void onEndTick(TickEvent.ClientTickEvent event) {
+    public static void onEndTick(TickEvent.ClientTickEvent.Post event) {
         DreamDisplaysClientCommon.onTick();
     }
 }

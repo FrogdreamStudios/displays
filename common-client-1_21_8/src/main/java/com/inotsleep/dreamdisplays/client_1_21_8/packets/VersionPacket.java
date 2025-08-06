@@ -34,7 +34,7 @@ public record VersionPacket(String version) implements CustomPacketPayload, Pack
     }
 
     @Override
-    public Class<VersionPacket> getPayloadClass() {
-        return VersionPacket.class;
+    public CustomPacketPayload.Type<VersionPacket> getType() {
+        return PACKET_ID;
     }
 }

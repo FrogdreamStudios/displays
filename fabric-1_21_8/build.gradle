@@ -8,6 +8,12 @@ configurations {
 	shadow
 }
 
+loom {
+	mixin {
+		defaultRefmapName = "dreamdisplays.refmap.json"
+	}
+}
+
 dependencies {
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	mappings loom.layered() {

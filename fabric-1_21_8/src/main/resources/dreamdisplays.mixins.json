@@ -1,12 +1,13 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "com.inotsleep.dreamdisplays.client_1_21_8.mixins",
+  "package": "com.inotsleep.dreamdisplays.client_1_21_8.fabric.mixins",
   "compatibilityLevel": "JAVA_21",
   "client": [
     "CrossHairMixin"
   ],
   "injectors": {
     "defaultRequire": 1
-  }
+  },
+  "refmap": "dreamdisplays.refmap.json"
 }
