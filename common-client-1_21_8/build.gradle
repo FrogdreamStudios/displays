@@ -10,8 +10,17 @@ configurations {
     shadow
 }
 
+loom {
+    mixin {
+        defaultRefmapName = "mixins.dreamdisplays.refmap.json"
+    }
+}
+
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+    compileOnly 'org.spongepowered:mixin:0.8.5'
+
     mappings loom.layered() {
         officialMojangMappings()
         parchment("org.parchmentmc.data:parchment-${minecraft_version}:${parchment_mappings_version}@zip")
@@ -24,8 +33,6 @@ dependencies {
 
 shadowJar {
     configurations = [project.configurations.shadow]
-
-    exclude("META-INF/**")
 
     archiveClassifier = "all"
 }

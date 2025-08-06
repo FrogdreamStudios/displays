@@ -29,6 +29,7 @@ public class AudioVideoPlayer {
     private String userCode;
 
     private volatile float volume = 0.3f;
+    private volatile float attenuation = 1.0f;
     private volatile float volumeDb = 0;
 
     private SourceDataLine audioLine;
@@ -152,9 +153,20 @@ public class AudioVideoPlayer {
 
     public boolean mute(boolean muted) {
         if (!initialized) return this.muted;
+
+        if (this.muted == muted) return muted;
+
         this.muted = muted;
         volumeControl.setValue(muted ? volumeControl.getMinimum() : volumeDb);
         return muted;
+    }
+
+    public float setAttenuation(float attenuation) {
+        this.attenuation = attenuation;
+
+        setVolume(volume);
+
+        return attenuation;
     }
 
     public float setVolume(float volume) {
@@ -162,7 +174,7 @@ public class AudioVideoPlayer {
         this.volume = volume;
         float minDb = volumeControl.getMinimum();
         float maxDb = volumeControl.getMaximum();
-        float db = minDb + (maxDb - minDb) * volume;
+        float db = minDb + (maxDb - minDb) * (volume * attenuation);
         volumeControl.setValue(db);
         this.volumeDb = db;
         return volume;

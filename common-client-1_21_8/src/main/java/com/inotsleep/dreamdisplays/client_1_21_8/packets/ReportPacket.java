@@ -13,7 +13,7 @@ import java.util.UUID;
  * This packet is sent from the client to the server to report about a bad display with the given ID.
  * @param id the ID of the display to report.
  */
-public record ReportPacket(UUID id) implements CustomPacketPayload {
+public record ReportPacket(UUID id) implements CustomPacketPayload, PacketCodec<ReportPacket> {
     public static final Type<ReportPacket> PACKET_ID =
             new Type<>(ResourceLocation.fromNamespaceAndPath(DreamDisplaysClientCommon.MOD_ID, "report"));
 
@@ -28,5 +28,15 @@ public record ReportPacket(UUID id) implements CustomPacketPayload {
     @Override
     public @NotNull Type<? extends CustomPacketPayload> type() {
         return PACKET_ID;
+    }
+
+    @Override
+    public StreamCodec<FriendlyByteBuf, ReportPacket> getCodec() {
+        return PACKET_CODEC;
+    }
+
+    @Override
+    public Class<ReportPacket> getPayloadClass() {
+        return ReportPacket.class;
     }
 }

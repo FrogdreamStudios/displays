@@ -17,7 +17,7 @@ import java.util.UUID;
  * This feature is important while using the synchronization feature and, of course, for other cases when the client needs to be updated with the latest display data.
  * @param id the ID of the display to sync.
  */
-public record RequestSyncPacket(UUID id) implements CustomPacketPayload {
+public record RequestSyncPacket(UUID id) implements CustomPacketPayload, PacketCodec<RequestSyncPacket> {
     public static final Type<RequestSyncPacket> PACKET_ID =
             new Type<>(ResourceLocation.fromNamespaceAndPath(DreamDisplaysClientCommon.MOD_ID, "req_sync"));
 
@@ -32,5 +32,15 @@ public record RequestSyncPacket(UUID id) implements CustomPacketPayload {
     @Override
     public @NotNull Type<? extends CustomPacketPayload> type() {
         return PACKET_ID;
+    }
+
+    @Override
+    public StreamCodec<FriendlyByteBuf, RequestSyncPacket> getCodec() {
+        return PACKET_CODEC;
+    }
+
+    @Override
+    public Class<RequestSyncPacket> getPayloadClass() {
+        return RequestSyncPacket.class;
     }
 }

@@ -13,7 +13,7 @@ import java.util.UUID;
  * Packet for synchronizing display data.
  * Read more about the synchronization feature RequestSyncPacket.
  */
-public record SyncPacket(UUID id, boolean isSync, boolean currentState, long currentTime, long limitTime) implements CustomPacketPayload {
+public record SyncPacket(UUID id, boolean isSync, boolean currentState, long currentTime, long limitTime) implements CustomPacketPayload, PacketCodec<SyncPacket> {
     public static final Type<SyncPacket> PACKET_ID =
             new Type<>(ResourceLocation.fromNamespaceAndPath(DreamDisplaysClientCommon.MOD_ID, "sync"));
 
@@ -41,5 +41,15 @@ public record SyncPacket(UUID id, boolean isSync, boolean currentState, long cur
     @Override
     public @NotNull Type<? extends CustomPacketPayload> type() {
         return PACKET_ID;
+    }
+
+    @Override
+    public StreamCodec<FriendlyByteBuf, SyncPacket> getCodec() {
+        return PACKET_CODEC;
+    }
+
+    @Override
+    public Class<SyncPacket> getPayloadClass() {
+        return SyncPacket.class;
     }
 }

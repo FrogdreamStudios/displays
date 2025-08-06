@@ -1,5 +1,10 @@
 package com.inotsleep.dreamdisplays.client.utils;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+
 public class Utils {
     public static String getPlatform() {
         String os   = System.getProperty("os.name").toLowerCase();
@@ -20,5 +25,20 @@ public class Utils {
             }
         }
         throw new IllegalStateException("Unsupported OS/arch: " + os + "/" + arch);
+    }
+
+    public static String readResource(String resourcePath) throws IOException {
+        try (InputStream in = Utils.class.getResourceAsStream(resourcePath)) {
+            if (in == null) {
+                throw new IOException("Can't find the resource: " + resourcePath);
+            }
+            BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line).append("\n");
+            }
+            return sb.toString();
+        }
     }
 }

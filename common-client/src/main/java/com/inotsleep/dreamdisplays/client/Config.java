@@ -8,35 +8,44 @@ import java.io.File;
 
 public class Config extends AbstractConfig {
 
+    @Comment("Render distance for displays")
+    @Path("render_distance")
+    public int renderDistance = 64;
+
     @Comment("Default quality")
-    @Path("default_quality")
+    @Path("default-quality")
     public int defaultQuality = 720;
 
     @Comment("Default volume")
-    @Path("default_volume")
+    @Path("default-volume")
     public double defaultVolume = 0.4;
 
     @Comment("Mod will not play sound when minecraft")
     @Comment("window is not focused")
-    @Path("mute_on_lost_focus")
+    @Path("mute-on-lost-focus")
     public boolean muteOnLostFocus = true;
 
     @Comment("Mod will not render screen when minecraft")
     @Comment("window is not focused")
-    @Path("no_render_on_lost_focus")
+    @Path("no-render-on-lost-focus")
     public boolean noRenderOnLostFocus = true;
 
     @Comment("Quality will be reduced when")
     @Comment("latency between video and audio players")
-    @Comment("exceeds max_va_latency value")
-    @Path("reduce_quality_on_hight_va_latency")
+    @Comment("exceeds max-va-latency value")
+    @Path("reduce-quality-on-hight-va-latency")
     public boolean reduceQualityOnHighLatency = true;
 
     @Comment("Max latency between video and audio players")
     @Comment("Before quality will be reduced")
     @Comment("Specified in micro seconds")
-    @Path("max_va_latency")
+    @Path("max-va-latency")
     public long maxVaLatency = 2000000;
+
+    @Comment("Disable displays")
+    @Path("displays-disabled")
+    public boolean displaysDisabled = false;
+
 
     private static Config instance;
 
@@ -46,5 +55,6 @@ public class Config extends AbstractConfig {
 
     public Config(File baseDir) {
         super(baseDir, "config.yml");
+        instance = this;
     }
 }

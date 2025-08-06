@@ -15,7 +15,7 @@ import java.util.UUID;
  * Packet for displaying information about a display.
  * This packet is sent from the server to the client to provide information about a display.
  */
-public record DisplayInfoPacket(UUID id, UUID ownerId, Vector3i pos, int width, int height, String videoCode, Display.Facing facing, boolean isSync, String lang) implements CustomPacketPayload {
+public record DisplayInfoPacket(UUID id, UUID ownerId, Vector3i pos, int width, int height, String videoCode, Display.Facing facing, boolean isSync, String lang) implements CustomPacketPayload, PacketCodec<DisplayInfoPacket> {
     public static final CustomPacketPayload.Type<DisplayInfoPacket> PACKET_ID =
             new Type<>(ResourceLocation.fromNamespaceAndPath(DreamDisplaysClientCommon.MOD_ID, "display_info"));
 
@@ -65,5 +65,15 @@ public record DisplayInfoPacket(UUID id, UUID ownerId, Vector3i pos, int width, 
     @Override
     public @NotNull Type<? extends CustomPacketPayload> type() {
         return PACKET_ID;
+    }
+
+    @Override
+    public StreamCodec<FriendlyByteBuf, DisplayInfoPacket> getCodec() {
+        return PACKET_CODEC;
+    }
+
+    @Override
+    public Class<DisplayInfoPacket> getPayloadClass() {
+        return DisplayInfoPacket.class;
     }
 }

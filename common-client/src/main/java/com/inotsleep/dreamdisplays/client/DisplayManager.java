@@ -49,11 +49,12 @@ public class DisplayManager {
     public static void setSavePath(Path path) {
         if (savePath != null) {
             if (savePath.equals(path)) return;
-        }
+        } else return;
 
         savePath = path;
 
         displaySettings = new WorldDisplaySettingsStorage(path.toFile());
+        displaySettings.reload();
     }
 
     public static void saveSettings(Display display) {
@@ -65,6 +66,26 @@ public class DisplayManager {
 
     public static void saveSettings() {
         if (displaySettings != null) displaySettings.save();
+    }
+
+    public static void mute(boolean unfocused) {
+        displays.forEach((uuid, display) -> {
+            display.mute(unfocused);
+        });
+    }
+
+    public static void doRender(boolean focused) {
+        displays.forEach((uuid, display) -> {
+           display.doRender(focused);
+        });
+    }
+
+    public static void closeDisplays() {
+        displays.forEach((uuid, display) -> {
+            display.close();
+        });
+
+        displays.clear();
     }
 
     private static class WorldDisplaySettingsStorage extends AbstractConfig {

@@ -1,14 +1,16 @@
 package com.inotsleep.dreamdisplays.client_1_21_8.fabric;
 
 import com.inotsleep.dreamdisplays.client_1_21_8.DreamDisplaysClientCommon;
+import com.inotsleep.dreamdisplays.client_1_21_8.PacketSender;
 import com.inotsleep.dreamdisplays.client_1_21_8.packets.*;
 import me.inotsleep.utils.logging.LoggingManager;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.slf4j.LoggerFactory;
 
-public class DreamDisplaysFabricMod implements ClientModInitializer {
+public class DreamDisplaysFabricMod implements ClientModInitializer, PacketSender {
     @Override
     public void onInitializeClient() {
         LoggingManager.setLogger(LoggerFactory.getLogger(DreamDisplaysClientCommon.MOD_ID));
@@ -34,6 +36,11 @@ public class DreamDisplaysFabricMod implements ClientModInitializer {
 
         ClientPlayNetworking.registerGlobalReceiver(SyncPacket.PACKET_ID, (payload, unused) -> DreamDisplaysClientCommon.onSyncPacket(payload));
 
-        DreamDisplaysClientCommon.onModInit();
+        DreamDisplaysClientCommon.onModInit(this);
+    }
+
+    @Override
+    public void sendPacket(CustomPacketPayload payload) {
+        ClientPlayNetworking.send(payload);
     }
 }

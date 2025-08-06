@@ -12,8 +12,6 @@ dependencies {
 
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
-	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-
 	implementation 'org.freedesktop.gstreamer:gst1-java-core:1.4.0'
 	compileOnly 'net.java.dev.jna:jna:5.9.0'
 	compileOnly 'net.java.dev.jna:jna-platform:5.9.0'
@@ -78,7 +76,5 @@ remapJar {
 	input.set(shadowJar.archiveFile)
 
 	archiveClassifier = "fabric"
-	destinationDirectory.set(rootProject.layout.buildDirectory.dir("libs"))
-
 	archiveBaseName = "displays-client"
 }

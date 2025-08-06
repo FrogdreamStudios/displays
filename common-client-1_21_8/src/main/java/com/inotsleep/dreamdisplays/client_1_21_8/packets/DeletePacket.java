@@ -13,7 +13,8 @@ import java.util.UUID;
  * This packet is sent from the client to the server to delete a display with the given ID.
  * @param id the ID of the display to delete.
  */
-public record DeletePacket(UUID id) implements CustomPacketPayload {
+public record DeletePacket(UUID id) implements CustomPacketPayload, PacketCodec<DeletePacket> {
+
     public static final Type<DeletePacket> PACKET_ID =
             new Type<>(ResourceLocation.fromNamespaceAndPath(DreamDisplaysClientCommon.MOD_ID, "delete"));
 
@@ -30,4 +31,14 @@ public record DeletePacket(UUID id) implements CustomPacketPayload {
     public @NotNull Type<? extends CustomPacketPayload> type() {
         return PACKET_ID;
     }
-}
+
+     @Override
+     public StreamCodec<FriendlyByteBuf, DeletePacket> getCodec() {
+         return PACKET_CODEC;
+     }
+
+     @Override
+     public Class<DeletePacket> getPayloadClass() {
+        return DeletePacket.class;
+     }
+ }

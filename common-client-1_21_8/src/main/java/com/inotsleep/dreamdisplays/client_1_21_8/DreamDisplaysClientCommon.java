@@ -1,21 +1,31 @@
 package com.inotsleep.dreamdisplays.client_1_21_8;
 
+import com.inotsleep.dreamdisplays.client.ClientMod;
+import com.inotsleep.dreamdisplays.client.Config;
 import com.inotsleep.dreamdisplays.client.DisplayManager;
 import com.inotsleep.dreamdisplays.client.display.Display;
-import com.inotsleep.dreamdisplays.client_1_21_8.packets.DeletePacket;
-import com.inotsleep.dreamdisplays.client_1_21_8.packets.DisplayInfoPacket;
-import com.inotsleep.dreamdisplays.client_1_21_8.packets.PremiumPacket;
-import com.inotsleep.dreamdisplays.client_1_21_8.packets.SyncPacket;
+import com.inotsleep.dreamdisplays.client.utils.Utils;
+import com.inotsleep.dreamdisplays.client_1_21_8.packets.*;
+import com.inotsleep.dreamdisplays.client_1_21_8.util.ClientUtils;
 import me.inotsleep.utils.logging.LoggingManager;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 
-public class DreamDisplaysClientCommon {
+import java.nio.file.Path;
+import java.util.UUID;
+
+public class DreamDisplaysClientCommon implements ClientMod {
     public static final String MOD_ID = "dreamdisplays";
+    public volatile static boolean isOnScreen;
 
-    public static void onModInit() {
+    private static PacketSender packetSender;
+
+    public static void onModInit(PacketSender packetSender) {
+        DreamDisplaysClientCommon.packetSender = packetSender;
         LoggingManager.info("Hello from common module!");
         LoggingManager.info(Minecraft.getInstance().toString());
-
     }
 
     public static void onDisplayInfoPacket(DisplayInfoPacket payload) {
@@ -37,5 +47,86 @@ public class DreamDisplaysClientCommon {
 
     public static void onSyncPacket(SyncPacket payload) {
 
+    }
+
+    private static Level lastLevel = null;
+    private static Display hoveredDisplay = null;
+
+    public static void onTick() {
+        Minecraft client = Minecraft.getInstance();
+
+        if (lastLevel != client.level) {
+            lastLevel = client.level;
+
+            if (lastLevel != null) {
+                checkVersionAndSendPacket();
+
+                Path savePath = ClientUtils.getClientSettingSavePath();
+
+                if (savePath != null) DisplayManager.setSavePath(savePath);
+            } else {
+                DisplayManager.saveSettings();
+                DisplayManager.closeDisplays();
+            }
+        }
+
+        if (client.player == null || client.level == null) return;
+
+        hoveredDisplay = null;
+        isOnScreen = false;
+
+        Vec3 pos = client.player.position();
+
+        BlockPos rayCastResult = ClientUtils.rayCast(Config.getInstance().renderDistance);
+
+        for (Display display : DisplayManager.getDisplays()) {
+            if (
+                    Config.getInstance().displaysDisabled ||
+                    display.getDistance(pos.x, pos.y, pos.z) > Config.getInstance().renderDistance
+            ) {
+                DisplayManager.removeDisplay(display.getId());
+                if (hoveredDisplay == display) {
+                    hoveredDisplay = null;
+                    isOnScreen = false;
+                }
+            } else if (rayCastResult != null) {
+                if (display.isInScreen(rayCastResult.getX(), rayCastResult.getY(), rayCastResult.getZ())) {
+                    hoveredDisplay = display;
+                    isOnScreen = true;
+                }
+
+                display.tick(pos.x, pos.y, pos.z);
+            }
+        }
+    }
+
+    private static void checkVersionAndSendPacket() {
+        try {
+            String version = Utils.readResource("/version");
+            packetSender.sendPacket(new VersionPacket(version));
+        } catch (Exception e) {
+            LoggingManager.error("Unable to get version", e);
+        }
+    }
+
+    @Override
+    public void sendSyncUpdate(UUID id, long time, boolean paused, boolean isSync, long duration) {
+        packetSender.sendPacket(new SyncPacket(id, isSync, paused, time, duration));
+    }
+
+    @Override
+    public void sendRequestSync(UUID id) {
+        packetSender.sendPacket(new RequestSyncPacket(id));
+    }
+
+    @Override
+    public UUID getPlayerID() {
+        if (Minecraft.getInstance().player == null) return null;
+        return Minecraft.getInstance().player.getUUID();
+    }
+
+    @Override
+    public boolean isFocused() {
+        return Minecraft.getInstance().isWindowActive();
     }
 }

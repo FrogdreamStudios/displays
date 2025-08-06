@@ -20,7 +20,7 @@ public class Display {
     private final UUID id;
     private final UUID ownerId;
 
-    private final double x, y, z;
+    private final int x, y, z;
     private final int width, height;
     private final Facing facing;
 
@@ -41,7 +41,11 @@ public class Display {
 
     private volatile boolean throttled = false;
 
-    public Display(UUID id, UUID ownerId, Facing facing, double x, double y, double z, int width, int height) {
+    private volatile boolean doRender = true;
+
+    private float lastAttenuation = 1.0f;
+
+    public Display(UUID id, UUID ownerId, Facing facing, int x, int y, int z, int width, int height) {
         this.id = id;
         this.ownerId = ownerId;
 
@@ -65,6 +69,38 @@ public class Display {
         player = new AudioVideoPlayer();
         safeUpdateDisplayThread.start();
         afterInit();
+    }
+
+    public double getDistance(double x, double y, double z) {
+        double maxX = this.x;
+        double maxY = this.y + height - 1;
+        double maxZ = this.z;
+
+        switch (facing) {
+            case NORTH, SOUTH -> maxX += width - 1;
+            case EAST, WEST -> maxZ += width - 1;
+        }
+
+        double cX = Math.min(Math.max(x, this.x), maxX) - this.x;
+        double cY = Math.min(Math.max(y, this.y), maxY) - this.y;
+        double cZ = Math.min(Math.max(z, this.z), maxZ) - this.z;
+
+        return Math.sqrt(cX * cX + cY * cY + cZ * cZ);
+    }
+
+    public boolean isInScreen(int x, int y, int z) {
+        int maxX = this.x;
+        int maxY = this.y + height - 1;
+        int maxZ = this.z;
+
+        switch (facing) {
+            case NORTH, SOUTH -> maxX += width - 1;
+            case EAST, WEST -> maxZ += width - 1;
+        }
+
+        return this.x <= x && maxX >= x &&
+                this.y <= y && maxY >= y &&
+                this.z <= z && maxZ >= z;
     }
 
     private void afterInit() {
@@ -162,6 +198,8 @@ public class Display {
     }
 
     public DisplayRenderData getRenderData() {
+        if (!doRender) return null;
+
         return new DisplayRenderData(player == null ? null : player.getImage(), x, y, z, width, height, facing, textureWidth, textureHeight);
     }
 
@@ -174,6 +212,9 @@ public class Display {
     }
 
     public void setSync(boolean sync) {
+        if (this.sync != sync) {
+            ClientModHolder.getInstance().sendRequestSync(id);
+        }
         this.sync = sync;
     }
 
@@ -182,7 +223,7 @@ public class Display {
     }
 
     public void seekForward() {
-        if (sync && ClientModHolder.getInstance().getPlayerID().equals(id)) {
+        if (sync && ClientModHolder.getInstance().getPlayerID().equals(ownerId)) {
             ClientModHolder
                     .getInstance()
                     .sendSyncUpdate(
@@ -198,7 +239,7 @@ public class Display {
     }
 
     public void seekBackward() {
-        if (sync && ClientModHolder.getInstance().getPlayerID().equals(id)) {
+        if (sync && ClientModHolder.getInstance().getPlayerID().equals(ownerId)) {
             ClientModHolder
                     .getInstance()
                     .sendSyncUpdate(
@@ -219,6 +260,19 @@ public class Display {
 
     public void setPaused(boolean paused) {
         player.setPaused(paused);
+    }
+
+    public void doRender(boolean focused) {
+        doRender = focused;
+    }
+
+    public void tick(double x, double y, double z) {
+        double dist = getDistance(x, y, z);
+        double attenuation = Math.pow(1.0 - Math.min(1.0, dist / Config.getInstance().renderDistance), 2);
+
+        if (Math.abs(attenuation - lastAttenuation) < 1e-5) return;
+
+        player.setAttenuation((float) attenuation);
     }
 
     public enum Facing {

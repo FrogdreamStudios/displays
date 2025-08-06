@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
  * This packet is used to enable or disable premium features (in the client)
  * @param premium true if the user has a premium, false otherwise.
  */
-public record PremiumPacket(boolean premium) implements CustomPacketPayload {
+public record PremiumPacket(boolean premium) implements CustomPacketPayload, PacketCodec<PremiumPacket> {
     public static final Type<PremiumPacket> PACKET_ID =
             new Type<>(ResourceLocation.fromNamespaceAndPath(DreamDisplaysClientCommon.MOD_ID, "premium"));
 
@@ -28,5 +28,15 @@ public record PremiumPacket(boolean premium) implements CustomPacketPayload {
     @Override
     public @NotNull Type<? extends CustomPacketPayload> type() {
         return PACKET_ID;
+    }
+
+    @Override
+    public StreamCodec<FriendlyByteBuf, PremiumPacket> getCodec() {
+        return PACKET_CODEC;
+    }
+
+    @Override
+    public Class<PremiumPacket> getPayloadClass() {
+        return PremiumPacket.class;
     }
 }
