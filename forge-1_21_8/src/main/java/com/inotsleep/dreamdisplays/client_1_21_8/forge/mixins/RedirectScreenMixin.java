@@ -1,9 +1,8 @@
-package com.inotsleep.dreamdisplays.client_1_21_8.fabric.mixins;
+package com.inotsleep.dreamdisplays.client_1_21_8.forge.mixins;
 
 import com.inotsleep.dreamdisplays.client.downloader.Downloader;
 import com.inotsleep.dreamdisplays.client_1_21_8.screens.DownloadScreen;
 import com.inotsleep.dreamdisplays.client_1_21_8.screens.DownloadingErrorScreen;
-import me.inotsleep.utils.logging.LoggingManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import org.spongepowered.asm.mixin.Mixin;

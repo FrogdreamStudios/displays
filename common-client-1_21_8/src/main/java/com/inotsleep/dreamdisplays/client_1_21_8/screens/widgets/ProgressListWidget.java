@@ -31,6 +31,7 @@ public class ProgressListWidget extends AbstractSelectionList<ProgressListWidget
                 .getTask()
                 .getProgress()
                 .stream()
+                .filter((progress -> progress.progress() < 1))
                 .map(
                         (progress) ->
                                 new ProgressEntry(
@@ -67,16 +68,16 @@ public class ProgressListWidget extends AbstractSelectionList<ProgressListWidget
 
         @Override
         public void render(GuiGraphics guiGraphics, int index, int top, int left, int width, int height, int mouseX, int mouseY, boolean hovering, float partialTick) {
-            guiGraphics.fill(left+1, top+1, left + width-1, top + height-1, 0xf0ffffff);
-            guiGraphics.fill(left+2, top+2, left + width-2, top + height-2, 0xf0000000);
+            guiGraphics.fill(left+2, top+1, left + width-2, top + height-1, 0xf0ffffff);
+            guiGraphics.fill(left+3, top+2, left + width-3, top + height-2, 0xf0000000);
 
             Component artifactName = Component.literal(trimTo(name, 20));
-            guiGraphics.drawString(font, artifactName, left + 4, top, 0xffffffff);
+            guiGraphics.drawString(font, artifactName, left + 4, top+3, 0xffffffff);
 
             int progressX = Math.max(left + 4 + font.width(artifactName) + 4,  left + 8 + (width - 4) / 2);
             int progressWidth = width - 8 - progressX + left;
 
-            DownloadScreen.renderProgressBar(guiGraphics, progressX, top, progressWidth, font.lineHeight, progress, 0xffffffff, 1, 2, 0xff000000, 0xffffffff);
+            DownloadScreen.renderProgressBar(guiGraphics, progressX, top+3, progressWidth, font.lineHeight, progress, 0xffffffff, 1, 2, 0xff000000, 0xffffffff);
 
             Component progressText = Component.literal(String.format(
                     Locale.US,
@@ -86,7 +87,7 @@ public class ProgressListWidget extends AbstractSelectionList<ProgressListWidget
 
             int textWidth = font.width(progressText);
 
-            guiGraphics.drawString(font, progressText, left + width - 4 - textWidth, top+2+font.lineHeight, 0xffffffff);
+            guiGraphics.drawString(font, progressText, left + width - 4 - textWidth, top+5+font.lineHeight, 0xffffffff);
         }
 
         public static String trimTo(String input, int len) {

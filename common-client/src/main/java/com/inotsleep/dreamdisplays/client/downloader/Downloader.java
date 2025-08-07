@@ -1,5 +1,6 @@
 package com.inotsleep.dreamdisplays.client.downloader;
 
+import com.inotsleep.dreamdisplays.client.agent.JarLoader;
 import com.inotsleep.dreamdisplays.client.downloader.ffmpeg.DependencyResolver;
 import com.inotsleep.dreamdisplays.client.downloader.maven.MavenResolver;
 import com.inotsleep.dreamdisplays.client.downloader.ytdlp.YtDlpDownloader;
@@ -8,6 +9,7 @@ import me.inotsleep.utils.logging.LoggingManager;
 import org.eclipse.aether.collection.DependencyCollectionException;
 import org.eclipse.aether.resolution.DependencyResolutionException;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -77,8 +79,8 @@ public class Downloader {
             @Override
             public void execute() {
                 try {
-                    DependencyResolver.resolve(resolver, config);
-                } catch (DependencyResolutionException e) {
+                    JarLoader.loadLibrariesAtRuntime(DependencyResolver.resolve(resolver, config));
+                } catch (DependencyResolutionException | IOException e) {
                     LoggingManager.error("Failed to download libraries", e);
                     fail();
                 }
@@ -204,7 +206,7 @@ public class Downloader {
 
     public double getProgress() {
         double result = getTask().getTotalProgress().progress() / tasks.size()
-                + (double) currentTaskIndex / Math.min(tasks.size(), 1);
+                + (double) currentTaskIndex / Math.max(tasks.size(), 1);
         return Double.isNaN(result) ? 0.0 : result;
     }
 

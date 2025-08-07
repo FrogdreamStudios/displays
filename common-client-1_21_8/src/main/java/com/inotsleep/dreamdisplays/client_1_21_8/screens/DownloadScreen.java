@@ -29,7 +29,7 @@ public class DownloadScreen extends Screen {
                 0,
                 0,
                 0,
-                Minecraft.getInstance().font.lineHeight * 2 + 7,
+                Minecraft.getInstance().font.lineHeight * 2 + 10,
                 0
         ));
     }
@@ -44,8 +44,12 @@ public class DownloadScreen extends Screen {
         int lineMargin = 2;
 
         // Screen title
-        guiGraphics.drawCenteredString(font, title, width / 2, currentY, 0xFFFFFF);
-        currentY += font.lineHeight * 2;
+        guiGraphics.drawCenteredString(font, title, width / 2, currentY, 0xffffffff);
+        currentY += font.lineHeight;
+
+        guiGraphics.drawCenteredString(font, Component.literal(String.format("%.2f%%", downloader.getProgress()*100)), (int) (width / 4d + (width / 2d) * downloader.getProgress()), currentY, 0xffffffff);
+
+        currentY += font.lineHeight;
 
         // Total progress
         renderProgressBarCentered(guiGraphics, width / 2, currentY, width / 2, font.lineHeight, downloader.getProgress(), 0xffffffff, 1, 2, 0xff000000, 0xffffffff);
