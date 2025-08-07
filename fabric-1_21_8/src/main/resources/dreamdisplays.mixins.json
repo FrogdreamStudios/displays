@@ -4,7 +4,8 @@
   "package": "com.inotsleep.dreamdisplays.client_1_21_8.fabric.mixins",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "CrossHairMixin"
+    "CrossHairMixin",
+    "RedirectScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1

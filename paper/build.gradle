@@ -12,7 +12,7 @@ configurations {
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21-R0.1-SNAPSHOT")
 
-    shadow 'me.inotsleep:utils:1.4.8'
+    shadow 'me.inotsleep:utils:1.4.9'
     shadow 'com.github.zafarkhaja:java-semver:0.10.2'
     shadow 'com.google.code.gson:gson:2.13.1'
 }

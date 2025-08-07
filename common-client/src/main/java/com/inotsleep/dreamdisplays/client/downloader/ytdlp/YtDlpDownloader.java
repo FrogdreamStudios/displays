@@ -19,9 +19,9 @@ import java.util.Optional;
 
 public class YtDlpDownloader {
     private static volatile Status status = Status.NOT_STARTED;
-    private static volatile long downloadedBytes;
-    private static volatile long totalBytes;
-    private static volatile double percentage;
+    private static volatile long downloadedBytes = 0L;
+    private static volatile long totalBytes = 1L;
+    private static volatile double percentage = 0d;
 
     private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
             .followRedirects(HttpClient.Redirect.ALWAYS)
@@ -29,9 +29,6 @@ public class YtDlpDownloader {
 
     public static Path download(DependencyConfig config, Path outputDir) {
         status = Status.STARTED;
-        downloadedBytes = 0;
-        totalBytes = -1;
-        percentage = 0.0;
 
         String platform = Utils.getPlatform();
         String url      = config.ytdlp.get(platform);

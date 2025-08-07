@@ -1,4 +1,9 @@
 {
+  "dreamdisplays.ui.downloader.title": "Dream Displays downloading libraries",
+  "dreamdisplays.ui.downloader-error.title": "Unable to download libraries",
+  "dreamdisplays.ui.downloader-error.subtitle": "Please, check logs for more information",
+
+
   "dreamdisplays.button.enabled": "Enabled",
   "dreamdisplays.button.disabled": "Disabled",
   "dreamdisplays.ui.title": "Dream Displays",

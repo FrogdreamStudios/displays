@@ -4,6 +4,7 @@ import com.inotsleep.dreamdisplays.client.ClientMod;
 import com.inotsleep.dreamdisplays.client.Config;
 import com.inotsleep.dreamdisplays.client.DisplayManager;
 import com.inotsleep.dreamdisplays.client.display.Display;
+import com.inotsleep.dreamdisplays.client.downloader.Downloader;
 import com.inotsleep.dreamdisplays.client.utils.Utils;
 import com.inotsleep.dreamdisplays.client_1_21_8.packets.*;
 import com.inotsleep.dreamdisplays.client_1_21_8.util.ClientUtils;
@@ -28,6 +29,8 @@ public class DreamDisplaysClientCommon implements ClientMod {
         DreamDisplaysClientCommon.packetSender = packetSender;
 
         new Config(new File("./config/" + MOD_ID)).reload();
+
+        new Thread(() -> new Downloader(Path.of("./libs")).startDownload(), "Dream Displays downloader thread").start();
     }
 
     public static void onDisplayInfoPacket(DisplayInfoPacket payload) {
