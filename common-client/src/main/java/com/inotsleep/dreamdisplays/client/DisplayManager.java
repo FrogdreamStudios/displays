@@ -2,8 +2,10 @@ package com.inotsleep.dreamdisplays.client;
 
 import com.inotsleep.dreamdisplays.client.display.Display;
 import com.inotsleep.dreamdisplays.client.display.DisplaySettings;
+import com.inotsleep.dreamdisplays.client.utils.Utils;
 import me.inotsleep.utils.config.AbstractConfig;
 
+import java.io.Closeable;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.*;
@@ -12,6 +14,8 @@ public class DisplayManager {
     private static final Map<UUID, Display> displays = new HashMap<>();
     private static WorldDisplaySettingsStorage displaySettings;
     private static Path savePath;
+
+    private static final Map<Class<? extends AutoCloseable>, Map<UUID, ? extends Closeable>> dataHolder = new HashMap<>();
 
     public static Collection<Display> getDisplays() {
         return displays.values();
@@ -44,6 +48,7 @@ public class DisplayManager {
 
         display.close();
         displays.remove(id);
+        dataHolder.values().forEach(map -> Utils.closeWithExceptionHandle(map.remove(id)));
     }
 
     public static void setSavePath(Path path) {
@@ -69,23 +74,23 @@ public class DisplayManager {
     }
 
     public static void mute(boolean unfocused) {
-        displays.forEach((uuid, display) -> {
-            display.mute(unfocused);
-        });
+        displays.forEach((uuid, display) -> display.mute(unfocused));
     }
 
     public static void doRender(boolean focused) {
-        displays.forEach((uuid, display) -> {
-           display.doRender(focused);
-        });
+        displays.forEach((uuid, display) -> display.doRender(focused));
     }
 
     public static void closeDisplays() {
-        displays.forEach((uuid, display) -> {
-            display.close();
-        });
+        displays.forEach((uuid, display) -> display.close());
 
         displays.clear();
+        dataHolder.values().forEach(map -> {
+            map.values().forEach(Utils::closeWithExceptionHandle);
+            map.clear();
+        });
+
+        dataHolder.clear();
     }
 
     private static class WorldDisplaySettingsStorage extends AbstractConfig {
@@ -95,5 +100,24 @@ public class DisplayManager {
         public WorldDisplaySettingsStorage(File configFile) {
             super(configFile);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T extends AutoCloseable> T getData(Class<T> clazz, UUID id) {
+        Map<UUID, T> data = (Map<UUID, T>) dataHolder.computeIfAbsent(clazz, k -> new HashMap<>());
+
+        return data.get(id);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T extends AutoCloseable> void setData(Class<T> clazz, UUID id, T object) {
+        Map<UUID, T> data = (Map<UUID, T>) dataHolder.computeIfAbsent(clazz, k -> new HashMap<>());
+        data.put(id, object);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T extends AutoCloseable> void removeData(Class<T> clazz, UUID id) {
+        Map<UUID, T> data = (Map<UUID, T>) dataHolder.computeIfAbsent(clazz, k -> new HashMap<>());
+        Utils.closeWithExceptionHandle(data.remove(id));
     }
 }

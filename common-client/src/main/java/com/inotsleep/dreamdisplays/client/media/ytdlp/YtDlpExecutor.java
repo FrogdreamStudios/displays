@@ -35,6 +35,7 @@ public class YtDlpExecutor {
     }
 
     public YouTubeCacheEntry getFormats(String videoCode) {
+        System.out.println("Loading formats for " + videoCode);
         YouTubeCacheEntry cachedVideo = videoCache.get(videoCode);
         if (cachedVideo != null) {
             return cachedVideo;
@@ -129,6 +130,7 @@ public class YtDlpExecutor {
         );
     }
 
+    @Deprecated
     private String getYtDlpLink(String ...command) {
         Pair<List<String>, List<String>> result = null;
         try {

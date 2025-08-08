@@ -29,7 +29,7 @@ public class Display {
     private List<Integer> availableQualities;
     private String savedQualitiesCode;
 
-    private int textureWidth, textureHeight;
+    private int textureWidth = 1, textureHeight = 1;
 
     private int quality = Config.getInstance().defaultQuality;
     private float volume = (float) Config.getInstance().defaultVolume;
@@ -51,7 +51,7 @@ public class Display {
 
         executor = Executors.newSingleThreadExecutor(r -> new Thread(r, "Display-" + id + " executor thread"));
         safeUpdateDisplayThread = new Thread(() -> {
-            if (player.updateQualityAndLanguage()) afterInit();
+            if ((player.isInitialized() || player.isErrored()) && player.updateQualityAndLanguage()) afterInit();
             LockSupport.parkNanos(1_000_000_000);
         }, "Display-" + id + " updater thread");
 
@@ -161,6 +161,7 @@ public class Display {
         if (videoCode == null || videoCode.isEmpty()) return;
 
         executor.submit(() -> {
+            player.forceValues();
             player.initialize();
         });
     }

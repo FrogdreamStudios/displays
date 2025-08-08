@@ -48,7 +48,7 @@ public class DreamDisplaysForgeMod implements PacketSender {
 
 
         registerChannel(payloadFlow, new DeletePacket(null), wrapHandler(DreamDisplaysClientCommon::onDeletePacket));
-        registerChannel(payloadFlow, new DisplayInfoPacket(null, null, null, 0, 0, null, null, false, null), wrapHandler(DreamDisplaysClientCommon::onDisplayInfoPacket));
+        registerChannel(payloadFlow, new DisplayInfoPacket(null, null, 0, 0, 0, 0, 0, null, null, false, null), wrapHandler(DreamDisplaysClientCommon::onDisplayInfoPacket));
         registerChannel(payloadFlow, new PremiumPacket(false), wrapHandler(DreamDisplaysClientCommon::onPremiumPacket));
         registerChannel(payloadFlow, new ReportPacket(null), emptyHandler(ReportPacket.class));
         registerChannel(payloadFlow, new RequestSyncPacket(null), emptyHandler(RequestSyncPacket.class));

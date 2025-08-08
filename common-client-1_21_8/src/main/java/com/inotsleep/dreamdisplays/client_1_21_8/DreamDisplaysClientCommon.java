@@ -35,10 +35,35 @@ public class DreamDisplaysClientCommon implements ClientMod {
 
     public static void onDisplayInfoPacket(DisplayInfoPacket payload) {
         Display display = DisplayManager.getDisplay(payload.id());
-        if (display != null) {
-            display.setVideoCode(payload.videoCode());
-            display.setLanguage(payload.lang());
-            display.setSync(payload.isSync());
+
+        boolean isNew = display == null;
+
+        if (isNew) {
+            display = new Display(
+                    payload.id(),
+                    payload.ownerId(),
+                    payload.facing(),
+                    payload.x(),
+                    payload.y(),
+                    payload.z(),
+                    payload.width(),
+                    payload.height()
+            );
+        }
+
+        String videoCode = Utils.extractVideoId(payload.videoCode());
+
+        System.out.println(videoCode);
+        System.out.println(payload.videoCode());
+
+        display.setVideoCode(videoCode);
+        display.setLanguage(payload.lang());
+        display.setSync(payload.isSync());
+
+        if (isNew) {
+            DisplayManager.addDisplay(display);
+            display.startPlayer();
+            display.setPaused(false);
         }
     }
 

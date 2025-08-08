@@ -1,0 +1,13 @@
+accessWidener v2 named
+
+accessible class net/minecraft/client/renderer/RenderType$CompositeRenderType
+
+accessible method net/minecraft/client/renderer/RenderType create (Ljava/lang/String;ILcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/client/renderer/RenderType$CompositeState;)Lnet/minecraft/client/renderer/RenderType$CompositeRenderType;
+accessible method net/minecraft/client/renderer/RenderType create (Ljava/lang/String;IZZLcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/client/renderer/RenderType$CompositeState;)Lnet/minecraft/client/renderer/RenderType$CompositeRenderType;
+
+accessible class net/minecraft/client/renderer/RenderStateShard$TextureStateShard
+
+accessible class net/minecraft/client/renderer/RenderType$CompositeState
+accessible method net/minecraft/client/renderer/RenderType$CompositeState$CompositeStateBuilder setTextureState (Lnet/minecraft/client/renderer/RenderStateShard$EmptyTextureStateShard;)Lnet/minecraft/client/renderer/RenderType$CompositeState$CompositeStateBuilder;
+accessible method net/minecraft/client/renderer/RenderType$CompositeState$CompositeStateBuilder createCompositeState (Lnet/minecraft/client/renderer/RenderType$OutlineProperty;)Lnet/minecraft/client/renderer/RenderType$CompositeState;
+accessible class net/minecraft/client/renderer/RenderType$OutlineProperty

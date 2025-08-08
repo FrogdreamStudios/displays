@@ -16,7 +16,7 @@ import java.util.UUID;
  * Packet for displaying information about a display.
  * This packet is sent from the server to the client to provide information about a display.
  */
-public record DisplayInfoPacket(UUID id, UUID ownerId, Vector3i pos, int width, int height, String videoCode, Display.Facing facing, boolean isSync, String lang) implements CustomPacketPayload, PacketCodec<DisplayInfoPacket> {
+public record DisplayInfoPacket(UUID id, UUID ownerId, int x, int y, int z, int width, int height, String videoCode, Display.Facing facing, boolean isSync, String lang) implements CustomPacketPayload, PacketCodec<DisplayInfoPacket> {
     public static final CustomPacketPayload.Type<DisplayInfoPacket> PACKET_ID =
             new Type<>(ResourceLocation.fromNamespaceAndPath(DreamDisplaysClientCommon.MOD_ID, "display_info"));
 
@@ -28,9 +28,9 @@ public record DisplayInfoPacket(UUID id, UUID ownerId, Vector3i pos, int width, 
                         buf.writeUUID(packet.id());
                         buf.writeUUID(packet.ownerId());
 
-                        buf.writeVarInt(packet.pos().x());
-                        buf.writeVarInt(packet.pos().y());
-                        buf.writeVarInt(packet.pos().z());
+                        buf.writeVarInt(packet.x());
+                        buf.writeVarInt(packet.y());
+                        buf.writeVarInt(packet.z());
 
                         buf.writeVarInt(packet.width());
                         buf.writeVarInt(packet.height());
@@ -48,7 +48,6 @@ public record DisplayInfoPacket(UUID id, UUID ownerId, Vector3i pos, int width, 
                         int x = buf.readVarInt();
                         int y = buf.readVarInt();
                         int z = buf.readVarInt();
-                        Vector3i pos = new Vector3i(x, y, z);
 
                         int width = buf.readVarInt();
                         int height = buf.readVarInt();
@@ -61,7 +60,7 @@ public record DisplayInfoPacket(UUID id, UUID ownerId, Vector3i pos, int width, 
                         boolean isSync = buf.readBoolean();
                         String lang = buf.readUtf();
 
-                        return new DisplayInfoPacket(id, ownerId, pos, width, height, videoCode, facing, isSync, lang);
+                        return new DisplayInfoPacket(id, ownerId, x, y, z, width, height, videoCode, facing, isSync, lang);
                     }
             );
 

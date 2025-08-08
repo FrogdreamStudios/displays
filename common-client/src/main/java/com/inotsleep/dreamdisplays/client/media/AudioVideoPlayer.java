@@ -21,9 +21,9 @@ public class AudioVideoPlayer {
     public static final int VIDEO_QUEUE_CAPACITY = 30;
     public static final long MAX_VIDEO_LEAD_US = 20_000;
     private static Java2DFrameConverter converter;
-    private String code;
-    private int quality;
-    private String language;
+    private String code = "";
+    private int quality = 0;
+    private String language = "default";
     private int userQuality;
     private String userLanguage;
     private String userCode;
@@ -45,6 +45,7 @@ public class AudioVideoPlayer {
     private volatile boolean paused = true;
     private volatile boolean muted = false;
     private volatile boolean initialized = false;
+    private volatile boolean errored = false;
     private volatile boolean stopped = false;
     private final AtomicBoolean seeked = new AtomicBoolean(false);
 
@@ -62,6 +63,14 @@ public class AudioVideoPlayer {
 
     public long getDuration() {
         return audioGrabber.getLengthInTime();
+    }
+
+    public boolean isInitialized() {
+        return initialized;
+    }
+
+    public boolean isErrored() {
+        return errored;
     }
 
     private static final class VFrame {
@@ -195,8 +204,15 @@ public class AudioVideoPlayer {
     public void setLanguage(String language) { this.userLanguage = language; }
     public void setCode(String code) { this.userCode = code; }
 
+    public void forceValues() {
+        code = userCode;
+        language = userLanguage;
+        userCode = userCode;
+    }
+
     public boolean updateQualityAndLanguage() {
         if (quality == userQuality && Objects.equals(language, userLanguage) && Objects.equals(code, userCode)) return false;
+        errored = false;
         long latestTime = getTimestamp();
         boolean lastPaused = paused;
         paused = true;
@@ -232,9 +248,12 @@ public class AudioVideoPlayer {
     }
 
     public void initialize() {
+        errored = false;
         YouTubeCacheEntry cacheEntry = YtDlpExecutor.getInstance().getFormats(code);
-        if (createAudioGrabber(cacheEntry)) return;
-        if (createVideoGrabber(cacheEntry)) return;
+        if (createAudioGrabber(cacheEntry) || createVideoGrabber(cacheEntry)) {
+            errored = true;
+            return;
+        }
         initialized = true;
         runInitializedTasks();
     }
@@ -249,6 +268,10 @@ public class AudioVideoPlayer {
     }
 
     private boolean createAudioGrabber(YouTubeCacheEntry cacheEntry) {
+        cacheEntry.getAudioFormats(language).forEach(format -> {
+            System.out.println(format.getAcodec() + " " + format.getAbr() + " " + format.getAbr());
+        });
+
         List<Format> audioFormats = cacheEntry.getAudioFormats(language)
                 .stream().filter(f -> "opus".equals(f.getAcodec())).toList();
         Optional<Format> optionalAudioFormat = selectBestAudioFormat(audioFormats);

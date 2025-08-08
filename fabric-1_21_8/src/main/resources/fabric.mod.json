@@ -21,5 +21,6 @@
     "java": ">=21",
     "mixinextras": "*"
   },
-  "icon": "assets/dreamdisplays/icon.png"
+  "icon": "assets/dreamdisplays/icon.png",
+  "accessWidener": "dreamdisplays.accesswidener"
 }

@@ -24,7 +24,7 @@ group = mod_group
 
 minecraft {
     mappings channel: "parchment", version: "${parchment_mappings_version}-${minecraft_version}"
-
+    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
     reobf = true
     copyIdeResources = true
 }
