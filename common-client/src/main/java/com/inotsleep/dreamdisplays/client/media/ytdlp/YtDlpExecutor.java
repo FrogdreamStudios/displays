@@ -35,7 +35,6 @@ public class YtDlpExecutor {
     }
 
     public YouTubeCacheEntry getFormats(String videoCode) {
-        System.out.println("Loading formats for " + videoCode);
         YouTubeCacheEntry cachedVideo = videoCache.get(videoCode);
         if (cachedVideo != null) {
             return cachedVideo;
@@ -70,40 +69,47 @@ public class YtDlpExecutor {
 
         String json = stdout.getFirst();
 
-        JsonElement videoInfo = JsonParser.parseString(json);
-        JsonArray formatsArray = videoInfo.getAsJsonObject().get("formats").getAsJsonArray();
+        try {
+            JsonElement videoInfo = JsonParser.parseString(json);
+            JsonArray formatsArray = videoInfo.getAsJsonObject().get("formats").getAsJsonArray();
 
-        Gson gson = new Gson();
-        List<Format> formats = new ArrayList<>(formatsArray.size());
+            Gson gson = new Gson();
+            List<Format> formats = new ArrayList<>(formatsArray.size());
 
-        for (JsonElement elem : formatsArray) {
-            Format f = gson.fromJson(elem, Format.class);
-            formats.add(f);
+            for (JsonElement elem : formatsArray) {
+                Format f = gson.fromJson(elem, Format.class);
+                formats.add(f);
+            }
+
+            formats = formats
+                    .stream()
+                    .filter(
+                            format -> {
+                                String aCodec = format.getAcodec();
+                                String vCodec = format.getVcodec();
+                                // String container = format.getContainer();
+                                // Remove formats without video and audio. That also removes hls audio
+                                if ((aCodec == null || aCodec.equals("none")) && (vCodec == null || vCodec.equals("none"))) return false;
+
+                                // Both removed as not all video can be played with this settings
+
+                                // Remove formats that have both video and audio. This also excludes progressive http-mp4
+                                // if ((aCodec != null && !aCodec.equals("none")) && (vCodec != null && !vCodec.equals("none"))) return false;
+
+                                // Remove non-dash formats
+                                // if (container == null || !container.contains("dash")) return false;
+                                return true;
+                            }
+                    )
+                    .toList();
+
+            YouTubeCacheEntry video = new YouTubeCacheEntry(formats);
+            videoCache.put(videoCode, video);
+            return video;
+        } catch (Exception e) {
+            LoggingManager.error("Unable to get video link", e);
+            return null;
         }
-
-        formats = formats
-                .stream()
-                .filter(
-                    format -> {
-                        String aCodec = format.getAcodec();
-                        String vCodec = format.getVcodec();
-                        String container = format.getContainer();
-                        // Remove formats without video and audio. That also removes hls audio
-                        if ((aCodec == null || aCodec.equals("none")) && (vCodec == null || vCodec.equals("none"))) return false;
-
-                        // Remove formats that have both video and audio. This also excludes progressive http-mp4
-                        if ((aCodec != null && !aCodec.equals("none")) && (vCodec != null && !vCodec.equals("none"))) return false;
-
-                        // Remove non-dash formats
-                        if (container == null || !container.contains("dash")) return false;
-                        return true;
-                    }
-                )
-                .toList();
-
-        YouTubeCacheEntry video = new YouTubeCacheEntry(formats);
-        videoCache.put(videoCode, video);
-        return video;
     }
 
     @Deprecated

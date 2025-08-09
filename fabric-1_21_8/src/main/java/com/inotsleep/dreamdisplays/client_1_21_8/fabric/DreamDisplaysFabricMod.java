@@ -1,15 +1,23 @@
 package com.inotsleep.dreamdisplays.client_1_21_8.fabric;
 
+import com.inotsleep.dreamdisplays.client.downloader.Downloader;
 import com.inotsleep.dreamdisplays.client_1_21_8.DreamDisplaysClientCommon;
 import com.inotsleep.dreamdisplays.client_1_21_8.PacketSender;
 import com.inotsleep.dreamdisplays.client_1_21_8.packets.*;
+import com.inotsleep.dreamdisplays.client_1_21_8.render.DisplayRenderer;
+import com.mojang.blaze3d.vertex.PoseStack;
 import me.inotsleep.utils.logging.LoggingManager;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.fabricmc.loader.impl.launch.FabricLauncherBase;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.slf4j.LoggerFactory;
+
+import java.nio.file.Path;
 
 public class DreamDisplaysFabricMod implements ClientModInitializer, PacketSender {
     @Override
@@ -37,9 +45,26 @@ public class DreamDisplaysFabricMod implements ClientModInitializer, PacketSende
 
         ClientPlayNetworking.registerGlobalReceiver(SyncPacket.PACKET_ID, (payload, unused) -> DreamDisplaysClientCommon.onSyncPacket(payload));
 
+        new Thread(() -> {
+            for (Path path : new Downloader(Path.of("./libs")).startDownload()) {
+                FabricLauncherBase.getLauncher().addToClassPath(path);
+            }
+        }, "Dream Displays downloader thread").start();
+
+
         DreamDisplaysClientCommon.onModInit(this);
 
         ClientTickEvents.END_CLIENT_TICK.register((client) -> DreamDisplaysClientCommon.onTick());
+
+        WorldRenderEvents.AFTER_ENTITIES.register(context -> {
+            Minecraft client = Minecraft.getInstance();
+            if (client.level == null || client.player == null) {
+                return;
+            }
+
+            DisplayRenderer.onRenderCall();
+
+        });
     }
 
     @Override

@@ -3,14 +3,12 @@ package com.inotsleep.dreamdisplays.client_1_21_8.render;
 import com.inotsleep.dreamdisplays.client.DisplayManager;
 import com.inotsleep.dreamdisplays.client_1_21_8.DreamDisplaysClientCommon;
 import com.inotsleep.dreamdisplays.client_1_21_8.util.ClientUtils;
-import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.systems.CommandEncoder;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.ResourceLocation;
@@ -28,7 +26,7 @@ public class TextureObject implements Closeable {
     private final int width, height;
     private final ResourceLocation id;
     private final DynamicTexture texture;
-    private final RenderType renderType;
+    private static RenderType renderType;
     private final CommandEncoder encoder;
 
     private BufferedImage stagingImage;
@@ -44,13 +42,16 @@ public class TextureObject implements Closeable {
         this.id = ResourceLocation.fromNamespaceAndPath(DreamDisplaysClientCommon.MOD_ID, displayID + "-" + width + "x" + height);
         this.texture = new DynamicTexture(id.getPath(), width, height, true);
         this.encoder = RenderSystem.getDevice().createCommandEncoder();
-        this.renderType = RenderType.create(
-                id.getPath(),
+
+        if (renderType == null) renderType = RenderType.create(
+                "dream-displays",
                 4194304,
                 true,
                 false,
                 RenderPipelines.SOLID,
-                RenderType.CompositeState.builder().setTextureState(new RenderStateShard.TextureStateShard(id, false)).createCompositeState(RenderType.OutlineProperty.NONE)
+                RenderType.CompositeState
+                        .builder()
+                        .createCompositeState(RenderType.OutlineProperty.NONE)
             );
 
         Minecraft.getInstance().getTextureManager().register(id, texture);
@@ -80,8 +81,8 @@ public class TextureObject implements Closeable {
     }
 
     public void render(PoseStack stack) {
-        if (!false) {
-            ClientUtils.renderColor(stack, 0, 0, 0, RenderType.solid());
+        if (!written) {
+            ClientUtils.renderColor(stack, 0, 0, 0, renderType);
         } else {
             ClientUtils.renderGpuTexture(stack, texture.getTextureView(), renderType);
         }
@@ -101,10 +102,12 @@ public class TextureObject implements Closeable {
 
         int[] pixels = ((DataBufferInt) stagingImage.getRaster().getDataBuffer()).getData();
         directBuffer.clear();
-
         for (int argb : pixels) {
-            int rgba = (argb << 8) | ((argb >>> 24) & 0xFF);
-            directBuffer.put(rgba);
+            // 0xAARRGGBB -> 0xAABBGGRR
+            int packed = (argb & 0xFF00FF00)
+                    | ((argb & 0x00FF0000) >>> 16)
+                    | ((argb & 0x000000FF) << 16);
+            directBuffer.put(packed);
         }
         directBuffer.flip();
 
@@ -117,7 +120,8 @@ public class TextureObject implements Closeable {
                 /*xOff */    0,
                 /*yOff */    0,
                 width,
-                height);
+                height
+        );
 
         written = true;
     }

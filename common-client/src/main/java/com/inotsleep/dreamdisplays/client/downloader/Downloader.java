@@ -25,6 +25,8 @@ public class Downloader {
 
     private static Downloader instance;
 
+    private List<Path> downloadedJars = new ArrayList<>();
+
     DependencyConfig config;
 
     public Downloader(Path libraryPath) {
@@ -79,8 +81,9 @@ public class Downloader {
             @Override
             public void execute() {
                 try {
-                    JarLoader.loadLibrariesAtRuntime(DependencyResolver.resolve(resolver, config));
-                } catch (DependencyResolutionException | IOException e) {
+                    List<Path> jars = DependencyResolver.resolve(resolver, config);
+                    downloadedJars.addAll(jars);
+                } catch (DependencyResolutionException e) {
                     LoggingManager.error("Failed to download libraries", e);
                     fail();
                 }
@@ -154,7 +157,7 @@ public class Downloader {
         instance.isFailed = true;
     }
 
-    public void startDownload() {
+    public List<Path> startDownload() {
         for (; currentTaskIndex < tasks.size(); currentTaskIndex++) {
             Task task = tasks.get(currentTaskIndex);
             LoggingManager.info("Downloading task " + task.getName());
@@ -162,6 +165,8 @@ public class Downloader {
         }
 
         done = !isFailed;
+
+        return downloadedJars;
     }
 
     public boolean isDone() {

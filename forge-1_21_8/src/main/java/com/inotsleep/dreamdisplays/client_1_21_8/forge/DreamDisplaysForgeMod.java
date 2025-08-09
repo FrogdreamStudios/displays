@@ -1,5 +1,7 @@
 package com.inotsleep.dreamdisplays.client_1_21_8.forge;
 
+import com.inotsleep.dreamdisplays.client.agent.JarLoader;
+import com.inotsleep.dreamdisplays.client.downloader.Downloader;
 import com.inotsleep.dreamdisplays.client_1_21_8.DreamDisplaysClientCommon;
 import com.inotsleep.dreamdisplays.client_1_21_8.PacketSender;
 import com.inotsleep.dreamdisplays.client_1_21_8.packets.*;
@@ -19,8 +21,8 @@ import net.minecraftforge.network.ChannelBuilder;
 import net.minecraftforge.network.payload.PayloadFlow;
 import org.apache.logging.log4j.LogManager;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -32,6 +34,14 @@ public class DreamDisplaysForgeMod implements PacketSender {
     public DreamDisplaysForgeMod(FMLJavaModLoadingContext context) {
         LoggingManager.setLogger(LogManager.getLogger(DreamDisplaysClientCommon.MOD_ID));
         DreamDisplaysClientCommon.onModInit(this);
+
+        new Thread(() -> {
+            try {
+                JarLoader.loadLibrariesAtRuntime(new Downloader(Path.of("./libs")).startDownload());
+            } catch (IOException e) {
+                LoggingManager.error("Unable to load libraries", e);
+            }
+        }, "Dream Displays downloader thread").start();
 
         FMLCommonSetupEvent.getBus(context.getModBusGroup()).addListener(this::onCommonSetup);
     }

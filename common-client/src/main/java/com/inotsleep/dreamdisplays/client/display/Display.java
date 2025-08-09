@@ -106,6 +106,7 @@ public class Display {
     private void afterInit() {
         player.onInit(() -> {
             player.setVolume(volume);
+            player.setPaused(false);
             textureHeight = quality;
             textureWidth = (int) (((double) width)/height * quality);
             if (throttled) throttled = false;

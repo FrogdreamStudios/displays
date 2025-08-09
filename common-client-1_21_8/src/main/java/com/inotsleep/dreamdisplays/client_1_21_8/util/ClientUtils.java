@@ -15,14 +15,8 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferInt;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.IntBuffer;
 import java.nio.file.Path;
 
 public class ClientUtils {
@@ -84,42 +78,47 @@ public class ClientUtils {
         return null;
     }
 
+    private final static VertexFormat format = VertexFormat.builder().add("Position", VertexFormatElement.POSITION).add("Color", VertexFormatElement.COLOR).add("UV0", VertexFormatElement.UV0).add("UV2", VertexFormatElement.UV2).add("Normal", VertexFormatElement.NORMAL).padding(1).build();
+
     public static void renderGpuTexture(PoseStack poseStack, GpuTextureView gpuTextureView, RenderType renderType) {
         RenderSystem.setShaderTexture(0, gpuTextureView);
         Matrix4f mat = poseStack.last().pose();
 
         BufferBuilder buf = Tesselator.getInstance().begin(
                 VertexFormat.Mode.QUADS,
-                DefaultVertexFormat.POSITION_TEX_COLOR_NORMAL
+                format
         );
 
         buf
                 .addVertex(mat, 0f, 0f, 0f)
                 .setColor(255, 255, 255, 255)
                 .setUv(0f, 1f)
-                .setNormal(0f, 0f, 1f);
+                .setNormal(0f, 0f, 1f)
+                .setUv2(240, 240);
 
         buf
                 .addVertex(mat, 1f, 0f, 0f)
                 .setColor(255, 255, 255, 255)
                 .setUv(1f, 1f)
-                .setNormal(0f, 0f, 1f);
+                .setNormal(0f, 0f, 1f)
+                .setUv2(240, 240);
 
         buf
                 .addVertex(mat, 1f, 1f, 0f)
                 .setColor(255, 255, 255, 255)
                 .setUv(1f, 0f)
-                .setNormal(0f, 0f, 1f);
+                .setNormal(0f, 0f, 1f)
+                .setUv2(240, 240);
 
         buf
                 .addVertex(mat, 0f, 1f, 0f)
                 .setColor(255, 255, 255, 255)
                 .setUv(0f, 0f)
-                .setNormal(0f, 0f, 1f);
+                .setNormal(0f, 0f, 1f)
+                .setUv2(240, 240);
 
         MeshData mesh = buf.build();
         renderType.draw(mesh);
-
     }
 
     public static void renderColor(PoseStack poseStack, int r, int g, int b, RenderType renderType) {
@@ -127,32 +126,36 @@ public class ClientUtils {
 
         BufferBuilder buf = Tesselator.getInstance().begin(
                 VertexFormat.Mode.QUADS,
-                DefaultVertexFormat.POSITION_TEX_COLOR_NORMAL
+                format
         );
 
         buf
                 .addVertex(mat, 0f, 0f, 0f)
                 .setColor(r, g, b, 255)
                 .setUv(0f, 1f)
-                .setNormal(0f, 0f, 1f);
+                .setNormal(0f, 0f, 1f)
+                .setUv2(240, 240);
 
         buf
                 .addVertex(mat, 1f, 0f, 0f)
                 .setColor(r, g, b, 255)
                 .setUv(1f, 1f)
-                .setNormal(0f, 0f, 1f);
+                .setNormal(0f, 0f, 1f)
+                .setUv2(240, 240);
 
         buf
                 .addVertex(mat, 1f, 1f, 0f)
                 .setColor(r, g, b, 255)
                 .setUv(1f, 0f)
-                .setNormal(0f, 0f, 1f);
+                .setNormal(0f, 0f, 1f)
+                .setUv2(240, 240);
 
         buf
                 .addVertex(mat, 0f, 1f, 0f)
                 .setColor(r, g, b, 255)
                 .setUv(0f, 0f)
-                .setNormal(0f, 0f, 1f);
+                .setNormal(0f, 0f, 1f)
+                .setUv2(240, 240);
 
         MeshData mesh = buf.build();
         renderType.draw(mesh);

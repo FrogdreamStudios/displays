@@ -30,7 +30,6 @@ public class DreamDisplaysClientCommon implements ClientMod {
 
         new Config(new File("./config/" + MOD_ID)).reload();
 
-        new Thread(() -> new Downloader(Path.of("./libs")).startDownload(), "Dream Displays downloader thread").start();
     }
 
     public static void onDisplayInfoPacket(DisplayInfoPacket payload) {

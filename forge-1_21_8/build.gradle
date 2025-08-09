@@ -46,6 +46,9 @@ dependencies {
     // Hack fix for now, force jopt-simple to be exactly 5.0.4 because Mojang ships that version, but some transtive dependencies request 6.0+
     implementation('net.sf.jopt-simple:jopt-simple:5.0.4') { version { strictly '5.0.4' } }
 
+    compileOnly(project(path: ":common-client-1_21_8")) {
+        transitive = true
+    }
     shadow(project(path: ":common-client-1_21_8", configuration: "shadow")) {
         transitive = false
     }

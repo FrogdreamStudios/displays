@@ -268,12 +268,7 @@ public class AudioVideoPlayer {
     }
 
     private boolean createAudioGrabber(YouTubeCacheEntry cacheEntry) {
-        cacheEntry.getAudioFormats(language).forEach(format -> {
-            System.out.println(format.getAcodec() + " " + format.getAbr() + " " + format.getAbr());
-        });
-
-        List<Format> audioFormats = cacheEntry.getAudioFormats(language)
-                .stream().filter(f -> "opus".equals(f.getAcodec())).toList();
+        List<Format> audioFormats = cacheEntry.getAudioFormats(language);
         Optional<Format> optionalAudioFormat = selectBestAudioFormat(audioFormats);
         if (optionalAudioFormat.isEmpty()) {
             LoggingManager.error("Audio Format not found: " + code + " " + language);
@@ -432,9 +427,21 @@ public class AudioVideoPlayer {
     }
 
     private static Optional<Format> selectBestAudioFormat(List<Format> audioFormats) {
-        return audioFormats.stream().max(Comparator.comparingDouble(f ->
-                f.getAbr() != null && f.getAbr() > 0 ? f.getAbr() : (f.getTbr() != null ? f.getTbr() : 0.0)
-        ));
+        return audioFormats.stream().max(
+                Comparator
+                        .<Format, Boolean>comparing((f) -> {
+                            String codec = f.getAcodec();
+                            return codec != null && codec.toLowerCase(Locale.ROOT).contains("opus");
+                        })
+                        .thenComparing(f -> {
+                                String c = f.getContainer();
+                                return c != null && c.toLowerCase(Locale.ROOT).contains("dash");
+                        })
+                        .thenComparingDouble(f ->
+                                (f.getAbr() != null && f.getAbr() > 0 ? f.getAbr()
+                                        : (f.getTbr() != null ? f.getTbr() : 0.0))
+                        )
+        );
     }
 
     private static void configureGrabber(FFmpegFrameGrabber grabber, Format format) {
