@@ -1,12 +1,14 @@
 package com.inotsleep.dreamdisplays.client_1_21_8;
 
 import com.inotsleep.dreamdisplays.client.ClientMod;
+import com.inotsleep.dreamdisplays.client.ClientModHolder;
 import com.inotsleep.dreamdisplays.client.Config;
 import com.inotsleep.dreamdisplays.client.DisplayManager;
 import com.inotsleep.dreamdisplays.client.display.Display;
 import com.inotsleep.dreamdisplays.client.downloader.Downloader;
 import com.inotsleep.dreamdisplays.client.utils.Utils;
 import com.inotsleep.dreamdisplays.client_1_21_8.packets.*;
+import com.inotsleep.dreamdisplays.client_1_21_8.screens.DisplayConfigurationScreen;
 import com.inotsleep.dreamdisplays.client_1_21_8.util.ClientUtils;
 import com.mojang.authlib.minecraft.client.MinecraftClient;
 import me.inotsleep.utils.logging.LoggingManager;
@@ -27,9 +29,9 @@ public class DreamDisplaysClientCommon implements ClientMod {
 
     public static void onModInit(PacketSender packetSender) {
         DreamDisplaysClientCommon.packetSender = packetSender;
+        ClientModHolder.initialize(new DreamDisplaysClientCommon());
 
         new Config(new File("./config/" + MOD_ID)).reload();
-
     }
 
     public static void onDisplayInfoPacket(DisplayInfoPacket payload) {
@@ -80,6 +82,7 @@ public class DreamDisplaysClientCommon implements ClientMod {
 
     private static Level lastLevel = null;
     private static Display hoveredDisplay = null;
+    static boolean wasDown = false;
 
     public static void onTick() {
         Minecraft client = Minecraft.getInstance();
@@ -128,6 +131,20 @@ public class DreamDisplaysClientCommon implements ClientMod {
                 display.tick(pos.x, pos.y, pos.z);
             }
         }
+
+        Minecraft minecraft = Minecraft.getInstance();
+
+        if (minecraft.options.keyUse.isDown() && !wasDown) {
+            wasDown = true;
+        } else if (!minecraft.options.keyUse.isDown() && wasDown) {
+            wasDown = false;
+        }
+
+        if (hoveredDisplay != null) {
+
+            minecraft.setScreen(new DisplayConfigurationScreen(hoveredDisplay));
+
+        }
     }
 
     private static void checkVersionAndSendPacket() {
@@ -149,6 +166,16 @@ public class DreamDisplaysClientCommon implements ClientMod {
     @Override
     public void sendRequestSync(UUID id) {
         packetSender.sendPacket(new RequestSyncPacket(id));
+    }
+
+    @Override
+    public void sendDeletePacket(UUID id) {
+        packetSender.sendPacket(new DeletePacket(id));
+    }
+
+    @Override
+    public void sendReportPacket(UUID id) {
+        packetSender.sendPacket(new ReportPacket(id));
     }
 
     @Override

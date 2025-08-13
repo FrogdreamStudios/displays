@@ -8,6 +8,7 @@ import com.inotsleep.dreamdisplays.client.media.ytdlp.YouTubeCacheEntry;
 import com.inotsleep.dreamdisplays.client.media.ytdlp.YtDlpExecutor;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -256,6 +257,18 @@ public class Display {
         player.seekRelative(-5_000_000);
     }
 
+    public void sendSyncUpdate() {
+        ClientModHolder
+                .getInstance()
+                .sendSyncUpdate(
+                        id,
+                        player.getPlayedAudioUs(),
+                        player.isPaused(),
+                        sync,
+                        player.getDuration()
+                );
+    }
+
     public boolean isPaused() {
         return player.isPaused();
     }
@@ -275,6 +288,26 @@ public class Display {
         if (Math.abs(attenuation - lastAttenuation) < 1e-5) return;
 
         player.setAttenuation((float) attenuation);
+    }
+
+    public boolean isSync() {
+        return sync;
+    }
+
+    public boolean isOwner() {
+        return Objects.equals(ownerId.toString(), ClientModHolder.getInstance().getPlayerID().toString());
+    }
+
+    public void executeAfterInit(Runnable runnable) {
+        player.onInit(runnable);
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
+    public int getWidth() {
+        return width;
     }
 
     public enum Facing {

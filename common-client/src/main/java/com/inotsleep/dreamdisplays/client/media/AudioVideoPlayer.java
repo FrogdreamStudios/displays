@@ -127,7 +127,7 @@ public class AudioVideoPlayer {
                 }
             }
         }
-        return lastImage;
+        return null;
     }
 
     public void seekRelative(long time) { seekTo(getTimestamp() + time); }

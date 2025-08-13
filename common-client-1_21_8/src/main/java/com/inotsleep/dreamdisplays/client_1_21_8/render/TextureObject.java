@@ -133,5 +133,9 @@ public class TextureObject implements Closeable {
         } catch (Exception ignored) {}
         stagingG.dispose();
     }
+
+    public ResourceLocation getTexture() {
+        return id;
+    }
 }
 
