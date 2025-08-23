@@ -7,10 +7,7 @@ import com.inotsleep.dreamdisplays.client.media.AudioVideoPlayer;
 import com.inotsleep.dreamdisplays.client.media.ytdlp.YouTubeCacheEntry;
 import com.inotsleep.dreamdisplays.client.media.ytdlp.YtDlpExecutor;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.locks.LockSupport;
@@ -44,7 +41,9 @@ public class Display {
 
     private volatile boolean doRender = true;
 
-    private float lastAttenuation = 1.0f;
+    private double lastAttenuation = 1.0d;
+
+    private boolean started = false;
 
     public Display(UUID id, UUID ownerId, Facing facing, int x, int y, int z, int width, int height) {
         this.id = id;
@@ -52,8 +51,11 @@ public class Display {
 
         executor = Executors.newSingleThreadExecutor(r -> new Thread(r, "Display-" + id + " executor thread"));
         safeUpdateDisplayThread = new Thread(() -> {
-            if ((player.isInitialized() || player.isErrored()) && player.updateQualityAndLanguage()) afterInit();
-            LockSupport.parkNanos(1_000_000_000);
+            while (true) {
+                if ((player.isInitialized() || player.isErrored()) && player.updateQualityAndLanguage()) afterInit();
+                LockSupport.parkNanos(1_000_000_000);
+                if (Thread.interrupted()) return;
+            }
         }, "Display-" + id + " updater thread");
 
         safeUpdateDisplayThread.setDaemon(true);
@@ -82,11 +84,12 @@ public class Display {
             case EAST, WEST -> maxZ += width - 1;
         }
 
-        double cX = Math.min(Math.max(x, this.x), maxX) - this.x;
-        double cY = Math.min(Math.max(y, this.y), maxY) - this.y;
-        double cZ = Math.min(Math.max(z, this.z), maxZ) - this.z;
+        double cX = Math.min(Math.max(x, this.x), maxX);
+        double cY = Math.min(Math.max(y, this.y), maxY);
+        double cZ = Math.min(Math.max(z, this.z), maxZ);
 
-        return Math.sqrt(cX * cX + cY * cY + cZ * cZ);
+        double dx = x - cX, dy = y - cY, dz = z - cZ;
+        return Math.sqrt(dx*dx + dy*dy + dz*dz);
     }
 
     public boolean isInScreen(int x, int y, int z) {
@@ -107,7 +110,6 @@ public class Display {
     private void afterInit() {
         player.onInit(() -> {
             player.setVolume(volume);
-            player.setPaused(false);
             textureHeight = quality;
             textureWidth = (int) (((double) width)/height * quality);
             if (throttled) throttled = false;
@@ -121,6 +123,14 @@ public class Display {
                 savedQualitiesCode = videoCode;
             }
         });
+    }
+
+    public void applySettings(DisplaySettings settings) {
+        this.quality = settings.quality;
+        this.volume = (float) settings.volume;
+
+        player.setQuality(quality);
+        player.setVolume(volume);
     }
 
     public void setQuality(int quality) {
@@ -160,7 +170,10 @@ public class Display {
     }
 
     public void startPlayer() {
+        if (started) return;
         if (videoCode == null || videoCode.isEmpty()) return;
+
+        started = true;
 
         executor.submit(() -> {
             player.forceValues();
@@ -207,7 +220,7 @@ public class Display {
     }
 
     public List<Integer> getAvailableQualities() {
-        return availableQualities;
+        return Objects.requireNonNullElse(availableQualities, Collections.emptyList());
     }
 
     public UUID getId() {
@@ -283,9 +296,11 @@ public class Display {
 
     public void tick(double x, double y, double z) {
         double dist = getDistance(x, y, z);
-        double attenuation = Math.pow(1.0 - Math.min(1.0, dist / Config.getInstance().renderDistance), 2);
+        double attenuation = Math.pow(1.0 - dist / Config.getInstance().renderDistance, 2);
 
         if (Math.abs(attenuation - lastAttenuation) < 1e-5) return;
+
+        lastAttenuation = attenuation;
 
         player.setAttenuation((float) attenuation);
     }

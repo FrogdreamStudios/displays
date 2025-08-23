@@ -48,6 +48,14 @@ public class ClientUtils {
 
     public static Path getClientSettingSavePath() {
         Minecraft client = Minecraft.getInstance();
+
+        IntegratedServer server = client.getSingleplayerServer();
+        if (server != null) {
+            return server
+                    .getWorldPath(LevelResource.ROOT)
+                    .resolve("display-settings.yml");
+        }
+
         Path gameDir = client.gameDirectory.toPath();
 
         ClientPacketListener networkHandler = client.getConnection();
@@ -65,13 +73,6 @@ public class ClientUtils {
             return gameDir
                     .resolve("dreamdisplays")
                     .resolve(id)
-                    .resolve("display-settings.yml");
-        }
-
-        IntegratedServer server = client.getSingleplayerServer();
-        if (server != null) {
-            return server
-                    .getWorldPath(LevelResource.ROOT)
                     .resolve("display-settings.yml");
         }
 

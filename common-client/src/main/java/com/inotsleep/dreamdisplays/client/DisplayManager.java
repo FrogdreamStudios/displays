@@ -34,10 +34,9 @@ public class DisplayManager {
         displays.put(display.getId(), display);
 
         if (displaySettings != null) {
-            DisplaySettings settings = displaySettings.settings.get(display.getId());
+            DisplaySettings settings = displaySettings.settings.get(display.getId().toString());
             if (settings != null) {
-                display.setVolume((float) settings.volume);
-                display.setQuality(settings.quality);
+                display.applySettings(settings);
             }
         }
     }
@@ -54,7 +53,9 @@ public class DisplayManager {
     public static void setSavePath(Path path) {
         if (savePath != null) {
             if (savePath.equals(path)) return;
-        } else return;
+        }
+
+        if (path == null) return;
 
         savePath = path;
 
@@ -64,7 +65,7 @@ public class DisplayManager {
 
     public static void saveSettings(Display display) {
         if (displaySettings == null) return;
-        DisplaySettings settings = displaySettings.settings.computeIfAbsent(display.getId(), k -> new DisplaySettings());
+        DisplaySettings settings = displaySettings.settings.computeIfAbsent(display.getId().toString(), k -> new DisplaySettings());
         settings.volume = display.getVolume();
         settings.quality = display.getQuality();
     }
@@ -95,7 +96,7 @@ public class DisplayManager {
 
     private static class WorldDisplaySettingsStorage extends AbstractConfig {
         @me.inotsleep.utils.config.Path("displays")
-        Map<UUID, DisplaySettings> settings = new HashMap<>();
+        Map<String, DisplaySettings> settings = new HashMap<>();
 
         public WorldDisplaySettingsStorage(File configFile) {
             super(configFile);

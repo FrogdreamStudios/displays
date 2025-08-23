@@ -21,7 +21,7 @@ dependencies {
     shadow "org.apache.maven.resolver:maven-resolver-transport-apache:2.0.10"
     shadow "org.apache.maven.resolver:maven-resolver-transport-file:2.0.3"
 
-    shadow 'me.inotsleep:utils:1.4.9'
+    shadow 'me.inotsleep:utils:1.4.10'
 
     shadow "net.bytebuddy:byte-buddy-agent:1.17.6"
 }

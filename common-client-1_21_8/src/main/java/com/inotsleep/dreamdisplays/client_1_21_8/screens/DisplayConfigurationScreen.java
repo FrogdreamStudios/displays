@@ -96,7 +96,7 @@ public class DisplayConfigurationScreen extends Screen {
 
             @Override
             protected void applyValue() {
-                setMessage(Component.literal(toQuality((int) (value*display.getAvailableQualities().size()))+"p"));
+                display.setQuality(toQuality((int) (value * display.getAvailableQualities().size())));
             }
         };
 
@@ -142,7 +142,7 @@ public class DisplayConfigurationScreen extends Screen {
 
         sync.active = display.isOwner();
 
-        deleteButton = new IconButtonWidget(0, 0, 0, 0, 64, 64, ResourceLocation.fromNamespaceAndPath(DreamDisplaysClientCommon.MOD_ID, "delete"), 2) {
+        deleteButton = new IconButtonWidget(0, 0, 0, 0, 64, 64, ResourceLocation.fromNamespaceAndPath(DreamDisplaysClientCommon.MOD_ID, "button_delete_icon"), 2) {
             @Override
             public void onPress() {
                 ClientModHolder.getInstance().sendDeletePacket(display.getId());
@@ -152,7 +152,7 @@ public class DisplayConfigurationScreen extends Screen {
 
         deleteButton.active = display.isOwner();
 
-        reportButton = new IconButtonWidget(0, 0, 0, 0, 64, 64, ResourceLocation.fromNamespaceAndPath(DreamDisplaysClientCommon.MOD_ID, "report"), 2) {
+        reportButton = new IconButtonWidget(0, 0, 0, 0, 64, 64, ResourceLocation.fromNamespaceAndPath(DreamDisplaysClientCommon.MOD_ID, "button_report_icon"), 2) {
             @Override
             public void onPress() {
                 ClientModHolder.getInstance().sendReportPacket(display.getId());
@@ -165,18 +165,18 @@ public class DisplayConfigurationScreen extends Screen {
         deleteButton.setTextures(textures);
         reportButton.setTextures(textures);
 
-        addWidget(volume);
-        addWidget(backButton);
-        addWidget(forwardButton);
-        addWidget(pauseButton);
-        addWidget(renderDistance);
-        addWidget(quality);
-        addWidget(qualityReset);
-        addWidget(renderDistanceReset);
-        addWidget(sync);
-        addWidget(syncReset);
-        addWidget(deleteButton);
-        addWidget(reportButton);
+        addRenderableWidget(volume);
+        addRenderableWidget(backButton);
+        addRenderableWidget(forwardButton);
+        addRenderableWidget(pauseButton);
+        addRenderableWidget(renderDistance);
+        addRenderableWidget(quality);
+        addRenderableWidget(qualityReset);
+        addRenderableWidget(renderDistanceReset);
+        addRenderableWidget(sync);
+        addRenderableWidget(syncReset);
+        addRenderableWidget(deleteButton);
+        addRenderableWidget(reportButton);
     }
     
     public DisplayConfigurationScreen(Display display) {
@@ -215,14 +215,24 @@ public class DisplayConfigurationScreen extends Screen {
         int maxDisplayWidth = this.width / 3;
 
         int displayHeight = (int) Math.min((double) display.getHeight() / display.getWidth() * maxDisplayWidth, this.height / 3.5);
-        maxDisplayWidth = (int) ((double) display.getWidth() / display.getHeight() * displayHeight);
-        int displayX = this.width / 2 - maxDisplayWidth / 2;
+        int displayWidth = (int) ((double) display.getWidth() / display.getHeight() * displayHeight);
+        int displayX = this.width / 2 - displayWidth / 2;
         int currentY = textRenderer.lineHeight + 15 * 2;
 
         guiGraphics.fill(this.width / 2 - maxDisplayWidth / 2, currentY, this.width / 2 + maxDisplayWidth / 2, currentY + displayHeight, 0xff000000);
 
         TextureObject textureObject = DisplayManager.getData(TextureObject.class, display.getId());
-        if (textureObject != null) guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, textureObject.getTexture(), displayX, currentY, maxDisplayWidth, displayHeight);
+        if (textureObject != null && textureObject.isWritten()) {
+            guiGraphics.blit(
+                    RenderPipelines.GUI_TEXTURED,
+                    textureObject.getTexture(),
+                    displayX, currentY,
+                    0f, 0f,
+                    displayWidth, displayHeight,
+                    textureObject.getWidth(), textureObject.getHeight(),
+                    textureObject.getWidth(), textureObject.getHeight()
+            );
+        }
 
         currentY += displayHeight;
         currentY += 5;
@@ -287,7 +297,7 @@ public class DisplayConfigurationScreen extends Screen {
                 Component.translatable("dreamdisplays.button.quality.tooltip.1").withStyle(style -> style.withColor(ChatFormatting.WHITE).withBold(true)),
                 Component.translatable("dreamdisplays.button.quality.tooltip.2").withStyle(style -> style.withColor(ChatFormatting.GRAY)),
                 Component.translatable("dreamdisplays.button.quality.tooltip.3"),
-                Component.translatable("dreamdisplays.button.quality.tooltip.4", display.getQuality()+"p").withStyle(style -> style.withColor(ChatFormatting.GOLD))
+                Component.translatable("dreamdisplays.button.quality.tooltip.4", display.getQuality()).withStyle(style -> style.withColor(ChatFormatting.GOLD))
         );
 
         currentY += 15 + componentHeight;
@@ -306,14 +316,14 @@ public class DisplayConfigurationScreen extends Screen {
                 Component.translatable("dreamdisplays.button.synchronization.tooltip.5", display.isSync() ? Component.translatable("dreamdisplays.button.enabled") : Component.translatable("dreamdisplays.button.disabled")).withStyle(style -> style.withColor(ChatFormatting.GOLD))
         );
 
+        super.render(guiGraphics, mouseX, mouseY, partialTicks);
+
         renderTooltipIfHovered(guiGraphics, mouseX, mouseY, renderDistanceTextX, renderDistanceTextY,
                 textRenderer.width(renderDistanceText), textRenderer.lineHeight, renderDistanceTooltip);
         renderTooltipIfHovered(guiGraphics, mouseX, mouseY, qualityTextX, qualityTextY,
                 textRenderer.width(qualityText), textRenderer.lineHeight, qualityTooltip);
         renderTooltipIfHovered(guiGraphics, mouseX, mouseY, syncTextX, syncTextY,
                 textRenderer.width(syncText), textRenderer.lineHeight, syncTooltip);
-
-        super.render(guiGraphics, mouseX, mouseY, partialTicks);
     }
 
     private void renderTooltipIfHovered(GuiGraphics context, int mouseX, int mouseY,
@@ -337,13 +347,13 @@ public class DisplayConfigurationScreen extends Screen {
         resetWidget.setWidth(componentHeight); // reset widgets are squares.
     }
 
-    private String toQuality(int resolution) {
+    private int toQuality(int resolution) {
         List<Integer> list = display.getAvailableQualities();
 
-        if (list.isEmpty()) return "144";
+        if (list.isEmpty()) return 144;
 
         int i = Math.max(Math.min(resolution, list.size() - 1), 0);
-        return list.get(i).toString();
+        return list.get(i);
     }
 
     private int fromQuality(int quality) {

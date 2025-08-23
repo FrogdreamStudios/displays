@@ -15,16 +15,22 @@ public class ClientModHolder {
         ClientModHolder.instance = instance;
 
         windowFocusThread = new Thread(() -> {
-            LockSupport.parkNanos(10_000_000);
-            if (Config.getInstance().muteOnLostFocus) {
-                DisplayManager.mute(!instance.isFocused());
-            }
+            while (true) {
+                LockSupport.parkNanos(10_000_000);
+                if (Thread.interrupted()) {
+                    return;
+                }
+                if (Config.getInstance().muteOnLostFocus) {
+                    DisplayManager.mute(!instance.isFocused());
+                }
 
-            if (Config.getInstance().noRenderOnLostFocus) {
-                DisplayManager.doRender(instance.isFocused());
+                if (Config.getInstance().noRenderOnLostFocus) {
+                    DisplayManager.doRender(instance.isFocused());
+                }
             }
         }, "Window focus thread");
 
+        windowFocusThread.setDaemon(true);
         windowFocusThread.start();
     }
 }

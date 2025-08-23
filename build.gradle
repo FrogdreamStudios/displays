@@ -11,6 +11,10 @@ allprojects {
             url = "https://repo.l0sty.ru/releases"
         }
         maven {
+            name = "inotsleep-nexus"
+            url = "https://nexus.inotsleep.com/repository/maven-public/"
+        }
+        maven {
             name = "papermc-repo"
             url = "https://repo.papermc.io/repository/maven-public/"
         }

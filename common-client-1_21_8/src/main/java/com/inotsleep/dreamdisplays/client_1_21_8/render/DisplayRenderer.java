@@ -3,6 +3,7 @@ package com.inotsleep.dreamdisplays.client_1_21_8.render;
 import com.inotsleep.dreamdisplays.client.DisplayManager;
 import com.inotsleep.dreamdisplays.client.display.Display;
 import com.inotsleep.dreamdisplays.client.display.DisplayRenderData;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.Camera;
@@ -25,6 +26,38 @@ public class DisplayRenderer {
             if (renderData == null) continue;
 
             stack.translate(renderData.x()-cameraPos.x, renderData.y()-cameraPos.y, renderData.z()-cameraPos.z);
+
+            float yaw = switch (renderData.facing()) {
+                case NORTH -> 180f;
+                case WEST  -> -90f;
+                case EAST  -> 90f;
+                default    -> 0f;
+            };
+
+
+
+            switch (renderData.facing()) {
+                case NORTH -> {
+                    stack.translate(renderData.width(), 0, 0);
+                    RenderSystem.setModelOffset(0f, 0f, -0.0012f);
+                }
+                case EAST  -> {
+                    stack.translate(1, 0, renderData.width());
+                    RenderSystem.setModelOffset(0.0012f, 0f, 0f);
+                }
+                case WEST  -> {
+                    stack.translate(0, 0, 0);
+                    RenderSystem.setModelOffset(-0.0012f, 0f, 0f);
+                }
+                default    -> {
+                    stack.translate(0, 0, 1);
+                    RenderSystem.setModelOffset(0f, 0f, 0.0012f);
+                }
+            }
+
+            RenderSystem.resetModelOffset();
+
+            stack.mulPose(Axis.YP.rotationDegrees(yaw));
 
             stack.scale(renderData.width(), renderData.height(), 1f);
 

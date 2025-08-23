@@ -12,7 +12,6 @@ public class YouTubeCacheEntry {
         this.expireAt = System.currentTimeMillis() + TimeUnit.HOURS.toMillis(3);
 
         for (Format format : formats) {
-            System.out.println("Format: " + format.getAcodec() + " " + format.getVcodec());
             if (!"none".equals(format.getAcodec())) {
                 audioFormats
                         .computeIfAbsent(format.getLanguage(), k -> new ArrayList<>())

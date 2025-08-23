@@ -1,5 +1,6 @@
 package com.inotsleep.dreamdisplays.client.media;
 
+import com.inotsleep.dreamdisplays.client.Config;
 import com.inotsleep.dreamdisplays.client.media.ytdlp.Format;
 import com.inotsleep.dreamdisplays.client.media.ytdlp.YouTubeCacheEntry;
 import com.inotsleep.dreamdisplays.client.media.ytdlp.YtDlpExecutor;
@@ -22,13 +23,13 @@ public class AudioVideoPlayer {
     public static final long MAX_VIDEO_LEAD_US = 20_000;
     private static Java2DFrameConverter converter;
     private String code = "";
-    private int quality = 0;
+    private int quality = Config.getInstance().defaultQuality;
     private String language = "default";
-    private int userQuality;
-    private String userLanguage;
-    private String userCode;
+    private int userQuality = Config.getInstance().defaultQuality;
+    private String userLanguage = "default";
+    private String userCode = "";
 
-    private volatile float volume = 0.3f;
+    private volatile float volume = (float) Config.getInstance().defaultVolume;
     private volatile float attenuation = 1.0f;
     private volatile float volumeDb = 0;
 
@@ -53,8 +54,6 @@ public class AudioVideoPlayer {
     private Thread videoGrabberThread;
 
     private static final int BLOCK_SIZE = 512;
-
-    private volatile BufferedImage lastImage;
 
     private static final ExecutorService EXECUTOR_SERVICE = Executors.newSingleThreadExecutor(r -> new Thread(r, "AudioVideoPlayer task executor"));
     private final ExecutorService executor = Executors.newSingleThreadExecutor(r -> new Thread(r, "AudioVideoPlayer executor"));
@@ -119,8 +118,8 @@ public class AudioVideoPlayer {
             if (diff <= MAX_VIDEO_LEAD_US) {
                 VFrame pkt = videoQueue.poll();
                 try {
-                    if (pkt != null && pkt.frame.image != null && pkt.frame.image.length > 0) {
-                        lastImage = getConverter().getBufferedImage(pkt.frame, 1.0, false, cs);
+                    if (pkt != null && pkt.frame.image != null && pkt.frame.image.length > 0 && pkt.frame.image[0] != null) {
+                        return getConverter().getBufferedImage(pkt.frame, 1.0, false, cs);
                     }
                 } finally {
                     if (pkt != null) pkt.frame.close();
@@ -200,25 +199,29 @@ public class AudioVideoPlayer {
 
     public boolean isPaused() { return paused; }
 
-    public void setQuality(int quality) { this.userQuality = quality; }
+    public void setQuality(int quality) {
+        this.userQuality = quality;
+    }
+
     public void setLanguage(String language) { this.userLanguage = language; }
     public void setCode(String code) { this.userCode = code; }
 
     public void forceValues() {
         code = userCode;
         language = userLanguage;
-        userCode = userCode;
+        quality = userQuality;
     }
 
     public boolean updateQualityAndLanguage() {
         if (quality == userQuality && Objects.equals(language, userLanguage) && Objects.equals(code, userCode)) return false;
+
         errored = false;
+        initialized = false;
         long latestTime = getTimestamp();
         boolean lastPaused = paused;
         paused = true;
         close();
         stopped = false;
-        initialized = false;
         if (code.equals(userCode)) onInit(() -> seekTo(latestTime));
         onInit(() -> { setVolume(volume); paused = lastPaused; });
         code = userCode;
@@ -249,7 +252,14 @@ public class AudioVideoPlayer {
 
     public void initialize() {
         errored = false;
+
+        if (code == null || code.isEmpty()) {
+            errored = true;
+            return;
+        }
+
         YouTubeCacheEntry cacheEntry = YtDlpExecutor.getInstance().getFormats(code);
+
         if (createAudioGrabber(cacheEntry) || createVideoGrabber(cacheEntry)) {
             errored = true;
             return;
@@ -268,6 +278,8 @@ public class AudioVideoPlayer {
     }
 
     private boolean createAudioGrabber(YouTubeCacheEntry cacheEntry) {
+        LoggingManager.info("Creating audio grabber");
+
         List<Format> audioFormats = cacheEntry.getAudioFormats(language);
         Optional<Format> optionalAudioFormat = selectBestAudioFormat(audioFormats);
         if (optionalAudioFormat.isEmpty()) {
@@ -275,15 +287,24 @@ public class AudioVideoPlayer {
             return true;
         }
         Format audioFormat = optionalAudioFormat.get();
+
+        LoggingManager.info("Chosen format: " + audioFormat.getAcodec() + " " + audioFormat.getFormatNote());
+
         audioGrabber = new FFmpegFrameGrabber(audioFormat.getUrl());
         configureGrabber(audioGrabber, audioFormat);
-        try { audioGrabber.start(); } catch (FFmpegFrameGrabber.Exception e) {
-            LoggingManager.error("Error starting grabber", e); return true; }
+        try {
+            audioGrabber.start();
+        } catch (FFmpegFrameGrabber.Exception e) {
+            LoggingManager.error("Error starting grabber", e);
+            return true;
+        }
         configureAudioLine();
         audioStartPtsUs = audioGrabber.getTimestamp();
         currentAudioUs = audioStartPtsUs;
         audioGrabberThread = new Thread(this::runAudioGrabber, "Audio Grabber Thread");
         audioGrabberThread.start();
+
+        LoggingManager.info("Audio grabber created");
         return false;
     }
 
@@ -361,6 +382,8 @@ public class AudioVideoPlayer {
     }
 
     private boolean createVideoGrabber(YouTubeCacheEntry cacheEntry) {
+        LoggingManager.info("Creating video grabber");
+
         List<Format> videoFormats = cacheEntry.getVideoFormats(quality);
         Optional<Format> optionalVideoFormat = selectByCodecPreference(videoFormats);
         if (optionalVideoFormat.isEmpty()) {
@@ -368,12 +391,18 @@ public class AudioVideoPlayer {
             return true;
         }
         Format videoFormat = optionalVideoFormat.get();
+
+        LoggingManager.info("Chosen format: " + videoFormat.getVcodec() + " " + videoFormat.getFormatNote());
+
+
         videoGrabber = new FFmpegFrameGrabber(videoFormat.getUrl());
         configureGrabber(videoGrabber, videoFormat);
         try { videoGrabber.start(); } catch (FFmpegFrameGrabber.Exception e) {
             LoggingManager.error("Video Grabber Thread: " + e); return true; }
         videoGrabberThread = new Thread(this::runVideoGrabber, "Video Grabber Thread");
         videoGrabberThread.start();
+
+        LoggingManager.info("Video Grabber created");
         return false;
     }
 
@@ -388,7 +417,10 @@ public class AudioVideoPlayer {
                 if (raw == null) {
                     break; // EOS
                 }
-                if (raw.image == null) { raw.close(); continue; }
+                if (raw.image == null) {
+                    raw.close();
+                    continue;
+                }
                 long pts = videoGrabber.getTimestamp();
 
                 Frame copy = raw.clone();

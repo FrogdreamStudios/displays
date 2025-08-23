@@ -35,6 +35,8 @@ public class DreamDisplaysClientCommon implements ClientMod {
     }
 
     public static void onDisplayInfoPacket(DisplayInfoPacket payload) {
+        if (Minecraft.getInstance().player == null) return;
+
         Display display = DisplayManager.getDisplay(payload.id());
 
         boolean isNew = display == null;
@@ -50,12 +52,16 @@ public class DreamDisplaysClientCommon implements ClientMod {
                     payload.width(),
                     payload.height()
             );
+
+
+            Vec3 pos = Minecraft.getInstance().player.position();
+            if (display.getDistance(pos.x, pos.y, pos.z) > Config.getInstance().renderDistance) {
+                display.close();
+                return;
+            }
         }
 
         String videoCode = Utils.extractVideoId(payload.videoCode());
-
-        System.out.println(videoCode);
-        System.out.println(payload.videoCode());
 
         display.setVideoCode(videoCode);
         display.setLanguage(payload.lang());
@@ -63,21 +69,28 @@ public class DreamDisplaysClientCommon implements ClientMod {
 
         if (isNew) {
             DisplayManager.addDisplay(display);
-            display.startPlayer();
-            display.setPaused(false);
+            Display finalDisplay = display;
+            display.executeAfterInit(() -> {
+                finalDisplay.setPaused(false);
+            });
         }
+
+        display.startPlayer();
     }
 
     public static void onPremiumPacket(PremiumPacket payload) {
 
     }
 
-    public static void onDeletePacket(DeletePacket deletePacket) {
-
+    public static void onDeletePacket(DeletePacket payload) {
+        DisplayManager.removeDisplay(payload.id());
     }
 
     public static void onSyncPacket(SyncPacket payload) {
-
+        Display display = DisplayManager.getDisplay(payload.id());
+        display.setPaused(payload.currentState());
+        display.setSync(payload.isSync());
+        display.seekTo(payload.currentTime());
     }
 
     private static Level lastLevel = null;
@@ -94,7 +107,6 @@ public class DreamDisplaysClientCommon implements ClientMod {
                 checkVersionAndSendPacket();
 
                 Path savePath = ClientUtils.getClientSettingSavePath();
-
                 if (savePath != null) DisplayManager.setSavePath(savePath);
             } else {
                 DisplayManager.saveSettings();
@@ -134,16 +146,16 @@ public class DreamDisplaysClientCommon implements ClientMod {
 
         Minecraft minecraft = Minecraft.getInstance();
 
+        boolean previousState = wasDown;
+
         if (minecraft.options.keyUse.isDown() && !wasDown) {
             wasDown = true;
         } else if (!minecraft.options.keyUse.isDown() && wasDown) {
             wasDown = false;
         }
 
-        if (hoveredDisplay != null) {
-
+        if (hoveredDisplay != null && previousState != wasDown && client.player.isShiftKeyDown()) {
             minecraft.setScreen(new DisplayConfigurationScreen(hoveredDisplay));
-
         }
     }
 

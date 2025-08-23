@@ -9,6 +9,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.ResourceLocation;
@@ -51,6 +52,7 @@ public class TextureObject implements Closeable {
                 RenderPipelines.SOLID,
                 RenderType.CompositeState
                         .builder()
+                        .setLayeringState(RenderStateShard.VIEW_OFFSET_Z_LAYERING)
                         .createCompositeState(RenderType.OutlineProperty.NONE)
             );
 
@@ -103,7 +105,6 @@ public class TextureObject implements Closeable {
         int[] pixels = ((DataBufferInt) stagingImage.getRaster().getDataBuffer()).getData();
         directBuffer.clear();
         for (int argb : pixels) {
-            // 0xAARRGGBB -> 0xAABBGGRR
             int packed = (argb & 0xFF00FF00)
                     | ((argb & 0x00FF0000) >>> 16)
                     | ((argb & 0x000000FF) << 16);
@@ -136,6 +137,17 @@ public class TextureObject implements Closeable {
 
     public ResourceLocation getTexture() {
         return id;
+    }
+    public boolean isWritten() {
+        return written;
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
     }
 }
 

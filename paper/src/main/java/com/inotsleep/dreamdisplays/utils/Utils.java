@@ -1,7 +1,13 @@
 package com.inotsleep.dreamdisplays.utils;
 
 import com.inotsleep.dreamdisplays.datatypes.DisplayData;
+import io.papermc.paper.block.BlockPredicate;
+import io.papermc.paper.datacomponent.DataComponentType;
+import io.papermc.paper.datacomponent.DataComponentTypes;
+import io.papermc.paper.datacomponent.item.ItemAdventurePredicate;
+import io.papermc.paper.registry.keys.DataComponentTypeKeys;
 import org.bukkit.Location;
+import org.bukkit.inventory.ItemStack;
 
 import java.net.URI;
 import java.net.URISyntaxException;

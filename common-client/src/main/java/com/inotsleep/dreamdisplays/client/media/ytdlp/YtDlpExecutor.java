@@ -91,6 +91,10 @@ public class YtDlpExecutor {
                                 // Remove formats without video and audio. That also removes hls audio
                                 if ((aCodec == null || aCodec.equals("none")) && (vCodec == null || vCodec.equals("none"))) return false;
 
+
+                                // Remove hls
+                                if (format.getProtocol() != null && format.getProtocol().contains("m3u8")) return false;
+
                                 // Both removed as not all video can be played with this settings
 
                                 // Remove formats that have both video and audio. This also excludes progressive http-mp4
