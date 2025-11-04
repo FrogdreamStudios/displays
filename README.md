@@ -24,4 +24,4 @@ Done! To customize the display, look at it and press `Shift + RMB`
 - Integrated controls for pausing and playing
 - Convenient server-side configuration management
 
-[Read more in our wiki](https://github.com/cubelius/dreamdisplays/wiki).
+[Read more in our wiki](https://github.com/arsmotorin/dreamdisplays/wiki).
