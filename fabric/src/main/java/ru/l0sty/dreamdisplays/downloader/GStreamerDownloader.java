@@ -16,7 +16,7 @@ public class GStreamerDownloader {
      * Download URL for GStreamer.
      * In future versions we'll delete this and use the official GStreamer repository to avoid some issues.
      */
-    private static final String GSTREAMER_DOWNLOAD_URL = "https://dl.frogdream.xyz/gstreamer-${platform}.zip";
+    private static final String GSTREAMER_DOWNLOAD_URL = "https://github.com/FrogdreamStudios/displays/releases/download/gstreamer/gstreamer-${platform}.zip";
     private static final String GSTREAMER_CHECKSUM_DOWNLOAD_URL = GSTREAMER_DOWNLOAD_URL + ".sha256";
 
     public GStreamerDownloader() {}
