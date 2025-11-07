@@ -25,3 +25,6 @@ Done! To customize the display, look at it and press `Shift + RMB`
 - Convenient server-side configuration management
 
 [Read more in our wiki](https://github.com/arsmotorin/dreamdisplays/wiki).
+
+## Questions?
+Questions you can ask in Discord (@arsmotorin) or in Telegram (@arsmotorin).
