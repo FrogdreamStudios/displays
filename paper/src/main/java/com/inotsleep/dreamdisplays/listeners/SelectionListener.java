@@ -35,14 +35,16 @@ public class SelectionListener implements Listener {
     public static Map<UUID, SelectionData> selectionPoints = new HashMap<>();
 
     public SelectionListener(DreamDisplaysPlugin plugin) {
-        BukkitRunnable runnable = new BukkitRunnable() {
-            @Override
-            public void run() {
-                selectionPoints.forEach((key, value) -> value.drawBox());
-            }
-        };
+        if (!DreamDisplaysPlugin.isFolia()) {
+            BukkitRunnable runnable = new BukkitRunnable() {
+                @Override
+                public void run() {
+                    selectionPoints.forEach((key, value) -> value.drawBox());
+                }
+            };
 
-        runnable.runTaskTimer(plugin, 0, DreamDisplaysPlugin.config.settings.particleRenderDelay);
+            runnable.runTaskTimer(plugin, 0, DreamDisplaysPlugin.config.settings.particleRenderDelay);
+        }
     }
 
     @EventHandler

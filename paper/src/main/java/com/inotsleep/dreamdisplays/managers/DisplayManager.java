@@ -64,11 +64,28 @@ public class DisplayManager {
     public static void delete(DisplayData displayData) {
         if (displayData == null) return;
 
-        new BukkitRunnable() {
-            public void run() {
-                DreamDisplaysPlugin.getInstance().storage.deleteDisplay(displayData);
+        Runnable deleteTask = () -> DreamDisplaysPlugin.getInstance().storage.deleteDisplay(displayData);
+
+        if (DreamDisplaysPlugin.isFolia()) {
+            try {
+                Class<?> bukkitClass = Class.forName("org.bukkit.Bukkit");
+                Object asyncScheduler = bukkitClass.getMethod("getAsyncScheduler").invoke(null);
+                Class<?> consumerClass = Class.forName("java.util.function.Consumer");
+                Object task = java.lang.reflect.Proxy.newProxyInstance(consumerClass.getClassLoader(), new Class<?>[]{consumerClass}, (proxy, method, args) -> {
+                    deleteTask.run();
+                    return null;
+                });
+                asyncScheduler.getClass().getMethod("runNow", Object.class, consumerClass).invoke(asyncScheduler, DreamDisplaysPlugin.getInstance(), task);
+            } catch (Exception e) {
+                deleteTask.run();
             }
-        }.runTaskAsynchronously(DreamDisplaysPlugin.getInstance());
+        } else {
+            new org.bukkit.scheduler.BukkitRunnable() {
+                public void run() {
+                    deleteTask.run();
+                }
+            }.runTaskAsynchronously(DreamDisplaysPlugin.getInstance());
+        }
 
         PacketUtils.sendDeletePacket(displayData.getReceivers(), displayData.getId());
         displays.remove(displayData.getId());
@@ -100,17 +117,36 @@ public class DisplayManager {
 
         reportTime.put(id, System.currentTimeMillis());
 
-        new BukkitRunnable() {
-            public void run() {
-                try {
-                    if (Objects.equals(DreamDisplaysPlugin.config.settings.webhookUrl, "")) return;
-                    ReportSender.sendReport(displayData.getPos1(), displayData.getUrl(), displayData.getId(), player,  DreamDisplaysPlugin.config.settings.webhookUrl, Bukkit.getOfflinePlayer(displayData.getOwnerId()).getName());
-                    MessageUtil.sendColoredMessage(player, DreamDisplaysPlugin.config.messages.reportSent);
-                } catch (Exception e) {
-                    LoggingManager.error("Unable to send webhook message", e);
-                }
+        Runnable reportTask = () -> {
+            try {
+                if (Objects.equals(DreamDisplaysPlugin.config.settings.webhookUrl, "")) return;
+                ReportSender.sendReport(displayData.getPos1(), displayData.getUrl(), displayData.getId(), player,  DreamDisplaysPlugin.config.settings.webhookUrl, Bukkit.getOfflinePlayer(displayData.getOwnerId()).getName());
+                MessageUtil.sendColoredMessage(player, DreamDisplaysPlugin.config.messages.reportSent);
+            } catch (Exception e) {
+                LoggingManager.error("Unable to send webhook message", e);
             }
-        }.runTaskAsynchronously(DreamDisplaysPlugin.getInstance());
+        };
+
+        if (DreamDisplaysPlugin.isFolia()) {
+            try {
+                Class<?> bukkitClass = Class.forName("org.bukkit.Bukkit");
+                Object asyncScheduler = bukkitClass.getMethod("getAsyncScheduler").invoke(null);
+                Class<?> consumerClass = Class.forName("java.util.function.Consumer");
+                Object task = java.lang.reflect.Proxy.newProxyInstance(consumerClass.getClassLoader(), new Class<?>[]{consumerClass}, (proxy, method, args) -> {
+                    reportTask.run();
+                    return null;
+                });
+                asyncScheduler.getClass().getMethod("runNow", Object.class, consumerClass).invoke(asyncScheduler, DreamDisplaysPlugin.getInstance(), task);
+            } catch (Exception e) {
+                reportTask.run();
+            }
+        } else {
+            new org.bukkit.scheduler.BukkitRunnable() {
+                public void run() {
+                    reportTask.run();
+                }
+            }.runTaskAsynchronously(DreamDisplaysPlugin.getInstance());
+        }
     }
 
     public static boolean isOverlaps(SelectionData data) {

@@ -1,6 +1,7 @@
 name: DreamDisplays
 version: '${version}'
-author: 'Frogdream Studios'
+authors: [arsmotorin, INotSleep]
 description: 'Plugin for Dream Displays mod.'
 main: com.inotsleep.dreamdisplays.DreamDisplaysPlugin
+folia-supported: true
 api-version: '1.21'

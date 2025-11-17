@@ -11,6 +11,7 @@ import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.lang.reflect.*;
 import java.nio.ByteBuffer;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -27,21 +28,41 @@ public class Storage {
     public Storage(DreamDisplaysPlugin plugin) {
         this.plugin = plugin;
 
-        new BukkitRunnable() {
-            public void run() {
-                tablePrefix = DreamDisplaysPlugin.config.storageSettings.tablePrefix;
+        Runnable connectTask = () -> {
+            tablePrefix = DreamDisplaysPlugin.config.storageSettings.tablePrefix;
 
-                try {
-                    connection = BaseConnection.createConnection(DreamDisplaysPlugin.config.storageSettings, plugin.getDataFolder());
-                    connection.connect();
+            try {
+                connection = BaseConnection.createConnection(DreamDisplaysPlugin.config.storageSettings, plugin.getDataFolder());
+                connection.connect();
 
-                    onConnect();
-                } catch (SQLException e) {
-                    LoggingManager.error("Could not connect to database", e);
-                    DreamDisplaysPlugin.disablePlugin();
-                }
+                onConnect();
+            } catch (SQLException e) {
+                LoggingManager.error("Could not connect to database", e);
+                DreamDisplaysPlugin.disablePlugin();
             }
-        }.runTaskAsynchronously(plugin);
+        };
+
+        if (DreamDisplaysPlugin.isFolia()) {
+            try {
+                Class<?> bukkitClass = Class.forName("org.bukkit.Bukkit");
+                Object asyncScheduler = bukkitClass.getMethod("getAsyncScheduler").invoke(null);
+                Class<?> consumerClass = Class.forName("java.util.function.Consumer");
+                Object task = Proxy.newProxyInstance(consumerClass.getClassLoader(), new Class<?>[]{consumerClass}, (proxy, method, args) -> {
+                    connectTask.run();
+                    return null;
+                });
+                asyncScheduler.getClass().getMethod("runNow", Object.class, consumerClass).invoke(asyncScheduler, plugin, task);
+            } catch (Exception e) {
+                // Fallback to sync if reflection fails
+                connectTask.run();
+            }
+        } else {
+            new BukkitRunnable() {
+                public void run() {
+                    connectTask.run();
+                }
+            }.runTaskAsynchronously(plugin);
+        }
     }
 
     private void onConnect() throws SQLException {
