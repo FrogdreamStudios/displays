@@ -49,8 +49,9 @@ tasks.named('build') {
 }
 
 shadowJar {
-    archiveClassifier = "paper"
+    archiveClassifier = ""
     destinationDirectory.set(rootProject.layout.buildDirectory.dir("libs"))
 
-    archiveBaseName = "displays-server"
+    archiveBaseName = "dreamdisplays-paper"
+    archiveVersion = rootProject.version
 }

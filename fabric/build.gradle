@@ -76,8 +76,9 @@ remapJar {
 	dependsOn shadowJar
 	input.set(shadowJar.archiveFile)
 
-	archiveClassifier = "fabric"
+	archiveClassifier = ""
 	destinationDirectory.set(rootProject.layout.buildDirectory.dir("libs"))
 
-	archiveBaseName = "displays-client"
+	archiveBaseName = "dreamdisplays-fabric"
+	archiveVersion = rootProject.version
 }
