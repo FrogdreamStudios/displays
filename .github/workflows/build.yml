@@ -47,7 +47,7 @@ jobs:
         if: success() && matrix.java == 21
         uses: actions/upload-artifact@v4
         with:
-          name: DreamDisplays-Fabric-Client
+          name: dreamdisplays-fabric-client
           path: build/libs/*client*.jar
           if-no-files-found: warn
           retention-days: 30
@@ -57,7 +57,7 @@ jobs:
         if: success() && matrix.java == 21
         uses: actions/upload-artifact@v4
         with:
-          name: DreamDisplays-Paper-Server
+          name: dreamdisplays-paper-plugin
           path: build/libs/*paper*.jar
           if-no-files-found: warn
           retention-days: 30
