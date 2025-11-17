@@ -173,12 +173,6 @@ public final class DreamDisplaysPlugin extends AbstractPlugin<DreamDisplaysPlugi
         messenger.registerOutgoingPluginChannel(this, "dreamdisplays:delete");
         messenger.registerOutgoingPluginChannel(this, "dreamdisplays:premium");
 
-        // FrogDisplays channels
-        messenger.registerOutgoingPluginChannel(this, "frogdisplays:display_info");
-        messenger.registerOutgoingPluginChannel(this, "frogdisplays:sync");
-        messenger.registerOutgoingPluginChannel(this, "frogdisplays:delete");
-        messenger.registerOutgoingPluginChannel(this, "frogdisplays:premium");
-
         PacketReceiver receiver = new PacketReceiver(this);
 
         // DreamDisplays incoming channels
@@ -187,13 +181,6 @@ public final class DreamDisplaysPlugin extends AbstractPlugin<DreamDisplaysPlugi
         messenger.registerIncomingPluginChannel(this, "dreamdisplays:delete", receiver);
         messenger.registerIncomingPluginChannel(this, "dreamdisplays:report", receiver);
         messenger.registerIncomingPluginChannel(this, "dreamdisplays:version", receiver);
-
-        // FrogDisplays incoming channels
-        messenger.registerIncomingPluginChannel(this, "frogdisplays:sync", receiver);
-        messenger.registerIncomingPluginChannel(this, "frogdisplays:req_sync", receiver);
-        messenger.registerIncomingPluginChannel(this, "frogdisplays:delete", receiver);
-        messenger.registerIncomingPluginChannel(this, "frogdisplays:report", receiver);
-        messenger.registerIncomingPluginChannel(this, "frogdisplays:version", receiver);
     }
 
     public void registerCommands() {

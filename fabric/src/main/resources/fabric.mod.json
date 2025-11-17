@@ -4,8 +4,8 @@
   "name": "Dream Displays",
   "version": "${version}",
   "license": "LGPL-3.0",
-    "description": "Create in-game displays.",
-  "authors": ["Frogdream Studios"],
+    "description": "Create in-game screens to stream videos on any Minecraft server.",
+  "authors": ["arsmotorin, INotSleep"],
   "entrypoints": {
     "client": [
       "ru.l0sty.dreamdisplays.DreamDisplaysMod"

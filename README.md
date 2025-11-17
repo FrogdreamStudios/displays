@@ -1,5 +1,5 @@
-[![Latest release](https://img.shields.io/github/release/FrogdreamStudios/displays.svg)](https://github.com/arsmotorin/dreamdisplays/releases/latest)
-[![License](https://img.shields.io/github/license/FrogdreamStudios/displays)](https://github.com/arsmotorin/dreamdisplays/blob/master/LICENSE)
+[![Latest release](https://img.shields.io/github/release/arsmotorin/dreamdisplays.svg)](https://github.com/arsmotorin/dreamdisplays/releases/latest)
+[![License](https://img.shields.io/github/license/arsmotorin/dreamdisplays)](https://github.com/arsmotorin/dreamdisplays/blob/master/LICENSE)
 
 ![img](https://i.imgur.com/qMsgLB9.png)
 Download our mod or plugin on [Modrinth](https://modrinth.com/mod/dreamdisplays)!
