@@ -6,8 +6,11 @@ Download our mod or plugin on [Modrinth](https://modrinth.com/mod/dreamdisplays)
 
 ## Available platforms
 - Fabric on Minecraft version 1.21.5
-- Paper and other forks on version 1.21.5
+- Paper and other forks on version 1.21.5+
 - In the future: Forge, NeoForge and other versions
+
+> [!NOTE]
+> For this mod to work, you need to install the client mod and the server plugin. Without this, Dream Displays will not work.
 
 ## How to use this mod?
 Set up a display using black concrete, select it with a diamond axe, and type `/display create`. After the display is created, type `/display video <link to YouTube video> [language]`
