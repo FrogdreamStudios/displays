@@ -7,6 +7,10 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: Build
@@ -23,6 +27,7 @@ jobs:
         id: version
         run: |
           VERSION=$(grep '^version=' gradle.properties | cut -d'=' -f2)
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Validate Gradle wrapper
         uses: gradle/actions/wrapper-validation@v4
@@ -31,16 +36,22 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: 21
-          distribution: 'microsoft'
+          distribution: 'temurin'
           cache: 'gradle'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: false
+          cache-write-only: false
 
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
 
       - name: Build with Gradle
-        run: ./gradlew build --no-daemon --stacktrace
+        run: ./gradlew build --no-daemon --parallel --build-cache --configuration-cache
         env:
-          GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.parallel=true
+          GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.caching=true -Dorg.gradle.configuration-cache=true -Xmx4G
 
       # Fabric
       - name: Upload Fabric client
@@ -51,6 +62,7 @@ jobs:
           path: build/libs/dreamdisplays-fabric-*.jar
           if-no-files-found: warn
           retention-days: 30
+          compression-level: 6
 
       # Paper
       - name: Upload Paper plugin
@@ -61,3 +73,4 @@ jobs:
           path: build/libs/dreamdisplays-paper-*.jar
           if-no-files-found: warn
           retention-days: 30
+          compression-level: 6
