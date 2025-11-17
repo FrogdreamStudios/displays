@@ -49,9 +49,9 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build with Gradle
-        run: ./gradlew build --no-daemon --parallel --build-cache --configuration-cache
+        run: ./gradlew build --no-daemon --parallel --build-cache
         env:
-          GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.caching=true -Dorg.gradle.configuration-cache=true -Xmx4G
+          GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.caching=true -Xmx4G
 
       # Fabric
       - name: Upload Fabric client
