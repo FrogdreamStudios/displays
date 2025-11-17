@@ -149,7 +149,7 @@ public class DisplayCommand extends AbstractCommand {
                 }
 
                 DreamDisplaysPlugin.config.reload();
-                MessageUtil.sendColoredMessage(sender, "&aFrog Display has been reloaded!");
+                MessageUtil.sendColoredMessage(sender, "&aDream Displays has been reloaded!");
             }
             case "list" -> {
                 if (!sender.hasPermission(DreamDisplaysPlugin.config.permissions.listPermission)) {
@@ -159,9 +159,7 @@ public class DisplayCommand extends AbstractCommand {
 
                 Map<Version, Integer> usage = new HashMap<>();
 
-                PlayerManager.getVersions().forEach(version -> {
-                    usage.compute(version, (k, v) -> v == null ? 1 : v + 1);
-                });
+                PlayerManager.getVersions().forEach(version -> usage.compute(version, (k, v) -> v == null ? 1 : v + 1));
 
                 MessageUtil.sendColoredMessages(
                         sender,
