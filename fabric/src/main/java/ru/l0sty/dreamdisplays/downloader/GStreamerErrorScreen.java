@@ -1,9 +1,9 @@
 package ru.l0sty.dreamdisplays.downloader;
 
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.text.Text;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
 
 /**
  * Error screen for GStreamer download issues.
@@ -20,7 +20,7 @@ public class GStreamerErrorScreen extends Screen {
      * @param errorMessage the error message to display on the screen.
      */
     public GStreamerErrorScreen(Screen parent, String errorMessage) {
-        super(Text.of("Error while downloading GStreamer"));
+        super(Component.nullToEmpty("Error while downloading GStreamer"));
         this.parent = parent;
         this.errorMessage = errorMessage;
     }
@@ -32,13 +32,13 @@ public class GStreamerErrorScreen extends Screen {
     protected void init() {
         super.init();
 
-        this.addDrawableChild(
-                ButtonWidget.builder(Text.of("Continue"), button -> {
-                            if (client != null) {
-                                client.setScreen(parent);
+        this.addRenderableWidget(
+                Button.builder(Component.nullToEmpty("Continue"), button -> {
+                            if (minecraft != null) {
+                                minecraft.setScreen(parent);
                             }
                         })
-                        .dimensions(this.width / 2 - 50, this.height / 2 + 40, 100, 20)
+                        .bounds(this.width / 2 - 50, this.height / 2 + 40, 100, 20)
                         .build()
         );
     }
@@ -47,20 +47,20 @@ public class GStreamerErrorScreen extends Screen {
      * Renders the GStreamer error screen.
      */
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
         this.renderBackground(context, mouseX, mouseY, delta);
 
         String titleText = this.title.getString();
 
         // Centered title
-        int titleWidth = this.textRenderer.getWidth(titleText);
+        int titleWidth = this.font.width(titleText);
 
         // Draw the title text in the center of the screen
-        context.drawText(textRenderer, titleText, (int) ((this.width - titleWidth) / 2f), (int) (this.height / 2f - 40f), 0xFF5555, true);
+        context.drawString(font, titleText, (int) ((this.width - titleWidth) / 2f), (int) (this.height / 2f - 40f), 0xFF5555, true);
 
         // Error message
-        int msgWidth = this.textRenderer.getWidth(errorMessage);
-        context.drawText(textRenderer, errorMessage, (int) ((this.width - msgWidth) / 2f), (int) (this.height / 2f - 20f), 0xFF5555, true);
+        int msgWidth = this.font.width(errorMessage);
+        context.drawString(font, errorMessage, (int) ((this.width - msgWidth) / 2f), (int) (this.height / 2f - 20f), 0xFF5555, true);
 
         super.render(context, mouseX, mouseY, delta);
     }

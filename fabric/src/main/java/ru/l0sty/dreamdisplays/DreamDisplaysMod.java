@@ -1,5 +1,6 @@
 package ru.l0sty.dreamdisplays;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
@@ -9,10 +10,9 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.Camera;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.network.packet.CustomPayload;
+import net.minecraft.client.Camera;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import ru.l0sty.dreamdisplays.net.*;
 import ru.l0sty.dreamdisplays.render.ScreenWorldRenderer;
 
@@ -63,11 +63,11 @@ public class DreamDisplaysMod implements ClientModInitializer, Mod {
         ClientPlayNetworking.registerGlobalReceiver(SyncPacket.PACKET_ID, (payload, unused) -> PlatformlessInitializer.onSyncPacket(payload));
 
         WorldRenderEvents.AFTER_ENTITIES.register(context -> {
-            MinecraftClient client = MinecraftClient.getInstance();
-            if (client.world == null || client.player == null) {
+            Minecraft client = Minecraft.getInstance();
+            if (client.level == null || client.player == null) {
                 return;
             }
-            MatrixStack matrices = context.matrixStack();
+            PoseStack matrices = context.matrixStack();
             Camera camera = context.camera();
             ScreenWorldRenderer.render(matrices, camera);
         });
@@ -79,7 +79,7 @@ public class DreamDisplaysMod implements ClientModInitializer, Mod {
     }
 
     @Override
-    public void sendPacket(CustomPayload packet) {
+    public void sendPacket(CustomPacketPayload packet) {
         ClientPlayNetworking.send(packet);
     }
 }

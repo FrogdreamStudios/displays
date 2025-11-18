@@ -1,45 +1,45 @@
 package ru.l0sty.dreamdisplays.net;
 
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.Uuids;
 import ru.l0sty.dreamdisplays.PlatformlessInitializer;
 
 import java.util.UUID;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 
 /**
  * Packet for synchronizing display data.
  * Read more about the synchronization feature RequestSyncPacket.
  */
-public record SyncPacket(UUID id, boolean isSync, boolean currentState, long currentTime, long limitTime) implements CustomPayload {
-    public static final CustomPayload.Id<SyncPacket> PACKET_ID =
-            new CustomPayload.Id<>(Identifier.of(PlatformlessInitializer.MOD_ID, "sync"));
+public record SyncPacket(UUID id, boolean isSync, boolean currentState, long currentTime, long limitTime) implements CustomPacketPayload {
+    public static final CustomPacketPayload.Type<SyncPacket> PACKET_ID =
+            new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "sync"));
 
-    public static final PacketCodec<PacketByteBuf, SyncPacket> PACKET_CODEC =
-            PacketCodec.ofStatic(
+    public static final StreamCodec<FriendlyByteBuf, SyncPacket> PACKET_CODEC =
+            StreamCodec.of(
                     (buf, packet) -> {
-                        Uuids.PACKET_CODEC.encode(buf, packet.id());
-                        PacketCodecs.BOOLEAN.encode(buf, packet.isSync());
-                        PacketCodecs.BOOLEAN.encode(buf, packet.currentState());
-                        PacketCodecs.VAR_LONG.encode(buf, packet.currentTime());
-                        PacketCodecs.VAR_LONG.encode(buf, packet.limitTime());
+                        UUIDUtil.STREAM_CODEC.encode(buf, packet.id());
+                        ByteBufCodecs.BOOL.encode(buf, packet.isSync());
+                        ByteBufCodecs.BOOL.encode(buf, packet.currentState());
+                        ByteBufCodecs.VAR_LONG.encode(buf, packet.currentTime());
+                        ByteBufCodecs.VAR_LONG.encode(buf, packet.limitTime());
                     },
                     (buf) -> {
-                        UUID id = Uuids.PACKET_CODEC.decode(buf);
+                        UUID id = UUIDUtil.STREAM_CODEC.decode(buf);
 
-                        boolean isSync = PacketCodecs.BOOLEAN.decode(buf);
-                        boolean currentState = PacketCodecs.BOOLEAN.decode(buf);
-                        long currentTime = PacketCodecs.VAR_LONG.decode(buf);
-                        long limitTime = PacketCodecs.VAR_LONG.decode(buf);
+                        boolean isSync = ByteBufCodecs.BOOL.decode(buf);
+                        boolean currentState = ByteBufCodecs.BOOL.decode(buf);
+                        long currentTime = ByteBufCodecs.VAR_LONG.decode(buf);
+                        long limitTime = ByteBufCodecs.VAR_LONG.decode(buf);
 
                         return new SyncPacket(id, isSync, currentState, currentTime, limitTime);
                     });
 
     @Override
-    public Id<? extends CustomPayload> getId() {
+    public Type<? extends CustomPacketPayload> type() {
         return PACKET_ID;
     }
 }

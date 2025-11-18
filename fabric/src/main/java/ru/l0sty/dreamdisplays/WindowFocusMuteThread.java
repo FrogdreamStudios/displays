@@ -1,6 +1,6 @@
 package ru.l0sty.dreamdisplays;
 
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
 import ru.l0sty.dreamdisplays.screen.Screen;
 import ru.l0sty.dreamdisplays.screen.ScreenManager;
 
@@ -16,12 +16,12 @@ public class WindowFocusMuteThread extends Thread {
     @Override
     public void run() {
         while (true) {
-            MinecraftClient client = MinecraftClient.getInstance();
+            Minecraft client = Minecraft.getInstance();
             if (client == null) {
                 break;
             }
 
-            boolean focused = client.isWindowFocused();
+            boolean focused = client.isWindowActive();
 
             if (PlatformlessInitializer.getConfig().muteOnAltTab) for (Screen screen : ScreenManager.getScreens()) {
                 screen.mute(!focused);

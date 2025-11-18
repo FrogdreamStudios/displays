@@ -1,12 +1,12 @@
 package ru.l0sty.dreamdisplays;
 
 import me.inotsleep.utils.logging.LoggingManager;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.phys.BlockHitResult;
 import org.joml.Vector3i;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.LoggerFactory;
@@ -98,8 +98,8 @@ public class PlatformlessInitializer {
 
     public static void createScreen(UUID id, UUID ownerId, Vector3i pos, Facing facing, int width, int height, String code, String lang, boolean isSync) {
         Screen screen = new Screen(id, ownerId, pos.x(), pos.y(), pos.z(), facing.toString(), width, height, isSync);
-        assert MinecraftClient.getInstance().player != null;
-        if (screen.getDistanceToScreen(MinecraftClient.getInstance().player.getBlockPos()) > PlatformlessInitializer.config.defaultDistance) return;
+        assert Minecraft.getInstance().player != null;
+        if (screen.getDistanceToScreen(Minecraft.getInstance().player.blockPosition()) > PlatformlessInitializer.config.defaultDistance) return;
         ScreenManager.registerScreen(screen);
         if (!Objects.equals(code, "")) screen.loadVideo(code, lang);
     }
@@ -112,7 +112,7 @@ public class PlatformlessInitializer {
 
     private static final boolean[] wasPressed = {false};
     private static final AtomicBoolean wasInMultiplayer = new AtomicBoolean(false);
-    private static final AtomicReference<ClientWorld> lastWorld = new AtomicReference<>(null);
+    private static final AtomicReference<ClientLevel> lastWorld = new AtomicReference<>(null);
     private static final AtomicBoolean wasFocused = new AtomicBoolean(false);
 
     private static void checkVersionAndSendPacket() {
@@ -124,15 +124,15 @@ public class PlatformlessInitializer {
         }
     }
 
-    public static void onEndTick(MinecraftClient client) {
-        if (client.world != null && client.getCurrentServerEntry() != null) {
+    public static void onEndTick(Minecraft client) {
+        if (client.level != null && client.getCurrentServer() != null) {
             if (lastWorld.get() == null) {
-                lastWorld.set(client.world);
+                lastWorld.set(client.level);
                 checkVersionAndSendPacket();
             }
 
-            if (client.world != lastWorld.get()) {
-                lastWorld.set(client.world);
+            if (client.level != lastWorld.get()) {
+                lastWorld.set(client.level);
 
                 ScreenManager.unloadAll();
                 hoveredScreen = null;
@@ -159,7 +159,7 @@ public class PlatformlessInitializer {
         PlatformlessInitializer.isOnScreen = false;
 
         for (Screen screen : ScreenManager.getScreens()) {
-            if (PlatformlessInitializer.config.defaultDistance < screen.getDistanceToScreen(client.player.getBlockPos()) || !PlatformlessInitializer.displaysEnabled) {
+            if (PlatformlessInitializer.config.defaultDistance < screen.getDistanceToScreen(client.player.blockPosition()) || !PlatformlessInitializer.displaysEnabled) {
                 ScreenManager.unregisterScreen(screen);
                 if (hoveredScreen == screen) {
                     hoveredScreen = null;
@@ -171,15 +171,15 @@ public class PlatformlessInitializer {
                     PlatformlessInitializer.isOnScreen = true;
                 }
 
-                screen.tick(client.player.getBlockPos());
+                screen.tick(client.player.blockPosition());
             }
         }
 
-        long window = client.getWindow().getHandle();
+        long window = client.getWindow().getWindow();
         boolean pressed = GLFW.glfwGetMouseButton(window, GLFW.GLFW_MOUSE_BUTTON_RIGHT) == GLFW.GLFW_PRESS;
 
         if (pressed && !wasPressed[0]) {
-            if (client.player != null && client.player.isSneaking()) {
+            if (client.player != null && client.player.isShiftKeyDown()) {
                 checkAndOpenScreen();
             }
         }
@@ -187,8 +187,8 @@ public class PlatformlessInitializer {
         wasPressed[0] = pressed;
 
         if (PlatformlessInitializer.focusMode && client.player != null && hoveredScreen != null) {
-            client.player.addStatusEffect(new StatusEffectInstance(
-                    StatusEffects.BLINDNESS,
+            client.player.addEffect(new MobEffectInstance(
+                    MobEffects.BLINDNESS,
                     20 * 2,
                     1,
                     false,
@@ -199,7 +199,7 @@ public class PlatformlessInitializer {
             wasFocused.set(true);
 
         } else if (!PlatformlessInitializer.focusMode && wasFocused.get() && client.player != null) {
-            client.player.removeStatusEffect(StatusEffects.BLINDNESS);
+            client.player.removeEffect(MobEffects.BLINDNESS);
             wasFocused.set(false);
         }
     }
@@ -209,7 +209,7 @@ public class PlatformlessInitializer {
         DisplayConfScreen.open(hoveredScreen);
     }
 
-    public static void sendPacket(CustomPayload packet) {
+    public static void sendPacket(CustomPacketPayload packet) {
         mod.sendPacket(packet);
     }
 

@@ -1,30 +1,30 @@
 package ru.l0sty.dreamdisplays.net;
 
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import ru.l0sty.dreamdisplays.PlatformlessInitializer;
 
 /**
  * Packet for sending the version of the mod.
  * This packet is sent from the server to the client to inform the client about the version of the mod.
  */
-public record VersionPacket(String version) implements CustomPayload {
-    public static final Id<VersionPacket> PACKET_ID =
-            new Id<>(Identifier.of(PlatformlessInitializer.MOD_ID, "version"));
+public record VersionPacket(String version) implements CustomPacketPayload {
+    public static final Type<VersionPacket> PACKET_ID =
+            new Type<>(ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "version"));
 
-    public static final PacketCodec<PacketByteBuf, VersionPacket> PACKET_CODEC =
-            PacketCodec.ofStatic(
-                    (buf, packet) -> PacketCodecs.STRING.encode(buf, packet.version()),
+    public static final StreamCodec<FriendlyByteBuf, VersionPacket> PACKET_CODEC =
+            StreamCodec.of(
+                    (buf, packet) -> ByteBufCodecs.STRING_UTF8.encode(buf, packet.version()),
                     (buf) -> {
-                        String version = PacketCodecs.STRING.decode(buf);
+                        String version = ByteBufCodecs.STRING_UTF8.decode(buf);
                         return new VersionPacket(version);
                     });
 
     @Override
-    public Id<? extends CustomPayload> getId() {
+    public Type<? extends CustomPacketPayload> type() {
         return PACKET_ID;
     }
 }

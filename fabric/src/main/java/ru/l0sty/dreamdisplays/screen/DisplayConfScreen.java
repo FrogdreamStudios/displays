@@ -1,15 +1,5 @@
 package ru.l0sty.dreamdisplays.screen;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.Drawable;
-import net.minecraft.client.gui.Element;
-import net.minecraft.client.gui.screen.ButtonTextures;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.ClickableWidget;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Identifier;
 import ru.l0sty.dreamdisplays.PlatformlessInitializer;
 import ru.l0sty.dreamdisplays.net.DeletePacket;
 import ru.l0sty.dreamdisplays.net.ReportPacket;
@@ -20,6 +10,16 @@ import ru.l0sty.dreamdisplays.screen.widgets.ToggleWidget;
 
 import java.util.List;
 import java.util.Objects;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.Renderable;
+import net.minecraft.client.gui.components.WidgetSprites;
+import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 
 /**
  * Configuration screen for Dream Displays.
@@ -47,16 +47,16 @@ public class DisplayConfScreen extends Screen {
     public ru.l0sty.dreamdisplays.screen.Screen screen;
 
     protected DisplayConfScreen() {
-        super(Text.translatable("dreamdisplays.ui.title"));
+        super(Component.translatable("dreamdisplays.ui.title"));
     }
 
 
     @Override
     protected void init() {
-        volume = new SliderWidget(0, 0, 0, 0, Text.literal((int) Math.floor(screen.getVolume() * 100) + "%"), screen.getVolume()) {
+        volume = new SliderWidget(0, 0, 0, 0, Component.literal((int) Math.floor(screen.getVolume() * 100) + "%"), screen.getVolume()) {
             @Override
             protected void updateMessage() {
-                setMessage(Text.literal((int) Math.floor(value * 100) + "%"));
+                setMessage(Component.literal((int) Math.floor(value * 100) + "%"));
             }
 
             @Override
@@ -65,34 +65,34 @@ public class DisplayConfScreen extends Screen {
             }
         };
 
-        backButton = new IconButtonWidget(0, 0, 0, 0, 64, 64, Identifier.of(PlatformlessInitializer.MOD_ID, "bbi"), 2) {
+        backButton = new IconButtonWidget(0, 0, 0, 0, 64, 64, ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "bbi"), 2) {
             @Override
             public void onPress() {
                 screen.seekBackward();
             }
         };
 
-        forwardButton = new IconButtonWidget(0, 0, 0, 0, 64, 64, Identifier.of(PlatformlessInitializer.MOD_ID, "bfi"), 2) {
+        forwardButton = new IconButtonWidget(0, 0, 0, 0, 64, 64, ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "bfi"), 2) {
             @Override
             public void onPress() {
                 screen.seekForward();
             }
         };
 
-        pauseButton = new IconButtonWidget(0, 0, 0, 0, 64, 64, Identifier.of(PlatformlessInitializer.MOD_ID, "bpi"), 2) {
+        pauseButton = new IconButtonWidget(0, 0, 0, 0, 64, 64, ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "bpi"), 2) {
             @Override
             public void onPress() {
                 screen.setPaused(!screen.getPaused());
-                setIconTexture(screen.getPaused() ? Identifier.of(PlatformlessInitializer.MOD_ID, "bupi") : Identifier.of(PlatformlessInitializer.MOD_ID, "bpi"));
+                setIconTexture(screen.getPaused() ? ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "bupi") : ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "bpi"));
             }
         };
 
-        pauseButton.setIconTexture(screen.getPaused() ? Identifier.of(PlatformlessInitializer.MOD_ID, "bupi") : Identifier.of(PlatformlessInitializer.MOD_ID, "bpi"));
+        pauseButton.setIconTexture(screen.getPaused() ? ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "bupi") : ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "bpi"));
 
-        renderD = new SliderWidget(0, 0, 0, 0, Text.of(String.valueOf(PlatformlessInitializer.config.defaultDistance)), (PlatformlessInitializer.config.defaultDistance-24)/(96-24)) {
+        renderD = new SliderWidget(0, 0, 0, 0, Component.nullToEmpty(String.valueOf(PlatformlessInitializer.config.defaultDistance)), (PlatformlessInitializer.config.defaultDistance-24)/(96-24)) {
             @Override
             protected void updateMessage() {
-                setMessage(Text.of(String.valueOf((int) (value*(96-24)) + 24)));
+                setMessage(Component.nullToEmpty(String.valueOf((int) (value*(96-24)) + 24)));
             }
 
             @Override
@@ -101,10 +101,10 @@ public class DisplayConfScreen extends Screen {
             }
         };
 
-        quality = new SliderWidget(0, 0, 0, 0, Text.of(screen.getQuality()+"p"), ((double) fromQuality(screen.getQuality())) / screen.getQualityList().size()) {
+        quality = new SliderWidget(0, 0, 0, 0, Component.nullToEmpty(screen.getQuality()+"p"), ((double) fromQuality(screen.getQuality())) / screen.getQualityList().size()) {
             @Override
             protected void updateMessage() {
-                setMessage(Text.of(toQuality((int) (value*screen.getQualityList().size()))+"p"));
+                setMessage(Component.nullToEmpty(toQuality((int) (value*screen.getQualityList().size()))+"p"));
             }
 
             @Override
@@ -113,28 +113,28 @@ public class DisplayConfScreen extends Screen {
             }
         };
 
-        renderDReset = new IconButtonWidget(0, 0, 0, 0, 64, 64, Identifier.of(PlatformlessInitializer.MOD_ID, "bri"), 2) {
+        renderDReset = new IconButtonWidget(0, 0, 0, 0, 64, 64, ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "bri"), 2) {
             @Override
             public void onPress() {
                 PlatformlessInitializer.config.defaultDistance = 64;
                 renderD.value = 64;
-                renderD.setMessage(Text.of("64"));
+                renderD.setMessage(Component.nullToEmpty("64"));
             }
         };
 
-        qualityReset = new IconButtonWidget(0, 0, 0, 0, 64, 64, Identifier.of(PlatformlessInitializer.MOD_ID, "bri"), 2) {
+        qualityReset = new IconButtonWidget(0, 0, 0, 0, 64, 64, ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "bri"), 2) {
             @Override
             public void onPress() {
                 screen.setQuality(toQuality(fromQuality("720")).replace("p", ""));
                 quality.value = (double) 2 /screen.getQualityList().size();
-                quality.setMessage(Text.of(toQuality(2) + "p"));
+                quality.setMessage(Component.nullToEmpty(toQuality(2) + "p"));
             }
         };
 
-        sync = new ToggleWidget(0, 0, 0, 0, Text.translatable(screen.isSync ? "dreamdisplays.button.enabled" : "dreamdisplays.button.disabled"), screen.isSync) {
+        sync = new ToggleWidget(0, 0, 0, 0, Component.translatable(screen.isSync ? "dreamdisplays.button.enabled" : "dreamdisplays.button.disabled"), screen.isSync) {
             @Override
             protected void updateMessage() {
-                setMessage(Text.translatable(screen.isSync ? "dreamdisplays.button.enabled" : "dreamdisplays.button.disabled"));
+                setMessage(Component.translatable(screen.isSync ? "dreamdisplays.button.enabled" : "dreamdisplays.button.disabled"));
             }
 
             @Override
@@ -147,7 +147,7 @@ public class DisplayConfScreen extends Screen {
             }
         };
 
-        syncReset = new IconButtonWidget(0, 0, 0, 0, 64, 64, Identifier.of(PlatformlessInitializer.MOD_ID, "bri"), 2) {
+        syncReset = new IconButtonWidget(0, 0, 0, 0, 64, 64, ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "bri"), 2) {
             @Override
             public void onPress() {
                 if (screen.owner) {
@@ -159,49 +159,49 @@ public class DisplayConfScreen extends Screen {
 
         sync.active = screen.owner;
 
-        deleteButton = new IconButtonWidget(0, 0, 0, 0, 64, 64, Identifier.of(PlatformlessInitializer.MOD_ID, "delete"), 2) {
+        deleteButton = new IconButtonWidget(0, 0, 0, 0, 64, 64, ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "delete"), 2) {
             @Override
             public void onPress() {
                 PlatformlessInitializer.sendPacket(new DeletePacket(screen.getID()));
-                close();
+                onClose();
             }
         };
 
         deleteButton.active = screen.owner;
 
-        reportButton = new IconButtonWidget(0, 0, 0, 0, 64, 64, Identifier.of(PlatformlessInitializer.MOD_ID, "report"), 2) {
+        reportButton = new IconButtonWidget(0, 0, 0, 0, 64, 64, ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "report"), 2) {
             @Override
             public void onPress() {
                 PlatformlessInitializer.sendPacket(new ReportPacket(screen.getID()));
-                close();
+                onClose();
             }
         };
 
-        ButtonTextures textures = new ButtonTextures(Identifier.of(PlatformlessInitializer.MOD_ID, "widgets/red_button"), Identifier.of(PlatformlessInitializer.MOD_ID, "widgets/red_button_disabled"), Identifier.of(PlatformlessInitializer.MOD_ID, "widgets/red_button_highlighted"));
+        WidgetSprites textures = new WidgetSprites(ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "widgets/red_button"), ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "widgets/red_button_disabled"), ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "widgets/red_button_highlighted"));
 
         deleteButton.setTextures(textures);
         reportButton.setTextures(textures);
 
-        addDrawableChild(volume);
-        addDrawableChild(backButton);
-        addDrawableChild(forwardButton);
-        addDrawableChild(pauseButton);
-        addDrawableChild(renderD);
-        addDrawableChild(quality);
-        addDrawableChild(qualityReset);
-        addDrawableChild(renderDReset);
-        addDrawableChild(sync);
-        addDrawableChild(syncReset);
-        addDrawableChild(deleteButton);
-        addDrawableChild(reportButton);
+        addRenderableWidget(volume);
+        addRenderableWidget(backButton);
+        addRenderableWidget(forwardButton);
+        addRenderableWidget(pauseButton);
+        addRenderableWidget(renderD);
+        addRenderableWidget(quality);
+        addRenderableWidget(qualityReset);
+        addRenderableWidget(renderDReset);
+        addRenderableWidget(sync);
+        addRenderableWidget(syncReset);
+        addRenderableWidget(deleteButton);
+        addRenderableWidget(reportButton);
     }
 
-    private void renderTooltipIfHovered(DrawContext context, int mouseX, int mouseY,
+    private void renderTooltipIfHovered(GuiGraphics context, int mouseX, int mouseY,
                                         int elementX, int elementY, int elementWidth, int elementHeight,
-                                        List<Text> tooltip) {
+                                        List<Component> tooltip) {
         if (mouseX >= elementX && mouseX <= elementX + elementWidth &&
                 mouseY >= elementY && mouseY <= elementY + elementHeight) {
-            context.drawTooltip(MinecraftClient.getInstance().textRenderer, tooltip, mouseX, mouseY);
+            context.renderComponentTooltip(Minecraft.getInstance().font, tooltip, mouseX, mouseY);
         }
     }
 
@@ -213,10 +213,10 @@ public class DisplayConfScreen extends Screen {
      * @param delta the time delta since the last frame.
      */
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
 
         renderBackground(context, mouseX, mouseY, delta);
-        Text headerText = Text.translatable("dreamdisplays.ui.title");
+        Component headerText = Component.translatable("dreamdisplays.ui.title");
 
         int vCH = 25;
 
@@ -243,23 +243,23 @@ public class DisplayConfScreen extends Screen {
             qualityReset.active = false;
             syncReset.active = false;
 
-            List<Text> errorText = List.of(
-                    Text.translatable("dreamdisplays.error.loadingerror.1").styled(style -> style.withColor(0xff0000)),
-                    Text.translatable("dreamdisplays.error.loadingerror.2").styled(style -> style.withColor(0xff0000)),
-                    Text.translatable("dreamdisplays.error.loadingerror.3").styled(style -> style.withColor(0xff0000)),
-                    Text.translatable("dreamdisplays.error.loadingerror.4").styled(style -> style.withColor(0xff0000)),
-                    Text.translatable("dreamdisplays.error.loadingerror.5").styled(style -> style.withColor(0xff0000))
+            List<Component> errorText = List.of(
+                    Component.translatable("dreamdisplays.error.loadingerror.1").withStyle(style -> style.withColor(0xff0000)),
+                    Component.translatable("dreamdisplays.error.loadingerror.2").withStyle(style -> style.withColor(0xff0000)),
+                    Component.translatable("dreamdisplays.error.loadingerror.3").withStyle(style -> style.withColor(0xff0000)),
+                    Component.translatable("dreamdisplays.error.loadingerror.4").withStyle(style -> style.withColor(0xff0000)),
+                    Component.translatable("dreamdisplays.error.loadingerror.5").withStyle(style -> style.withColor(0xff0000))
             );
 
-            int yP = (int) ((double) this.height / 2 - ((double) (textRenderer.fontHeight + 2) * errorText.size()) / 2);
+            int yP = (int) ((double) this.height / 2 - ((double) (font.lineHeight + 2) * errorText.size()) / 2);
 
             int mW = 0;
-            for (Text text : errorText) {
-                mW = Math.max(textRenderer.getWidth(text), mW);
+            for (Component text : errorText) {
+                mW = Math.max(font.width(text), mW);
             }
 
-            for (Text text : errorText) {
-                context.drawText(textRenderer, text, this.width / 2 - textRenderer.getWidth(text) / 2, yP += 2 + textRenderer.fontHeight, 0xFFFFFF, true);
+            for (Component text : errorText) {
+                context.drawString(font, text, this.width / 2 - font.width(text) / 2, yP += 2 + font.lineHeight, 0xFFFFFF, true);
             }
 
             deleteButton.render(context, mouseX, mouseY, delta);
@@ -272,10 +272,10 @@ public class DisplayConfScreen extends Screen {
         renderDReset.active = PlatformlessInitializer.config.defaultDistance != 64;
         qualityReset.active = !Objects.equals(screen.getQuality(), "720");
 
-        int headerTextWidth = textRenderer.getWidth(headerText);
+        int headerTextWidth = font.width(headerText);
         int headerTextX = (this.width - headerTextWidth) / 2;
         int headerTextY = 15;
-        context.drawText(textRenderer, headerText, headerTextX, headerTextY, 0xFFFFFF, true);
+        context.drawString(font, headerText, headerTextX, headerTextY, 0xFFFFFF, true);
 
         int maxSW = this.width / 3;
 
@@ -284,13 +284,13 @@ public class DisplayConfScreen extends Screen {
         int sH = (int) Math.min((int) (screen.getHeight() / screen.getWidth() * sW), this.height / 3.5);
         sW = (int) (screen.getWidth() / screen.getHeight() * sH);
         int sX = this.width / 2 - sW / 2;
-        int cY = textRenderer.fontHeight + 15 * 2;
+        int cY = font.lineHeight + 15 * 2;
 
         context.fill(this.width / 2 - maxSW / 2, cY, this.width / 2 + maxSW / 2, cY + sH, 0xff000000);
-        context.getMatrices().push();
-        context.getMatrices().translate(0, 0, 10);
+        context.pose().pushPose();
+        context.pose().translate(0, 0, 10);
         renderScreen(context, sX, cY, sW, sH);
-        context.getMatrices().pop();
+        context.pose().popPose();
 
         cY += sH;
         cY += 5;
@@ -329,21 +329,21 @@ public class DisplayConfScreen extends Screen {
         placeButton(vCH, maxSW, cY, renderD, renderDReset);
 
         // Tooltip for Render Distance
-        Text renderDText = Text.translatable("dreamdisplays.button.render-distance");
+        Component renderDText = Component.translatable("dreamdisplays.button.render-distance");
         int renderDTextX = this.width / 2 - maxSW / 2;
-        int renderDTextY = cY + vCH / 2 - textRenderer.fontHeight / 2;
-        context.drawText(textRenderer, renderDText, renderDTextX, renderDTextY, 0xFFFFFF, true);
+        int renderDTextY = cY + vCH / 2 - font.lineHeight / 2;
+        context.drawString(font, renderDText, renderDTextX, renderDTextY, 0xFFFFFF, true);
 
         // Tooltip
-        List<Text> renderDTooltip = List.of(
-                Text.translatable("dreamdisplays.button.render-distance.tooltip.1").styled(style -> style.withColor(Formatting.WHITE).withBold(true)),
-                Text.translatable("dreamdisplays.button.render-distance.tooltip.2").styled(style -> style.withColor(Formatting.GRAY)),
-                Text.translatable("dreamdisplays.button.render-distance.tooltip.3").styled(style -> style.withColor(Formatting.GRAY)),
-                Text.translatable("dreamdisplays.button.render-distance.tooltip.4"),
-                Text.translatable("dreamdisplays.button.render-distance.tooltip.5").styled(style -> style.withColor(Formatting.DARK_GRAY)),
-                Text.translatable("dreamdisplays.button.render-distance.tooltip.6").styled(style -> style.withColor(Formatting.DARK_GRAY)),
-                Text.translatable("dreamdisplays.button.render-distance.tooltip.7"),
-                Text.translatable("dreamdisplays.button.render-distance.tooltip.8", PlatformlessInitializer.config.defaultDistance).styled(style -> style.withColor(Formatting.GOLD))
+        List<Component> renderDTooltip = List.of(
+                Component.translatable("dreamdisplays.button.render-distance.tooltip.1").withStyle(style -> style.withColor(ChatFormatting.WHITE).withBold(true)),
+                Component.translatable("dreamdisplays.button.render-distance.tooltip.2").withStyle(style -> style.withColor(ChatFormatting.GRAY)),
+                Component.translatable("dreamdisplays.button.render-distance.tooltip.3").withStyle(style -> style.withColor(ChatFormatting.GRAY)),
+                Component.translatable("dreamdisplays.button.render-distance.tooltip.4"),
+                Component.translatable("dreamdisplays.button.render-distance.tooltip.5").withStyle(style -> style.withColor(ChatFormatting.DARK_GRAY)),
+                Component.translatable("dreamdisplays.button.render-distance.tooltip.6").withStyle(style -> style.withColor(ChatFormatting.DARK_GRAY)),
+                Component.translatable("dreamdisplays.button.render-distance.tooltip.7"),
+                Component.translatable("dreamdisplays.button.render-distance.tooltip.8", PlatformlessInitializer.config.defaultDistance).withStyle(style -> style.withColor(ChatFormatting.GOLD))
         );
 
         cY += 5 + vCH;
@@ -352,57 +352,57 @@ public class DisplayConfScreen extends Screen {
         placeButton(vCH, maxSW, cY, quality, qualityReset);
 
         // Setting the quality text and calculating coordinates for tooltip
-        Text qualityText = Text.translatable("dreamdisplays.button.quality");
+        Component qualityText = Component.translatable("dreamdisplays.button.quality");
         int qualityTextX = this.width / 2 - maxSW / 2;
-        int qualityTextY = cY + vCH / 2 - textRenderer.fontHeight / 2;
-        context.drawText(textRenderer, qualityText, qualityTextX, qualityTextY, 0xFFFFFF, true);
+        int qualityTextY = cY + vCH / 2 - font.lineHeight / 2;
+        context.drawString(font, qualityText, qualityTextX, qualityTextY, 0xFFFFFF, true);
 
         // Tooltip
-        List<Text> qualityTooltip = new java.util.ArrayList<>(List.of(
-                Text.translatable("dreamdisplays.button.quality.tooltip.1").styled(style -> style.withColor(Formatting.WHITE).withBold(true)),
-                Text.translatable("dreamdisplays.button.quality.tooltip.2").styled(style -> style.withColor(Formatting.GRAY)),
-                Text.translatable("dreamdisplays.button.quality.tooltip.3"),
-                Text.translatable("dreamdisplays.button.quality.tooltip.4", screen.getQuality()).styled(style -> style.withColor(Formatting.GOLD))
+        List<Component> qualityTooltip = new java.util.ArrayList<>(List.of(
+                Component.translatable("dreamdisplays.button.quality.tooltip.1").withStyle(style -> style.withColor(ChatFormatting.WHITE).withBold(true)),
+                Component.translatable("dreamdisplays.button.quality.tooltip.2").withStyle(style -> style.withColor(ChatFormatting.GRAY)),
+                Component.translatable("dreamdisplays.button.quality.tooltip.3"),
+                Component.translatable("dreamdisplays.button.quality.tooltip.4", screen.getQuality()).withStyle(style -> style.withColor(ChatFormatting.GOLD))
         ));
 
         // Add warning if quality is 1080p or higher
         if (Integer.parseInt(screen.getQuality()) >= 1080) {
-            qualityTooltip.add(Text.translatable("dreamdisplays.button.quality.tooltip.5").styled(style -> style.withColor(Formatting.YELLOW)));
+            qualityTooltip.add(Component.translatable("dreamdisplays.button.quality.tooltip.5").withStyle(style -> style.withColor(ChatFormatting.YELLOW)));
         }
 
         cY += 15 + vCH;
         placeButton(vCH, maxSW, cY, sync, syncReset);
 
         // Setting the sync text and calculating coordinates for the tooltip
-        Text syncText = Text.translatable("dreamdisplays.button.synchronization");
+        Component syncText = Component.translatable("dreamdisplays.button.synchronization");
         int syncTextX = this.width / 2 - maxSW / 2;
-        int syncTextY = cY + vCH / 2 - textRenderer.fontHeight / 2;
-        context.drawText(textRenderer, syncText, syncTextX, syncTextY, 0xFFFFFF, true);
+        int syncTextY = cY + vCH / 2 - font.lineHeight / 2;
+        context.drawString(font, syncText, syncTextX, syncTextY, 0xFFFFFF, true);
 
-        List<Text> syncTooltip = List.of(
-                Text.translatable("dreamdisplays.button.synchronization.tooltip.1").styled(style -> style.withColor(Formatting.WHITE).withBold(true)),
-                Text.translatable("dreamdisplays.button.synchronization.tooltip.2").styled(style -> style.withColor(Formatting.GRAY)),
-                Text.translatable("dreamdisplays.button.synchronization.tooltip.3").styled(style -> style.withColor(Formatting.GRAY)),
-                Text.translatable("dreamdisplays.button.synchronization.tooltip.4"),
-                Text.translatable("dreamdisplays.button.synchronization.tooltip.5", sync.value ? Text.translatable("dreamdisplays.button.enabled") : Text.translatable("dreamdisplays.button.disabled")).styled(style -> style.withColor(Formatting.GOLD))
+        List<Component> syncTooltip = List.of(
+                Component.translatable("dreamdisplays.button.synchronization.tooltip.1").withStyle(style -> style.withColor(ChatFormatting.WHITE).withBold(true)),
+                Component.translatable("dreamdisplays.button.synchronization.tooltip.2").withStyle(style -> style.withColor(ChatFormatting.GRAY)),
+                Component.translatable("dreamdisplays.button.synchronization.tooltip.3").withStyle(style -> style.withColor(ChatFormatting.GRAY)),
+                Component.translatable("dreamdisplays.button.synchronization.tooltip.4"),
+                Component.translatable("dreamdisplays.button.synchronization.tooltip.5", sync.value ? Component.translatable("dreamdisplays.button.enabled") : Component.translatable("dreamdisplays.button.disabled")).withStyle(style -> style.withColor(ChatFormatting.GOLD))
         );
 
         renderTooltipIfHovered(context, mouseX, mouseY, renderDTextX, renderDTextY,
-                textRenderer.getWidth(renderDText), textRenderer.fontHeight, renderDTooltip);
+                font.width(renderDText), font.lineHeight, renderDTooltip);
         renderTooltipIfHovered(context, mouseX, mouseY, qualityTextX, qualityTextY,
-                textRenderer.getWidth(qualityText), textRenderer.fontHeight, qualityTooltip);
+                font.width(qualityText), font.lineHeight, qualityTooltip);
         renderTooltipIfHovered(context, mouseX, mouseY, syncTextX, syncTextY,
-                textRenderer.getWidth(syncText), textRenderer.fontHeight, syncTooltip);
+                font.width(syncText), font.lineHeight, syncTooltip);
 
         // Tooltips for delete and report buttons
-        List<Text> deleteTooltip = List.of(
-                Text.translatable("dreamdisplays.button.delete.tooltip.1").styled(style -> style.withColor(Formatting.WHITE).withBold(true)),
-                Text.translatable("dreamdisplays.button.delete.tooltip.2").styled(style -> style.withColor(Formatting.GRAY))
+        List<Component> deleteTooltip = List.of(
+                Component.translatable("dreamdisplays.button.delete.tooltip.1").withStyle(style -> style.withColor(ChatFormatting.WHITE).withBold(true)),
+                Component.translatable("dreamdisplays.button.delete.tooltip.2").withStyle(style -> style.withColor(ChatFormatting.GRAY))
         );
 
-        List<Text> reportTooltip = List.of(
-                Text.translatable("dreamdisplays.button.report.tooltip.1").styled(style -> style.withColor(Formatting.WHITE).withBold(true)),
-                Text.translatable("dreamdisplays.button.report.tooltip.2").styled(style -> style.withColor(Formatting.GRAY))
+        List<Component> reportTooltip = List.of(
+                Component.translatable("dreamdisplays.button.report.tooltip.1").withStyle(style -> style.withColor(ChatFormatting.WHITE).withBold(true)),
+                Component.translatable("dreamdisplays.button.report.tooltip.2").withStyle(style -> style.withColor(ChatFormatting.GRAY))
         );
 
         renderTooltipIfHovered(context, mouseX, mouseY, deleteButton.getX(), deleteButton.getY(),
@@ -411,8 +411,8 @@ public class DisplayConfScreen extends Screen {
                 reportButton.getWidth(), reportButton.getHeight(), reportTooltip);
 
         // Render all child elements (buttons, sliders, etc.)
-        for (Element child : children()) {
-            if (child instanceof Drawable drawable) {
+        for (GuiEventListener child : children()) {
+            if (child instanceof Renderable drawable) {
                 drawable.render(context, mouseX, mouseY, delta);
             }
         }
@@ -426,7 +426,7 @@ public class DisplayConfScreen extends Screen {
      * @param renderD the button to be placed.
      * @param renderDReset the reset button to be placed next to the main button.
      */
-    private void placeButton(int vCH, int maxSW, int cY, ClickableWidget renderD, IconButtonWidget renderDReset) {
+    private void placeButton(int vCH, int maxSW, int cY, AbstractWidget renderD, IconButtonWidget renderDReset) {
         renderD.setX(this.width / 2 + maxSW / 2 - 80 - vCH - 5);
         renderD.setY(cY);
         renderD.setHeight(vCH);
@@ -442,11 +442,11 @@ public class DisplayConfScreen extends Screen {
      * Renders display screen.
      * @param context the draw context for rendering.
      */
-    private void renderScreen(DrawContext context, int x, int y, int w, int h) {
+    private void renderScreen(GuiGraphics context, int x, int y, int w, int h) {
         if (screen.isVideoStarted()) {
-            RenderUtil2D.drawTexturedQuad(context.getMatrices(), screen.texture.getGlTexture(), x, y, w, h, screen.renderLayer);
+            RenderUtil2D.drawTexturedQuad(context.pose(), screen.texture.getTexture(), x, y, w, h, screen.renderLayer);
         } else if (screen.hasPreviewTexture()) {
-            RenderUtil2D.drawTexturedQuad(context.getMatrices(), screen.getPreviewTexture().getGlTexture(), x, y, w, h, screen.previewRenderLayer);
+            RenderUtil2D.drawTexturedQuad(context.pose(), screen.getPreviewTexture().getTexture(), x, y, w, h, screen.previewRenderLayer);
         } else {
             context.fill(x, y, x + w, y + h, 0xFF000000);
         }
@@ -458,7 +458,7 @@ public class DisplayConfScreen extends Screen {
     public static void open(ru.l0sty.dreamdisplays.screen.Screen screen) {
         DisplayConfScreen displayConfScreen = new DisplayConfScreen();
         displayConfScreen.setScreen(screen);
-        MinecraftClient.getInstance().setScreen(displayConfScreen);
+        Minecraft.getInstance().setScreen(displayConfScreen);
     }
 
     /**

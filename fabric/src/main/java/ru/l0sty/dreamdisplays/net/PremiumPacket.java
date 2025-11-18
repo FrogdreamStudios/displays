@@ -1,10 +1,10 @@
 package ru.l0sty.dreamdisplays.net;
 
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import ru.l0sty.dreamdisplays.PlatformlessInitializer;
 
 /**
@@ -12,20 +12,20 @@ import ru.l0sty.dreamdisplays.PlatformlessInitializer;
  * This packet is used to enable or disable premium features (in the client)
  * @param premium true if the user has a premium, false otherwise.
  */
-public record PremiumPacket(boolean premium) implements CustomPayload {
-    public static final Id<PremiumPacket> PACKET_ID =
-            new Id<>(Identifier.of(PlatformlessInitializer.MOD_ID, "premium"));
+public record PremiumPacket(boolean premium) implements CustomPacketPayload {
+    public static final Type<PremiumPacket> PACKET_ID =
+            new Type<>(ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "premium"));
 
-    public static final PacketCodec<PacketByteBuf, PremiumPacket> PACKET_CODEC =
-            PacketCodec.ofStatic(
-                    (buf, packet) -> PacketCodecs.BOOLEAN.encode(buf, packet.premium()),
+    public static final StreamCodec<FriendlyByteBuf, PremiumPacket> PACKET_CODEC =
+            StreamCodec.of(
+                    (buf, packet) -> ByteBufCodecs.BOOL.encode(buf, packet.premium()),
                     (buf) -> {
-                        boolean premium = PacketCodecs.BOOLEAN.decode(buf);
+                        boolean premium = ByteBufCodecs.BOOL.decode(buf);
                         return new PremiumPacket(premium);
                     });
 
     @Override
-    public Id<? extends CustomPayload> getId() {
+    public Type<? extends CustomPacketPayload> type() {
         return PACKET_ID;
     }
 }

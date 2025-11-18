@@ -1,9 +1,9 @@
 package ru.l0sty.dreamdisplays.util;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.hit.HitResult;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 
 /**
  * Utility class for raycasting in Minecraft.
@@ -12,20 +12,20 @@ import net.minecraft.util.math.Vec3d;
 public class RCUtil {
 
     public static BlockHitResult rCBlock(double maxDistance) {
-        MinecraftClient client = MinecraftClient.getInstance();
+        Minecraft client = Minecraft.getInstance();
 
-        if (client.player == null || client.world == null)
+        if (client.player == null || client.level == null)
             return null;
 
-        Vec3d start = client.player.getCameraPosVec(1.0f);
-        Vec3d direction = client.player.getRotationVec(1.0f);
-        Vec3d end = start.add(direction.multiply(maxDistance));
+        Vec3 start = client.player.getEyePosition(1.0f);
+        Vec3 direction = client.player.getViewVector(1.0f);
+        Vec3 end = start.add(direction.scale(maxDistance));
 
-        BlockHitResult hit = client.world.raycast(new net.minecraft.world.RaycastContext(
+        BlockHitResult hit = client.level.clip(new net.minecraft.world.level.ClipContext(
             start,
             end,
-            net.minecraft.world.RaycastContext.ShapeType.OUTLINE,
-            net.minecraft.world.RaycastContext.FluidHandling.NONE,
+            net.minecraft.world.level.ClipContext.Block.OUTLINE,
+            net.minecraft.world.level.ClipContext.Fluid.NONE,
             client.player
         ));
 

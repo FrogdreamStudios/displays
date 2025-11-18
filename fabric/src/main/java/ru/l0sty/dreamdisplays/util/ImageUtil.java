@@ -1,11 +1,10 @@
 package ru.l0sty.dreamdisplays.util;
 
 import me.inotsleep.utils.logging.LoggingManager;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.texture.NativeImage;
-import net.minecraft.client.texture.NativeImageBackedTexture;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.DynamicTexture;
 import javax.imageio.ImageIO;
+import com.mojang.blaze3d.platform.NativeImage;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URI;
@@ -18,7 +17,7 @@ import java.util.concurrent.CompletableFuture;
  */
 public class ImageUtil {
 
-    public static CompletableFuture<NativeImageBackedTexture> fetchImageTextureFromUrl(String url) {
+    public static CompletableFuture<DynamicTexture> fetchImageTextureFromUrl(String url) {
         CompletableFuture<NativeImage> imageFuture = CompletableFuture.supplyAsync(() -> {
             try {
                 BufferedImage bi = ImageIO.read(URL.of(URI.create(url), null));
@@ -33,11 +32,11 @@ public class ImageUtil {
         });
 
         return imageFuture.thenCompose(nativeImage -> {
-            CompletableFuture<NativeImageBackedTexture> texFuture = new CompletableFuture<>();
+            CompletableFuture<DynamicTexture> texFuture = new CompletableFuture<>();
 
-            MinecraftClient.getInstance().execute(() -> {
+            Minecraft.getInstance().execute(() -> {
                     try {
-                        NativeImageBackedTexture tex = new NativeImageBackedTexture(() -> url, nativeImage);
+                        DynamicTexture tex = new DynamicTexture(() -> url, nativeImage);
                         texFuture.complete(tex);
                     } catch (Throwable t) {
                         texFuture.completeExceptionally(t);
@@ -65,7 +64,7 @@ public class ImageUtil {
                 int g = (argb >> 8) & 0xFF;
                 int b = argb & 0xFF;
                 int rgba = (a << 24) | (b << 16) | (g << 8) | r;
-                nativeImage.setColor(x, y, rgba);
+                nativeImage.setPixelABGR(x, y, rgba);
 
             }
         }

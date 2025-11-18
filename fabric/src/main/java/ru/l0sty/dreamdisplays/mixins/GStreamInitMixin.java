@@ -1,8 +1,8 @@
 package ru.l0sty.dreamdisplays.mixins;
 
 import me.inotsleep.utils.logging.LoggingManager;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
 import org.freedesktop.gstreamer.Gst;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
@@ -18,7 +18,7 @@ import ru.l0sty.dreamdisplays.util.Utils;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-@Mixin(MinecraftClient.class)
+@Mixin(Minecraft.class)
 public abstract class GStreamInitMixin {
     @Shadow
     public abstract void setScreen(@Nullable Screen guiScreen);
@@ -40,10 +40,7 @@ public abstract class GStreamInitMixin {
             boolean recursionValue = recursionDetector.get();
             recursionDetector.set(true);
 
-            if (
-                !(guiScreen instanceof GStreamerDownloaderMenu) &&
-                !(guiScreen instanceof GStreamerErrorScreen)
-            ) {
+            if (!(guiScreen instanceof GStreamerDownloaderMenu) && !(guiScreen instanceof GStreamerErrorScreen)) {
                 if (GStreamerDownloadListener.INSTANCE.isDone() && !GStreamerDownloadListener.INSTANCE.isFailed()) {
                     downloaded = true;
                     Gst.init("MediaPlayer");
@@ -59,7 +56,6 @@ public abstract class GStreamInitMixin {
                     setScreen(new GStreamerErrorScreen(guiScreen, Utils.detectPlatform().equals("windows") ? "Dream Displays failed to download libraries": "Dream Displays failed to initialize GStreamer. You need to download GStreamer libraries manually and place them in the ./libs/gstreamer directory"));
                 }
             }
-
             recursionDetector.set(recursionValue);
         }
     }

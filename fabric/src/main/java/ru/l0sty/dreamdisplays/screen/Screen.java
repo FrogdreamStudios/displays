@@ -1,15 +1,15 @@
 package ru.l0sty.dreamdisplays.screen;
 
 import me.inotsleep.utils.logging.LoggingManager;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.RenderPipelines;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.RenderPhase;
-import net.minecraft.client.texture.NativeImageBackedTexture;
-import net.minecraft.client.texture.TextureManager;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.renderer.RenderStateShard;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.TriState;
-import net.minecraft.util.math.BlockPos;
 import ru.l0sty.dreamdisplays.PlatformlessInitializer;
 import ru.l0sty.dreamdisplays.net.DisplayInfoPacket;
 import ru.l0sty.dreamdisplays.net.RequestSyncPacket;
@@ -23,7 +23,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-import static net.minecraft.client.render.RenderPhase.ENABLE_LIGHTMAP;
+import static net.minecraft.client.renderer.RenderStateShard.LIGHTMAP;
 
 /**
  * The Screen class represents a virtual screen object with multimedia functionality
@@ -57,9 +57,9 @@ public class Screen {
 
     private String videoUrl;
 
-    public NativeImageBackedTexture texture = null;
-    public Identifier textureId = null;
-    public RenderLayer renderLayer = null;
+    public DynamicTexture texture = null;
+    public ResourceLocation textureId = null;
+    public RenderType renderLayer = null;
 
     public int textureWidth = 0;
     public int textureHeight = 0;
@@ -67,9 +67,9 @@ public class Screen {
     // Cache (good for performance)
     private transient BlockPos blockPos;
 
-    private NativeImageBackedTexture previewTexture = null;
-    public Identifier previewTextureId = null;
-    public RenderLayer previewRenderLayer = null;
+    private DynamicTexture previewTexture = null;
+    public ResourceLocation previewTextureId = null;
+    public RenderType previewRenderLayer = null;
     private String lang;
 
     /**
@@ -92,7 +92,7 @@ public class Screen {
         this.facing = facing;
         this.width = width;
         this.height = height;
-        owner = MinecraftClient.getInstance().player != null && (ownerId + "").equals(MinecraftClient.getInstance().player.getUuid() + "");
+        owner = Minecraft.getInstance().player != null && (ownerId + "").equals(Minecraft.getInstance().player.getUUID() + "");
 
         if (isSync) {
             sendRequestSyncPacket();
@@ -125,16 +125,16 @@ public class Screen {
             ImageUtil.fetchImageTextureFromUrl("https://img.youtube.com/vi/" + Utils.extractVideoId(videoUrl) + "/maxresdefault.jpg")
                     .thenAcceptAsync(nativeImageBackedTexture -> {
                         previewTexture = nativeImageBackedTexture;
-                        previewTextureId = Identifier.of(PlatformlessInitializer.MOD_ID, "screen-preview-"+id+"-"+UUID.randomUUID());
+                        previewTextureId = ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "screen-preview-"+id+"-"+UUID.randomUUID());
 
-                        MinecraftClient.getInstance().getTextureManager().registerTexture(previewTextureId, previewTexture);
+                        Minecraft.getInstance().getTextureManager().register(previewTextureId, previewTexture);
                         previewRenderLayer = createRenderLayer(previewTextureId);
                     });
         });
 
         waitForMFInit(this::startVideo);
 
-        MinecraftClient.getInstance().execute(this::reloadTexture);
+        Minecraft.getInstance().execute(this::reloadTexture);
     }
 
     /**
@@ -142,14 +142,14 @@ public class Screen {
      * @param id the Identifier for the texture
      * @return a RenderLayer for the screen texture
      */
-    private static RenderLayer createRenderLayer(Identifier id) {
-        return RenderLayer.of(
+    private static RenderType createRenderLayer(ResourceLocation id) {
+        return RenderType.create(
                 "frog-displays",
                 4194304,
                 true,
                 false,
                 RenderPipelines.SOLID,
-                RenderLayer.MultiPhaseParameters.builder().lightmap(ENABLE_LIGHTMAP).texture(new RenderPhase.Texture(id, TriState.FALSE, false)).build(true)
+                RenderType.CompositeState.builder().setLightmapState(LIGHTMAP).setTextureState(new RenderStateShard.TextureStateShard(id, TriState.FALSE, false)).createCompositeState(true)
         );
     }
 
@@ -168,7 +168,7 @@ public class Screen {
         this.height = packet.height();
         this.isSync = packet.isSync();
 
-        owner = MinecraftClient.getInstance().player != null && (packet.ownerId() + "").equals(MinecraftClient.getInstance().player.getUuid() + "");
+        owner = Minecraft.getInstance().player != null && (packet.ownerId() + "").equals(Minecraft.getInstance().player.getUUID() + "");
 
         if (!Objects.equals(videoUrl, packet.url()) || !Objects.equals(lang, packet.lang())) {
             loadVideo(packet.url(), packet.lang());
@@ -270,7 +270,7 @@ public class Screen {
 
         BlockPos closestPoint = new BlockPos(clampedX, clampedY, clampedZ);
 
-        return Math.sqrt(pos.getSquaredDistance(closestPoint));
+        return Math.sqrt(pos.distSqr(closestPoint));
     }
 
     /**
@@ -278,7 +278,7 @@ public class Screen {
      */
     public void fitTexture() {
         if (mediaPlayer != null) {
-            mediaPlayer.updateFrame(texture.getGlTexture());
+            mediaPlayer.updateFrame(texture.getTexture());
         }
     }
 
@@ -431,17 +431,17 @@ public class Screen {
     public void unregister() {
         if (mediaPlayer != null) mediaPlayer.stop();
 
-        TextureManager manager = MinecraftClient.getInstance().getTextureManager();
+        TextureManager manager = Minecraft.getInstance().getTextureManager();
 
-        if (textureId != null) manager.destroyTexture(textureId);
-        if (previewTextureId != null) manager.destroyTexture(previewTextureId);
+        if (textureId != null) manager.release(textureId);
+        if (previewTextureId != null) manager.release(previewTextureId);
 
-        if (MinecraftClient.getInstance().currentScreen instanceof DisplayConfScreen displayConfScreen) {
-            if (displayConfScreen.screen == this) displayConfScreen.close();
+        if (Minecraft.getInstance().screen instanceof DisplayConfScreen displayConfScreen) {
+            if (displayConfScreen.screen == this) displayConfScreen.onClose();
         }
     }
 
-    public NativeImageBackedTexture getPreviewTexture() {
+    public DynamicTexture getPreviewTexture() {
         return previewTexture;
     }
 
@@ -473,14 +473,14 @@ public class Screen {
         //textureId = RenderUtil2D.createEmptyTexture(textureWidth, textureHeight);
         if (texture != null) {
             texture.close();
-            if (textureId != null) MinecraftClient.getInstance()
+            if (textureId != null) Minecraft.getInstance()
                     .getTextureManager()
-                    .destroyTexture(textureId);
+                    .release(textureId);
         }
-        texture = new NativeImageBackedTexture(UUID.randomUUID().toString(), textureWidth, textureHeight, true);
-        textureId = Identifier.of(PlatformlessInitializer.MOD_ID, "screen-main-texture-" + id + "-" + UUID.randomUUID());
+        texture = new DynamicTexture(UUID.randomUUID().toString(), textureWidth, textureHeight, true);
+        textureId = ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "screen-main-texture-" + id + "-" + UUID.randomUUID());
 
-        MinecraftClient.getInstance().getTextureManager().registerTexture(textureId, texture);
+        Minecraft.getInstance().getTextureManager().register(textureId, texture);
         renderLayer = createRenderLayer(textureId);
     }
 

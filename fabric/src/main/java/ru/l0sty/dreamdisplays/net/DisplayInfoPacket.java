@@ -1,71 +1,71 @@
 package ru.l0sty.dreamdisplays.net;
 
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.Uuids;
 import org.joml.Vector3i;
 import ru.l0sty.dreamdisplays.PlatformlessInitializer;
 import ru.l0sty.dreamdisplays.util.Facing;
 
 import java.util.UUID;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 
 /**
  * Packet for displaying information about a display.
  * This packet is sent from the server to the client to provide information about a display.
  */
-public record DisplayInfoPacket(UUID id, UUID ownerId, Vector3i pos, int width, int height, String url, Facing facing, boolean isSync, String lang) implements CustomPayload {
-    public static final CustomPayload.Id<DisplayInfoPacket> PACKET_ID =
-            new CustomPayload.Id<>(Identifier.of(PlatformlessInitializer.MOD_ID, "display_info"));
+public record DisplayInfoPacket(UUID id, UUID ownerId, Vector3i pos, int width, int height, String url, Facing facing, boolean isSync, String lang) implements CustomPacketPayload {
+    public static final CustomPacketPayload.Type<DisplayInfoPacket> PACKET_ID =
+            new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "display_info"));
 
-    public static final PacketCodec<PacketByteBuf, DisplayInfoPacket> PACKET_CODEC =
-            PacketCodec.ofStatic(
+    public static final StreamCodec<FriendlyByteBuf, DisplayInfoPacket> PACKET_CODEC =
+            StreamCodec.of(
                     (buf, packet) -> {
-                        Uuids.PACKET_CODEC.encode(buf, packet.id());
-                        Uuids.PACKET_CODEC.encode(buf, packet.ownerId());
+                        UUIDUtil.STREAM_CODEC.encode(buf, packet.id());
+                        UUIDUtil.STREAM_CODEC.encode(buf, packet.ownerId());
 
-                        PacketCodecs.VAR_INT.encode(buf, packet.pos().x());
-                        PacketCodecs.VAR_INT.encode(buf, packet.pos().y());
-                        PacketCodecs.VAR_INT.encode(buf, packet.pos().z());
+                        ByteBufCodecs.VAR_INT.encode(buf, packet.pos().x());
+                        ByteBufCodecs.VAR_INT.encode(buf, packet.pos().y());
+                        ByteBufCodecs.VAR_INT.encode(buf, packet.pos().z());
 
-                        PacketCodecs.VAR_INT.encode(buf, packet.width());
-                        PacketCodecs.VAR_INT.encode(buf, packet.height());
+                        ByteBufCodecs.VAR_INT.encode(buf, packet.width());
+                        ByteBufCodecs.VAR_INT.encode(buf, packet.height());
 
-                        PacketCodecs.STRING.encode(buf, packet.url());
+                        ByteBufCodecs.STRING_UTF8.encode(buf, packet.url());
 
-                        PacketCodecs.BYTE.encode(buf, packet.facing().toPacket());
-                        PacketCodecs.BOOLEAN.encode(buf, packet.isSync());
+                        ByteBufCodecs.BYTE.encode(buf, packet.facing().toPacket());
+                        ByteBufCodecs.BOOL.encode(buf, packet.isSync());
 
-                        PacketCodecs.STRING.encode(buf, packet.lang());
+                        ByteBufCodecs.STRING_UTF8.encode(buf, packet.lang());
                     },
                     (buf) -> {
-                        UUID id = Uuids.PACKET_CODEC.decode(buf);
-                        UUID ownerId = Uuids.PACKET_CODEC.decode(buf);
+                        UUID id = UUIDUtil.STREAM_CODEC.decode(buf);
+                        UUID ownerId = UUIDUtil.STREAM_CODEC.decode(buf);
 
-                        int x = PacketCodecs.VAR_INT.decode(buf);
-                        int y = PacketCodecs.VAR_INT.decode(buf);
-                        int z = PacketCodecs.VAR_INT.decode(buf);
+                        int x = ByteBufCodecs.VAR_INT.decode(buf);
+                        int y = ByteBufCodecs.VAR_INT.decode(buf);
+                        int z = ByteBufCodecs.VAR_INT.decode(buf);
                         Vector3i pos = new Vector3i(x, y, z);
 
-                        int width = PacketCodecs.VAR_INT.decode(buf);
-                        int height = PacketCodecs.VAR_INT.decode(buf);
+                        int width = ByteBufCodecs.VAR_INT.decode(buf);
+                        int height = ByteBufCodecs.VAR_INT.decode(buf);
 
-                        String url = PacketCodecs.STRING.decode(buf);
+                        String url = ByteBufCodecs.STRING_UTF8.decode(buf);
 
-                        byte facingByte = PacketCodecs.BYTE.decode(buf);
+                        byte facingByte = ByteBufCodecs.BYTE.decode(buf);
                         Facing facing = Facing.fromPacket(facingByte);
 
-                        boolean isSync = PacketCodecs.BOOLEAN.decode(buf);
-                        String lang = PacketCodecs.STRING.decode(buf);
+                        boolean isSync = ByteBufCodecs.BOOL.decode(buf);
+                        String lang = ByteBufCodecs.STRING_UTF8.decode(buf);
 
                         return new DisplayInfoPacket(id, ownerId, pos, width, height, url, facing, isSync, lang);
                     }
             );
 
     @Override
-    public Id<? extends CustomPayload> getId() {
+    public Type<? extends CustomPacketPayload> type() {
         return PACKET_ID;
     }
 }

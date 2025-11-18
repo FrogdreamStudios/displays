@@ -1,13 +1,13 @@
 package ru.l0sty.dreamdisplays.net;
 
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.Uuids;
 import ru.l0sty.dreamdisplays.PlatformlessInitializer;
 
 import java.util.UUID;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 
 /**
  * Packet for requesting a display sync.
@@ -17,20 +17,20 @@ import java.util.UUID;
  * This feature is important while using the synchronization feature and, of course, for other cases when the client needs to be updated with the latest display data.
  * @param id the ID of the display to sync.
  */
-public record RequestSyncPacket(UUID id) implements CustomPayload {
-    public static final CustomPayload.Id<RequestSyncPacket> PACKET_ID =
-            new CustomPayload.Id<>(Identifier.of(PlatformlessInitializer.MOD_ID, "req_sync"));
+public record RequestSyncPacket(UUID id) implements CustomPacketPayload {
+    public static final CustomPacketPayload.Type<RequestSyncPacket> PACKET_ID =
+            new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "req_sync"));
 
-    public static final PacketCodec<PacketByteBuf, RequestSyncPacket> PACKET_CODEC =
-            PacketCodec.ofStatic(
-                    (buf, packet) -> Uuids.PACKET_CODEC.encode(buf, packet.id()),
+    public static final StreamCodec<FriendlyByteBuf, RequestSyncPacket> PACKET_CODEC =
+            StreamCodec.of(
+                    (buf, packet) -> UUIDUtil.STREAM_CODEC.encode(buf, packet.id()),
                     (buf) -> {
-                        UUID id = Uuids.PACKET_CODEC.decode(buf);
+                        UUID id = UUIDUtil.STREAM_CODEC.decode(buf);
                         return new RequestSyncPacket(id);
                     });
 
     @Override
-    public CustomPayload.Id<? extends CustomPayload> getId() {
+    public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
         return PACKET_ID;
     }
 }

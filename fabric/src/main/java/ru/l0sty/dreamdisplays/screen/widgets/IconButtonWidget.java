@@ -1,40 +1,40 @@
 package ru.l0sty.dreamdisplays.screen.widgets;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.ButtonTextures;
-import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
-import net.minecraft.client.gui.widget.ClickableWidget;
-import net.minecraft.client.input.KeyCodes;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.ColorHelper;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.WidgetSprites;
+import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.gui.navigation.CommonInputs;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.ARGB;
 
 /**
  * Abstract class for a button with an icon.
  * This class extends ClickableWidget and provides functionality for rendering an icon button with a specified texture.
  * It allows setting a custom icon texture and provides methods for rendering the button and handling click events.
  */
-public abstract class IconButtonWidget extends ClickableWidget {
+public abstract class IconButtonWidget extends AbstractWidget {
 	private final int iw;
     private final int ih;
 	private final int margin;
 
-	private Identifier iconTexture;
+	private ResourceLocation iconTexture;
 
-	public void setIconTexture(Identifier iconTexture) {
+	public void setIconTexture(ResourceLocation iconTexture) {
 		this.iconTexture = iconTexture;
 	}
 
-	private static final ButtonTextures TEXTURES = new ButtonTextures(
-		Identifier.ofVanilla("widget/button"), Identifier.ofVanilla("widget/button_disabled"), Identifier.ofVanilla("widget/button_highlighted")
+	private static final WidgetSprites TEXTURES = new WidgetSprites(
+		ResourceLocation.withDefaultNamespace("widget/button"), ResourceLocation.withDefaultNamespace("widget/button_disabled"), ResourceLocation.withDefaultNamespace("widget/button_highlighted")
 	);
 	
-	private ButtonTextures settedTextures = null;
+	private WidgetSprites settedTextures = null;
 
-	public IconButtonWidget(int i, int j, int k, int l, int iw, int ih, Identifier iconTexture, int margin) {
-		super(i, j, k, l, Text.empty());
+	public IconButtonWidget(int i, int j, int k, int l, int iw, int ih, ResourceLocation iconTexture, int margin) {
+		super(i, j, k, l, Component.empty());
 
 		this.iw = iw;
 		this.ih = ih;
@@ -42,18 +42,18 @@ public abstract class IconButtonWidget extends ClickableWidget {
 		this.margin = margin;
 	}
 
-	public void setTextures(ButtonTextures settedTextures) {
+	public void setTextures(WidgetSprites settedTextures) {
 		this.settedTextures = settedTextures;
 	}
 
 	public abstract void onPress();
 
 	@Override
-	protected void appendClickableNarrations(NarrationMessageBuilder builder) {}
+	protected void updateWidgetNarration(NarrationElementOutput builder) {}
 
 	@Override
-	protected void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
-		context.drawGuiTexture(RenderLayer::getGuiTextured, settedTextures != null ? settedTextures.get(this.active, this.isSelected()) : TEXTURES.get(this.active, this.isSelected()), this.getX(), this.getY(), this.getWidth(), this.getHeight(), ColorHelper.getWhite(this.alpha));
+	protected void renderWidget(GuiGraphics context, int mouseX, int mouseY, float delta) {
+		context.blitSprite(RenderType::guiTextured, settedTextures != null ? settedTextures.get(this.active, this.isHoveredOrFocused()) : TEXTURES.get(this.active, this.isHoveredOrFocused()), this.getX(), this.getY(), this.getWidth(), this.getHeight(), ARGB.white(this.alpha));
 
 		int dW = getWidth() - 2*margin;
 		int dH = getHeight() - 2*margin;
@@ -65,7 +65,7 @@ public abstract class IconButtonWidget extends ClickableWidget {
 		int dx = getX() + getWidth()/2-iconW/2;
 		int dy = getY() + getHeight()/2-iconH/2;
 
-		context.drawGuiTexture(RenderLayer::getGuiTextured, iconTexture, dx, dy, iconW, iconH, ColorHelper.getWhite(this.alpha));
+		context.blitSprite(RenderType::guiTextured, iconTexture, dx, dy, iconW, iconH, ARGB.white(this.alpha));
 
 	}
 
@@ -78,8 +78,8 @@ public abstract class IconButtonWidget extends ClickableWidget {
 	public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
 		if (!this.active || !this.visible) {
 			return false;
-		} else if (KeyCodes.isToggle(keyCode)) {
-			this.playDownSound(MinecraftClient.getInstance().getSoundManager());
+		} else if (CommonInputs.selected(keyCode)) {
+			this.playDownSound(Minecraft.getInstance().getSoundManager());
 			this.onPress();
 			return true;
 		} else {

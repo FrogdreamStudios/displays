@@ -2,13 +2,13 @@ package ru.l0sty.dreamdisplays.screen;
 
 import com.github.felipeucelli.javatube.Stream;
 import com.github.felipeucelli.javatube.Youtube;
+import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.systems.CommandEncoder;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.textures.GpuTexture;
 import me.inotsleep.utils.logging.LoggingManager;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.texture.NativeImage;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
 import org.freedesktop.gstreamer.*;
 import org.freedesktop.gstreamer.elements.AppSink;
 import org.freedesktop.gstreamer.event.SeekFlags;
@@ -21,7 +21,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import java.util.*;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
@@ -61,7 +60,7 @@ public class MediaPlayer {
     private volatile Pipeline videoPipeline;
     private volatile Pipeline audioPipeline;
 
-    private volatile List<Stream> availableVideoStreams;
+    private volatile java.util.List<Stream> availableVideoStreams;
     private volatile Stream currentVideoStream;
     private volatile boolean initialized;
     private int lastQuality;
@@ -153,7 +152,7 @@ public class MediaPlayer {
         );
     }
 
-    public List<Integer> getAvailableQualities() {
+    public java.util.List<Integer> getAvailableQualities() {
         if (!initialized || availableVideoStreams == null) return Collections.emptyList();
         return availableVideoStreams.stream()
                 .map(Stream::getResolution)
@@ -171,10 +170,10 @@ public class MediaPlayer {
     private void initialize() {
         try {
             Youtube yt = new Youtube(youtubeUrl, USER_AGENT_V);
-            List<Stream> all = yt.streams().getAll();
+            java.util.List<Stream> all = yt.streams().getAll();
 
             Youtube ytA = new Youtube(youtubeUrl, USER_AGENT_A);
-            List<Stream> audioS = ytA.streams().getAll();
+            java.util.List<Stream> audioS = ytA.streams().getAll();
 
             availableVideoStreams = all.stream()
                     .filter(s -> MIME_VIDEO.equals(s.getMimeType()))
@@ -413,7 +412,7 @@ public class MediaPlayer {
         try { target = Integer.parseInt(desired.replaceAll("\\D+", "")); }
         catch (NumberFormatException e) { return; }
         if (target == lastQuality) return;
-        MinecraftClient.getInstance().execute(screen::reloadTexture);
+        Minecraft.getInstance().execute(screen::reloadTexture);
 
         Optional<Stream> best = pickVideo(target);
         if (best.isEmpty()) return;
