@@ -64,13 +64,13 @@ jobs:
           retention-days: 30
           compression-level: 6
 
-      # Paper
-      - name: Upload Paper plugin
+      # Spigot
+      - name: Upload Spigot plugin
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: dreamdisplays-paper-${{ steps.version.outputs.VERSION }}
-          path: build/libs/dreamdisplays-paper-*.jar
+          name: dreamdisplays-spigot-${{ steps.version.outputs.VERSION }}
+          path: build/libs/dreamdisplays-spigot-*.jar
           if-no-files-found: warn
           retention-days: 30
           compression-level: 6

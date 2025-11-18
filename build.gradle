@@ -12,6 +12,10 @@ allprojects {
             url = "https://repo.papermc.io/repository/maven-public/"
         }
         maven {
+            name = "spigot-repo"
+            url = "https://hub.spigotmc.org/nexus/content/repositories/snapshots/"
+        }
+        maven {
             name = "sonatype"
             url = "https://oss.sonatype.org/content/groups/public/"
         }

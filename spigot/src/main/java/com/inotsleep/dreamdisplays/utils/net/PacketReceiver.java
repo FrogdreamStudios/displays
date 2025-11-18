@@ -8,9 +8,6 @@ import com.inotsleep.dreamdisplays.managers.PlayStateManager;
 import com.inotsleep.dreamdisplays.managers.PlayerManager;
 import com.inotsleep.dreamdisplays.utils.Utils;
 import me.inotsleep.utils.logging.LoggingManager;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
-import net.kyori.adventure.text.event.ClickEvent;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.messaging.PluginMessageListener;
@@ -85,28 +82,10 @@ public class PacketReceiver implements PluginMessageListener {
 
             int result = userVersion.compareTo(DreamDisplaysPlugin.modVersion);
             if (result < 0) {
-                TextComponent text =
-                        Component
-                        .text()
-                        .content(
-                                ChatColor.translateAlternateColorCodes('&', String.format(
-                                        (String) DreamDisplaysPlugin.config.messages.get("newVersion"),
-                                        DreamDisplaysPlugin.modVersion.toString()
-                                ))
-                        ).clickEvent(
-                                ClickEvent
-                                        .clickEvent(
-                                                ClickEvent.Action.OPEN_URL,
-                                                String.format(
-                                                        // TODO: maybe we should use config also for this
-                                                        "https://github.com/%s/%s/releases",
-                                                        DreamDisplaysPlugin.config.settings.repoOwner,
-                                                        DreamDisplaysPlugin.config.settings.repoName
-                                                )
-                                        )
-                        )
-                        .build();
-                player.sendMessage(text);
+                player.sendMessage(ChatColor.translateAlternateColorCodes('&', String.format(
+                        (String) DreamDisplaysPlugin.config.messages.get("newVersion"),
+                        DreamDisplaysPlugin.modVersion.toString()
+                )));
             }
 
         } catch (IOException e) {

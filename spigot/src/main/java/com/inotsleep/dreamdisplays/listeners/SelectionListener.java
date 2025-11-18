@@ -15,6 +15,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPistonRetractEvent;
@@ -55,7 +56,7 @@ public class SelectionListener implements Listener {
 
         if (player.getInventory().getItemInMainHand().getType() != DreamDisplaysPlugin.config.settings.selectionMaterial) return;
 
-        if (player.isSneaking() && event.getAction().isRightClick() && selectionPoints.containsKey(player.getUniqueId())) {
+        if (player.isSneaking() && (event.getAction() == Action.RIGHT_CLICK_BLOCK || event.getAction() == Action.RIGHT_CLICK_AIR) && selectionPoints.containsKey(player.getUniqueId())) {
             selectionPoints.remove(player.getUniqueId());
             MessageUtil.sendColoredMessage(player, (String) DreamDisplaysPlugin.config.messages.get("selectionClear"));
             return;
@@ -83,14 +84,14 @@ public class SelectionListener implements Listener {
 
         if (face == BlockFace.UP || face == BlockFace.DOWN) face = player.getFacing().getOppositeFace();
 
-        if (event.getAction().isLeftClick()) {
+        if (event.getAction() == Action.LEFT_CLICK_BLOCK || event.getAction() == Action.LEFT_CLICK_AIR) {
             data.setPos1(location.clone());
             data.setFace(face);
             MessageUtil.sendColoredMessage(player, (String) DreamDisplaysPlugin.config.messages.get("firstPointSelected"));
 
             int validationCode = isValidDisplay(data);
             if (validationCode == 6) data.setReady(true);
-        } else if (event.getAction().isRightClick()) {
+        } else if (event.getAction() == Action.RIGHT_CLICK_BLOCK || event.getAction() == Action.RIGHT_CLICK_AIR) {
             if (data.getPos1() == null) {
                 MessageUtil.sendColoredMessage(player, (String) DreamDisplaysPlugin.config.messages.get("noDisplayTerritories"));
                 return;

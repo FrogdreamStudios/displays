@@ -38,6 +38,20 @@ public final class DreamDisplaysPlugin extends AbstractPlugin<DreamDisplaysPlugi
     }
 
     @Override
+    public void onEnable() {
+        try {
+            super.onEnable();
+        } catch (NoSuchMethodError e) {
+            if (e.getMessage().contains("getMinecraftVersion")) {
+                // Ignore the initializer error for compatibility
+                doEnable();
+            } else {
+                throw e;
+            }
+        }
+    }
+
+    @Override
     public void doEnable() {
         config = new Config(this);
         storage = new Storage(this);
@@ -155,7 +169,9 @@ public final class DreamDisplaysPlugin extends AbstractPlugin<DreamDisplaysPlugi
 
     @Override
     public void doDisable() {
-        storage.onDisable();
+        if (storage != null) {
+            storage.onDisable();
+        }
     }
 
     public static DreamDisplaysPlugin getInstance() {

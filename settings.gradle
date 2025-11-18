@@ -17,4 +17,4 @@ pluginManagement {
 
 rootProject.name = 'displays'
 include ':fabric'
-include ':paper'
+include ':spigot'
