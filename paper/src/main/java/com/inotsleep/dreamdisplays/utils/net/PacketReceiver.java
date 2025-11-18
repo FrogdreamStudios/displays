@@ -73,11 +73,11 @@ public class PacketReceiver implements PluginMessageListener {
 
             in.read(data, 0, len);
 
-            PacketUtils.sendPremiumPacket(player, player.hasPermission(DreamDisplaysPlugin.config.permissions.premiumPermission));
+            PacketUtils.sendPremiumPacket(player, player.hasPermission(DreamDisplaysPlugin.config.permissions.premium));
 
             String version = Utils.sanitize(new String(data, 0, len));
 
-            LoggingManager.log(player.getName() + " has Dream Displays with version: " + version +". Premium: " + player.hasPermission(DreamDisplaysPlugin.config.permissions.premiumPermission));
+            LoggingManager.log(player.getName() + " has Dream Displays with version: " + version +". Premium: " + player.hasPermission(DreamDisplaysPlugin.config.permissions.premium));
 
             Version userVersion = Version.parse(version);
 
@@ -90,7 +90,7 @@ public class PacketReceiver implements PluginMessageListener {
                         .text()
                         .content(
                                 ChatColor.translateAlternateColorCodes('&', String.format(
-                                        DreamDisplaysPlugin.config.messages.newVersion,
+                                        (String) DreamDisplaysPlugin.config.messages.get("newVersion"),
                                         DreamDisplaysPlugin.modVersion.toString()
                                 ))
                         ).clickEvent(

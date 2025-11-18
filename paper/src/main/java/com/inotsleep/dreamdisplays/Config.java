@@ -1,235 +1,313 @@
 package com.inotsleep.dreamdisplays;
 
-import me.inotsleep.utils.config.AbstractConfig;
-import me.inotsleep.utils.config.Comment;
-import me.inotsleep.utils.config.Path;
-import me.inotsleep.utils.config.SerializableObject;
-import me.inotsleep.utils.storage.StorageSettings;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.moandjiezana.toml.Toml;
 import org.bukkit.Material;
 
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-public class Config extends AbstractConfig {
-    @Path("settings")
-    public Settings settings = new Settings();
+public class Config {
+    private static final Gson gson = new Gson();
+    private final File configFile;
+    private Toml toml;
 
-    @Path("messages")
-    public Messages messages = new Messages();
+    public LanguageSection language;
+    public SettingsSection settings;
+    public StorageSection storage;
+    public PermissionsSection permissions;
+    public final Map<String, Object> messages = new HashMap<>();
 
-    @Path("storage")
-    public StorageSettings storageSettings = new StorageSettings();
-
-    @Path("permissions")
-    public Permissions permissions = new Permissions();
-
-    public static class Permissions extends SerializableObject {
-        @Path("premium")
-        @Comment("Permission for premium users")
-        public String premiumPermission = "group.premium";
-
-        @Path("delete")
-        @Comment("Permission to delete any display (including other players' displays)")
-        public String deletePermission = "dreamdisplays.delete";
-
-        @Path("list")
-        @Comment("Permission to list all displays")
-        public String listPermission = "dreamdisplays.list";
-
-        @Path("reload")
-        @Comment("Permission to reload the config")
-        public String reloadPermission = "dreamdisplays.reload";
-    }
-
-    public static class Settings extends SerializableObject {
-
-        @Path("webhook_url")
-        @Comment("Discord webhook URL for reports (leave empty to disable)")
-        public String webhookUrl = "";
-
-        @Comment("Time between reports in milliseconds (default: 15000 ms = 15 seconds)")
-        @Path("report_cooldown")
-        public int reportCooldown = 15000;
-
-        @Path("repo_name")
-        @Comment("GitHub repository name for mod updates")
-        public String repoName = "dreamdisplays";
-
-        @Path("repo_owner")
-        @Comment("GitHub repository owner for mod updates")
-        public String repoOwner = "arsmotorin";
-
-        @Path("selection_material")
-        @Comment("Item for selecting display regions (default: DIAMOND_AXE)")
-        private String selectionMaterialR = "DIAMOND_AXE";
-        public Material selectionMaterial = Material.DIAMOND_AXE;
-
-        @Path("base_material")
-        @Comment("Block material for displays (default: BLACK_CONCRETE, recommended)")
-        private String baseMaterialR = "BLACK_CONCRETE";
-        public Material baseMaterial = Material.BLACK_CONCRETE;
-
-        @Path("CUI_particle_render_delay")
-        @Comment("Particle render delay in ticks (default: 2, disabled on Folia)")
-        public int particleRenderDelay = 2;
-
-        @Path("CUI_particles_per_block")
-        @Comment("Number of particles per block edge (Default: 3, range: 1-10)")
-        public int particlesPerBlock = 3;
-
-        @Path("CUI_particles_color")
-        @Comment("Particle color in hex (default: 0x00FF00 = green)")
-        public int particlesColor = 0x00FF00;
-
-        @Path("min_width")
-        @Comment("Minimum display width in blocks")
-        public int minWidth = 1;
-
-        @Path("min_height")
-        @Comment("Minimum display height in blocks")
-        public int minHeight = 1;
-
-        @Path("max_width")
-        @Comment("Maximum display width in blocks (warning: large displays may lag)")
-        public int maxWidth = 32;
-
-        @Path("max_height")
-        @Comment("Maximum display height in blocks (warning: large displays may lag)")
-        public int maxHeight = 24;
-
-        @Path("maxRenderDistance")
-        @Comment("Max distance to send displays to players in blocks")
-        public double maxRenderDistance = 96;
-
-        public void mutateDeserialization() {
-            selectionMaterial = Material.matchMaterial(selectionMaterialR);
-            baseMaterial = Material.matchMaterial(baseMaterialR);
-        }
-
-        public void mutateSerialization() {
-            selectionMaterialR = selectionMaterial.toString();
-            baseMaterialR = baseMaterial.toString();
+    public static class LanguageSection {
+        private final Toml toml;
+        public LanguageSection(Toml toml) { this.toml = toml; }
+        public String getMessageLanguage() {
+            String lang = toml.getString("language.message_language");
+            return lang != null ? lang : "en";
         }
     }
 
-    public static class Messages extends SerializableObject {
-        @Path("no_display_territories")
-        @Comment("Message when no points selected (supports color codes: &a = green, &c = red)")
-        public String noDisplayTerritories = "&7D |&f You haven't selected any display territories yet! Please select two points with a diamond axe";
+    public static class SettingsSection {
+        private final Toml toml;
+        public SettingsSection(Toml toml) { this.toml = toml; }
 
-        @Path("create_display_command")
-        @Comment("Message shown after selecting two valid points")
-        public String createDisplayCommand = "&7D |&f Now type /display create to create a display";
+        public String getWebhookUrl() {
+            String url = toml.getString("settings.webhook_url");
+            return url != null ? url : "";
+        }
+        public int getReportCooldown() {
+            Long cooldown = toml.getLong("settings.report_cooldown");
+            return cooldown != null ? Math.toIntExact(cooldown) : 15000;
+        }
+        public String getRepoName() {
+            String name = toml.getString("settings.repo_name");
+            return name != null ? name : "dreamdisplays";
+        }
+        public String getRepoOwner() {
+            String owner = toml.getString("settings.repo_owner");
+            return owner != null ? owner : "arsmotorin";
+        }
 
-        @Path("second_point_not_selected")
-        @Comment("Message when only one point is selected")
-        public String secondPointNotSelected = "&7D |&f You haven't selected the second point yet!";
+        public Material getSelectionMaterial() {
+            String mat = toml.getString("settings.selection_material");
+            if (mat == null) return Material.DIAMOND_AXE;
+            Material m = Material.matchMaterial(mat);
+            return m != null ? m : Material.DIAMOND_AXE;
+        }
 
-        @Path("display_overlap")
-        @Comment("Message when selected area overlaps with existing display")
-        public String displayOverlap = "&7D |&f There is already a display in this area!";
+        public Material getBaseMaterial() {
+            String mat = toml.getString("settings.base_material");
+            if (mat == null) return Material.BLACK_CONCRETE;
+            Material m = Material.matchMaterial(mat);
+            return m != null ? m : Material.BLACK_CONCRETE;
+        }
 
-        @Path("structure_too_large")
-        @Comment("Message when selection exceeds max_width or max_height")
-        public String structureTooLarge = "&7D |&f You can't create a display larger than 32x24 blocks";
+        public int getCUIParticleRenderDelay() {
+            Long delay = toml.getLong("settings.CUI_particle_render_delay");
+            return delay != null ? Math.toIntExact(delay) : 2;
+        }
+        public int getCUIParticlesPerBlock() {
+            Long count = toml.getLong("settings.CUI_particles_per_block");
+            return count != null ? Math.toIntExact(count) : 3;
+        }
+        public int getCUIParticlesColor() {
+            Long color = toml.getLong("settings.CUI_particles_color");
+            return color != null ? Math.toIntExact(color) : 65280;
+        }
+        public int getMinWidth() {
+            Long width = toml.getLong("settings.min_width");
+            return width != null ? Math.toIntExact(width) : 1;
+        }
+        public int getMinHeight() {
+            Long height = toml.getLong("settings.min_height");
+            return height != null ? Math.toIntExact(height) : 1;
+        }
+        public int getMaxWidth() {
+            Long width = toml.getLong("settings.max_width");
+            return width != null ? Math.toIntExact(width) : 32;
+        }
+        public int getMaxHeight() {
+            Long height = toml.getLong("settings.max_height");
+            return height != null ? Math.toIntExact(height) : 24;
+        }
+        public double getMaxRenderDistance() {
+            Double distance = toml.getDouble("settings.maxRenderDistance");
+            return distance != null ? distance : 96.0;
+        }
 
-        @Path("structure_too_small")
-        @Comment("Message when selection is smaller than min_width or min_height")
-        public String structureTooSmall = "&7D |&f You can't create a display smaller than 1x1 blocks";
+        // Cached properties
+        public String webhookUrl;
+        public int reportCooldown;
+        public String repoName;
+        public String repoOwner;
+        public Material selectionMaterial;
+        public Material baseMaterial;
+        public int particleRenderDelay;
+        public int particlesPerBlock;
+        public int particlesColor;
+        public int minWidth;
+        public int minHeight;
+        public int maxWidth;
+        public int maxHeight;
+        public double maxRenderDistance;
 
-        @Path("first_point_selected")
-        @Comment("Message when first point is selected (left-click)")
-        public String firstPointSelected = "&7D |&f First point selected! Now select the second point";
+        private void cache() {
+            webhookUrl = getWebhookUrl();
+            reportCooldown = getReportCooldown();
+            repoName = getRepoName();
+            repoOwner = getRepoOwner();
+            selectionMaterial = getSelectionMaterial();
+            baseMaterial = getBaseMaterial();
+            particleRenderDelay = getCUIParticleRenderDelay();
+            particlesPerBlock = getCUIParticlesPerBlock();
+            particlesColor = getCUIParticlesColor();
+            minWidth = getMinWidth();
+            minHeight = getMinHeight();
+            maxWidth = getMaxWidth();
+            maxHeight = getMaxHeight();
+            maxRenderDistance = getMaxRenderDistance();
+        }
+    }
 
-        @Path("second_point_selected")
-        @Comment("Message when second point is selected (right-click)")
-        public String secondPointSelected = "&7D |&f Second point selected!";
+    public static class StorageSection extends me.inotsleep.utils.storage.StorageSettings {
+        private final Toml toml;
 
-        @Path("structure_wrong_depth")
-        @Comment("Message when selection is not flat (must be 1 block deep)")
-        public String structureWrongDepth = "&7D |&f Selection must be at least 1 block long";
+        // Public fields that shadow parent's private fields
+        public String storageType;
+        public String sqliteFile;
+        public String host;
+        public String port;
+        public String database;
+        public String password;
+        public String username;
+        public String options;
+        public String tablePrefix;
 
-        @Path("structure_wrong_structure")
-        @Comment("Message when selected area contains wrong blocks (must be all base_material)")
-        public String wrongStructure = "&7D |&f Only black concrete blocks can be used for displays";
+        public StorageSection(Toml toml) {
+            this.toml = toml;
+        }
 
-        @Path("selection_clear")
-        @Comment("Message when selection is cleared (Shift + Right-click)")
-        public String selectionClear = "&7D |&f Selection has been cleared!";
+        private void cache() {
+            String type = toml.getString("storage.storageType");
+            this.storageType = type != null ? type : "SQLITE";
 
-        @Path("display_command_help")
-        @Comment("Help message for incorrect command usage")
-        public List<String> displayCommandHelp = List.of(
-                "&7D |&f You entered something wrong!"
-        );
+            String file = toml.getString("storage.sqliteFile");
+            this.sqliteFile = file != null ? file : "database.db";
 
-        @Path("successfulCreation")
-        @Comment("Message when display is successfully created")
-        public String successfulCreation = "&7D |&f Display has been created! Type /display video <youtube link> [language] to set a video";
+            String hostVal = toml.getString("storage.host");
+            this.host = hostVal != null ? hostVal : "localhost";
 
-        @Path("noDisplayTargeted")
-        @Comment("Message when no display is found")
-        public String noDisplay = "&7D |&f Display has not been found!";
+            String portVal = toml.getString("storage.port");
+            this.port = portVal != null ? portVal : "3306";
 
-        @Path("settedURL")
-        @Comment("Message when video URL is set successfully")
-        public String settedURL = "&7D |&f Video has been loaded!";
+            String dbVal = toml.getString("storage.database");
+            this.database = dbVal != null ? dbVal : "my_database";
 
-        @Path("invalidURL")
-        @Comment("Message when YouTube URL is invalid")
-        public String invalidURL = "&7D |&f Your URL is invalid! Please use a valid YouTube link";
+            String passVal = toml.getString("storage.password");
+            this.password = passVal != null ? passVal : "veryStrongPassword";
 
-        @Path("report_too_quickly")
-        @Comment("Message when reporting too frequently (cooldown: settings.report_cooldown)")
-        public String reportTooQuickly = "&7D |&f You are sending reports too quickly! Please wait  before sending another report";
+            String userVal = toml.getString("storage.username");
+            this.username = userVal != null ? userVal : "username";
 
-        @Path("report_sent")
-        @Comment("Message when report is sent successfully (requires webhook_url)")
-        public String reportSent = "&7D |&f Report has been sent!";
+            String optVal = toml.getString("storage.options");
+            this.options = optVal != null ? optVal : "autoReconnect=true&useSSL=false;";
 
-        @Path("new_version")
-        @Comment("Message for new version available (%s = version number)")
-        public String newVersion = "&7D |&f New version of Dream Displays (%s)! Please update it!";
+            String prefixVal = toml.getString("storage.tablePrefix");
+            this.tablePrefix = prefixVal != null ? prefixVal : "";
+        }
+    }
 
-        @Path("usage_header")
-        @Comment("Header for /display usage command ({0} = loaded displays, {1} = max displays)")
-        public List<String> usageHeader = List.of(
-                "&a-== Dream Displays ==-",
-                "&aInstalled: &f{0}&7/&f{1}",
-                "&a-== Versions ==-"
-        );
+    public static class PermissionsSection {
+        private final Toml toml;
+        public PermissionsSection(Toml toml) { this.toml = toml; }
 
-        @Path("usage_version_entry")
-        @Comment("Version entry format ({0} = type, {1} = version number)")
-        public String usageVersionEntry = " &7- &f{0}&a: &f{1}";
+        // Cached properties
+        public String premium;
+        public String delete;
+        public String list;
+        public String reload;
 
-        @Path("usage_footer")
-        @Comment("Footer for /display usage command")
-        public String usageFooter = "&a-====== ======-";
+        private void cache() {
+            String prem = toml.getString("permissions.premium");
+            premium = prem != null ? prem : "group.premium";
 
-        @Path("config_reloaded")
-        @Comment("Message when config is reloaded")
-        public String configReloaded = "&7D | &fDream Displays has been reloaded!";
+            String del = toml.getString("permissions.delete");
+            delete = del != null ? del : "dreamdisplays.delete";
 
-        @Path("no_displays_found")
-        @Comment("Message when no displays found")
-        public String noDisplaysFound = "&7D |&f No displays found";
+            String listVal = toml.getString("permissions.list");
+            list = listVal != null ? listVal : "dreamdisplays.list";
 
-        @Path("display_list_header")
-        @Comment("Header for display list")
-        public String displayListHeader = "&7D |&f Displays:";
-
-        @Path("display_list_entry")
-        @Comment("Format for display list entry ({0} = ID, {1} = Owner, {2} = X, {3} = Y, {4} = Z, {5} = URL)")
-        public String displayListEntry = "&7D |&f - ID: {0}, Owner: {1}, Location: {2}, {3}, {4}, URL: {5}";
+            String reloadVal = toml.getString("permissions.reload");
+            reload = reloadVal != null ? reloadVal : "dreamdisplays.reload";
+        }
     }
 
     public Config(DreamDisplaysPlugin plugin) {
-        super(plugin.getDataFolder(), "config.yml");
+        this.configFile = new File(plugin.getDataFolder(), "config.toml");
+
+        if (!configFile.exists()) {
+            plugin.getDataFolder().mkdirs();
+            try (InputStream in = plugin.getResource("config.toml")) {
+                if (in != null) {
+                    Files.copy(in, configFile.toPath());
+                }
+            } catch (IOException e) {
+                plugin.getLogger().severe("Could not create default config.toml: " + e.getMessage());
+            }
+        }
+
+        extractLangFiles(plugin, true); // Force overwrite on first run
+        load();
+
+        this.language = new LanguageSection(toml);
+        this.settings = new SettingsSection(toml);
+        this.storage = new StorageSection(toml);
+        this.permissions = new PermissionsSection(toml);
+
+        // Cache values
+        settings.cache();
+        storage.cache();
+        permissions.cache();
+
+        String selectedLang = language.getMessageLanguage();
+        me.inotsleep.utils.logging.LoggingManager.log("Loading messages for language: " + selectedLang);
+        setMessages(selectedLang);
     }
 
-    public void mutateDeserialization() {
+    private void extractLangFiles(DreamDisplaysPlugin plugin, boolean overwrite) {
+        File langFolder = new File(plugin.getDataFolder(), "lang");
+        if (!langFolder.exists()) {
+            langFolder.mkdirs();
+        }
+        // Assuming you have a method to get all resource paths under a directory
+        // This part is pseudo-code and needs to be adapted to how you can list resources in your environment.
+        // For Bukkit, you might need to list them manually or use a library that can scan JAR resources.
+        // Here's a conceptual implementation:
+        List<String> langFiles = List.of("be_by.json", "cs_cz.json", "de_de.json", "en.json", "es_es.json", "fr_fr.json", "it_it.json", "ja_jp.json", "ko_kr.json", "nl_nl.json", "pl_pl.json", "pt_br.json", "ru.json", "sv_se.json", "tr_tr.json", "uk_ua.json", "zh_cn.json", "zh_tw.json");
+        for (String fileName : langFiles) {
+            try (InputStream in = plugin.getResource("assets/dreamdisplays/lang/" + fileName)) {
+                if (in != null) {
+                    File targetFile = new File(langFolder, fileName);
+                    if (overwrite || !targetFile.exists()) {
+                        Files.copy(in, targetFile.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                    }
+                }
+            } catch (IOException e) {
+                plugin.getLogger().warning("Could not extract language file " + fileName + ": " + e.getMessage());
+            }
+        }
     }
 
-    public void mutateSerialization() {
+    private void load() {
+        try {
+            toml = new Toml().read(configFile);
+        } catch (Exception e) {
+            toml = new Toml(); // Empty toml with defaults
+        }
+    }
+
+    public void reload(DreamDisplaysPlugin plugin) {
+        load();
+        this.language = new LanguageSection(toml);
+        this.settings = new SettingsSection(toml);
+        this.storage = new StorageSection(toml);
+        this.permissions = new PermissionsSection(toml);
+
+        // Cache values
+        settings.cache();
+        storage.cache();
+        permissions.cache();
+        extractLangFiles(plugin, false); // Don't overwrite user changes
+        setMessages(language.getMessageLanguage());
+    }
+
+    private void setMessages(String lang) {
+        File langFile = new File(configFile.getParentFile(), "lang/" + lang + ".json");
+        if (!langFile.exists()) {
+            me.inotsleep.utils.logging.LoggingManager.warn("Language file not found: " + langFile.getPath() + ", falling back to en.json");
+            langFile = new File(configFile.getParentFile(), "lang/en.json");
+        }
+
+        if (langFile.exists()) {
+            try (InputStream is = new FileInputStream(langFile)) {
+                String json = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+                Map<String, Object> msgs = gson.fromJson(json, new TypeToken<Map<String, Object>>(){}.getType());
+                if (msgs != null && !msgs.isEmpty()) {
+                    messages.clear();
+                    messages.putAll(msgs);
+                } else {
+                    me.inotsleep.utils.logging.LoggingManager.warn("No messages found in language file: " + lang);
+                }
+            } catch (IOException e) {
+                me.inotsleep.utils.logging.LoggingManager.error("Error loading language file: " + lang, e);
+            }
+        } else {
+            me.inotsleep.utils.logging.LoggingManager.error("Could not load any language file for: " + lang);
+        }
     }
 }

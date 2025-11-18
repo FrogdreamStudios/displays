@@ -114,7 +114,7 @@ public class DisplayManager {
         long lastReport = reportTime.computeIfAbsent(id, (k) -> 0L);
 
         if (System.currentTimeMillis() - lastReport < DreamDisplaysPlugin.config.settings.reportCooldown) {
-            MessageUtil.sendColoredMessage(player, DreamDisplaysPlugin.config.messages.reportTooQuickly);
+            MessageUtil.sendColoredMessage(player, (String) DreamDisplaysPlugin.config.messages.get("reportTooQuickly"));
             return;
         }
 
@@ -124,7 +124,7 @@ public class DisplayManager {
             try {
                 if (Objects.equals(DreamDisplaysPlugin.config.settings.webhookUrl, "")) return;
                 ReportSender.sendReport(displayData.getPos1(), displayData.getUrl(), displayData.getId(), player,  DreamDisplaysPlugin.config.settings.webhookUrl, Bukkit.getOfflinePlayer(displayData.getOwnerId()).getName());
-                MessageUtil.sendColoredMessage(player, DreamDisplaysPlugin.config.messages.reportSent);
+                MessageUtil.sendColoredMessage(player, (String) DreamDisplaysPlugin.config.messages.get("reportSent"));
             } catch (Exception e) {
                 LoggingManager.error("Unable to send webhook message", e);
             }

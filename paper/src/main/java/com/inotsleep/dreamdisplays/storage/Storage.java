@@ -29,10 +29,10 @@ public class Storage {
         this.plugin = plugin;
 
         Runnable connectTask = () -> {
-            tablePrefix = DreamDisplaysPlugin.config.storageSettings.tablePrefix;
+            tablePrefix = DreamDisplaysPlugin.config.storage.tablePrefix;
 
             try {
-                connection = BaseConnection.createConnection(DreamDisplaysPlugin.config.storageSettings, plugin.getDataFolder());
+                connection = BaseConnection.createConnection(DreamDisplaysPlugin.config.storage, plugin.getDataFolder());
                 connection.connect();
 
                 onConnect();

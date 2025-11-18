@@ -1,0 +1,59 @@
+# Dream Displays by arsmotorin and INotSleep
+# Questions? Telegram: @arsmotorin or Discord: @arsmotorin
+
+[language]
+# Language used for plugin messages (en, ru, etc.)
+message_language = "en"
+
+[settings]
+# Discord webhook settings
+webhook_url = ""
+report_cooldown = 15000
+
+# GitHub repository settings for update checks (better leave it as is)
+repo_name = "dreamdisplays"
+repo_owner = "arsmotorin"
+
+# Materials used for display selection and base
+selection_material = "DIAMOND_AXE"
+base_material = "BLACK_CONCRETE"
+
+# Display size limits (in blocks)
+min_width = 1
+min_height = 1
+max_width = 32
+max_height = 24
+
+# Maximum distance (in blocks) from which displays render to players
+maxRenderDistance = 96.0
+
+# Particle effects configuration (Folia ignores it)
+CUI_particle_render_delay = 2
+CUI_particles_per_block = 3
+CUI_particles_color = 65280
+
+[storage]
+# Database settings (SQLITE or MYSQL)
+storageType = "SQLITE"
+sqliteFile = "database.db"
+
+# MySQL settings
+host = "localhost"
+port = "3306"
+database = "database"
+password = "password"
+username = "username"
+
+# Additional settings for MySQL
+options = "autoReconnect=true&useSSL=false;"
+tablePrefix = ""
+
+[permissions]
+# Grants access to premium features (1080p+ quality)
+premium = "group.premium"
+# Allows deleting any display, including ones owned by other players
+delete = "dreamdisplays.delete"
+# Allows listing all existing displays on the server
+list = "dreamdisplays.list"
+# Allows reloading the plugin configuration
+reload = "dreamdisplays.reload"

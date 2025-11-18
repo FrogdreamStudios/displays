@@ -57,7 +57,7 @@ public class SelectionListener implements Listener {
 
         if (player.isSneaking() && event.getAction().isRightClick() && selectionPoints.containsKey(player.getUniqueId())) {
             selectionPoints.remove(player.getUniqueId());
-            MessageUtil.sendColoredMessage(player, DreamDisplaysPlugin.config.messages.selectionClear);
+            MessageUtil.sendColoredMessage(player, (String) DreamDisplaysPlugin.config.messages.get("selectionClear"));
             return;
         }
 
@@ -86,17 +86,17 @@ public class SelectionListener implements Listener {
         if (event.getAction().isLeftClick()) {
             data.setPos1(location.clone());
             data.setFace(face);
-            MessageUtil.sendColoredMessage(player, DreamDisplaysPlugin.config.messages.firstPointSelected);
+            MessageUtil.sendColoredMessage(player, (String) DreamDisplaysPlugin.config.messages.get("firstPointSelected"));
 
             int validationCode = isValidDisplay(data);
             if (validationCode == 6) data.setReady(true);
         } else if (event.getAction().isRightClick()) {
             if (data.getPos1() == null) {
-                MessageUtil.sendColoredMessage(player, DreamDisplaysPlugin.config.messages.noDisplayTerritories);
+                MessageUtil.sendColoredMessage(player, (String) DreamDisplaysPlugin.config.messages.get("noDisplayTerritories"));
                 return;
             }
             data.setPos2(location.clone());
-            MessageUtil.sendColoredMessage(player, DreamDisplaysPlugin.config.messages.secondPointSelected);
+            MessageUtil.sendColoredMessage(player, (String) DreamDisplaysPlugin.config.messages.get("secondPointSelected"));
 
             int validationCode = isValidDisplay(data);
             if (validationCode != 6) {
@@ -109,7 +109,7 @@ public class SelectionListener implements Listener {
             }
 
             data.setReady(true);
-            MessageUtil.sendColoredMessage(player, DreamDisplaysPlugin.config.messages.createDisplayCommand);
+            MessageUtil.sendColoredMessage(player, (String) DreamDisplaysPlugin.config.messages.get("createDisplayCommand"));
         }
 
         selectionPoints.put(player.getUniqueId(), data);
@@ -118,22 +118,22 @@ public class SelectionListener implements Listener {
     public static void sendErrorMessage(Player player, int validationCode) {
         switch (validationCode) {
             case 0:
-                MessageUtil.sendColoredMessage(player, DreamDisplaysPlugin.config.messages.secondPointNotSelected);
+                MessageUtil.sendColoredMessage(player, (String) DreamDisplaysPlugin.config.messages.get("secondPointNotSelected"));
                 break;
             case 1:
-                MessageUtil.sendColoredMessage(player, DreamDisplaysPlugin.config.messages.displayOverlap);
+                MessageUtil.sendColoredMessage(player, (String) DreamDisplaysPlugin.config.messages.get("displayOverlap"));
                 break;
             case 2:
-                MessageUtil.sendColoredMessage(player, DreamDisplaysPlugin.config.messages.structureWrongDepth);
+                MessageUtil.sendColoredMessage(player, (String) DreamDisplaysPlugin.config.messages.get("structureWrongDepth"));
                 break;
             case 3:
-                MessageUtil.sendColoredMessage(player, DreamDisplaysPlugin.config.messages.structureTooSmall);
+                MessageUtil.sendColoredMessage(player, (String) DreamDisplaysPlugin.config.messages.get("structureTooSmall"));
                 break;
             case 4:
-                MessageUtil.sendColoredMessage(player, DreamDisplaysPlugin.config.messages.structureTooLarge);
+                MessageUtil.sendColoredMessage(player, (String) DreamDisplaysPlugin.config.messages.get("structureTooLarge"));
                 break;
             case 5:
-                MessageUtil.sendColoredMessage(player, DreamDisplaysPlugin.config.messages.wrongStructure);
+                MessageUtil.sendColoredMessage(player, (String) DreamDisplaysPlugin.config.messages.get("wrongStructure"));
                 break;
         }
     }

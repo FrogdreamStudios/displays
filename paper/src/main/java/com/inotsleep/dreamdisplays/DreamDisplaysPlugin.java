@@ -40,8 +40,6 @@ public final class DreamDisplaysPlugin extends AbstractPlugin<DreamDisplaysPlugi
     @Override
     public void doEnable() {
         config = new Config(this);
-        config.reload();
-
         storage = new Storage(this);
 
         registerChannels();

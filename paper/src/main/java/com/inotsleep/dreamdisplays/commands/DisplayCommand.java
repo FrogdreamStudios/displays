@@ -52,7 +52,7 @@ public class DisplayCommand extends AbstractCommand {
             Block block = player.getTargetBlock(null, 32);
 
             if (block.getType() != DreamDisplaysPlugin.config.settings.baseMaterial) {
-                MessageUtil.sendColoredMessage(player, DreamDisplaysPlugin.config.messages.noDisplay);
+                MessageUtil.sendColoredMessage(player, (String) DreamDisplaysPlugin.config.messages.get("noDisplay"));
                 return;
             }
 
@@ -60,7 +60,7 @@ public class DisplayCommand extends AbstractCommand {
 
             DisplayData data = DisplayManager.isContains(location);
             if (data == null || !(data.getOwnerId() + "").equals(player.getUniqueId() + "")) {
-                MessageUtil.sendColoredMessage(player, DreamDisplaysPlugin.config.messages.noDisplay);
+                MessageUtil.sendColoredMessage(player, (String) DreamDisplaysPlugin.config.messages.get("noDisplay"));
                 return;
             }
 
@@ -69,7 +69,7 @@ public class DisplayCommand extends AbstractCommand {
             String lang = args.length == 3 ? args[2] : "";
 
             if (code == null) {
-                MessageUtil.sendColoredMessage(player, DreamDisplaysPlugin.config.messages.invalidURL);
+                MessageUtil.sendColoredMessage(player, (String) DreamDisplaysPlugin.config.messages.get("invalidURL"));
                 return;
             }
 
@@ -78,7 +78,7 @@ public class DisplayCommand extends AbstractCommand {
             data.setSync(false);
             data.sendUpdatePacket(data.getReceivers());
 
-            MessageUtil.sendColoredMessage(player, DreamDisplaysPlugin.config.messages.settedURL);
+            MessageUtil.sendColoredMessage(player, (String) DreamDisplaysPlugin.config.messages.get("settedURL"));
         }
     }
 
@@ -93,7 +93,7 @@ public class DisplayCommand extends AbstractCommand {
 
                 SelectionData data = SelectionListener.selectionPoints.get(player.getUniqueId());
                 if (data == null) {
-                    MessageUtil.sendColoredMessage(player, DreamDisplaysPlugin.config.messages.noDisplayTerritories);
+                    MessageUtil.sendColoredMessage(player, (String) DreamDisplaysPlugin.config.messages.get("noDisplayTerritories"));
                     return;
                 }
 
@@ -105,7 +105,7 @@ public class DisplayCommand extends AbstractCommand {
                 }
 
                 if (DisplayManager.isOverlaps(data)) {
-                    MessageUtil.sendColoredMessage(player, DreamDisplaysPlugin.config.messages.displayOverlap);
+                    MessageUtil.sendColoredMessage(player, (String) DreamDisplaysPlugin.config.messages.get("displayOverlap"));
                     return;
                 }
 
@@ -114,17 +114,17 @@ public class DisplayCommand extends AbstractCommand {
 
                 DisplayManager.register(displayData);
 
-                MessageUtil.sendColoredMessage(player, DreamDisplaysPlugin.config.messages.successfulCreation);
+                MessageUtil.sendColoredMessage(player, (String) DreamDisplaysPlugin.config.messages.get("successfulCreation"));
             }
             case "delete" -> {
                 if (!(sender instanceof Player player)) return;
-                if (!player.hasPermission(DreamDisplaysPlugin.config.permissions.deletePermission)) {
+                if (!player.hasPermission(DreamDisplaysPlugin.config.permissions.delete)) {
                     return;
                 }
 
                 Block block = player.getTargetBlock(null, 32);
                 if (block.getType() != DreamDisplaysPlugin.config.settings.baseMaterial) {
-                    MessageUtil.sendColoredMessage(player, DreamDisplaysPlugin.config.messages.noDisplay);
+                    MessageUtil.sendColoredMessage(player, (String) DreamDisplaysPlugin.config.messages.get("noDisplay"));
                     return;
                 }
 
@@ -132,39 +132,39 @@ public class DisplayCommand extends AbstractCommand {
 
                 DisplayData data = DisplayManager.isContains(location);
                 if (data == null) {
-                    MessageUtil.sendColoredMessage(player, DreamDisplaysPlugin.config.messages.noDisplay);
+                    MessageUtil.sendColoredMessage(player, (String) DreamDisplaysPlugin.config.messages.get("noDisplay"));
                     return;
                 }
 
                 DisplayManager.delete(data);
             }
             case "reload" -> {
-                if (!sender.hasPermission(DreamDisplaysPlugin.config.permissions.reloadPermission)) {
+                if (!sender.hasPermission(DreamDisplaysPlugin.config.permissions.reload)) {
                     sendHelp(sender);
                     return;
                 }
 
-                DreamDisplaysPlugin.config.reload();
-                MessageUtil.sendColoredMessage(sender, DreamDisplaysPlugin.config.messages.configReloaded);
+                DreamDisplaysPlugin.config.reload(DreamDisplaysPlugin.getInstance());
+                MessageUtil.sendColoredMessage(sender, (String) DreamDisplaysPlugin.config.messages.get("configReloaded"));
             }
             case "list" -> {
-                if (!sender.hasPermission(DreamDisplaysPlugin.config.permissions.listPermission)) {
+                if (!sender.hasPermission(DreamDisplaysPlugin.config.permissions.list)) {
                     sendHelp(sender);
                     return;
                 }
 
                 List<DisplayData> displays = DisplayManager.getDisplays();
                 if (displays.isEmpty()) {
-                    MessageUtil.sendColoredMessage(sender, DreamDisplaysPlugin.config.messages.noDisplaysFound);
+                    MessageUtil.sendColoredMessage(sender, (String) DreamDisplaysPlugin.config.messages.get("noDisplaysFound"));
                     return;
                 }
 
-                MessageUtil.sendColoredMessage(sender, DreamDisplaysPlugin.config.messages.displayListHeader);
+                MessageUtil.sendColoredMessage(sender, (String) DreamDisplaysPlugin.config.messages.get("displayListHeader"));
                 for (DisplayData data : displays) {
                     String ownerName = Bukkit.getOfflinePlayer(data.getOwnerId()).getName();
                     if (ownerName == null) ownerName = "Unknown";
                     MessageUtil.sendColoredMessage(sender, me.inotsleep.utils.MessageUtil.parsePlaceholders(
-                            DreamDisplaysPlugin.config.messages.displayListEntry,
+                            (String) DreamDisplaysPlugin.config.messages.get("displayListEntry"),
                             data.getId().toString(),
                             ownerName,
                             String.valueOf(data.getPos1().getBlockX()),
@@ -181,7 +181,7 @@ public class DisplayCommand extends AbstractCommand {
      * Sends help messages to the command sender.
      */
     private void sendHelp(CommandSender sender) {
-        MessageUtil.sendColoredMessages(sender, DreamDisplaysPlugin.config.messages.displayCommandHelp);
+        MessageUtil.sendColoredMessages(sender, (List<String>) DreamDisplaysPlugin.config.messages.get("displayCommandHelp"));
     }
 
     /**
@@ -194,9 +194,9 @@ public class DisplayCommand extends AbstractCommand {
     public List<String> complete(CommandSender sender, String[] args) {
         if (args.length == 1) {
             List<String> completions = new ArrayList<>(List.of("create", "video"));
-            if (sender.hasPermission(DreamDisplaysPlugin.config.permissions.deletePermission)) completions.add("delete");
-            if (sender.hasPermission(DreamDisplaysPlugin.config.permissions.listPermission)) completions.add("list");
-            if (sender.hasPermission(DreamDisplaysPlugin.config.permissions.reloadPermission)) completions.add("reload");
+            if (sender.hasPermission(DreamDisplaysPlugin.config.permissions.delete)) completions.add("delete");
+            if (sender.hasPermission(DreamDisplaysPlugin.config.permissions.list)) completions.add("list");
+            if (sender.hasPermission(DreamDisplaysPlugin.config.permissions.reload)) completions.add("reload");
             return completions;
         }
         return List.of();
