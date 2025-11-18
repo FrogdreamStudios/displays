@@ -5,7 +5,9 @@ import org.apache.commons.io.FileUtils;
 import ru.l0sty.dreamdisplays.util.Utils;
 
 import java.io.*;
-import java.net.*;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;

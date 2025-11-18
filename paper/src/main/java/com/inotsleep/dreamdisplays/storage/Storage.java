@@ -11,7 +11,7 @@ import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.lang.reflect.*;
+import java.lang.reflect.Proxy;
 import java.nio.ByteBuffer;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
