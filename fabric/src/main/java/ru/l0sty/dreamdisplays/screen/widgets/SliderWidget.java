@@ -1,62 +1,62 @@
 package ru.l0sty.dreamdisplays.screen.widgets;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.navigation.GuiNavigationType;
-import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
-import net.minecraft.client.gui.screen.narration.NarrationPart;
-import net.minecraft.client.gui.widget.ClickableWidget;
-import net.minecraft.client.input.KeyCodes;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.sound.SoundManager;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.InputType;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.narration.NarratedElementType;
+import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.gui.navigation.CommonInputs;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.sounds.SoundManager;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 
-public abstract class SliderWidget extends ClickableWidget {
-    private static final Identifier TEXTURE = Identifier.ofVanilla("widget/slider");
-    private static final Identifier HIGHLIGHTED_TEXTURE = Identifier.ofVanilla("widget/slider_highlighted");
-    private static final Identifier HANDLE_TEXTURE = Identifier.ofVanilla("widget/slider_handle");
-    private static final Identifier HANDLE_HIGHLIGHTED_TEXTURE = Identifier.ofVanilla("widget/slider_handle_highlighted");
+public abstract class SliderWidget extends AbstractWidget {
+    private static final ResourceLocation TEXTURE = ResourceLocation.withDefaultNamespace("widget/slider");
+    private static final ResourceLocation HIGHLIGHTED_TEXTURE = ResourceLocation.withDefaultNamespace("widget/slider_highlighted");
+    private static final ResourceLocation HANDLE_TEXTURE = ResourceLocation.withDefaultNamespace("widget/slider_handle");
+    private static final ResourceLocation HANDLE_HIGHLIGHTED_TEXTURE = ResourceLocation.withDefaultNamespace("widget/slider_handle_highlighted");
     public double value;
     private boolean sliderFocused;
 
-    public SliderWidget(int x, int y, int width, int height, Text text, double value) {
+    public SliderWidget(int x, int y, int width, int height, Component text, double value) {
         super(x, y, width, height, text);
         this.value = value;
     }
 
-    private Identifier getTexture() {
+    private ResourceLocation getTexture() {
         return this.isFocused() && !this.sliderFocused ? HIGHLIGHTED_TEXTURE : TEXTURE;
     }
 
-    private Identifier getHandleTexture() {
-        return !this.hovered && !this.sliderFocused ? HANDLE_TEXTURE : HANDLE_HIGHLIGHTED_TEXTURE;
+    private ResourceLocation getHandleTexture() {
+        return !this.isHovered && !this.sliderFocused ? HANDLE_TEXTURE : HANDLE_HIGHLIGHTED_TEXTURE;
     }
 
-    protected MutableText getNarrationMessage() {
-        return Text.translatable("gui.narrate.slider", this.getMessage());
+    protected MutableComponent createNarrationMessage() {
+        return Component.translatable("gui.narrate.slider", this.getMessage());
     }
 
-    public void appendClickableNarrations(NarrationMessageBuilder builder) {
-        builder.put(NarrationPart.TITLE, this.getNarrationMessage());
+    public void updateWidgetNarration(NarrationElementOutput builder) {
+        builder.add(NarratedElementType.TITLE, this.createNarrationMessage());
         if (this.active) {
             if (this.isFocused()) {
-                builder.put(NarrationPart.USAGE, Text.translatable("narration.slider.usage.focused"));
+                builder.add(NarratedElementType.USAGE, Component.translatable("narration.slider.usage.focused"));
             } else {
-                builder.put(NarrationPart.USAGE, Text.translatable("narration.slider.usage.hovered"));
+                builder.add(NarratedElementType.USAGE, Component.translatable("narration.slider.usage.hovered"));
             }
         }
 
     }
 
-    public void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
-        MinecraftClient minecraftClient = MinecraftClient.getInstance();
-        context.drawGuiTexture(RenderLayer::getGuiTextured, this.getTexture(), this.getX(), this.getY(), this.getWidth(), this.getHeight());
-        context.drawGuiTexture(RenderLayer::getGuiTextured, this.getHandleTexture(), this.getX() + (int)(this.value * (double)(this.width - 8)), this.getY(), 8, this.getHeight());
+    public void renderWidget(GuiGraphics context, int mouseX, int mouseY, float delta) {
+        Minecraft minecraftClient = Minecraft.getInstance();
+        context.blitSprite(RenderType::guiTextured, this.getTexture(), this.getX(), this.getY(), this.getWidth(), this.getHeight());
+        context.blitSprite(RenderType::guiTextured, this.getHandleTexture(), this.getX() + (int)(this.value * (double)(this.width - 8)), this.getY(), 8, this.getHeight());
         int i = this.active ? 16777215 : 10526880;
-        this.drawScrollableText(context, minecraftClient.textRenderer, 2, i | MathHelper.ceil(this.alpha * 255.0F) << 24);
+        this.renderScrollingString(context, minecraftClient.font, 2, i | Mth.ceil(this.alpha * 255.0F) << 24);
     }
 
     public void onClick(double mouseX, double mouseY) {
@@ -68,8 +68,8 @@ public abstract class SliderWidget extends ClickableWidget {
         if (!focused) {
             this.sliderFocused = false;
         } else {
-            GuiNavigationType guiNavigationType = MinecraftClient.getInstance().getNavigationType();
-            if (guiNavigationType == GuiNavigationType.MOUSE || guiNavigationType == GuiNavigationType.KEYBOARD_TAB) {
+            InputType guiNavigationType = Minecraft.getInstance().getLastInputType();
+            if (guiNavigationType == InputType.MOUSE || guiNavigationType == InputType.KEYBOARD_TAB) {
                 this.sliderFocused = true;
             }
 
@@ -77,7 +77,7 @@ public abstract class SliderWidget extends ClickableWidget {
     }
 
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (KeyCodes.isToggle(keyCode)) {
+        if (CommonInputs.selected(keyCode)) {
             this.sliderFocused = !this.sliderFocused;
             return true;
         } else {
@@ -100,7 +100,7 @@ public abstract class SliderWidget extends ClickableWidget {
 
     private void setValue(double value) {
         double d = this.value;
-        this.value = MathHelper.clamp(value, 0.0, 1.0);
+        this.value = Mth.clamp(value, 0.0, 1.0);
         if (d != this.value) {
             this.applyValue();
         }
@@ -117,7 +117,7 @@ public abstract class SliderWidget extends ClickableWidget {
     }
 
     public void onRelease(double mouseX, double mouseY) {
-        super.playDownSound(MinecraftClient.getInstance().getSoundManager());
+        super.playDownSound(Minecraft.getInstance().getSoundManager());
     }
 
     protected abstract void updateMessage();

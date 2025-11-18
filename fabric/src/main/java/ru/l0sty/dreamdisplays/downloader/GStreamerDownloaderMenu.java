@@ -1,10 +1,10 @@
 package ru.l0sty.dreamdisplays.downloader;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.Text;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
 
 public class GStreamerDownloaderMenu extends Screen {
     public final Screen menu;
@@ -13,7 +13,7 @@ public class GStreamerDownloaderMenu extends Screen {
      * Menu for GStreamer download progress.
      */
     public GStreamerDownloaderMenu(Screen menu) {
-        super(Text.of("Dream Displays downloads GStreamer for display support"));
+        super(Component.nullToEmpty("Dream Displays downloads GStreamer for display support"));
         this.menu = menu;
     }
 
@@ -21,7 +21,7 @@ public class GStreamerDownloaderMenu extends Screen {
      * Render the background of the GStreamer download menu.
      */
     @Override
-    public void render(DrawContext graphics, int mouseX, int mouseY, float partialTick) {
+    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         renderBackground(graphics, mouseX, mouseY, partialTick);
         double cx = width / 2d;
         double cy = height / 2d;
@@ -31,10 +31,10 @@ public class GStreamerDownloaderMenu extends Screen {
 
         // TODO: base off screen with (1/3 of screen)
 
-        MatrixStack poseStack = graphics.getMatrices();
+        PoseStack poseStack = graphics.pose();
 
         // Draw progress bar background
-        poseStack.push();
+        poseStack.pushPose();
         poseStack.translate(cx, cy, 0);
         poseStack.translate(-progressBarWidth / 2d, -progressBarHeight / 2d, 0);
         graphics.fill(
@@ -55,25 +55,25 @@ public class GStreamerDownloaderMenu extends Screen {
                 (int) progressBarHeight - 4,
                 -1
         );
-        poseStack.pop();
+        poseStack.popPose();
 
         String[] text = new String[]{
                 GStreamerDownloadListener.INSTANCE.getTask(),
                 (Math.round(GStreamerDownloadListener.INSTANCE.getProgress() * 100)%100) + "%",
         };
 
-        int oSet = ((textRenderer.fontHeight / 2) + ((textRenderer.fontHeight + 2) * (text.length + 2))) + 4;
-        poseStack.push();
+        int oSet = ((font.lineHeight / 2) + ((font.lineHeight + 2) * (text.length + 2))) + 4;
+        poseStack.pushPose();
         poseStack.translate(
                 (int) (cx),
                 (int) (cy - oSet),
                 0
         );
 
-        graphics.drawText(
-                textRenderer,
+        graphics.drawString(
+                font,
                 title.getString(),
-                (int) -(textRenderer.getWidth(title.getString()) / 2d), 0,
+                (int) -(font.width(title.getString()) / 2d), 0,
                 0xFFFFFF,
                 true
         );
@@ -81,20 +81,20 @@ public class GStreamerDownloaderMenu extends Screen {
         int index = 0;
         for (String s : text) {
             if (index == 1) {
-                poseStack.translate(0, textRenderer.fontHeight + 2, 0);
+                poseStack.translate(0, font.lineHeight + 2, 0);
             }
 
-            poseStack.translate(0, textRenderer.fontHeight + 2, 0);
-            graphics.drawText(
-                    textRenderer,
+            poseStack.translate(0, font.lineHeight + 2, 0);
+            graphics.drawString(
+                    font,
                     s,
-                    (int) -(textRenderer.getWidth(s) / 2d), 0,
+                    (int) -(font.width(s) / 2d), 0,
                     0xFFFFFF,
                     true
             );
             index++;
         }
-        poseStack.pop();
+        poseStack.popPose();
     }
 
     /**
@@ -103,7 +103,7 @@ public class GStreamerDownloaderMenu extends Screen {
     @Override
     public void tick() {
         if (GStreamerDownloadListener.INSTANCE.isDone() || GStreamerDownloadListener.INSTANCE.isFailed()) {
-            MinecraftClient.getInstance().setScreen(menu);
+            Minecraft.getInstance().setScreen(menu);
         }
     }
 

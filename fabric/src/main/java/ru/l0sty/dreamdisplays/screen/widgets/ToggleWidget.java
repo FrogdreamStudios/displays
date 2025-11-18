@@ -1,58 +1,58 @@
 package ru.l0sty.dreamdisplays.screen.widgets;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.navigation.GuiNavigationType;
-import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
-import net.minecraft.client.gui.widget.ClickableWidget;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.sound.SoundManager;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.InputType;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.sounds.SoundManager;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 
-public abstract class ToggleWidget extends ClickableWidget {
-	private static final Identifier TEXTURE = Identifier.ofVanilla("widget/slider");
-	private static final Identifier HIGHLIGHTED_TEXTURE = Identifier.ofVanilla("widget/slider_highlighted");
-	private static final Identifier HANDLE_TEXTURE = Identifier.ofVanilla("widget/slider_handle");
-	private static final Identifier HANDLE_HIGHLIGHTED_TEXTURE = Identifier.ofVanilla("widget/slider_handle_highlighted");
+public abstract class ToggleWidget extends AbstractWidget {
+	private static final ResourceLocation TEXTURE = ResourceLocation.withDefaultNamespace("widget/slider");
+	private static final ResourceLocation HIGHLIGHTED_TEXTURE = ResourceLocation.withDefaultNamespace("widget/slider_highlighted");
+	private static final ResourceLocation HANDLE_TEXTURE = ResourceLocation.withDefaultNamespace("widget/slider_handle");
+	private static final ResourceLocation HANDLE_HIGHLIGHTED_TEXTURE = ResourceLocation.withDefaultNamespace("widget/slider_handle_highlighted");
 	private double dValue;
 	public boolean value;
 	private boolean sliderFocused;
 
-	public ToggleWidget(int x, int y, int width, int height, Text text, boolean value) {
+	public ToggleWidget(int x, int y, int width, int height, Component text, boolean value) {
 		super(x, y, width, height, text);
 		this.dValue = value ? 1 : 0;
 		this.value = value;
 	}
 
-	private Identifier getTexture() {
+	private ResourceLocation getTexture() {
 		return this.isFocused() && !this.sliderFocused ? HIGHLIGHTED_TEXTURE : TEXTURE;
 	}
 
-	private Identifier getHandleTexture() {
-		return !this.hovered && !this.sliderFocused ? HANDLE_TEXTURE : HANDLE_HIGHLIGHTED_TEXTURE;
+	private ResourceLocation getHandleTexture() {
+		return !this.isHovered && !this.sliderFocused ? HANDLE_TEXTURE : HANDLE_HIGHLIGHTED_TEXTURE;
 	}
 
 	@Override
-	protected MutableText getNarrationMessage() {
-		return Text.translatable("gui.narrate.slider", this.getMessage());
+	protected MutableComponent createNarrationMessage() {
+		return Component.translatable("gui.narrate.slider", this.getMessage());
 	}
 
 	@Override
-	public void appendClickableNarrations(NarrationMessageBuilder builder) {
+	public void updateWidgetNarration(NarrationElementOutput builder) {
 
 	}
 
 	@Override
-	public void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
-		MinecraftClient minecraftClient = MinecraftClient.getInstance();
-		context.drawGuiTexture(RenderLayer::getGuiTextured, this.getTexture(), this.getX(), this.getY(), this.getWidth(), this.getHeight());
-		context.drawGuiTexture(RenderLayer::getGuiTextured, this.getHandleTexture(), this.getX() + (int)(this.dValue * (double)(this.width - 8)), this.getY(), 8, this.getHeight());
+	public void renderWidget(GuiGraphics context, int mouseX, int mouseY, float delta) {
+		Minecraft minecraftClient = Minecraft.getInstance();
+		context.blitSprite(RenderType::guiTextured, this.getTexture(), this.getX(), this.getY(), this.getWidth(), this.getHeight());
+		context.blitSprite(RenderType::guiTextured, this.getHandleTexture(), this.getX() + (int)(this.dValue * (double)(this.width - 8)), this.getY(), 8, this.getHeight());
 
 		int i = this.active ? 16777215 : 10526880;
-		this.drawScrollableText(context, minecraftClient.textRenderer, 2, i | MathHelper.ceil(this.alpha * 255.0F) << 24);
+		this.renderScrollingString(context, minecraftClient.font, 2, i | Mth.ceil(this.alpha * 255.0F) << 24);
 	}
 
 	@Override
@@ -68,8 +68,8 @@ public abstract class ToggleWidget extends ClickableWidget {
 		if (!focused) {
 			this.sliderFocused = false;
 		} else {
-			GuiNavigationType guiNavigationType = MinecraftClient.getInstance().getNavigationType();
-			if (guiNavigationType == GuiNavigationType.MOUSE || guiNavigationType == GuiNavigationType.KEYBOARD_TAB) {
+			InputType guiNavigationType = Minecraft.getInstance().getLastInputType();
+			if (guiNavigationType == InputType.MOUSE || guiNavigationType == InputType.KEYBOARD_TAB) {
 				this.sliderFocused = true;
 			}
 		}
@@ -93,7 +93,7 @@ public abstract class ToggleWidget extends ClickableWidget {
 
 	@Override
 	public void onRelease(double mouseX, double mouseY) {
-		super.playDownSound(MinecraftClient.getInstance().getSoundManager());
+		super.playDownSound(Minecraft.getInstance().getSoundManager());
 	}
 
 	protected abstract void updateMessage();
