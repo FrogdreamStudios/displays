@@ -29,6 +29,10 @@ public class DisplayManager {
         return displays.get(id);
     }
 
+    public static List<DisplayData> getDisplays() {
+        return new ArrayList<>(displays.values());
+    }
+
     public static void register(DisplayData displayData) {
         displays.put(displayData.getId(), displayData);
 

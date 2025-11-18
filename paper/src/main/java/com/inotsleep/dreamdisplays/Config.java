@@ -34,6 +34,10 @@ public class Config extends AbstractConfig {
         @Path("list")
         @Comment("Permission to list all displays")
         public String listPermission = "dreamdisplays.list";
+
+        @Path("reload")
+        @Comment("Permission to reload the config")
+        public String reloadPermission = "dreamdisplays.reload";
     }
 
     public static class Settings extends SerializableObject {
@@ -201,6 +205,22 @@ public class Config extends AbstractConfig {
         @Path("usage_footer")
         @Comment("Footer for /display usage command")
         public String usageFooter = "&a-====== ======-";
+
+        @Path("config_reloaded")
+        @Comment("Message when config is reloaded")
+        public String configReloaded = "&7D | &fDream Displays has been reloaded!";
+
+        @Path("no_displays_found")
+        @Comment("Message when no displays found")
+        public String noDisplaysFound = "&7D |&f No displays found";
+
+        @Path("display_list_header")
+        @Comment("Header for display list")
+        public String displayListHeader = "&7D |&f Displays:";
+
+        @Path("display_list_entry")
+        @Comment("Format for display list entry ({0} = ID, {1} = Owner, {2} = X, {3} = Y, {4} = Z, {5} = URL)")
+        public String displayListEntry = "&7D |&f - ID: {0}, Owner: {1}, Location: {2}, {3}, {4}, URL: {5}";
     }
 
     public Config(DreamDisplaysPlugin plugin) {

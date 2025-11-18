@@ -1,12 +1,10 @@
 package com.inotsleep.dreamdisplays.commands;
 
-import com.github.zafarkhaja.semver.Version;
 import com.inotsleep.dreamdisplays.DreamDisplaysPlugin;
 import com.inotsleep.dreamdisplays.datatypes.DisplayData;
 import com.inotsleep.dreamdisplays.datatypes.SelectionData;
 import com.inotsleep.dreamdisplays.listeners.SelectionListener;
 import com.inotsleep.dreamdisplays.managers.DisplayManager;
-import com.inotsleep.dreamdisplays.managers.PlayerManager;
 import com.inotsleep.dreamdisplays.utils.MessageUtil;
 import com.inotsleep.dreamdisplays.utils.Utils;
 import me.inotsleep.utils.AbstractCommand;
@@ -17,9 +15,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Commands related to the display management system.
@@ -143,13 +139,13 @@ public class DisplayCommand extends AbstractCommand {
                 DisplayManager.delete(data);
             }
             case "reload" -> {
-                if (!sender.hasPermission("dreamdisplays.reload")) {
+                if (!sender.hasPermission(DreamDisplaysPlugin.config.permissions.reloadPermission)) {
                     sendHelp(sender);
                     return;
                 }
 
                 DreamDisplaysPlugin.config.reload();
-                MessageUtil.sendColoredMessage(sender, "&aDream Displays has been reloaded!");
+                MessageUtil.sendColoredMessage(sender, DreamDisplaysPlugin.config.messages.configReloaded);
             }
             case "list" -> {
                 if (!sender.hasPermission(DreamDisplaysPlugin.config.permissions.listPermission)) {
@@ -157,35 +153,26 @@ public class DisplayCommand extends AbstractCommand {
                     return;
                 }
 
-                Map<Version, Integer> usage = new HashMap<>();
+                List<DisplayData> displays = DisplayManager.getDisplays();
+                if (displays.isEmpty()) {
+                    MessageUtil.sendColoredMessage(sender, DreamDisplaysPlugin.config.messages.noDisplaysFound);
+                    return;
+                }
 
-                PlayerManager.getVersions().forEach(version -> usage.compute(version, (k, v) -> v == null ? 1 : v + 1));
-
-                MessageUtil.sendColoredMessages(
-                        sender,
-                        DreamDisplaysPlugin.config.messages.usageHeader
-                                .stream()
-                                .map(
-                                        (s) -> me.inotsleep.utils.MessageUtil.parsePlaceholders(
-                                                s,
-                                                String.valueOf(usage.size()),
-                                                String.valueOf(Bukkit.getOnlinePlayers().size()))
-                                )
-                                .toList()
-                );
-
-                usage.forEach(
-                        (k, v) -> MessageUtil.sendColoredMessage(
-                                sender,
-                                me.inotsleep.utils.MessageUtil.parsePlaceholders(
-                                        DreamDisplaysPlugin.config.messages.usageVersionEntry,
-                                        k.toString(),
-                                        String.valueOf(v)
-                                )
-                        )
-                );
-
-                MessageUtil.sendColoredMessage(sender, DreamDisplaysPlugin.config.messages.usageFooter);
+                MessageUtil.sendColoredMessage(sender, DreamDisplaysPlugin.config.messages.displayListHeader);
+                for (DisplayData data : displays) {
+                    String ownerName = Bukkit.getOfflinePlayer(data.getOwnerId()).getName();
+                    if (ownerName == null) ownerName = "Unknown";
+                    MessageUtil.sendColoredMessage(sender, me.inotsleep.utils.MessageUtil.parsePlaceholders(
+                            DreamDisplaysPlugin.config.messages.displayListEntry,
+                            data.getId().toString(),
+                            ownerName,
+                            String.valueOf(data.getPos1().getBlockX()),
+                            String.valueOf(data.getPos1().getBlockY()),
+                            String.valueOf(data.getPos1().getBlockZ()),
+                            data.getUrl() != null ? data.getUrl() : "None"
+                    ));
+                }
             }
         }
     }
@@ -209,6 +196,7 @@ public class DisplayCommand extends AbstractCommand {
             List<String> completions = new ArrayList<>(List.of("create", "video"));
             if (sender.hasPermission(DreamDisplaysPlugin.config.permissions.deletePermission)) completions.add("delete");
             if (sender.hasPermission(DreamDisplaysPlugin.config.permissions.listPermission)) completions.add("list");
+            if (sender.hasPermission(DreamDisplaysPlugin.config.permissions.reloadPermission)) completions.add("reload");
             return completions;
         }
         return List.of();
