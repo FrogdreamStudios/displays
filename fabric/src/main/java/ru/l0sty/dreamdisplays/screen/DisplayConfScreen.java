@@ -390,6 +390,24 @@ public class DisplayConfScreen extends Screen {
         renderTooltipIfHovered(context, mouseX, mouseY, syncTextX, syncTextY,
                 textRenderer.getWidth(syncText), textRenderer.fontHeight, syncTooltip);
 
+        // Tooltips for delete and report buttons
+        List<Text> deleteTooltip = List.of(
+                Text.translatable("dreamdisplays.button.delete.tooltip.1").styled(style -> style.withColor(Formatting.WHITE).withBold(true)),
+                Text.translatable("dreamdisplays.button.delete.tooltip.2").styled(style -> style.withColor(Formatting.GRAY)),
+                Text.translatable("dreamdisplays.button.delete.tooltip.3").styled(style -> style.withColor(Formatting.RED))
+        );
+
+        List<Text> reportTooltip = List.of(
+                Text.translatable("dreamdisplays.button.report.tooltip.1").styled(style -> style.withColor(Formatting.WHITE).withBold(true)),
+                Text.translatable("dreamdisplays.button.report.tooltip.2").styled(style -> style.withColor(Formatting.GRAY)),
+                Text.translatable("dreamdisplays.button.report.tooltip.3").styled(style -> style.withColor(Formatting.YELLOW))
+        );
+
+        renderTooltipIfHovered(context, mouseX, mouseY, deleteButton.getX(), deleteButton.getY(),
+                deleteButton.getWidth(), deleteButton.getHeight(), deleteTooltip);
+        renderTooltipIfHovered(context, mouseX, mouseY, reportButton.getX(), reportButton.getY(),
+                reportButton.getWidth(), reportButton.getHeight(), reportTooltip);
+
         // Render all child elements (buttons, sliders, etc.)
         for (Element child : children()) {
             if (child instanceof Drawable drawable) {

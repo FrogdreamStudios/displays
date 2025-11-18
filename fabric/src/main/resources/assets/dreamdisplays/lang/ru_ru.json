@@ -31,5 +31,15 @@
   "dreamdisplays.button.synchronization.tooltip.2": "Опция доступна только владельцу дисплея",
   "dreamdisplays.button.synchronization.tooltip.3": "Устанавливает, будет ли дисплей синхронизирован между игроками",
   "dreamdisplays.button.synchronization.tooltip.4": "",
-  "dreamdisplays.button.synchronization.tooltip.5": "Сейчас: %s"
+  "dreamdisplays.button.synchronization.tooltip.5": "Сейчас: %s",
+
+  "dreamdisplays.button.delete": "Удалить",
+  "dreamdisplays.button.delete.tooltip.1": "Удалить дисплей",
+  "dreamdisplays.button.delete.tooltip.2": "Навсегда удаляет этот дисплей",
+  "dreamdisplays.button.delete.tooltip.3": "Удалить дисплей может только владелец или админы",
+
+  "dreamdisplays.button.report": "Жалоба",
+  "dreamdisplays.button.report.tooltip.1": "Пожаловаться на дисплей",
+  "dreamdisplays.button.report.tooltip.2": "Пожаловаться на неподобающий контент",
+  "dreamdisplays.button.report.tooltip.3": "Модераторы рассмотрят жалобу"
 }
