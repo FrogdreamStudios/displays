@@ -160,7 +160,7 @@ public class MediaPlayer {
                 .filter(Objects::nonNull)
                 .map(r -> Integer.parseInt(r.replaceAll("\\D+", "")))
                 .distinct()
-                .filter(r -> r <= (PlatformlessInitializer.isPremium ? 1080 : 720))
+                .filter(r -> r <= (PlatformlessInitializer.isPremium ? 2160 : 1080))
                 .sorted()
                 .collect(Collectors.toList());
     }

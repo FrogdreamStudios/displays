@@ -355,7 +355,7 @@ public class Screen {
 
     /**
      * Sets the quality of the video: if the MediaPlayer is not initialized, it will wait for it to be initialized and then set the quality.
-     * @param quality the quality to set (e.g., "480", "720", "1080")
+     * @param quality the quality to set (e.g., "480", "720", "1080", "2160" for premium)
      */
     public void setQuality(String quality) {
         this.quality = quality;

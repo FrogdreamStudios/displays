@@ -24,6 +24,7 @@
   "dreamdisplays.button.quality.tooltip.2": "Качество отображения дисплея",
   "dreamdisplays.button.quality.tooltip.3": "",
   "dreamdisplays.button.quality.tooltip.4": "Сейчас: %sp",
+  "dreamdisplays.button.quality.tooltip.5": "Предупреждение: 1080p и выше может повлиять на производительность",
 
   "dreamdisplays.button.synchronization": "Синхронизация",
   "dreamdisplays.button.synchronization.tooltip.1": "Синхронизация",

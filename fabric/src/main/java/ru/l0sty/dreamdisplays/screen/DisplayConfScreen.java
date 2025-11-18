@@ -362,7 +362,8 @@ public class DisplayConfScreen extends Screen {
                 Text.translatable("dreamdisplays.button.quality.tooltip.1").styled(style -> style.withColor(Formatting.WHITE).withBold(true)),
                 Text.translatable("dreamdisplays.button.quality.tooltip.2").styled(style -> style.withColor(Formatting.GRAY)),
                 Text.translatable("dreamdisplays.button.quality.tooltip.3"),
-                Text.translatable("dreamdisplays.button.quality.tooltip.4", screen.getQuality()).styled(style -> style.withColor(Formatting.GOLD))
+                Text.translatable("dreamdisplays.button.quality.tooltip.4", screen.getQuality()).styled(style -> style.withColor(Formatting.GOLD)),
+                Text.translatable("dreamdisplays.button.quality.tooltip.5").styled(style -> style.withColor(Formatting.YELLOW))
         );
 
         cY += 15 + vCH;

@@ -24,6 +24,7 @@
   "dreamdisplays.button.quality.tooltip.2": "Display-Qualitätsverbesserungs-einstellung",
   "dreamdisplays.button.quality.tooltip.3": "",
   "dreamdisplays.button.quality.tooltip.4": "Aktuell: %sp",
+  "dreamdisplays.button.quality.tooltip.5": "Warnung: 1080p und höher können die Leistung beeinträchtigen",
 
   "dreamdisplays.button.synchronization": "Synchronisierung",
   "dreamdisplays.button.synchronization.tooltip.1": "Synchronisierung",
