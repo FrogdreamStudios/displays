@@ -343,7 +343,7 @@ public class DisplayConfScreen extends Screen {
                 Text.translatable("dreamdisplays.button.render-distance.tooltip.5").styled(style -> style.withColor(Formatting.DARK_GRAY)),
                 Text.translatable("dreamdisplays.button.render-distance.tooltip.6").styled(style -> style.withColor(Formatting.DARK_GRAY)),
                 Text.translatable("dreamdisplays.button.render-distance.tooltip.7"),
-                Text.translatable("dreamdisplays.button.render-distance.tooltip.8", PlatformlessInitializer.config.defaultDistance).styled(style -> style.withColor(Formatting.YELLOW))
+                Text.translatable("dreamdisplays.button.render-distance.tooltip.8", PlatformlessInitializer.config.defaultDistance).styled(style -> style.withColor(Formatting.GOLD))
         );
 
         cY += 5 + vCH;
@@ -358,13 +358,17 @@ public class DisplayConfScreen extends Screen {
         context.drawText(textRenderer, qualityText, qualityTextX, qualityTextY, 0xFFFFFF, true);
 
         // Tooltip
-        List<Text> qualityTooltip = List.of(
+        List<Text> qualityTooltip = new java.util.ArrayList<>(List.of(
                 Text.translatable("dreamdisplays.button.quality.tooltip.1").styled(style -> style.withColor(Formatting.WHITE).withBold(true)),
                 Text.translatable("dreamdisplays.button.quality.tooltip.2").styled(style -> style.withColor(Formatting.GRAY)),
                 Text.translatable("dreamdisplays.button.quality.tooltip.3"),
-                Text.translatable("dreamdisplays.button.quality.tooltip.4", screen.getQuality()).styled(style -> style.withColor(Formatting.GOLD)),
-                Text.translatable("dreamdisplays.button.quality.tooltip.5").styled(style -> style.withColor(Formatting.YELLOW))
-        );
+                Text.translatable("dreamdisplays.button.quality.tooltip.4", screen.getQuality()).styled(style -> style.withColor(Formatting.GOLD))
+        ));
+
+        // Add warning if quality is 1080p or higher
+        if (Integer.parseInt(screen.getQuality()) >= 1080) {
+            qualityTooltip.add(Text.translatable("dreamdisplays.button.quality.tooltip.5").styled(style -> style.withColor(Formatting.YELLOW)));
+        }
 
         cY += 15 + vCH;
         placeButton(vCH, maxSW, cY, sync, syncReset);
@@ -393,14 +397,12 @@ public class DisplayConfScreen extends Screen {
         // Tooltips for delete and report buttons
         List<Text> deleteTooltip = List.of(
                 Text.translatable("dreamdisplays.button.delete.tooltip.1").styled(style -> style.withColor(Formatting.WHITE).withBold(true)),
-                Text.translatable("dreamdisplays.button.delete.tooltip.2").styled(style -> style.withColor(Formatting.GRAY)),
-                Text.translatable("dreamdisplays.button.delete.tooltip.3").styled(style -> style.withColor(Formatting.RED))
+                Text.translatable("dreamdisplays.button.delete.tooltip.2").styled(style -> style.withColor(Formatting.GRAY))
         );
 
         List<Text> reportTooltip = List.of(
                 Text.translatable("dreamdisplays.button.report.tooltip.1").styled(style -> style.withColor(Formatting.WHITE).withBold(true)),
-                Text.translatable("dreamdisplays.button.report.tooltip.2").styled(style -> style.withColor(Formatting.GRAY)),
-                Text.translatable("dreamdisplays.button.report.tooltip.3").styled(style -> style.withColor(Formatting.YELLOW))
+                Text.translatable("dreamdisplays.button.report.tooltip.2").styled(style -> style.withColor(Formatting.GRAY))
         );
 
         renderTooltipIfHovered(context, mouseX, mouseY, deleteButton.getX(), deleteButton.getY(),

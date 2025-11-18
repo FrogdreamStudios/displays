@@ -36,10 +36,8 @@
   "dreamdisplays.button.delete": "Delete",
   "dreamdisplays.button.delete.tooltip.1": "Delete display",
   "dreamdisplays.button.delete.tooltip.2": "Permanently removes this display",
-  "dreamdisplays.button.delete.tooltip.3": "Only the owner or admins can delete",
 
   "dreamdisplays.button.report": "Report",
   "dreamdisplays.button.report.tooltip.1": "Report display",
-  "dreamdisplays.button.report.tooltip.2": "Report inappropriate content",
-  "dreamdisplays.button.report.tooltip.3": "Moderators will review the report"
+  "dreamdisplays.button.report.tooltip.2": "Report inappropriate content"
 }
