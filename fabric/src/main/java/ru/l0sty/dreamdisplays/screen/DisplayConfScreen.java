@@ -1,5 +1,9 @@
 package ru.l0sty.dreamdisplays.screen;
 
+import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
+import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipPositioner;
+import net.minecraft.client.renderer.RenderType;
+import org.joml.Matrix3x2fc;
 import ru.l0sty.dreamdisplays.PlatformlessInitializer;
 import ru.l0sty.dreamdisplays.net.DeletePacket;
 import ru.l0sty.dreamdisplays.net.ReportPacket;
@@ -201,7 +205,7 @@ public class DisplayConfScreen extends Screen {
                                         List<Component> tooltip) {
         if (mouseX >= elementX && mouseX <= elementX + elementWidth &&
                 mouseY >= elementY && mouseY <= elementY + elementHeight) {
-            context.renderComponentTooltip(Minecraft.getInstance().font, tooltip, mouseX, mouseY);
+            context.setComponentTooltipForNextFrame(Minecraft.getInstance().font, tooltip, mouseX, mouseY);
         }
     }
 
@@ -214,8 +218,7 @@ public class DisplayConfScreen extends Screen {
      */
     @Override
     public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
-
-        renderBackground(context, mouseX, mouseY, delta);
+        super.render(context, mouseX, mouseY, delta);
         Component headerText = Component.translatable("dreamdisplays.ui.title");
 
         int vCH = 25;
@@ -287,10 +290,10 @@ public class DisplayConfScreen extends Screen {
         int cY = font.lineHeight + 15 * 2;
 
         context.fill(this.width / 2 - maxSW / 2, cY, this.width / 2 + maxSW / 2, cY + sH, 0xff000000);
-        context.pose().pushPose();
-        context.pose().translate(0, 0, 10);
+        context.pose().pushMatrix();
+        context.pose().translate(0, 0); // see if the 10 offset is necessary, pls let it not be
         renderScreen(context, sX, cY, sW, sH);
-        context.pose().popPose();
+        context.pose().popMatrix();
 
         cY += sH;
         cY += 5;
@@ -444,9 +447,9 @@ public class DisplayConfScreen extends Screen {
      */
     private void renderScreen(GuiGraphics context, int x, int y, int w, int h) {
         if (screen.isVideoStarted()) {
-            RenderUtil2D.drawTexturedQuad(context.pose(), screen.texture.getTexture(), x, y, w, h, screen.renderLayer);
+            RenderUtil2D.drawTexturedQuad(context.pose(), screen.texture.getTextureView(), x, y, w, h, screen.renderLayer);
         } else if (screen.hasPreviewTexture()) {
-            RenderUtil2D.drawTexturedQuad(context.pose(), screen.getPreviewTexture().getTexture(), x, y, w, h, screen.previewRenderLayer);
+            RenderUtil2D.drawTexturedQuad(context.pose(), screen.getPreviewTexture().getTextureView(), x, y, w, h, screen.previewRenderLayer);
         } else {
             context.fill(x, y, x + w, y + h, 0xFF000000);
         }

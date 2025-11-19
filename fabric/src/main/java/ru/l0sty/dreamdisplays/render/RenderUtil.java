@@ -2,6 +2,7 @@ package ru.l0sty.dreamdisplays.render;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.textures.GpuTexture;
+import com.mojang.blaze3d.textures.GpuTextureView;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.MeshData;
@@ -94,11 +95,11 @@ public final class RenderUtil {
      * Renders a GpuTexture using the specified matrices.
      * @param matrices the matrix stack to use for rendering.
      * @param tess the tessellator to use for rendering.
-     * @param gpuTex the GpuTexture to render.
+     * @param gpuView the GpuTextureView to render.
      * @param layer the RenderLayer to use for rendering.
      */
-    public static void renderGpuTexture(PoseStack matrices, Tesselator tess, GpuTexture gpuTex, RenderType layer) {
-        RenderSystem.setShaderTexture(0, gpuTex);
+    public static void renderGpuTexture(PoseStack matrices, Tesselator tess, GpuTextureView gpuView, RenderType layer) {
+        RenderSystem.setShaderTexture(0, gpuView);
         Matrix4f mat = matrices.last().pose();
 
         BufferBuilder buf = tess.begin(

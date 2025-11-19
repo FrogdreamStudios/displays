@@ -70,9 +70,9 @@ public class ScreenWorldRenderer {
         // Render the screen texture or preview texture
         if (screen.isVideoStarted()) {
             screen.fitTexture();
-            RenderUtil.renderGpuTexture(matrices, tessellator, screen.texture.getTexture(), screen.renderLayer);
+            RenderUtil.renderGpuTexture(matrices, tessellator, screen.texture.getTextureView(), screen.renderLayer);
         } else if (screen.hasPreviewTexture()) {
-            RenderUtil.renderGpuTexture(matrices, tessellator, screen.getPreviewTexture().getTexture(), screen.previewRenderLayer);
+            RenderUtil.renderGpuTexture(matrices, tessellator, screen.getPreviewTexture().getTextureView(), screen.previewRenderLayer);
         } else {
             RenderUtil.renderBlack(matrices, tessellator);
         }

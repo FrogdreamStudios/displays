@@ -149,7 +149,7 @@ public class Screen {
                 true,
                 false,
                 RenderPipelines.SOLID,
-                RenderType.CompositeState.builder().setLightmapState(LIGHTMAP).setTextureState(new RenderStateShard.TextureStateShard(id, TriState.FALSE, false)).createCompositeState(true)
+                RenderType.CompositeState.builder().setLightmapState(LIGHTMAP).setTextureState(new RenderStateShard.TextureStateShard(id, false)).createCompositeState(true)
         );
     }
 

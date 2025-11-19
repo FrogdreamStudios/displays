@@ -175,7 +175,7 @@ public class PlatformlessInitializer {
             }
         }
 
-        long window = client.getWindow().getWindow();
+        long window = client.getWindow().handle();
         boolean pressed = GLFW.glfwGetMouseButton(window, GLFW.GLFW_MOUSE_BUTTON_RIGHT) == GLFW.GLFW_PRESS;
 
         if (pressed && !wasPressed[0]) {

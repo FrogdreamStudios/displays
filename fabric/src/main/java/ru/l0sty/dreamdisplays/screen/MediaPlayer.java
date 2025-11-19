@@ -136,20 +136,20 @@ public class MediaPlayer {
 
         CommandEncoder encoder = RenderSystem.getDevice().createCommandEncoder();
         preparedBuffer.position(0);
-        IntBuffer intBuf = preparedBuffer.asIntBuffer();
 
         if (w != lastTexW || h != lastTexH) {
             lastTexW = w; lastTexH = h;
         }
 
-        if (!glTexture.isClosed()) encoder.writeToTexture(
-                glTexture,
-                intBuf,
-                NativeImage.Format.RGBA,
-                0,
-                0, 0,
-                glTexture.getWidth(0), glTexture.getHeight(0)
-        );
+        if (!glTexture.isClosed()) {
+            encoder.writeToTexture(
+                    glTexture,
+                    preparedBuffer,
+                    NativeImage.Format.RGBA,
+                    0, 0, 0, 0,
+                    glTexture.getWidth(0), glTexture.getHeight(0)
+            );
+        }
     }
 
     public java.util.List<Integer> getAvailableQualities() {

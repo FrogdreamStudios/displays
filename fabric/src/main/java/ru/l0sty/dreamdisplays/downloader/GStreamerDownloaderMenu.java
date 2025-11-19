@@ -1,10 +1,10 @@
 package ru.l0sty.dreamdisplays.downloader;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import org.joml.Matrix3x2fStack;
 
 public class GStreamerDownloaderMenu extends Screen {
     public final Screen menu;
@@ -22,21 +22,21 @@ public class GStreamerDownloaderMenu extends Screen {
      */
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        renderBackground(graphics, mouseX, mouseY, partialTick);
-        double cx = width / 2d;
-        double cy = height / 2d;
+        super.render(graphics, mouseX, mouseY, partialTick);
+        float cx = (float) (width / 2d);
+        float cy = (float) (height / 2d);
 
-        double progressBarHeight = 14;
-        double progressBarWidth = width / 3d;
+        float progressBarHeight = 14;
+        float progressBarWidth = (float) (width / 3d);
 
         // TODO: base off screen with (1/3 of screen)
 
-        PoseStack poseStack = graphics.pose();
+        Matrix3x2fStack matrix = graphics.pose();
 
         // Draw progress bar background
-        poseStack.pushPose();
-        poseStack.translate(cx, cy, 0);
-        poseStack.translate(-progressBarWidth / 2d, -progressBarHeight / 2d, 0);
+        matrix.pushMatrix();
+        matrix.translate(cx, cy);
+        matrix.translate((float) (-progressBarWidth / 2d), (float) (-progressBarHeight / 2d));
         graphics.fill(
                 0, 0,
                 (int) progressBarWidth,
@@ -55,7 +55,7 @@ public class GStreamerDownloaderMenu extends Screen {
                 (int) progressBarHeight - 4,
                 -1
         );
-        poseStack.popPose();
+        matrix.popMatrix();
 
         String[] text = new String[]{
                 GStreamerDownloadListener.INSTANCE.getTask(),
@@ -63,11 +63,10 @@ public class GStreamerDownloaderMenu extends Screen {
         };
 
         int oSet = ((font.lineHeight / 2) + ((font.lineHeight + 2) * (text.length + 2))) + 4;
-        poseStack.pushPose();
-        poseStack.translate(
+        matrix.pushMatrix();
+        matrix.translate(
                 (int) (cx),
-                (int) (cy - oSet),
-                0
+                (int) (cy - oSet)
         );
 
         graphics.drawString(
@@ -81,10 +80,10 @@ public class GStreamerDownloaderMenu extends Screen {
         int index = 0;
         for (String s : text) {
             if (index == 1) {
-                poseStack.translate(0, font.lineHeight + 2, 0);
+                matrix.translate(0, font.lineHeight + 2);
             }
 
-            poseStack.translate(0, font.lineHeight + 2, 0);
+            matrix.translate(0, font.lineHeight + 2);
             graphics.drawString(
                     font,
                     s,
@@ -94,7 +93,7 @@ public class GStreamerDownloaderMenu extends Screen {
             );
             index++;
         }
-        poseStack.popPose();
+        matrix.popMatrix();
     }
 
     /**

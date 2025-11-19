@@ -1,12 +1,10 @@
 package ru.l0sty.dreamdisplays.screen.widgets;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.client.gui.navigation.CommonInputs;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ARGB;
@@ -53,7 +51,7 @@ public abstract class IconButtonWidget extends AbstractWidget {
 
 	@Override
 	protected void renderWidget(GuiGraphics context, int mouseX, int mouseY, float delta) {
-		context.blitSprite(RenderType::guiTextured, settedTextures != null ? settedTextures.get(this.active, this.isHoveredOrFocused()) : TEXTURES.get(this.active, this.isHoveredOrFocused()), this.getX(), this.getY(), this.getWidth(), this.getHeight(), ARGB.white(this.alpha));
+		context.blitSprite(RenderPipelines.GUI_TEXTURED, settedTextures != null ? settedTextures.get(this.active, this.isHoveredOrFocused()) : TEXTURES.get(this.active, this.isHoveredOrFocused()), this.getX(), this.getY(), this.getWidth(), this.getHeight(), ARGB.white(this.alpha));
 
 		int dW = getWidth() - 2*margin;
 		int dH = getHeight() - 2*margin;
@@ -65,25 +63,7 @@ public abstract class IconButtonWidget extends AbstractWidget {
 		int dx = getX() + getWidth()/2-iconW/2;
 		int dy = getY() + getHeight()/2-iconH/2;
 
-		context.blitSprite(RenderType::guiTextured, iconTexture, dx, dy, iconW, iconH, ARGB.white(this.alpha));
+		context.blitSprite(RenderPipelines.GUI_TEXTURED, iconTexture, dx, dy, iconW, iconH, ARGB.white(this.alpha));
 
-	}
-
-	@Override
-	public void onClick(double mouseX, double mouseY) {
-		this.onPress();
-	}
-
-	@Override
-	public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-		if (!this.active || !this.visible) {
-			return false;
-		} else if (CommonInputs.selected(keyCode)) {
-			this.playDownSound(Minecraft.getInstance().getSoundManager());
-			this.onPress();
-			return true;
-		} else {
-			return false;
-		}
 	}
 }

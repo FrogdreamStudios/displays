@@ -8,11 +8,12 @@ import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import org.joml.Matrix3x2fStack;
 import ru.l0sty.dreamdisplays.net.*;
 import ru.l0sty.dreamdisplays.render.ScreenWorldRenderer;
 
@@ -67,8 +68,8 @@ public class DreamDisplaysMod implements ClientModInitializer, Mod {
             if (client.level == null || client.player == null) {
                 return;
             }
-            PoseStack matrices = context.matrixStack();
-            Camera camera = context.camera();
+            PoseStack matrices = context.matrices();
+            Camera camera = context.gameRenderer().getMainCamera();
             ScreenWorldRenderer.render(matrices, camera);
         });
 

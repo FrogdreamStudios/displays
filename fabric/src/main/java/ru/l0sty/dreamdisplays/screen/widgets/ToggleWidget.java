@@ -1,16 +1,18 @@
 package ru.l0sty.dreamdisplays.screen.widgets;
 
+import com.mojang.blaze3d.pipeline.RenderPipeline;
 import net.minecraft.client.InputType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class ToggleWidget extends AbstractWidget {
 	private static final ResourceLocation TEXTURE = ResourceLocation.withDefaultNamespace("widget/slider");
@@ -36,7 +38,7 @@ public abstract class ToggleWidget extends AbstractWidget {
 	}
 
 	@Override
-	protected MutableComponent createNarrationMessage() {
+	protected @NotNull MutableComponent createNarrationMessage() {
 		return Component.translatable("gui.narrate.slider", this.getMessage());
 	}
 
@@ -48,18 +50,11 @@ public abstract class ToggleWidget extends AbstractWidget {
 	@Override
 	public void renderWidget(GuiGraphics context, int mouseX, int mouseY, float delta) {
 		Minecraft minecraftClient = Minecraft.getInstance();
-		context.blitSprite(RenderType::guiTextured, this.getTexture(), this.getX(), this.getY(), this.getWidth(), this.getHeight());
-		context.blitSprite(RenderType::guiTextured, this.getHandleTexture(), this.getX() + (int)(this.dValue * (double)(this.width - 8)), this.getY(), 8, this.getHeight());
+		context.blitSprite(RenderPipelines.GUI_TEXTURED, this.getTexture(), this.getX(), this.getY(), this.getWidth(), this.getHeight());
+		context.blitSprite(RenderPipelines.GUI_TEXTURED, this.getHandleTexture(), this.getX() + (int)(this.dValue * (double)(this.width - 8)), this.getY(), 8, this.getHeight());
 
 		int i = this.active ? 16777215 : 10526880;
 		this.renderScrollingString(context, minecraftClient.font, 2, i | Mth.ceil(this.alpha * 255.0F) << 24);
-	}
-
-	@Override
-	public void onClick(double mouseX, double mouseY) {
-		this.setValueFromMouse();
-		applyValue();
-		updateMessage();
 	}
 
 	@Override
@@ -89,11 +84,6 @@ public abstract class ToggleWidget extends AbstractWidget {
 
 	@Override
 	public void playDownSound(SoundManager soundManager) {
-	}
-
-	@Override
-	public void onRelease(double mouseX, double mouseY) {
-		super.playDownSound(Minecraft.getInstance().getSoundManager());
 	}
 
 	protected abstract void updateMessage();
