@@ -6,7 +6,7 @@ plugins {
 	id("com.gradleup.shadow") version libs.versions.shadow
 }
 
-group = "ru.l0sty.dreamdisplays"
+group = "dreamdisplays"
 
 dependencies {
 	minecraft(libs.fabricMinecraft)
@@ -22,19 +22,17 @@ dependencies {
 }
 
 tasks.processResources {
-	inputs.property("version", project.version)
+	val projectVersion = project.version.toString()
+	inputs.property("version", projectVersion)
     filesMatching("fabric.mod.json") {
-        expand(mapOf("version" to project.version))
+        expand(mapOf("version" to projectVersion))
     }
     filesMatching("version") {
-        expand(mapOf("version" to project.version))
+        expand(mapOf("version" to projectVersion))
     }
 }
 
 java {
-	// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
-	// if it is present.
-    // If you remove this line, sources will not be generated.
 	withSourcesJar()
     toolchain { languageVersion.set(JavaLanguageVersion.of(21)) }
 }

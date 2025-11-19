@@ -3,7 +3,7 @@ plugins {
     id("com.gradleup.shadow") version libs.versions.shadow
 }
 
-group = "com.inotsleep"
+group = "dreamdisplays"
 
 dependencies {
     compileOnly("org.spigotmc:spigot-api:1.21-R0.1-SNAPSHOT")
@@ -30,7 +30,8 @@ tasks.withType<JavaCompile>().configureEach {
 }
 
 tasks.processResources {
-    val props = mapOf("version" to version)
+    val projectVersion = version.toString()
+    val props = mapOf("version" to projectVersion)
     inputs.properties(props)
     filteringCharset = "UTF-8"
 

@@ -8,7 +8,7 @@
   "authors": ["arsmotorin, INotSleep"],
   "entrypoints": {
     "client": [
-      "ru.l0sty.dreamdisplays.DreamDisplaysMod"
+      "dreamdisplays.DreamDisplaysMod"
     ]
   },
   "mixins": [
