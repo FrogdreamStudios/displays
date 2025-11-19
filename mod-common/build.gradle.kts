@@ -5,9 +5,9 @@ plugins {
 group = "dreamdisplays"
 
 dependencies {
-	compileOnly(libs.gst1)
-	compileOnly(libs.utils)
-	compileOnly(libs.javatube)
+	api(libs.gst1)
+	api(libs.utils)
+	api(libs.javatube)
     compileOnly(libs.jna)
     compileOnly(libs.jnaPlatform)
 	compileOnly(libs.lwjgl)
