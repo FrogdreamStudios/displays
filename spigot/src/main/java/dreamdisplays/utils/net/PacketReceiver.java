@@ -81,16 +81,18 @@ public class PacketReceiver implements PluginMessageListener {
 
             // Check for mod updates and notify all users with the mod
             int result = userVersion.compareTo(DreamDisplaysPlugin.modVersion);
-            if (result < 0) {
+            if (result < 0 && !PlayerManager.hasBeenNotifiedAboutModUpdate(player)) {
                 player.sendMessage(ChatColor.translateAlternateColorCodes('&', String.format(
                         (String) DreamDisplaysPlugin.config.messages.get("newVersion"),
                         DreamDisplaysPlugin.modVersion.toString()
                 )));
+                PlayerManager.setModUpdateNotified(player, true);
             }
 
             // Check for plugin updates and notify admins only
             if (DreamDisplaysPlugin.config.settings.updatesEnabled &&
-                player.hasPermission(DreamDisplaysPlugin.config.permissions.updates)) {
+                player.hasPermission(DreamDisplaysPlugin.config.permissions.updates) &&
+                !PlayerManager.hasBeenNotifiedAboutPluginUpdate(player)) {
 
                 String pluginVersion = DreamDisplaysPlugin.getInstance().getDescription().getVersion();
                 if (DreamDisplaysPlugin.pluginLatestVersion != null) {
@@ -102,6 +104,7 @@ public class PacketReceiver implements PluginMessageListener {
                                 (String) DreamDisplaysPlugin.config.messages.get("newPluginVersion"),
                                 DreamDisplaysPlugin.pluginLatestVersion
                         )));
+                        PlayerManager.setPluginUpdateNotified(player, true);
                     }
                 }
             }
