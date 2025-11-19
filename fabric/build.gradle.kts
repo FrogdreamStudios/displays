@@ -14,12 +14,6 @@ dependencies {
 	modImplementation(libs.fabricLoader)
 	modImplementation(libs.fabricApi)
     shadow(project(":mod-common"))
-	shadow(libs.gst1)
-	shadow(libs.utils)
-	shadow(libs.javatube)
-    compileOnly(libs.jna)
-    compileOnly(libs.jnaPlatform)
-	compileOnly(libs.lwjgl)
 }
 
 tasks.processResources {
@@ -46,15 +40,6 @@ tasks.jar {
 	from(rootProject.file("LICENSE"))
 }
 
-tasks.shadowJar {
-    configurations = listOf(project.configurations.getByName("shadow"))
-    dependencies {
-        include(dependency("org.freedesktop.gstreamer:gst1-java-core"))
-        include(dependency("com.github.felipeucelli:javatube"))
-        include(dependency("org.json:json"))
-        include(dependency("me.inotsleep:utils"))
-    }
-}
 tasks.withType<RemapJarTask>().configureEach {
 	inputFile.set(tasks.shadowJar.flatMap { it.archiveFile })
 
@@ -63,4 +48,15 @@ tasks.withType<RemapJarTask>().configureEach {
 
 	archiveBaseName = "dreamdisplays-fabric"
 	archiveVersion.set(rootProject.version.toString())
+}
+
+tasks.shadowJar {
+    configurations = listOf(project.configurations.getByName("shadow"))
+    dependencies {
+        include(project(":mod-common"))
+        include(dependency("org.freedesktop.gstreamer:gst1-java-core"))
+        include(dependency("com.github.felipeucelli:javatube"))
+        include(dependency("org.json:json"))
+        include(dependency("me.inotsleep:utils"))
+    }
 }
