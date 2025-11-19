@@ -36,7 +36,7 @@ public class SelectionListener implements Listener {
     public static Map<UUID, SelectionData> selectionPoints = new HashMap<>();
 
     public SelectionListener(DreamDisplaysPlugin plugin) {
-        if (!DreamDisplaysPlugin.isFolia()) {
+        if (!DreamDisplaysPlugin.isFolia() && DreamDisplaysPlugin.config.settings.particlesEnabled) {
             BukkitRunnable runnable = new BukkitRunnable() {
                 @Override
                 public void run() {

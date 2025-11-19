@@ -37,66 +37,77 @@ public class Config {
         public SettingsSection(Toml toml) { this.toml = toml; }
 
         public String getWebhookUrl() {
-            String url = toml.getString("settings.webhook_url");
+            String url = toml.getString("reports.webhook_url");
             return url != null ? url : "";
         }
         public int getReportCooldown() {
-            Long cooldown = toml.getLong("settings.report_cooldown");
-            return cooldown != null ? Math.toIntExact(cooldown) : 15000;
+            Long cooldown = toml.getLong("reports.cooldown");
+            return cooldown != null ? Math.toIntExact(cooldown) * 1000 : 15000;
         }
         public String getRepoName() {
-            String name = toml.getString("settings.repo_name");
-            return name != null ? name : "dreamdisplays";
+            return "dreamdisplays";
         }
         public String getRepoOwner() {
-            String owner = toml.getString("settings.repo_owner");
-            return owner != null ? owner : "arsmotorin";
+            return "arsmotorin";
+        }
+        public boolean isUpdatesEnabled() {
+            Boolean enabled = toml.getBoolean("updates");
+            return enabled != null ? enabled : true;
         }
 
         public Material getSelectionMaterial() {
-            String mat = toml.getString("settings.selection_material");
+            String mat = toml.getString("display.selection_material");
             if (mat == null) return Material.DIAMOND_AXE;
             Material m = Material.matchMaterial(mat);
             return m != null ? m : Material.DIAMOND_AXE;
         }
 
         public Material getBaseMaterial() {
-            String mat = toml.getString("settings.base_material");
+            String mat = toml.getString("display.base_material");
             if (mat == null) return Material.BLACK_CONCRETE;
             Material m = Material.matchMaterial(mat);
             return m != null ? m : Material.BLACK_CONCRETE;
         }
 
+        public boolean isParticlesEnabled() {
+            Boolean enabled = toml.getBoolean("particles");
+            return enabled != null ? enabled : true;
+        }
         public int getCUIParticleRenderDelay() {
-            Long delay = toml.getLong("settings.CUI_particle_render_delay");
-            return delay != null ? Math.toIntExact(delay) : 2;
+            return 2;
         }
         public int getCUIParticlesPerBlock() {
-            Long count = toml.getLong("settings.CUI_particles_per_block");
-            return count != null ? Math.toIntExact(count) : 3;
+            return 3;
         }
         public int getCUIParticlesColor() {
-            Long color = toml.getLong("settings.CUI_particles_color");
-            return color != null ? Math.toIntExact(color) : 65280;
+            String hex = toml.getString("particles_color");
+            if (hex != null && hex.startsWith("#")) {
+                try {
+                    return Integer.parseInt(hex.substring(1), 16);
+                } catch (NumberFormatException e) {
+                    return 0x00FF00;
+                }
+            }
+            return 0x00FF00;
         }
         public int getMinWidth() {
-            Long width = toml.getLong("settings.min_width");
+            Long width = toml.getLong("display.min_width");
             return width != null ? Math.toIntExact(width) : 1;
         }
         public int getMinHeight() {
-            Long height = toml.getLong("settings.min_height");
+            Long height = toml.getLong("display.min_height");
             return height != null ? Math.toIntExact(height) : 1;
         }
         public int getMaxWidth() {
-            Long width = toml.getLong("settings.max_width");
+            Long width = toml.getLong("display.max_width");
             return width != null ? Math.toIntExact(width) : 32;
         }
         public int getMaxHeight() {
-            Long height = toml.getLong("settings.max_height");
+            Long height = toml.getLong("display.max_height");
             return height != null ? Math.toIntExact(height) : 24;
         }
         public double getMaxRenderDistance() {
-            Double distance = toml.getDouble("settings.maxRenderDistance");
+            Double distance = toml.getDouble("display.max_render_distance");
             return distance != null ? distance : 96.0;
         }
 
@@ -105,8 +116,10 @@ public class Config {
         public int reportCooldown;
         public String repoName;
         public String repoOwner;
+        public boolean updatesEnabled;
         public Material selectionMaterial;
         public Material baseMaterial;
+        public boolean particlesEnabled;
         public int particleRenderDelay;
         public int particlesPerBlock;
         public int particlesColor;
@@ -121,8 +134,10 @@ public class Config {
             reportCooldown = getReportCooldown();
             repoName = getRepoName();
             repoOwner = getRepoOwner();
+            updatesEnabled = isUpdatesEnabled();
             selectionMaterial = getSelectionMaterial();
             baseMaterial = getBaseMaterial();
+            particlesEnabled = isParticlesEnabled();
             particleRenderDelay = getCUIParticleRenderDelay();
             particlesPerBlock = getCUIParticlesPerBlock();
             particlesColor = getCUIParticlesColor();
@@ -153,11 +168,10 @@ public class Config {
         }
 
         private void cache() {
-            String type = toml.getString("storage.storageType");
+            String type = toml.getString("storage.type");
             this.storageType = type != null ? type : "SQLITE";
 
-            String file = toml.getString("storage.sqliteFile");
-            this.sqliteFile = file != null ? file : "database.db";
+            this.sqliteFile = "database.db";
 
             String hostVal = toml.getString("storage.host");
             this.host = hostVal != null ? hostVal : "localhost";
@@ -174,10 +188,9 @@ public class Config {
             String userVal = toml.getString("storage.username");
             this.username = userVal != null ? userVal : "username";
 
-            String optVal = toml.getString("storage.options");
-            this.options = optVal != null ? optVal : "autoReconnect=true&useSSL=false;";
+            this.options = "autoReconnect=true&useSSL=false;";
 
-            String prefixVal = toml.getString("storage.tablePrefix");
+            String prefixVal = toml.getString("storage.table_prefix");
             this.tablePrefix = prefixVal != null ? prefixVal : "";
         }
     }
