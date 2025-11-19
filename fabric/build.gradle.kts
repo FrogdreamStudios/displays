@@ -22,6 +22,9 @@ tasks.processResources {
     filesMatching("fabric.mod.json") {
         expand(mapOf("version" to projectVersion))
     }
+    filesMatching("quilt.mod.json") {
+        expand(mapOf("version" to projectVersion))
+    }
     filesMatching("version") {
         expand(mapOf("version" to projectVersion))
     }

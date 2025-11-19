@@ -20,5 +20,20 @@
     "minecraft": "1.21.10",
     "java": ">=21"
   },
+  "custom": {
+    "modmenu": {
+      "badges": ["library"]
+    },
+    "quilt_loader": {
+      "id": "dreamdisplays",
+      "group": "dreamdisplays",
+      "provides": [
+        {
+          "id": "dreamdisplays",
+          "version": "${version}"
+        }
+      ]
+    }
+  },
   "icon": "assets/dreamdisplays/icon.png"
 }
