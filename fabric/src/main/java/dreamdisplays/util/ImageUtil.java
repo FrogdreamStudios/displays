@@ -11,10 +11,6 @@ import java.net.URI;
 import java.net.URL;
 import java.util.concurrent.CompletableFuture;
 
-/**
- * Utility class for handling image processing and conversion tasks.
- * This class provides methods to fetch and convert images for use in the game.
- */
 public class ImageUtil {
 
     public static CompletableFuture<DynamicTexture> fetchImageTextureFromUrl(String url) {
@@ -47,10 +43,7 @@ public class ImageUtil {
         });
     }
 
-     /**
-     * Converts a BufferedImage to a NativeImage
-     * @param img the BufferedImage to convert
-     */
+    // Converts BufferedImage to NativeImage
     private static NativeImage convertToNativeImage(BufferedImage img) {
         int width = img.getWidth();
         int height = img.getHeight();

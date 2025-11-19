@@ -28,11 +28,7 @@ public class GithubReleaseFetcher {
             }
         }
 
-     /**  Get a list of releases from a GitHub repository.
-     * @param owner the owner of the repository.
-     * @param repo the name of the repository.
-     * @return a list of releases.
-     */
+    // Get releases from GitHub API
     public static List<Release> fetchReleases(String owner, String repo) throws Exception {
         HttpURLConnection conn = getHttpURLConnection(owner, repo);
 

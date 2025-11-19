@@ -9,17 +9,13 @@ import org.joml.Matrix3x2fStack;
 public class GStreamerDownloaderMenu extends Screen {
     public final Screen menu;
 
-    /**
-     * Menu for GStreamer download progress.
-     */
+    // Constructor for the GStreamer download menu
     public GStreamerDownloaderMenu(Screen menu) {
         super(Component.nullToEmpty("Dream Displays downloads GStreamer for display support"));
         this.menu = menu;
     }
 
-    /**
-     * Render the background of the GStreamer download menu.
-     */
+    // Render the download progress screen
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         super.render(graphics, mouseX, mouseY, partialTick);
@@ -96,9 +92,7 @@ public class GStreamerDownloaderMenu extends Screen {
         matrix.popMatrix();
     }
 
-    /**
-     * Tick the method to check if the download is done or failed.
-     */
+    // Update method to check download status
     @Override
     public void tick() {
         if (GStreamerDownloadListener.INSTANCE.isDone() || GStreamerDownloadListener.INSTANCE.isFailed()) {
@@ -106,9 +100,7 @@ public class GStreamerDownloaderMenu extends Screen {
         }
     }
 
-    /**
-     * We determine if the screen should close on ESC key press.
-     */
+    // Prevent closing the screen with ESC
     @Override
     public boolean shouldCloseOnEsc() {
         return false;

@@ -10,10 +10,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 
-/**
- * Packet for synchronizing display data.
- * Read more about the synchronization feature RequestSyncPacket.
- */
+// Packet for synchronizing the playback state of a display
 public record SyncPacket(UUID id, boolean isSync, boolean currentState, long currentTime, long limitTime) implements CustomPacketPayload {
     public static final CustomPacketPayload.Type<SyncPacket> PACKET_ID =
             new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "sync"));

@@ -11,10 +11,6 @@ import org.bukkit.util.BoundingBox;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Represents a display data object that holds information about a display in the game.
- * It also provides methods to check if a player is within render distance, send update packets, and manage display settings.
- */
 public class DisplayData {
     private final UUID id;
     private final UUID ownerId;
@@ -115,10 +111,7 @@ public class DisplayData {
         return ownerId;
     }
 
-    /**
-     * Checks if the given location is within render distance of this display.
-     * maxRenderDistance is fetched dynamically to respect config changes.
-     */
+    // Checks if a location is within render distance of the display
     public boolean isInRange(Location loc) {
         double maxRenderDistance = DreamDisplaysPlugin.config.settings.maxRenderDistance;
         double maxDistSq = maxRenderDistance * maxRenderDistance;
@@ -138,9 +131,7 @@ public class DisplayData {
         return (dx * dx + dy * dy + dz * dz) <= maxDistSq;
     }
 
-    /**
-     * Sends the update packet to the provided list of players.
-     */
+    // Sends an update packet to a list of players
     public void sendUpdatePacket(List<Player> players) {
         PacketUtils.sendDisplayInfoPacket(players, id, ownerId, box.getMin(), width, height, url, lang, facing, isSync);
     }

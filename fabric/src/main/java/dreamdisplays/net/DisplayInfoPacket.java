@@ -12,10 +12,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 
-/**
- * Packet for displaying information about a display.
- * This packet is sent from the server to the client to provide information about a display.
- */
+// Packet for sending display information
 public record DisplayInfoPacket(UUID id, UUID ownerId, Vector3i pos, int width, int height, String url, Facing facing, boolean isSync, String lang) implements CustomPacketPayload {
     public static final CustomPacketPayload.Type<DisplayInfoPacket> PACKET_ID =
             new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "display_info"));

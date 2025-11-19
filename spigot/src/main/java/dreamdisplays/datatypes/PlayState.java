@@ -4,10 +4,6 @@ import dreamdisplays.managers.DisplayManager;
 
 import java.util.UUID;
 
-/**
- * PlayState class represents the state of a display playback.
- * It holds information about whether the playback is paused, the last reported time, and the limit time for the playback.
- */
 public class PlayState {
     private final UUID id;
     private boolean paused = false;

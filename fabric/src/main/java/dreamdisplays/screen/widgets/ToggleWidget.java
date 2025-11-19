@@ -70,13 +70,6 @@ public abstract class ToggleWidget extends AbstractWidget {
 		}
 	}
 
-    /**
-	 * Sets the value from mouse position.
-	 * 
-	 * <p>The value will be calculated from the position and the width of this
-	 * slider.
-	 *
-     */
 	private void setValueFromMouse() {
 		value = !value;
 		dValue = value ? 1 : 0;

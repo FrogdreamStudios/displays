@@ -1,10 +1,8 @@
 package dreamdisplays.util;
 
-/**
- * The Facing enum represents the four cardinal compass directions: NORTH, EAST, SOUTH, and WEST.
- * It provides utility methods for converting between enum constants and their respective byte representations,
- * allowing easy serialization and deserialization for use in packet-based communication.
- */
+// The Facing enum represents the four cardinal compass directions: NORTH, EAST, SOUTH, and WEST.
+// It provides methods to convert between the enum values and their corresponding byte representations
+// used in network packets.
 public enum Facing {
     NORTH, EAST, SOUTH, WEST;
 

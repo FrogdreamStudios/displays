@@ -15,11 +15,7 @@ import org.joml.Quaternionf;
 
 public final class RenderUtil {
 
-    /**
-     * Fixes the rotation of the matrix stack based on the facing direction.
-     * @param matrixStack the matrix stack to modify.
-     * @param facing the facing direction of the display (north, south, west, east).
-     */
+    // Prevent rotation issues
     public static void fixRotation(PoseStack matrixStack, String facing) {
         final Quaternionf rotation;
 
@@ -44,16 +40,7 @@ public final class RenderUtil {
         matrixStack.mulPose(rotation);
     }
 
-    /**
-     * Moves the matrix stack forward based on the facing direction.
-     *
-     * For example, if facing north, it will move the matrix stack forward by the specified amount in the negative Z direction.
-     *
-     * This is because of Minecraft's coordinate system.
-     * @param matrixStack the matrix stack to modify.
-     * @param facing the facing direction of the display (north, south, west, east).
-     * @param amount the amount to move forward.
-     */
+    // Moves the matrix stack forward based on the facing direction
     public static void moveForward(PoseStack matrixStack, String facing, float amount) {
         switch (facing) {
             case "NORTH":
@@ -71,9 +58,7 @@ public final class RenderUtil {
         }
     }
 
-    /**
-     * Moves the matrix stack horizontally based on the facing direction.
-     */
+    // Moves the matrix stack horizontally based on the facing direction
     public static void moveHorizontal(PoseStack matrixStack, String facing, float amount) {
         switch (facing) {
             case "NORTH":
@@ -91,13 +76,7 @@ public final class RenderUtil {
         }
     }
 
-    /**
-     * Renders a GpuTexture using the specified matrices.
-     * @param matrices the matrix stack to use for rendering.
-     * @param tess the tessellator to use for rendering.
-     * @param gpuView the GpuTextureView to render.
-     * @param layer the RenderLayer to use for rendering.
-     */
+    // Renders a GPU texture onto a quad using the provided matrix stack and tessellator
     public static void renderGpuTexture(PoseStack matrices, Tesselator tess, GpuTextureView gpuView, RenderType layer) {
         RenderSystem.setShaderTexture(0, gpuView);
         Matrix4f mat = matrices.last().pose();
@@ -139,9 +118,7 @@ public final class RenderUtil {
         layer.draw(built);
     }
 
-    /**
-     * Just renders a solid color quad with the specified RGB values.
-     */
+    // Renders a solid color square with the specified RGB values
     public static void renderColor(PoseStack matrices, Tesselator tess, int r, int g, int b) {
         Matrix4f mat = matrices.last().pose();
 
@@ -182,9 +159,7 @@ public final class RenderUtil {
         RenderType.solid().draw(built);
     }
 
-    /**
-     * Renders a solid black square.
-     */
+    // Renders a black square
     public static void renderBlack(PoseStack matrixStack, Tesselator tessellator) {
         renderColor(matrixStack, tessellator, 0, 0, 0);
     }

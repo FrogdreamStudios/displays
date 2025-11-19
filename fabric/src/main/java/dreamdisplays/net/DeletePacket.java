@@ -9,10 +9,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 
- /** Packet for deleting a display.
- * This packet is sent from the client to the server to delete a display with the given ID.
- * @param id the ID of the display to delete.
- */
+// Packet for deleting a display
 public record DeletePacket(UUID id) implements CustomPacketPayload {
     public static final Type<DeletePacket> PACKET_ID =
             new Type<>(ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "delete"));
