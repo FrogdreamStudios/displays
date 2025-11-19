@@ -101,6 +101,7 @@ public final class DreamDisplaysPlugin extends AbstractPlugin<DreamDisplaysPlugi
         }
 
         Runnable githubTask = () -> {
+            if (!config.settings.updatesEnabled) return;
             try {
                 List<GithubReleaseFetcher.Release> realises = GithubReleaseFetcher.fetchReleases(config.settings.repoOwner, config.settings.repoName);
                 LoggingManager.info("Found " + realises.size() + " Github releases");
