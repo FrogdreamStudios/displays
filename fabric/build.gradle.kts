@@ -13,6 +13,7 @@ dependencies {
 	mappings(loom.officialMojangMappings())
 	modImplementation(libs.fabricLoader)
 	modImplementation(libs.fabricApi)
+    shadow(project(":mod-common"))
 	shadow(libs.gst1)
 	shadow(libs.utils)
 	shadow(libs.javatube)
