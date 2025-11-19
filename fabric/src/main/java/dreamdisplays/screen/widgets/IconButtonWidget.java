@@ -9,11 +9,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ARGB;
 
-/**
- * Abstract class for a button with an icon.
- * This class extends ClickableWidget and provides functionality for rendering an icon button with a specified texture.
- * It allows setting a custom icon texture and provides methods for rendering the button and handling click events.
- */
 public abstract class IconButtonWidget extends AbstractWidget {
 	private final int iw;
     private final int ih;

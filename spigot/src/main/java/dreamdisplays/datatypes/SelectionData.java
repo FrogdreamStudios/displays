@@ -10,13 +10,6 @@ import org.bukkit.entity.Player;
 
 import java.util.UUID;
 
-/**
- * Represents a selection made by a player in the game, including two positions, a block face, and the player's ID.
- *
- * It provides methods to set positions, draw a box around the selection, and generate display data based on the selection.
- *
- * This class is used to manage the selection state of a player when creating or modifying displays in the Dream Displays plugin.
- */
 public class SelectionData {
     private Location pos1;
     private Location pos2;

@@ -27,15 +27,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
-/**
- * Media player for playing YouTube videos using GStreamer.
- * Supports audio and video playback, seeking, volume control, and quality selection.
- *
- * 403 YouTube errors are handled by selecting the best available audio stream based on language.
- *
- * Supports video texture updates for OpenGL rendering.
- * Handles initialization, playback control, and resource management.
- */
 public class MediaPlayer {
 
     private final String lang;

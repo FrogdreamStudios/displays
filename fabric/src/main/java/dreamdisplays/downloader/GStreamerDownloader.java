@@ -14,10 +14,7 @@ import java.util.zip.ZipFile;
 
 public class GStreamerDownloader {
 
-    /**
-     * Download URL for GStreamer.
-     * In future versions we'll delete this and use the official GStreamer repository to avoid some issues.
-     */
+    // URLs for downloading GStreamer builds and checksums
     private static final String GSTREAMER_DOWNLOAD_URL = "https://github.com/arsmotorin/dreamdisplays/releases/download/gstreamer/gstreamer-${platform}.zip";
     private static final String GSTREAMER_CHECKSUM_DOWNLOAD_URL = GSTREAMER_DOWNLOAD_URL + ".sha256";
 
@@ -129,9 +126,7 @@ public class GStreamerDownloader {
         }
     }
 
-    /**
-     * Extracts a ZIP file to the specified output directory.
-     */
+    // Extracts a zip file to the specified output directory
     private static void extractZip(File zipFile, File outputDirectory) {
         GStreamerDownloadListener.INSTANCE.setTask("Extracting");
         if (!outputDirectory.getParentFile().exists() && !outputDirectory.getParentFile().mkdirs()) LoggingManager.warn("Unable to mk directory");

@@ -12,9 +12,7 @@ import static dreamdisplays.util.Utils.detectPlatform;
 
 public class GstreamerDownloadInit {
 
-    /**
-     * Initializes GStreamer libraries for the application.
-     */
+    // Sets up the library path for GStreamer and loads the libraries
     private static void setupLibraryPath() throws IOException {
         final File gStreamerLibrariesDir = new File("./libs/gstreamer");
 
@@ -37,9 +35,7 @@ public class GstreamerDownloadInit {
         Gst.init("MediaPlayer");
     }
 
-    /**
-     * Loads the specified libraries into the JVM.
-     */
+    // Loads the specified libraries, handling dependencies
     public static void loadLibraries(Collection<String> libraries) {
         Deque<String> toLoad = new ArrayDeque<>(libraries);
         int total = libraries.size();
@@ -80,20 +76,15 @@ public class GstreamerDownloadInit {
         GStreamerDownloadListener.INSTANCE.setDone(true);
     }
 
+    // Pattern to match Linux/Unix shared object files
     private static final Pattern SO_PATTERN =
             Pattern.compile(".*\\.so(\\.\\d+)*$", Pattern.CASE_INSENSITIVE);
 
-    /**
-     * Pattern for macOS dynamic libraries and old libraries.
-     */
+    // Pattern to match macOS dynamic libraries
     private static final Pattern DYLIB_PATTERN =
             Pattern.compile(".*\\.(dylib|jnilib)$", Pattern.CASE_INSENSITIVE);
 
-    /**
-     * Check if the file name is a library.
-     * @param name the file name to check
-     * @return true if the file name is a library, false otherwise
-     */
+    // Checks if a file name corresponds to a library file
     private static boolean isLib(String name) {
         if (name == null) return false;
         String lower = name.toLowerCase();

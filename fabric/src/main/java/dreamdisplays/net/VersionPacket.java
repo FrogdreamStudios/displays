@@ -7,10 +7,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import dreamdisplays.PlatformlessInitializer;
 
-/**
- * Packet for sending the version of the mod.
- * This packet is sent from the server to the client to inform the client about the version of the mod.
- */
+// Packet for sending mod version information
 public record VersionPacket(String version) implements CustomPacketPayload {
     public static final Type<VersionPacket> PACKET_ID =
             new Type<>(ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "version"));

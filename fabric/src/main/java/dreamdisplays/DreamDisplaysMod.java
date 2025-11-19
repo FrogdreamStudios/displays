@@ -17,10 +17,6 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import dreamdisplays.net.*;
 import dreamdisplays.render.ScreenWorldRenderer;
 
- /**
-  * It initializes the mod, registers commands, and handles networking.
-  * It also registers event listeners for rendering and client lifecycle events.
-  */
 public class DreamDisplaysMod implements ClientModInitializer, Mod {
     @Override
     public void onInitializeClient() {

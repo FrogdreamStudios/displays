@@ -21,11 +21,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
-/**
- * Configuration screen for Dream Displays.
- * This screen allows users to configure various settings related to the Dream Displays mod, such as volume, rendering distance, quality, and synchronization options.
- * It provides a user interface for adjusting these settings and includes buttons for controlling playback, resetting values, and deleting or reporting displays.
- */
+// Configuration screen for Dream Displays with volume, render distance, quality, and sync settings
 public class DisplayConfScreen extends Screen {
 
     SliderWidget volume = null;
@@ -205,13 +201,7 @@ public class DisplayConfScreen extends Screen {
         }
     }
 
-    /**
-     * Renders the display configuration screen.
-     * @param context the draw context for rendering.
-     * @param mouseX the x-coordinate of the cursor.
-     * @param mouseY the y-coordinate of the cursor.
-     * @param delta the time delta since the last frame.
-     */
+    // Renders the display configuration screen
     @Override
     public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
         super.render(context, mouseX, mouseY, delta);
@@ -417,14 +407,7 @@ public class DisplayConfScreen extends Screen {
         }
     }
 
-    /**
-     * Places the button at the specified coordinates.
-     * @param vCH the height for the button.
-     * @param maxSW the maximum width of the screen.
-     * @param cY the y-coordinate for placing the button.
-     * @param renderD the button to be placed.
-     * @param renderDReset the reset button to be placed next to the main button.
-     */
+    // Places button and its reset button at specified coordinates
     private void placeButton(int vCH, int maxSW, int cY, AbstractWidget renderD, IconButtonWidget renderDReset) {
         renderD.setX(this.width / 2 + maxSW / 2 - 80 - vCH - 5);
         renderD.setY(cY);
@@ -437,10 +420,7 @@ public class DisplayConfScreen extends Screen {
         renderDReset.setWidth(vCH);
     }
 
-    /**
-     * Renders display screen.
-     * @param context the draw context for rendering.
-     */
+    // Renders display screen preview
     private void renderScreen(GuiGraphics context, int x, int y, int w, int h) {
         if (screen.isVideoStarted()) {
             RenderUtil2D.drawTexturedQuad(context.pose(), screen.texture.getTextureView(), x, y, w, h, screen.renderLayer);
@@ -451,20 +431,14 @@ public class DisplayConfScreen extends Screen {
         }
     }
 
-    /**
-     * Opens the display configuration screen.
-     */
+    // Opens the display configuration screen
     public static void open(dreamdisplays.screen.Screen screen) {
         DisplayConfScreen displayConfScreen = new DisplayConfScreen();
         displayConfScreen.setScreen(screen);
         Minecraft.getInstance().setScreen(displayConfScreen);
     }
 
-    /**
-     * Converts a resolution index to a quality str.
-     * @param resolution the index of the resolution.
-     * @return the quality string corresponding to the resolution index.
-     */
+    // Converts resolution index to quality string
     private String toQuality(int resolution) {
         List<Integer> list = screen.getQualityList();
 
@@ -474,11 +448,7 @@ public class DisplayConfScreen extends Screen {
         return list.get(i).toString();
     }
 
-    /**
-     * Converts a quality string to a resolution index.
-     * @param quality the quality str to convert.
-     * @return the index of the resolution corresponding to the quality str.
-     */
+    // Converts quality string to resolution index
     private int fromQuality(String quality) {
         List<Integer> list = screen.getQualityList();
 
@@ -489,10 +459,7 @@ public class DisplayConfScreen extends Screen {
         return list.indexOf(list.contains(res) ? res: list.getFirst());
     }
 
-    /**
-     * Sets the screen for the display config screen.
-     * @param screen the screen to set.
-     */
+    // Sets the screen for the display config screen
     private void setScreen(dreamdisplays.screen.Screen screen) {
         this.screen = screen;
     }

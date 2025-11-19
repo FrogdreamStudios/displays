@@ -9,10 +9,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 
-/** Packet for reporting a display.
- * This packet is sent from the client to the server to report about a bad display with the given ID.
- * @param id the ID of the display to report.
- */
+// Packet for reporting a display
 public record ReportPacket(UUID id) implements CustomPacketPayload {
     public static final Type<ReportPacket> PACKET_ID =
             new Type<>(ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "report"));

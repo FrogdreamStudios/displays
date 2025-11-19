@@ -23,6 +23,120 @@ public class Config {
     public PermissionsSection permissions;
     public final Map<String, Object> messages = new HashMap<>();
 
+    // Constructor
+    public Config(DreamDisplaysPlugin plugin) {
+        this.configFile = new File(plugin.getDataFolder(), "config.toml");
+
+        if (!configFile.exists()) {
+            if (!plugin.getDataFolder().mkdirs() && !plugin.getDataFolder().exists()) {
+                plugin.getLogger().severe("Could not create plugin data folder");
+            }
+            try (InputStream in = plugin.getResource("config.toml")) {
+                if (in != null) {
+                    Files.copy(in, configFile.toPath());
+                }
+            } catch (IOException e) {
+                plugin.getLogger().severe("Could not create default config.toml: " + e.getMessage());
+            }
+        }
+
+        extractLangFiles(plugin, true); // Force overwrite on first run
+        load();
+
+        this.language = new LanguageSection(toml);
+        this.settings = new SettingsSection(toml);
+        this.storage = new StorageSection(toml);
+        this.permissions = new PermissionsSection(toml);
+
+        // Cache values
+        settings.cache();
+        storage.cache();
+        permissions.cache();
+
+        String selectedLang = language.getMessageLanguage();
+        me.inotsleep.utils.logging.LoggingManager.log("Loading messages for language: " + selectedLang);
+        setMessages(selectedLang);
+    }
+
+    // Load configuration
+    private void load() {
+        try {
+            toml = new Toml().read(configFile);
+        } catch (Exception e) {
+            toml = new Toml(); // Empty toml with defaults
+        }
+    }
+
+    // Reload configuration
+    public void reload(DreamDisplaysPlugin plugin) {
+        load();
+        this.language = new LanguageSection(toml);
+        this.settings = new SettingsSection(toml);
+        this.storage = new StorageSection(toml);
+        this.permissions = new PermissionsSection(toml);
+
+        // Cache values
+        settings.cache();
+        storage.cache();
+        permissions.cache();
+        extractLangFiles(plugin, false); // Don't overwrite user changes
+        setMessages(language.getMessageLanguage());
+    }
+
+    // Extract language files
+    private void extractLangFiles(DreamDisplaysPlugin plugin, boolean overwrite) {
+        File langFolder = new File(plugin.getDataFolder(), "lang");
+        if (!langFolder.exists()) {
+            if (!langFolder.mkdirs()) {
+                plugin.getLogger().warning("Could not create lang folder");
+                return;
+            }
+        }
+
+        List<String> langFiles = List.of("en.json", "pl.json", "ru.json", "uk.json");
+
+        for (String fileName : langFiles) {
+            String resourcePath = "assets/dreamdisplays/lang/" + fileName;
+            try (InputStream in = plugin.getResource(resourcePath)) {
+                if (in != null) {
+                    File targetFile = new File(langFolder, fileName);
+                    if (overwrite || !targetFile.exists()) {
+                        Files.copy(in, targetFile.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                    }
+                }
+            } catch (IOException e) {
+                plugin.getLogger().warning("Could not extract language file " + fileName + ": " + e.getMessage());
+            }
+        }
+    }
+
+    // Load messages from language file
+    private void setMessages(String lang) {
+        File langFile = new File(configFile.getParentFile(), "lang/" + lang + ".json");
+        if (!langFile.exists()) {
+            me.inotsleep.utils.logging.LoggingManager.warn("Language file not found: " + langFile.getPath() + ", falling back to en.json");
+            langFile = new File(configFile.getParentFile(), "lang/en.json");
+        }
+
+        if (langFile.exists()) {
+            try (InputStream is = new FileInputStream(langFile)) {
+                String json = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+                Map<String, Object> msgs = gson.fromJson(json, new TypeToken<Map<String, Object>>(){}.getType());
+                if (msgs != null && !msgs.isEmpty()) {
+                    messages.clear();
+                    messages.putAll(msgs);
+                } else {
+                    me.inotsleep.utils.logging.LoggingManager.warn("No messages found in language file: " + lang);
+                }
+            } catch (IOException e) {
+                me.inotsleep.utils.logging.LoggingManager.error("Error loading language file: " + lang, e);
+            }
+        } else {
+            me.inotsleep.utils.logging.LoggingManager.error("Could not load any language file for: " + lang);
+        }
+    }
+
+    // Language section
     public static class LanguageSection {
         private final Toml toml;
         public LanguageSection(Toml toml) { this.toml = toml; }
@@ -32,6 +146,7 @@ public class Config {
         }
     }
 
+    // Settings section
     public static class SettingsSection {
         private final Toml toml;
         public SettingsSection(Toml toml) { this.toml = toml; }
@@ -149,6 +264,7 @@ public class Config {
         }
     }
 
+    // Storage section
     public static class StorageSection extends me.inotsleep.utils.storage.StorageSettings {
         private final Toml toml;
 
@@ -195,6 +311,7 @@ public class Config {
         }
     }
 
+    // Permissions section
     public static class PermissionsSection {
         private final Toml toml;
         public PermissionsSection(Toml toml) { this.toml = toml; }
@@ -221,110 +338,6 @@ public class Config {
 
             String updatesVal = toml.getString("permissions.updates");
             updates = updatesVal != null ? updatesVal : "dreamdisplays.updates";
-        }
-    }
-
-    public Config(DreamDisplaysPlugin plugin) {
-        this.configFile = new File(plugin.getDataFolder(), "config.toml");
-
-        if (!configFile.exists()) {
-            plugin.getDataFolder().mkdirs();
-            try (InputStream in = plugin.getResource("config.toml")) {
-                if (in != null) {
-                    Files.copy(in, configFile.toPath());
-                }
-            } catch (IOException e) {
-                plugin.getLogger().severe("Could not create default config.toml: " + e.getMessage());
-            }
-        }
-
-        extractLangFiles(plugin, true); // Force overwrite on first run
-        load();
-
-        this.language = new LanguageSection(toml);
-        this.settings = new SettingsSection(toml);
-        this.storage = new StorageSection(toml);
-        this.permissions = new PermissionsSection(toml);
-
-        // Cache values
-        settings.cache();
-        storage.cache();
-        permissions.cache();
-
-        String selectedLang = language.getMessageLanguage();
-        me.inotsleep.utils.logging.LoggingManager.log("Loading messages for language: " + selectedLang);
-        setMessages(selectedLang);
-    }
-
-    private void extractLangFiles(DreamDisplaysPlugin plugin, boolean overwrite) {
-        File langFolder = new File(plugin.getDataFolder(), "lang");
-        if (!langFolder.exists()) {
-            langFolder.mkdirs();
-        }
-        // Assuming you have a method to get all resource paths under a directory
-        // This part is pseudo-code and needs to be adapted to how you can list resources in your environment.
-        // For Bukkit, you might need to list them manually or use a library that can scan JAR resources.
-        // Here's a conceptual implementation:
-        List<String> langFiles = List.of("be_by.json", "cs_cz.json", "de_de.json", "en.json", "es_es.json", "fr_fr.json", "it_it.json", "ja_jp.json", "ko_kr.json", "nl_nl.json", "pl_pl.json", "pt_br.json", "ru.json", "sv_se.json", "tr_tr.json", "uk_ua.json", "zh_cn.json", "zh_tw.json");
-        for (String fileName : langFiles) {
-            try (InputStream in = plugin.getResource("assets/dreamdisplays/lang/" + fileName)) {
-                if (in != null) {
-                    File targetFile = new File(langFolder, fileName);
-                    if (overwrite || !targetFile.exists()) {
-                        Files.copy(in, targetFile.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-                    }
-                }
-            } catch (IOException e) {
-                plugin.getLogger().warning("Could not extract language file " + fileName + ": " + e.getMessage());
-            }
-        }
-    }
-
-    private void load() {
-        try {
-            toml = new Toml().read(configFile);
-        } catch (Exception e) {
-            toml = new Toml(); // Empty toml with defaults
-        }
-    }
-
-    public void reload(DreamDisplaysPlugin plugin) {
-        load();
-        this.language = new LanguageSection(toml);
-        this.settings = new SettingsSection(toml);
-        this.storage = new StorageSection(toml);
-        this.permissions = new PermissionsSection(toml);
-
-        // Cache values
-        settings.cache();
-        storage.cache();
-        permissions.cache();
-        extractLangFiles(plugin, false); // Don't overwrite user changes
-        setMessages(language.getMessageLanguage());
-    }
-
-    private void setMessages(String lang) {
-        File langFile = new File(configFile.getParentFile(), "lang/" + lang + ".json");
-        if (!langFile.exists()) {
-            me.inotsleep.utils.logging.LoggingManager.warn("Language file not found: " + langFile.getPath() + ", falling back to en.json");
-            langFile = new File(configFile.getParentFile(), "lang/en.json");
-        }
-
-        if (langFile.exists()) {
-            try (InputStream is = new FileInputStream(langFile)) {
-                String json = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-                Map<String, Object> msgs = gson.fromJson(json, new TypeToken<Map<String, Object>>(){}.getType());
-                if (msgs != null && !msgs.isEmpty()) {
-                    messages.clear();
-                    messages.putAll(msgs);
-                } else {
-                    me.inotsleep.utils.logging.LoggingManager.warn("No messages found in language file: " + lang);
-                }
-            } catch (IOException e) {
-                me.inotsleep.utils.logging.LoggingManager.error("Error loading language file: " + lang, e);
-            }
-        } else {
-            me.inotsleep.utils.logging.LoggingManager.error("Could not load any language file for: " + lang);
         }
     }
 }

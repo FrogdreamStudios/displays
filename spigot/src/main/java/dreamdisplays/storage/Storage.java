@@ -152,11 +152,7 @@ public class Storage {
         }
     }
 
-    /**
-     * Fetch all displays from the database.
-     * This method is called on plugin startup to load existing displays.
-     * @return List of DisplayData objects representing all displays in the database.
-     */
+   // Fetch all displays from the database
     public List<DisplayData> getAllDisplays() {
         String sql = "SELECT id, ownerId, videoCode, world, pos1, pos2, size, facing, isSync, duration, lang " +
                 "FROM " + tablePrefix + "displays";

@@ -13,10 +13,7 @@ import net.minecraft.client.renderer.RenderType;
 import org.joml.Matrix3x2fStack;
 import org.joml.Matrix4f;
 
-/**
- * Utility class for rendering 2D textures in Minecraft.
- * This class provides methods to draw textured quads using the specified texture and render layer.
- */
+// Utility class for rendering 2D textured quads
 public class RenderUtil2D {
     public static void drawTexturedQuad(Matrix3x2fStack matrices, GpuTextureView gpuView, float x, float y, float width, float height, RenderType layer) {
         RenderSystem.setShaderTexture(0, gpuView);

@@ -26,13 +26,6 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-/**
- * The PlatformlessInitializer class serves as the central management and initialization component
- * for this mod. This class handles configuration loading, screen creation, packet handling,
- * and various other functionalities essential to the mod's operation. It is responsible for managing
- * and interacting with screens, handling client-side rendering logic, network communication, and maintaining
- * state during gameplay.
- */
 public class PlatformlessInitializer {
 
     public static Config config;
