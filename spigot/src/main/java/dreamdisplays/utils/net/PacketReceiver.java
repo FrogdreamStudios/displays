@@ -62,7 +62,6 @@ public class PacketReceiver implements PluginMessageListener {
     private void processVersionPacket(Player player, byte[] message) {
         if (DreamDisplaysPlugin.modVersion == null) return;
         try {
-
             DataInputStream in = new DataInputStream(new ByteArrayInputStream(message));
             int len = PacketUtils.readVarInt(in);
 
@@ -80,6 +79,7 @@ public class PacketReceiver implements PluginMessageListener {
 
             PlayerManager.setVersion(player, userVersion);
 
+            // Check for mod updates and notify all users with the mod
             int result = userVersion.compareTo(DreamDisplaysPlugin.modVersion);
             if (result < 0) {
                 player.sendMessage(ChatColor.translateAlternateColorCodes('&', String.format(
@@ -88,8 +88,26 @@ public class PacketReceiver implements PluginMessageListener {
                 )));
             }
 
+            // Check for plugin updates and notify admins only
+            if (DreamDisplaysPlugin.config.settings.updatesEnabled &&
+                player.hasPermission(DreamDisplaysPlugin.config.permissions.updates)) {
+
+                String pluginVersion = DreamDisplaysPlugin.getInstance().getDescription().getVersion();
+                if (DreamDisplaysPlugin.pluginLatestVersion != null) {
+                    Version currentPluginVersion = Version.parse(pluginVersion);
+                    Version latestPluginVersion = Version.parse(DreamDisplaysPlugin.pluginLatestVersion);
+
+                    if (currentPluginVersion.compareTo(latestPluginVersion) < 0) {
+                        player.sendMessage(ChatColor.translateAlternateColorCodes('&', String.format(
+                                (String) DreamDisplaysPlugin.config.messages.get("newPluginVersion"),
+                                DreamDisplaysPlugin.pluginLatestVersion
+                        )));
+                    }
+                }
+            }
+
         } catch (IOException e) {
-            LoggingManager.warn( "Unable to decode SyncPacket", e);
+            LoggingManager.warn("Unable to decode VersionPacket", e);
         }
     }
 

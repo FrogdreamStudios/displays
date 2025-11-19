@@ -204,6 +204,7 @@ public class Config {
         public String delete;
         public String list;
         public String reload;
+        public String updates;
 
         private void cache() {
             String prem = toml.getString("permissions.premium");
@@ -217,6 +218,9 @@ public class Config {
 
             String reloadVal = toml.getString("permissions.reload");
             reload = reloadVal != null ? reloadVal : "dreamdisplays.reload";
+
+            String updatesVal = toml.getString("permissions.updates");
+            updates = updatesVal != null ? updatesVal : "dreamdisplays.updates";
         }
     }
 

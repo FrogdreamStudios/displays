@@ -26,6 +26,7 @@ public final class DreamDisplaysPlugin extends AbstractPlugin<DreamDisplaysPlugi
     public Storage storage;
 
     public static Version modVersion = null;
+    public static String pluginLatestVersion = null;
 
     // Check if the server is running Folia
     public static boolean isFolia() {
@@ -103,11 +104,12 @@ public final class DreamDisplaysPlugin extends AbstractPlugin<DreamDisplaysPlugi
         Runnable githubTask = () -> {
             if (!config.settings.updatesEnabled) return;
             try {
-                List<GithubReleaseFetcher.Release> realises = GithubReleaseFetcher.fetchReleases(config.settings.repoOwner, config.settings.repoName);
-                LoggingManager.info("Found " + realises.size() + " Github releases");
-                if (realises.isEmpty()) return;
+                List<GithubReleaseFetcher.Release> releases = GithubReleaseFetcher.fetchReleases(config.settings.repoOwner, config.settings.repoName);
+                LoggingManager.info("Found " + releases.size() + " GitHub releases");
+                if (releases.isEmpty()) return;
 
-                modVersion = realises.stream()
+                // Find latest mod version (fabric/forge)
+                modVersion = releases.stream()
                     .map(r -> extractTail(r.tagName()))
                     .filter(tag -> tag != null && !tag.trim().isEmpty())
                     .map(Version::parse)
@@ -119,8 +121,25 @@ public final class DreamDisplaysPlugin extends AbstractPlugin<DreamDisplaysPlugi
                 } else {
                     LoggingManager.warn("No valid mod version found in GitHub releases");
                 }
+
+                // Find latest plugin version (spigot)
+                pluginLatestVersion = releases.stream()
+                    .filter(r -> r.tagName().toLowerCase().contains("spigot") || r.tagName().toLowerCase().contains("plugin"))
+                    .map(r -> extractTail(r.tagName()))
+                    .filter(tag -> tag != null && !tag.trim().isEmpty())
+                    .max(Comparator.naturalOrder())
+                    .orElse(null);
+
+                if (pluginLatestVersion == null) {
+                    // If no specific plugin releases, use the same as mod version
+                    pluginLatestVersion = modVersion != null ? modVersion.toString() : null;
+                }
+
+                if (pluginLatestVersion != null) {
+                    LoggingManager.info("Latest plugin version: " + pluginLatestVersion);
+                }
             } catch (Exception e) {
-                LoggingManager.warn("Unable to load mod version", e);
+                LoggingManager.warn("Unable to load versions from GitHub", e);
             }
         };
 
