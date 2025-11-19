@@ -10,8 +10,11 @@ utils = "1.3.1"
 gst1 = "1.4.0"
 jna = "5.9.0"
 
+neoforge = "21.10.10-beta"
+
 # plugin versions
 loom = "1.13.4"
+moddev = "2.0.115"
 shadow = "9.2.2"
 
 [plugins]

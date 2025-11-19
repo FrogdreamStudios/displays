@@ -1,5 +1,5 @@
 plugins {
-    id("net.neoforged.moddev") version "2.0.115"
+    id("net.neoforged.moddev") version libs.versions.moddev
 }
 
 group = "dreamdisplays"
@@ -15,7 +15,7 @@ dependencies {
 
 neoForge {
     enable {
-        version = "21.10.10-beta"
+        version = libs.versions.neoforge.get()
     }
 }
 java {
