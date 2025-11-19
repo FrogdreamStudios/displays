@@ -1,7 +1,6 @@
 package dreamdisplays;
 
 import me.inotsleep.utils.config.AbstractConfig;
-import me.inotsleep.utils.config.Comment;
 import me.inotsleep.utils.config.Path;
 
 import java.io.File;
@@ -12,7 +11,6 @@ public class Config extends AbstractConfig {
         System.setProperty("file.encoding", "UTF-8");
     }
 
-    @Comment("Turn off sound when the Minecraft window is not focused?")
     @Path("mute-on-alt-tab")
     public boolean muteOnAltTab = true;
 
