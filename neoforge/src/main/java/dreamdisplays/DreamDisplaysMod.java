@@ -22,7 +22,7 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
-@Mod(value = DreamDisplaysMod.MOD_ID)
+@Mod(value = DreamDisplaysMod.MOD_ID, dist = Dist.CLIENT)
 public class DreamDisplaysMod {
 
     public static final String MOD_ID = "dreamdisplays";
@@ -33,7 +33,7 @@ public class DreamDisplaysMod {
     }
 
     public void registerPayloads(RegisterPayloadHandlersEvent event) {
-        PayloadRegistrar registrar = event.registrar(MOD_ID).versioned("1");
+        PayloadRegistrar registrar = event.registrar(MOD_ID).optional().versioned("1");
         registrar.playBidirectional(DeletePacket.PACKET_ID, DeletePacket.PACKET_CODEC,
                 (serverPayload, ctx) -> {
                 },

@@ -1,6 +1,6 @@
 name: DreamDisplays
 version: '${version}'
-authors: [arsmotorin, INotSleep]
+authors: [arsmotorin, INotSleep, Toffikk]
 description: 'Plugin for Dream Displays mod.'
 main: dreamdisplays.DreamDisplaysPlugin
 api-version: '1.21'

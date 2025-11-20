@@ -5,7 +5,7 @@
   "version": "${version}",
   "license": "LGPL-3.0",
     "description": "Create in-game screens to stream videos on any Minecraft server.",
-  "authors": ["arsmotorin, INotSleep"],
+  "authors": ["arsmotorin, INotSleep, Toffikk"],
   "entrypoints": {
     "client": [
       "dreamdisplays.DreamDisplaysMod"

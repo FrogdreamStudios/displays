@@ -9,7 +9,8 @@
       "description": "Create in-game screens to stream videos on any Minecraft server.",
       "contributors": {
         "arsmotorin": "Developer",
-        "INotSleep": "Developer"
+        "INotSleep": "Developer",
+        "Toffikk": "Developer"
       },
       "license": "LGPL-3.0",
       "icon": "assets/dreamdisplays/icon.png"
