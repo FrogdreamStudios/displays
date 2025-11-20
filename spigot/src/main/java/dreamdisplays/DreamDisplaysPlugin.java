@@ -105,7 +105,6 @@ public final class DreamDisplaysPlugin extends AbstractPlugin<DreamDisplaysPlugi
             if (!config.settings.updatesEnabled) return;
             try {
                 List<GithubReleaseFetcher.Release> releases = GithubReleaseFetcher.fetchReleases(config.settings.repoOwner, config.settings.repoName);
-                LoggingManager.info("Found " + releases.size() + " GitHub releases");
                 if (releases.isEmpty()) return;
 
                 // Find latest mod version (fabric/forge)
@@ -116,13 +115,11 @@ public final class DreamDisplaysPlugin extends AbstractPlugin<DreamDisplaysPlugi
                     .max(Comparator.naturalOrder())
                     .orElse(null);
 
-                if (modVersion != null) {
-                    LoggingManager.info("Latest mod version: " + modVersion);
-                } else {
+                if (modVersion == null) {
                     LoggingManager.warn("No valid mod version found in GitHub releases");
                 }
 
-                // Find latest plugin version (spigot)
+                // Find latest plugin version (Spigot)
                 pluginLatestVersion = releases.stream()
                     .filter(r -> r.tagName().toLowerCase().contains("spigot") || r.tagName().toLowerCase().contains("plugin"))
                     .map(r -> extractTail(r.tagName()))
@@ -133,10 +130,6 @@ public final class DreamDisplaysPlugin extends AbstractPlugin<DreamDisplaysPlugi
                 if (pluginLatestVersion == null) {
                     // If no specific plugin releases, use the same as mod version
                     pluginLatestVersion = modVersion != null ? modVersion.toString() : null;
-                }
-
-                if (pluginLatestVersion != null) {
-                    LoggingManager.info("Latest plugin version: " + pluginLatestVersion);
                 }
             } catch (Exception e) {
                 LoggingManager.warn("Unable to load versions from GitHub", e);
