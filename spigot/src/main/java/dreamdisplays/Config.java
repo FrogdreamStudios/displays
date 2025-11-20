@@ -223,7 +223,11 @@ public class Config {
         }
         public double getMaxRenderDistance() {
             Double distance = toml.getDouble("display.max_render_distance");
-            return distance != null ? distance : 96.0;
+            if (distance != null) {
+                return distance;
+            }
+            Long distanceLong = toml.getLong("display.max_render_distance");
+            return distanceLong != null ? distanceLong.doubleValue() : 96.0;
         }
 
         // Cached properties
