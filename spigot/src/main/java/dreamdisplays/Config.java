@@ -222,12 +222,18 @@ public class Config {
             return height != null ? Math.toIntExact(height) : 24;
         }
         public double getMaxRenderDistance() {
-            Double distance = toml.getDouble("display.max_render_distance");
-            if (distance != null) {
-                return distance;
+            try {
+                Double distance = toml.getDouble("display.max_render_distance");
+                if (distance != null) {
+                    return distance;
+                }
+            } catch (ClassCastException e) {
+                Long distanceLong = toml.getLong("display.max_render_distance");
+                if (distanceLong != null) {
+                    return distanceLong.doubleValue();
+                }
             }
-            Long distanceLong = toml.getLong("display.max_render_distance");
-            return distanceLong != null ? distanceLong.doubleValue() : 96.0;
+            return 96.0;
         }
 
         // Cached properties

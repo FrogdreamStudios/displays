@@ -12,7 +12,7 @@ base_material = "BLACK_CONCRETE"
 
 # Display size limits
 # All values are in blocks
-max_render_distance = 96
+max_render_distance = 96.0
 min_width = 1
 min_height = 1
 max_width = 32
