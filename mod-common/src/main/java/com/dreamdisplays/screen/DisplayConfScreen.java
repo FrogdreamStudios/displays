@@ -40,7 +40,7 @@ public class DisplayConfScreen extends Screen {
     IconButtonWidget deleteButton = null;
     IconButtonWidget reportButton = null;
 
-    public dreamdisplays.screen.Screen screen;
+    public com.dreamdisplays.screen.Screen screen;
 
     protected DisplayConfScreen() {
         super(Component.translatable("dreamdisplays.ui.title"));
@@ -432,7 +432,7 @@ public class DisplayConfScreen extends Screen {
     }
 
     // Opens the display configuration screen
-    public static void open(dreamdisplays.screen.Screen screen) {
+    public static void open(com.dreamdisplays.screen.Screen screen) {
         DisplayConfScreen displayConfScreen = new DisplayConfScreen();
         displayConfScreen.setScreen(screen);
         Minecraft.getInstance().setScreen(displayConfScreen);
@@ -460,7 +460,7 @@ public class DisplayConfScreen extends Screen {
     }
 
     // Sets the screen for the display config screen
-    private void setScreen(dreamdisplays.screen.Screen screen) {
+    private void setScreen(com.dreamdisplays.screen.Screen screen) {
         this.screen = screen;
     }
 }
