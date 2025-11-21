@@ -6,11 +6,12 @@ plugins {
 	id("com.gradleup.shadow") version libs.versions.shadow
 }
 
-group = "dreamdisplays"
-
 dependencies {
 	minecraft(libs.fabricMinecraft)
-	mappings(loom.officialMojangMappings())
+	mappings(loom.layered {
+        officialMojangMappings()
+        parchment(rootProject.property("neoForge.parchment.parchmentArtifact"))
+    })
 	modImplementation(libs.fabricLoader)
 	modImplementation(libs.fabricApi)
     shadow(project(":mod-common"))

@@ -60,8 +60,8 @@ public class DreamDisplaysMod implements ClientModInitializer, Mod {
         ClientPlayNetworking.registerGlobalReceiver(SyncPacket.PACKET_ID, (payload, unused) -> PlatformlessInitializer.onSyncPacket(payload));
 
         WorldRenderEvents.AFTER_ENTITIES.register(context -> {
-            Minecraft client = Minecraft.getInstance();
-            if (client.level == null || client.player == null) {
+            Minecraft minecraft = Minecraft.getInstance();
+            if (minecraft.level == null || minecraft.player == null) {
                 return;
             }
             PoseStack matrices = context.matrices();

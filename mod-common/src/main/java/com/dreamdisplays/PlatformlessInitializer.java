@@ -78,16 +78,16 @@ public class PlatformlessInitializer {
         timerThread.start();
     }
 
-    public static void onDisplayInfoPacket(DisplayInfoPacket payload) {
+    public static void onDisplayInfoPacket(DisplayInfoPacket packet) {
         if (!PlatformlessInitializer.displaysEnabled) return;
 
-        if (ScreenManager.screens.containsKey(payload.id())) {
-            Screen screen = ScreenManager.screens.get(payload.id());
-            screen.updateData(payload);
+        if (ScreenManager.screens.containsKey(packet.id())) {
+            Screen screen = ScreenManager.screens.get(packet.id());
+            screen.updateData(packet);
             return;
         }
 
-        createScreen(payload.id(), payload.ownerId(), payload.pos(), payload.facing(), payload.width(), payload.height(), payload.url(), payload.lang(), payload.isSync());
+        createScreen(packet.id(), packet.ownerId(), packet.pos(), packet.facing(), packet.width(), packet.height(), packet.url(), packet.lang(), packet.isSync());
     }
 
     public static void createScreen(UUID id, UUID ownerId, Vector3i pos, Facing facing, int width, int height, String code, String lang, boolean isSync) {
@@ -98,15 +98,15 @@ public class PlatformlessInitializer {
         if (!Objects.equals(code, "")) screen.loadVideo(code, lang);
     }
 
-    public static void onSyncPacket(SyncPacket payload) {
-        if (!ScreenManager.screens.containsKey(payload.id())) return;
-        Screen screen = ScreenManager.screens.get(payload.id());
-        screen.updateData(payload);
+    public static void onSyncPacket(SyncPacket packet) {
+        if (!ScreenManager.screens.containsKey(packet.id())) return;
+        Screen screen = ScreenManager.screens.get(packet.id());
+        screen.updateData(packet);
     }
 
     private static final boolean[] wasPressed = {false};
     private static final AtomicBoolean wasInMultiplayer = new AtomicBoolean(false);
-    private static final AtomicReference<ClientLevel> lastWorld = new AtomicReference<>(null);
+    private static final AtomicReference<ClientLevel> lastLevel = new AtomicReference<>(null);
     private static final AtomicBoolean wasFocused = new AtomicBoolean(false);
 
     private static void checkVersionAndSendPacket() {
@@ -118,15 +118,15 @@ public class PlatformlessInitializer {
         }
     }
 
-    public static void onEndTick(Minecraft client) {
-        if (client.level != null && client.getCurrentServer() != null) {
-            if (lastWorld.get() == null) {
-                lastWorld.set(client.level);
+    public static void onEndTick(Minecraft minecraft) {
+        if (minecraft.level != null && minecraft.getCurrentServer() != null) {
+            if (lastLevel.get() == null) {
+                lastLevel.set(minecraft.level);
                 checkVersionAndSendPacket();
             }
 
-            if (client.level != lastWorld.get()) {
-                lastWorld.set(client.level);
+            if (minecraft.level != lastLevel.get()) {
+                lastLevel.set(minecraft.level);
 
                 ScreenManager.unloadAll();
                 hoveredScreen = null;
@@ -141,19 +141,19 @@ public class PlatformlessInitializer {
                 wasInMultiplayer.set(false);
                 ScreenManager.unloadAll();
                 hoveredScreen = null;
-                lastWorld.set(null);
+                lastLevel.set(null);
                 return;
             }
         }
 
-        if (client.player == null) return;
+        if (minecraft.player == null) return;
 
         BlockHitResult result = RCUtil.rCBlock(64);
         hoveredScreen = null;
         PlatformlessInitializer.isOnScreen = false;
 
         for (Screen screen : ScreenManager.getScreens()) {
-            if (PlatformlessInitializer.config.defaultDistance < screen.getDistanceToScreen(client.player.blockPosition()) || !PlatformlessInitializer.displaysEnabled) {
+            if (PlatformlessInitializer.config.defaultDistance < screen.getDistanceToScreen(minecraft.player.blockPosition()) || !PlatformlessInitializer.displaysEnabled) {
                 ScreenManager.unregisterScreen(screen);
                 if (hoveredScreen == screen) {
                     hoveredScreen = null;
@@ -165,23 +165,23 @@ public class PlatformlessInitializer {
                     PlatformlessInitializer.isOnScreen = true;
                 }
 
-                screen.tick(client.player.blockPosition());
+                screen.tick(minecraft.player.blockPosition());
             }
         }
 
-        long window = client.getWindow().handle();
+        long window = minecraft.getWindow().handle();
         boolean pressed = GLFW.glfwGetMouseButton(window, GLFW.GLFW_MOUSE_BUTTON_RIGHT) == GLFW.GLFW_PRESS;
 
         if (pressed && !wasPressed[0]) {
-            if (client.player != null && client.player.isShiftKeyDown()) {
+            if (minecraft.player != null && minecraft.player.isShiftKeyDown()) {
                 checkAndOpenScreen();
             }
         }
 
         wasPressed[0] = pressed;
 
-        if (PlatformlessInitializer.focusMode && client.player != null && hoveredScreen != null) {
-            client.player.addEffect(new MobEffectInstance(
+        if (PlatformlessInitializer.focusMode && minecraft.player != null && hoveredScreen != null) {
+            minecraft.player.addEffect(new MobEffectInstance(
                     MobEffects.BLINDNESS,
                     20 * 2,
                     1,
@@ -192,8 +192,8 @@ public class PlatformlessInitializer {
 
             wasFocused.set(true);
 
-        } else if (!PlatformlessInitializer.focusMode && wasFocused.get() && client.player != null) {
-            client.player.removeEffect(MobEffects.BLINDNESS);
+        } else if (!PlatformlessInitializer.focusMode && wasFocused.get() && minecraft.player != null) {
+            minecraft.player.removeEffect(MobEffects.BLINDNESS);
             wasFocused.set(false);
         }
     }
@@ -222,7 +222,7 @@ public class PlatformlessInitializer {
 
     public static boolean isPremium = false;
 
-    public static void onPremiumPacket(PremiumPacket payload) {
-        isPremium = payload.premium();
+    public static void onPremiumPacket(PremiumPacket packet) {
+        isPremium = packet.premium();
     }
 }

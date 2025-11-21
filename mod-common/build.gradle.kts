@@ -2,10 +2,8 @@ plugins {
     id("net.neoforged.moddev") version libs.versions.moddev
 }
 
-group = "dreamdisplays"
-
 dependencies {
-	api(libs.gst1)
+    api(libs.gst1)
 	api(libs.utils)
 	api(libs.javatube)
     compileOnly(libs.jna)

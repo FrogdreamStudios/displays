@@ -119,7 +119,7 @@ public class MediaPlayer {
         return screen != null && screen.textureWidth > 0 && screen.textureHeight > 0;
     }
 
-    public void updateFrame(GpuTexture glTexture) {
+    public void updateFrame(GpuTexture texture) {
         if (preparedBuffer == null) return;
         int w = screen.textureWidth, h = screen.textureHeight;
         if (w != preparedW || h != preparedH) return;
@@ -131,13 +131,13 @@ public class MediaPlayer {
             lastTexW = w; lastTexH = h;
         }
 
-        if (!glTexture.isClosed()) {
+        if (!texture.isClosed()) {
             encoder.writeToTexture(
-                    glTexture,
+                    texture,
                     preparedBuffer,
                     NativeImage.Format.RGBA,
                     0, 0, 0, 0,
-                    glTexture.getWidth(0), glTexture.getHeight(0)
+                    texture.getWidth(0), texture.getHeight(0)
             );
         }
     }
@@ -274,15 +274,15 @@ public class MediaPlayer {
     }
 
     // === FRAME PROCESSING ================================================================
-    private static BufferedImage sampleToImage(Sample sample, BufferedImage reuse) {
+    private static BufferedImage sampleToImage(Sample sample, BufferedImage img) {
         Structure st = sample.getCaps().getStructure(0);
         int w = st.getInteger("width"), h = st.getInteger("height");
         Buffer buf = sample.getBuffer();
         ByteBuffer bb = buf.map(false);
         try {
-            if (reuse == null || reuse.getWidth() != w || reuse.getHeight() != h)
-                reuse = new BufferedImage(w, h, BufferedImage.TYPE_4BYTE_ABGR);
-            byte[] dst = ((DataBufferByte) reuse.getRaster().getDataBuffer()).getData();
+            if (img == null || img.getWidth() != w || img.getHeight() != h)
+                img = new BufferedImage(w, h, BufferedImage.TYPE_4BYTE_ABGR);
+            byte[] dst = ((DataBufferByte) img.getRaster().getDataBuffer()).getData();
             byte[] src = new byte[dst.length];
             bb.get(src);
             for (int i = 0; i < src.length; i += 4) {
@@ -290,7 +290,7 @@ public class MediaPlayer {
                 dst[i] = a; dst[i + 1] = b; dst[i + 2] = g; dst[i + 3] = r;
             }
         } finally { buf.unmap(); }
-        return reuse;
+        return img;
     }
 
     private void prepareBufferAsync() {
