@@ -15,7 +15,7 @@ import org.joml.Matrix4f;
 
 // Utility class for rendering 2D textured quads
 public class RenderUtil2D {
-    public static void drawTexturedQuad(Matrix3x2fStack matrices, GpuTextureView gpuView, float x, float y, float width, float height, RenderType layer) {
+    public static void drawTexturedQuad(Matrix3x2fStack matrices, GpuTextureView gpuView, float x, float y, float width, float height, RenderType renderType) {
         RenderSystem.setShaderTexture(0, gpuView);
 
         float x0 = matrices.m00() * x + matrices.m10() * y + matrices.m20();
@@ -53,6 +53,6 @@ public class RenderUtil2D {
                 .setNormal(0f, 0f, 1f)
                 .setUv(0.0f, 0.0f);
 
-        layer.draw(buffer.buildOrThrow());
+        renderType.draw(buffer.buildOrThrow());
     }
 }

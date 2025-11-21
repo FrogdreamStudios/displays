@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Mixin(Minecraft.class)
 public abstract class GStreamInitMixin {
     @Shadow
-    public abstract void setScreen(@Nullable Screen guiScreen);
+    public abstract void setScreen(@Nullable Screen screen);
 
     @Unique
     private static final AtomicBoolean recursionDetector = new AtomicBoolean(false);
@@ -31,25 +31,25 @@ public abstract class GStreamInitMixin {
 
     // Redirect screen setting to GStreamer downloader if not downloaded yet
     @Inject(at = @At("HEAD"), method = "setScreen", cancellable = true)
-    public void redirScreen(Screen guiScreen, CallbackInfo ci) {
+    public void redirScreen(Screen screen, CallbackInfo ci) {
         if (!downloaded) {
             boolean recursionValue = recursionDetector.get();
             recursionDetector.set(true);
 
-            if (!(guiScreen instanceof GStreamerDownloaderMenu) && !(guiScreen instanceof GStreamerErrorScreen)) {
+            if (!(screen instanceof GStreamerDownloaderMenu) && !(screen instanceof GStreamerErrorScreen)) {
                 if (GStreamerDownloadListener.INSTANCE.isDone() && !GStreamerDownloadListener.INSTANCE.isFailed()) {
                     downloaded = true;
                     Gst.init("MediaPlayer");
                 }
                 else if (!GStreamerDownloadListener.INSTANCE.isDone() && !GStreamerDownloadListener.INSTANCE.isFailed()) {
                     LoggingManager.warn("GStreamer has not finished loading, displaying loading screen");
-                    setScreen(new GStreamerDownloaderMenu(guiScreen));
+                    setScreen(new GStreamerDownloaderMenu(screen));
                     ci.cancel();
                 }
                 else if (GStreamerDownloadListener.INSTANCE.isFailed()) {
                     downloaded = true;
                     LoggingManager.error("GStreamer failed to initialize");
-                    setScreen(new GStreamerErrorScreen(guiScreen, Utils.detectPlatform().equals("windows") ? "Dream Displays failed to download libraries": "Dream Displays failed to initialize GStreamer. You need to download GStreamer libraries manually and place them in the ./libs/gstreamer directory"));
+                    setScreen(new GStreamerErrorScreen(screen, Utils.detectPlatform().equals("windows") ? "Dream Displays failed to download libraries": "Dream Displays failed to initialize GStreamer. You need to download GStreamer libraries manually and place them in the ./libs/gstreamer directory"));
                 }
             }
             recursionDetector.set(recursionValue);

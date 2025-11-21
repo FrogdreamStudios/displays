@@ -16,62 +16,62 @@ import org.joml.Quaternionf;
 public final class RenderUtil {
 
     // Prevent rotation issues
-    public static void fixRotation(PoseStack matrixStack, String facing) {
+    public static void fixRotation(PoseStack poseStack, String facing) {
         final Quaternionf rotation;
 
         switch (facing) {
             case "NORTH":
                 rotation = new Quaternionf().rotationY((float) Math.toRadians(180));
-                matrixStack.translate(0, 0, 1);
+                poseStack.translate(0, 0, 1);
                 break;
             case "WEST":
                 rotation = new Quaternionf().rotationY((float) Math.toRadians(-90.0));
-                matrixStack.translate(0, 0, 0);
+                poseStack.translate(0, 0, 0);
                 break;
             case "EAST":
                 rotation = new Quaternionf().rotationY((float) Math.toRadians(90.0));
-                matrixStack.translate(-1, 0, 1);
+                poseStack.translate(-1, 0, 1);
                 break;
             default:
                 rotation = new Quaternionf();
-                matrixStack.translate(-1, 0, 0);
+                poseStack.translate(-1, 0, 0);
                 break;
         }
-        matrixStack.mulPose(rotation);
+        poseStack.mulPose(rotation);
     }
 
     // Moves the matrix stack forward based on the facing direction
-    public static void moveForward(PoseStack matrixStack, String facing, float amount) {
+    public static void moveForward(PoseStack poseStack, String facing, float amount) {
         switch (facing) {
             case "NORTH":
-                matrixStack.translate(0, 0, -amount);
+                poseStack.translate(0, 0, -amount);
                 break;
             case "WEST":
-                matrixStack.translate(-amount, 0, 0);
+                poseStack.translate(-amount, 0, 0);
                 break;
             case "EAST":
-                matrixStack.translate(amount, 0, 0);
+                poseStack.translate(amount, 0, 0);
                 break;
             default:
-                matrixStack.translate(0, 0, amount);
+                poseStack.translate(0, 0, amount);
                 break;
         }
     }
 
     // Moves the matrix stack horizontally based on the facing direction
-    public static void moveHorizontal(PoseStack matrixStack, String facing, float amount) {
+    public static void moveHorizontal(PoseStack poseStack, String facing, float amount) {
         switch (facing) {
             case "NORTH":
-                matrixStack.translate(-amount, 0, 0);
+                poseStack.translate(-amount, 0, 0);
                 break;
             case "WEST":
-                matrixStack.translate(0, 0, amount);
+                poseStack.translate(0, 0, amount);
                 break;
             case "EAST":
-                matrixStack.translate(0, 0, -amount);
+                poseStack.translate(0, 0, -amount);
                 break;
             default:
-                matrixStack.translate(amount, 0, 0);
+                poseStack.translate(amount, 0, 0);
                 break;
         }
     }
@@ -160,7 +160,7 @@ public final class RenderUtil {
     }
 
     // Renders a black square
-    public static void renderBlack(PoseStack matrixStack, Tesselator tessellator) {
-        renderColor(matrixStack, tessellator, 0, 0, 0);
+    public static void renderBlack(PoseStack poseStack, Tesselator tessellator) {
+        renderColor(poseStack, tessellator, 0, 0, 0);
     }
 }

@@ -4,8 +4,6 @@ plugins {
     id("com.gradleup.shadow") version libs.versions.shadow
 }
 
-group = "dreamdisplays"
-
 dependencies {
     shadow(project(":mod-common"))
 }
@@ -13,6 +11,11 @@ dependencies {
 neoForge {
     enable {
         version = libs.versions.neoforge.get()
+    }
+    runs {
+        register("neoClient") {
+            client()
+        }
     }
 }
 
@@ -44,7 +47,7 @@ tasks.shadowJar {
     configurations = listOf(project.configurations.getByName("shadow"))
     archiveBaseName = "dreamdisplays-neoforge"
     archiveClassifier = ""
-    destinationDirectory.set(rootProject.buildDir.resolve("libs"))
+    destinationDirectory.set(rootProject.layout.buildDirectory.dir("libs"))
     dependencies {
         include(project(":mod-common"))
         include(dependency("org.freedesktop.gstreamer:gst1-java-core"))

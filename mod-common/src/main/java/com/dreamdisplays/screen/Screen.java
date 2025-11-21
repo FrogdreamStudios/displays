@@ -369,11 +369,11 @@ public class Screen {
         return id;
     }
 
-    public void mute(boolean b) {
-        if (muted == b) return;
-        muted = b;
+    public void mute(boolean status) {
+        if (muted == status) return;
+        muted = status;
 
-        setVideoVolume(!b ? volume : 0);
+        setVideoVolume(!status ? volume : 0);
     }
 
     public double getVolume() {
