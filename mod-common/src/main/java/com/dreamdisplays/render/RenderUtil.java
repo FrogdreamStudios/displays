@@ -156,7 +156,7 @@ public final class RenderUtil {
                 .setNormal(0f, 0f, 1f);
 
         MeshData built = buf.buildOrThrow();
-        RenderType.solid().draw(built);
+        RenderType.draw(built);
     }
 
     // Renders a black square

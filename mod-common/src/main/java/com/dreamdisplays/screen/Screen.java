@@ -22,7 +22,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-import static net.minecraft.client.renderer.rendertype.RenderTypes.LIGHTMAP;
+import static net.minecraft.client.renderer.RenderPipelines.LIGHTMAP;
 
 public class Screen {
     public boolean owner;
@@ -120,7 +120,7 @@ public class Screen {
                 4194304,
                 true,
                 false,
-                RenderPipelines.SOLID,
+                RenderPipelines.SOLID_BLOCK,
                 RenderType.CompositeState.builder().setLightmapState(LIGHTMAP).setTextureState(new RenderTypes.TextureStateShard(id, false)).createCompositeState(true)
         );
     }
