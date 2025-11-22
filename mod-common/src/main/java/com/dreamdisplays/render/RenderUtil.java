@@ -1,7 +1,6 @@
 package com.dreamdisplays.render;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.textures.GpuTexture;
 import com.mojang.blaze3d.textures.GpuTextureView;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
@@ -16,69 +15,69 @@ import org.joml.Quaternionf;
 public final class RenderUtil {
 
     // Prevent rotation issues
-    public static void fixRotation(PoseStack poseStack, String facing) {
+    public static void fixRotation(PoseStack stack, String facing) {
         final Quaternionf rotation;
 
         switch (facing) {
             case "NORTH":
                 rotation = new Quaternionf().rotationY((float) Math.toRadians(180));
-                poseStack.translate(0, 0, 1);
+                stack.translate(0, 0, 1);
                 break;
             case "WEST":
                 rotation = new Quaternionf().rotationY((float) Math.toRadians(-90.0));
-                poseStack.translate(0, 0, 0);
+                stack.translate(0, 0, 0);
                 break;
             case "EAST":
                 rotation = new Quaternionf().rotationY((float) Math.toRadians(90.0));
-                poseStack.translate(-1, 0, 1);
+                stack.translate(-1, 0, 1);
                 break;
             default:
                 rotation = new Quaternionf();
-                poseStack.translate(-1, 0, 0);
+                stack.translate(-1, 0, 0);
                 break;
         }
-        poseStack.mulPose(rotation);
+        stack.mulPose(rotation);
     }
 
     // Moves the matrix stack forward based on the facing direction
-    public static void moveForward(PoseStack poseStack, String facing, float amount) {
+    public static void moveForward(PoseStack stack, String facing, float amount) {
         switch (facing) {
             case "NORTH":
-                poseStack.translate(0, 0, -amount);
+                stack.translate(0, 0, -amount);
                 break;
             case "WEST":
-                poseStack.translate(-amount, 0, 0);
+                stack.translate(-amount, 0, 0);
                 break;
             case "EAST":
-                poseStack.translate(amount, 0, 0);
+                stack.translate(amount, 0, 0);
                 break;
             default:
-                poseStack.translate(0, 0, amount);
+                stack.translate(0, 0, amount);
                 break;
         }
     }
 
     // Moves the matrix stack horizontally based on the facing direction
-    public static void moveHorizontal(PoseStack poseStack, String facing, float amount) {
+    public static void moveHorizontal(PoseStack stack, String facing, float amount) {
         switch (facing) {
             case "NORTH":
-                poseStack.translate(-amount, 0, 0);
+                stack.translate(-amount, 0, 0);
                 break;
             case "WEST":
-                poseStack.translate(0, 0, amount);
+                stack.translate(0, 0, amount);
                 break;
             case "EAST":
-                poseStack.translate(0, 0, -amount);
+                stack.translate(0, 0, -amount);
                 break;
             default:
-                poseStack.translate(amount, 0, 0);
+                stack.translate(amount, 0, 0);
                 break;
         }
     }
 
     // Renders a GPU texture onto a quad using the provided matrix stack and tessellator
-    public static void renderGpuTexture(PoseStack matrices, Tesselator tess, GpuTextureView gpuView, RenderType layer) {
-        RenderSystem.setShaderTexture(0, gpuView);
+    public static void renderGpuTexture(PoseStack matrices, Tesselator tess, GpuTextureView gpuView, RenderType type) {
+        RenderSystem.setShaderLights(0, gpuView);
         Matrix4f mat = matrices.last().pose();
 
         BufferBuilder buf = tess.begin(
@@ -115,11 +114,11 @@ public final class RenderUtil {
                 .setNormal(0f, 0f, 1f);
 
         MeshData built = buf.buildOrThrow();
-        layer.draw(built);
+        type.draw(built);
     }
 
     // Renders a solid color square with the specified RGB values
-    public static void renderColor(PoseStack matrices, Tesselator tess, int r, int g, int b) {
+    public static void renderColor(PoseStack matrices, Tesselator tess, RenderType type, int r, int g, int b) {
         Matrix4f mat = matrices.last().pose();
 
         BufferBuilder buf = tess.begin(
@@ -156,11 +155,11 @@ public final class RenderUtil {
                 .setNormal(0f, 0f, 1f);
 
         MeshData built = buf.buildOrThrow();
-        RenderType.draw(built);
+        type.draw(built);
     }
 
     // Renders a black square
-    public static void renderBlack(PoseStack poseStack, Tesselator tessellator) {
-        renderColor(poseStack, tessellator, 0, 0, 0);
+    public static void renderBlack(PoseStack stack, Tesselator tess, RenderType type) {
+        renderColor(stack, tess, type, 0, 0, 0);
     }
 }
