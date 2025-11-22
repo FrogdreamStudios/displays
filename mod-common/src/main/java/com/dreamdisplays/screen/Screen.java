@@ -3,8 +3,10 @@ package com.dreamdisplays.screen;
 import me.inotsleep.utils.logging.LoggingManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.TextureTransform;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.core.BlockPos;
@@ -114,14 +116,10 @@ public class Screen {
     }
 
     // Creates a custom RenderType for rendering the screen texture
-    private static RenderType createRenderLayer(Identifier id) {
+    private RenderType createRenderLayer(Identifier id) {
         return RenderType.create(
                 "frog-displays",
-                4194304,
-                true,
-                false,
-                RenderPipelines.SOLID_BLOCK,
-                RenderType.pipeline().builder().setLightmapState(LIGHTMAP).setTextureState(new RenderTypes.TextureStateShard(id, false)).createCompositeState(true)
+                RenderSetup.builder(RenderTypes.blockScreenEffect(id).pipeline()).createRenderSetup()
         );
     }
 
