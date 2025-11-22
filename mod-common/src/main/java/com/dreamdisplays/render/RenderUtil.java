@@ -77,7 +77,7 @@ public final class RenderUtil {
 
     // Renders a GPU texture onto a quad using the provided matrix stack and tessellator
     public static void renderGpuTexture(PoseStack matrices, Tesselator tess, GpuTextureView gpuView, RenderType type) {
-        RenderSystem.setShaderLights(0, gpuView);
+        // RenderSystem.setShaderLights(0, gpuView); // FIXME: do we need this? refer to RenderUtils2D comment
         Matrix4f mat = matrices.last().pose();
 
         BufferBuilder buf = tess.begin(

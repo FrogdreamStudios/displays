@@ -45,8 +45,8 @@ public abstract class IconButtonWidget extends AbstractWidget {
 	protected void updateWidgetNarration(NarrationElementOutput builder) {}
 
 	@Override
-	protected void renderWidget(GuiGraphics context, int mouseX, int mouseY, float delta) {
-		context.blitSprite(RenderPipelines.GUI_TEXTURED, settedTextures != null ? settedTextures.get(this.active, this.isHoveredOrFocused()) : TEXTURES.get(this.active, this.isHoveredOrFocused()), this.getX(), this.getY(), this.getWidth(), this.getHeight(), ARGB.white(this.alpha));
+	protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, settedTextures != null ? settedTextures.get(this.active, this.isHoveredOrFocused()) : TEXTURES.get(this.active, this.isHoveredOrFocused()), this.getX(), this.getY(), this.getWidth(), this.getHeight(), ARGB.white(this.alpha));
 
 		int dW = getWidth() - 2*margin;
 		int dH = getHeight() - 2*margin;
@@ -58,7 +58,7 @@ public abstract class IconButtonWidget extends AbstractWidget {
 		int dx = getX() + getWidth()/2-iconW/2;
 		int dy = getY() + getHeight()/2-iconH/2;
 
-		context.blitSprite(RenderPipelines.GUI_TEXTURED, iconTexture, dx, dy, iconW, iconH, ARGB.white(this.alpha));
+		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, iconTexture, dx, dy, iconW, iconH, ARGB.white(this.alpha));
 
 	}
 }
