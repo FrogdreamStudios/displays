@@ -12,7 +12,9 @@ dependencies {
 }
 
 neoForge {
-    neoFormVersion = libs.versions.neoform.get()
+    enable {
+        version = libs.versions.neoforge.get()
+    }
 }
 java {
     toolchain { languageVersion.set(JavaLanguageVersion.of(21)) }

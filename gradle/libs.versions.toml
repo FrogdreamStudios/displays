@@ -11,7 +11,6 @@ gst1 = "1.4.0"
 jna = "5.9.0"
 
 neoforge = "21.11.0-alpha.1.21.11-pre2.20251122.134508"
-neoform = "1.21.11-pre2-20251121.153702"
 
 # plugin versions
 loom = "1.13.4"
