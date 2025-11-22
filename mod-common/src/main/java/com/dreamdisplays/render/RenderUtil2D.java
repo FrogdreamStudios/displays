@@ -12,7 +12,7 @@ import org.joml.Matrix3x2fStack;
 // Utility class for rendering 2D textured quads
 public class RenderUtil2D {
     public static void drawTexturedQuad(Matrix3x2fStack matrices, GpuTextureView gpuView, float x, float y, float width, float height, RenderType renderType) {
-        RenderSystem.setShaderLights(0, gpuView);
+        //RenderSystem.setShaderLights(0, gpuView); // FIXME: make this work or perhaps we dont need this at all, theres no more shaderTexture only lights
 
         float x0 = matrices.m00() * x + matrices.m10() * y + matrices.m20();
         float y0 = matrices.m01() * x + matrices.m11() * y + matrices.m21();
