@@ -10,15 +10,15 @@ import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class ToggleWidget extends AbstractWidget {
-	private static final ResourceLocation TEXTURE = ResourceLocation.withDefaultNamespace("widget/slider");
-	private static final ResourceLocation HIGHLIGHTED_TEXTURE = ResourceLocation.withDefaultNamespace("widget/slider_highlighted");
-	private static final ResourceLocation HANDLE_TEXTURE = ResourceLocation.withDefaultNamespace("widget/slider_handle");
-	private static final ResourceLocation HANDLE_HIGHLIGHTED_TEXTURE = ResourceLocation.withDefaultNamespace("widget/slider_handle_highlighted");
+	private static final Identifier TEXTURE = Identifier.withDefaultNamespace("widget/slider");
+	private static final Identifier HIGHLIGHTED_TEXTURE = Identifier.withDefaultNamespace("widget/slider_highlighted");
+	private static final Identifier HANDLE_TEXTURE = Identifier.withDefaultNamespace("widget/slider_handle");
+	private static final Identifier HANDLE_HIGHLIGHTED_TEXTURE = Identifier.withDefaultNamespace("widget/slider_handle_highlighted");
 	private double dValue;
 	public boolean value;
 	private boolean sliderFocused;
@@ -29,11 +29,11 @@ public abstract class ToggleWidget extends AbstractWidget {
 		this.value = value;
 	}
 
-	private ResourceLocation getTexture() {
+	private Identifier getTexture() {
 		return this.isFocused() && !this.sliderFocused ? HIGHLIGHTED_TEXTURE : TEXTURE;
 	}
 
-	private ResourceLocation getHandleTexture() {
+	private Identifier getHandleTexture() {
 		return !this.isHovered && !this.sliderFocused ? HANDLE_TEXTURE : HANDLE_HIGHLIGHTED_TEXTURE;
 	}
 

@@ -1,16 +1,16 @@
 # https://fabricmc.net/develop/
 
 [versions]
-fabricLoader = "0.17.2"
-fabricApi = "0.138.3+1.21.10"
-fabricMinecraft = "1.21.10"
+fabricLoader = "0.18.1"
+fabricApi = "0.139.1+1.21.11"
+fabricMinecraft = "1.21.11-pre2"
 javatube = "6692a32"
 lwjgl = "3.3.3"
 utils = "1.3.1"
 gst1 = "1.4.0"
 jna = "5.9.0"
 
-neoforge = "21.10.52-beta"
+neoforge = "21.11.0-alpha.1.21.11-pre2.20251122.134508"
 
 # plugin versions
 loom = "1.13.4"

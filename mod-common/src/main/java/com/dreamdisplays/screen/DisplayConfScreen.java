@@ -19,7 +19,7 @@ import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 // Configuration screen for Dream Displays with volume, render distance, quality, and sync settings
 public class DisplayConfScreen extends Screen {
@@ -61,29 +61,29 @@ public class DisplayConfScreen extends Screen {
             }
         };
 
-        backButton = new IconButtonWidget(0, 0, 0, 0, 64, 64, ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "bbi"), 2) {
+        backButton = new IconButtonWidget(0, 0, 0, 0, 64, 64, Identifier.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "bbi"), 2) {
             @Override
             public void onPress() {
                 screen.seekBackward();
             }
         };
 
-        forwardButton = new IconButtonWidget(0, 0, 0, 0, 64, 64, ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "bfi"), 2) {
+        forwardButton = new IconButtonWidget(0, 0, 0, 0, 64, 64, Identifier.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "bfi"), 2) {
             @Override
             public void onPress() {
                 screen.seekForward();
             }
         };
 
-        pauseButton = new IconButtonWidget(0, 0, 0, 0, 64, 64, ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "bpi"), 2) {
+        pauseButton = new IconButtonWidget(0, 0, 0, 0, 64, 64, Identifier.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "bpi"), 2) {
             @Override
             public void onPress() {
                 screen.setPaused(!screen.getPaused());
-                setIconTexture(screen.getPaused() ? ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "bupi") : ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "bpi"));
+                setIconTexture(screen.getPaused() ? Identifier.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "bupi") : Identifier.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "bpi"));
             }
         };
 
-        pauseButton.setIconTexture(screen.getPaused() ? ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "bupi") : ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "bpi"));
+        pauseButton.setIconTexture(screen.getPaused() ? Identifier.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "bupi") : Identifier.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "bpi"));
 
         renderD = new SliderWidget(0, 0, 0, 0, Component.nullToEmpty(String.valueOf(PlatformlessInitializer.config.defaultDistance)), (PlatformlessInitializer.config.defaultDistance-24)/(96-24)) {
             @Override
@@ -109,7 +109,7 @@ public class DisplayConfScreen extends Screen {
             }
         };
 
-        renderDReset = new IconButtonWidget(0, 0, 0, 0, 64, 64, ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "bri"), 2) {
+        renderDReset = new IconButtonWidget(0, 0, 0, 0, 64, 64, Identifier.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "bri"), 2) {
             @Override
             public void onPress() {
                 PlatformlessInitializer.config.defaultDistance = 64;
@@ -118,7 +118,7 @@ public class DisplayConfScreen extends Screen {
             }
         };
 
-        qualityReset = new IconButtonWidget(0, 0, 0, 0, 64, 64, ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "bri"), 2) {
+        qualityReset = new IconButtonWidget(0, 0, 0, 0, 64, 64, Identifier.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "bri"), 2) {
             @Override
             public void onPress() {
                 screen.setQuality(toQuality(fromQuality("720")).replace("p", ""));
@@ -143,7 +143,7 @@ public class DisplayConfScreen extends Screen {
             }
         };
 
-        syncReset = new IconButtonWidget(0, 0, 0, 0, 64, 64, ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "bri"), 2) {
+        syncReset = new IconButtonWidget(0, 0, 0, 0, 64, 64, Identifier.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "bri"), 2) {
             @Override
             public void onPress() {
                 if (screen.owner) {
@@ -155,7 +155,7 @@ public class DisplayConfScreen extends Screen {
 
         sync.active = screen.owner;
 
-        deleteButton = new IconButtonWidget(0, 0, 0, 0, 64, 64, ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "delete"), 2) {
+        deleteButton = new IconButtonWidget(0, 0, 0, 0, 64, 64, Identifier.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "delete"), 2) {
             @Override
             public void onPress() {
                 PlatformlessInitializer.sendPacket(new DeletePacket(screen.getID()));
@@ -165,7 +165,7 @@ public class DisplayConfScreen extends Screen {
 
         deleteButton.active = screen.owner;
 
-        reportButton = new IconButtonWidget(0, 0, 0, 0, 64, 64, ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "report"), 2) {
+        reportButton = new IconButtonWidget(0, 0, 0, 0, 64, 64, Identifier.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "report"), 2) {
             @Override
             public void onPress() {
                 PlatformlessInitializer.sendPacket(new ReportPacket(screen.getID()));
@@ -173,7 +173,7 @@ public class DisplayConfScreen extends Screen {
             }
         };
 
-        WidgetSprites textures = new WidgetSprites(ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "widgets/red_button"), ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "widgets/red_button_disabled"), ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "widgets/red_button_highlighted"));
+        WidgetSprites textures = new WidgetSprites(Identifier.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "widgets/red_button"), Identifier.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "widgets/red_button_disabled"), Identifier.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "widgets/red_button_highlighted"));
 
         deleteButton.setTextures(textures);
         reportButton.setTextures(textures);

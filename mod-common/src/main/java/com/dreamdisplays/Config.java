@@ -1,5 +1,5 @@
-package com.dreamdisplays
-;
+package com.dreamdisplays;
+
 import me.inotsleep.utils.config.AbstractConfig;
 import me.inotsleep.utils.config.Path;
 

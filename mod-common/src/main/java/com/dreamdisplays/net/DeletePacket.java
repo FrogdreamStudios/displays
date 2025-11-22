@@ -7,12 +7,12 @@ import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 // Packet for deleting a display
 public record DeletePacket(UUID id) implements CustomPacketPayload {
     public static final Type<DeletePacket> PACKET_ID =
-            new Type<>(ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "delete"));
+            new Type<>(Identifier.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "delete"));
 
     public static final StreamCodec<FriendlyByteBuf, DeletePacket> PACKET_CODEC =
             StreamCodec.of(
