@@ -3,12 +3,12 @@ package com.dreamdisplays.screen;
 import me.inotsleep.utils.logging.LoggingManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.renderer.RenderStateShard;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import com.dreamdisplays.PlatformlessInitializer;
 import com.dreamdisplays.net.DisplayInfoPacket;
 import com.dreamdisplays.net.RequestSyncPacket;
@@ -22,7 +22,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-import static net.minecraft.client.renderer.RenderStateShard.LIGHTMAP;
+import static net.minecraft.client.renderer.rendertype.RenderTypes.LIGHTMAP;
 
 public class Screen {
     public boolean owner;
@@ -49,7 +49,7 @@ public class Screen {
     private String videoUrl;
 
     public DynamicTexture texture = null;
-    public ResourceLocation textureId = null;
+    public Identifier textureId = null;
     public RenderType renderLayer = null;
 
     public int textureWidth = 0;
@@ -59,7 +59,7 @@ public class Screen {
     private transient BlockPos blockPos;
 
     private DynamicTexture previewTexture = null;
-    public ResourceLocation previewTextureId = null;
+    public Identifier previewTextureId = null;
     public RenderType previewRenderLayer = null;
     private String lang;
 
@@ -101,7 +101,7 @@ public class Screen {
             ImageUtil.fetchImageTextureFromUrl("https://img.youtube.com/vi/" + Utils.extractVideoId(videoUrl) + "/maxresdefault.jpg")
                     .thenAcceptAsync(nativeImageBackedTexture -> {
                         previewTexture = nativeImageBackedTexture;
-                        previewTextureId = ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "screen-preview-"+id+"-"+UUID.randomUUID());
+                        previewTextureId = Identifier.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "screen-preview-"+id+"-"+UUID.randomUUID());
 
                         Minecraft.getInstance().getTextureManager().register(previewTextureId, previewTexture);
                         previewRenderLayer = createRenderLayer(previewTextureId);
@@ -114,14 +114,14 @@ public class Screen {
     }
 
     // Creates a custom RenderType for rendering the screen texture
-    private static RenderType createRenderLayer(ResourceLocation id) {
+    private static RenderType createRenderLayer(Identifier id) {
         return RenderType.create(
                 "frog-displays",
                 4194304,
                 true,
                 false,
                 RenderPipelines.SOLID,
-                RenderType.CompositeState.builder().setLightmapState(LIGHTMAP).setTextureState(new RenderStateShard.TextureStateShard(id, false)).createCompositeState(true)
+                RenderType.CompositeState.builder().setLightmapState(LIGHTMAP).setTextureState(new RenderTypes.TextureStateShard(id, false)).createCompositeState(true)
         );
     }
 
@@ -394,7 +394,7 @@ public class Screen {
                     .release(textureId);
         }
         texture = new DynamicTexture(UUID.randomUUID().toString(), textureWidth, textureHeight, true);
-        textureId = ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "screen-main-texture-" + id + "-" + UUID.randomUUID());
+        textureId = Identifier.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "screen-main-texture-" + id + "-" + UUID.randomUUID());
 
         Minecraft.getInstance().getTextureManager().register(textureId, texture);
         renderLayer = createRenderLayer(textureId);

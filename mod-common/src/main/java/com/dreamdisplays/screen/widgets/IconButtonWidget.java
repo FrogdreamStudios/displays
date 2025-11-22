@@ -6,7 +6,7 @@ import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
 
 public abstract class IconButtonWidget extends AbstractWidget {
@@ -14,19 +14,19 @@ public abstract class IconButtonWidget extends AbstractWidget {
     private final int ih;
 	private final int margin;
 
-	private ResourceLocation iconTexture;
+	private Identifier iconTexture;
 
-	public void setIconTexture(ResourceLocation iconTexture) {
+	public void setIconTexture(Identifier iconTexture) {
 		this.iconTexture = iconTexture;
 	}
 
 	private static final WidgetSprites TEXTURES = new WidgetSprites(
-		ResourceLocation.withDefaultNamespace("widget/button"), ResourceLocation.withDefaultNamespace("widget/button_disabled"), ResourceLocation.withDefaultNamespace("widget/button_highlighted")
+		Identifier.withDefaultNamespace("widget/button"), Identifier.withDefaultNamespace("widget/button_disabled"), Identifier.withDefaultNamespace("widget/button_highlighted")
 	);
 	
 	private WidgetSprites settedTextures = null;
 
-	public IconButtonWidget(int i, int j, int k, int l, int iw, int ih, ResourceLocation iconTexture, int margin) {
+	public IconButtonWidget(int i, int j, int k, int l, int iw, int ih, Identifier iconTexture, int margin) {
 		super(i, j, k, l, Component.empty());
 
 		this.iw = iw;

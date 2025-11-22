@@ -12,7 +12,7 @@ public class ScreenWorldRenderer {
 
     // Renders all screens in the world relative to the camera position
     public static void render(PoseStack matrices, Camera camera) {
-        Vec3 cameraPos = camera.getPosition();
+        Vec3 cameraPos = camera.position();
         for (Screen screen : ScreenManager.getScreens()) {
             if (screen == null) continue;
             if (screen.texture == null) screen.createTexture();

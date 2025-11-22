@@ -7,12 +7,12 @@ import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 // Packet for reporting a display
 public record ReportPacket(UUID id) implements CustomPacketPayload {
     public static final Type<ReportPacket> PACKET_ID =
-            new Type<>(ResourceLocation.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "report"));
+            new Type<>(Identifier.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "report"));
 
     public static final StreamCodec<FriendlyByteBuf, ReportPacket> PACKET_CODEC =
             StreamCodec.of(
