@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
 
 import static com.dreamdisplays.util.Utils.detectPlatform;
 
-public class GstreamerDownloadInit {
+public class GStreamerDownloadInit {
 
     // Sets up the library path for GStreamer and loads the libraries
     private static void setupLibraryPath() throws IOException {

@@ -116,7 +116,7 @@ public class Screen {
     }
 
     // Creates a custom RenderType for rendering the screen texture
-    private RenderType createRenderLayer(Identifier id) {
+    private static RenderType createRenderLayer(Identifier id) {
         return RenderType.create(
                 "frog-displays",
                 RenderSetup.builder(RenderTypes.blockScreenEffect(id).pipeline()).createRenderSetup()
