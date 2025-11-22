@@ -6,6 +6,10 @@ plugins {
 	id("com.gradleup.shadow") version libs.versions.shadow
 }
 
+loom {
+    accessWidenerPath.set(project(":mod-common").file("src/main/resources/dreamdisplays.accesswidener"))
+}
+
 dependencies {
 	minecraft(libs.fabricMinecraft)
 	mappings(loom.layered {
