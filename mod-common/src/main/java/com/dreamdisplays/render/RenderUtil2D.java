@@ -1,21 +1,18 @@
 package com.dreamdisplays.render;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.textures.GpuTexture;
 import com.mojang.blaze3d.textures.GpuTextureView;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import org.joml.Matrix3x2fStack;
-import org.joml.Matrix4f;
 
 // Utility class for rendering 2D textured quads
 public class RenderUtil2D {
     public static void drawTexturedQuad(Matrix3x2fStack matrices, GpuTextureView gpuView, float x, float y, float width, float height, RenderType renderType) {
-        RenderSystem.setShaderTexture(0, gpuView);
+        RenderSystem.setShaderLights(0, gpuView);
 
         float x0 = matrices.m00() * x + matrices.m10() * y + matrices.m20();
         float y0 = matrices.m01() * x + matrices.m11() * y + matrices.m21();

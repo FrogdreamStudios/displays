@@ -1,4 +1,5 @@
 plugins {
+    idea
     id("net.neoforged.moddev") version libs.versions.moddev
     id("maven-publish")
     id("com.gradleup.shadow") version libs.versions.shadow

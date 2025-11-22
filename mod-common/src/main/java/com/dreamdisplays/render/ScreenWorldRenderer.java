@@ -65,7 +65,7 @@ public class ScreenWorldRenderer {
         } else if (screen.hasPreviewTexture()) {
             RenderUtil.renderGpuTexture(matrices, tessellator, screen.getPreviewTexture().getTextureView(), screen.previewRenderLayer);
         } else {
-            RenderUtil.renderBlack(matrices, tessellator);
+            RenderUtil.renderBlack(matrices, tessellator, screen.renderLayer);
         }
         matrices.popPose();
     }

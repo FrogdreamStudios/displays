@@ -121,7 +121,7 @@ public class Screen {
                 true,
                 false,
                 RenderPipelines.SOLID_BLOCK,
-                RenderType.CompositeState.builder().setLightmapState(LIGHTMAP).setTextureState(new RenderTypes.TextureStateShard(id, false)).createCompositeState(true)
+                RenderType.pipeline().builder().setLightmapState(LIGHTMAP).setTextureState(new RenderTypes.TextureStateShard(id, false)).createCompositeState(true)
         );
     }
 
