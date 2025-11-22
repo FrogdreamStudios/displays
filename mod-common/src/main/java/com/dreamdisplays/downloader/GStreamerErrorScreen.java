@@ -23,9 +23,7 @@ public class GStreamerErrorScreen extends Screen {
 
         this.addRenderableWidget(
                 Button.builder(Component.nullToEmpty("Continue"), button -> {
-                            if (minecraft != null) {
-                                minecraft.setScreen(parent);
-                            }
+                            minecraft.setScreen(parent);
                         })
                         .bounds(this.width / 2 - 50, this.height / 2 + 40, 100, 20)
                         .build()
@@ -34,8 +32,8 @@ public class GStreamerErrorScreen extends Screen {
 
     // Renders the error screen with title and error message
     @Override
-    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
-        this.renderBackground(context, mouseX, mouseY, delta);
+    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        this.renderBackground(graphics, mouseX, mouseY, partialTick);
 
         String titleText = this.title.getString();
 
@@ -43,19 +41,18 @@ public class GStreamerErrorScreen extends Screen {
         int titleWidth = this.font.width(titleText);
 
         // Draw the title text in the center of the screen
-        context.drawString(font, titleText, (int) ((this.width - titleWidth) / 2f), (int) (this.height / 2f - 40f), 0xFF5555, true);
+        graphics.drawString(font, titleText, (int) ((this.width - titleWidth) / 2f), (int) (this.height / 2f - 40f), 0xFF5555, true);
 
         // Error message
         int msgWidth = this.font.width(errorMessage);
-        context.drawString(font, errorMessage, (int) ((this.width - msgWidth) / 2f), (int) (this.height / 2f - 20f), 0xFF5555, true);
+        graphics.drawString(font, errorMessage, (int) ((this.width - msgWidth) / 2f), (int) (this.height / 2f - 20f), 0xFF5555, true);
 
-        super.render(context, mouseX, mouseY, delta);
+        super.render(graphics, mouseX, mouseY, partialTick);
     }
 
     // Disable closing on ESC key
     @Override
     public boolean shouldCloseOnEsc() {
-
         return false;
     }
 }

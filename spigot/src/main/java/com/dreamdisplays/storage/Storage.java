@@ -12,6 +12,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.lang.reflect.Proxy;
+import java.net.URI;
 import java.nio.ByteBuffer;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -126,8 +127,8 @@ public class Storage {
             connection.executeUpdate(sql,
                     uuidToBytes(data.getId()),
                     uuidToBytes(data.getOwnerId()),
-                    data.getUrl(),
-                    data.getPos1().getWorld().getName(),
+                    data.getUri(),
+                    data.getPos1().getWorld() != null ? data.getPos1().getWorld().getName() : "",
                     packBlockPos(
                             data.getPos1().getBlockX(),
                             data.getPos1().getBlockY(),
@@ -181,7 +182,7 @@ public class Storage {
                         width, height,
                         BlockFace.values()[rs.getInt("facing")]
                 );
-                data.setUrl(videoCode);
+                data.setUri(URI.create(videoCode));
                 data.setSync(rs.getBoolean("isSync"));
                 long dur = rs.getLong("duration");
                 if (!rs.wasNull()) {
@@ -203,7 +204,7 @@ public class Storage {
     public void deleteDisplay(DisplayData data) {
         String sql = "DELETE FROM " + tablePrefix + "displays WHERE id = ?";
         try {
-            connection.executeUpdate(sql, uuidToBytes(data.getId()));
+            connection.executeUpdate(sql, (Object) uuidToBytes(data.getId()));
         } catch (SQLException e) {
             LoggingManager.error("Could not delete display from database", e);
             DreamDisplaysPlugin.disablePlugin();

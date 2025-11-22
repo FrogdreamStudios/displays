@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
 public class Utils {
 
     public static String detectPlatform() {
-        String os = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
+        String os = System.getProperty("os.name").toLowerCase(Locale.ROOT);
         if (os.contains("win")) {
             return "windows";
         } else if (os.contains("mac")) {
@@ -29,37 +29,33 @@ public class Utils {
     }
 
     // Extracts video ID from various YouTube URL formats
-    public static String extractVideoId(String youtubeUrl) {
-        try {
-            URI uri = new URI(youtubeUrl);
-            String query = uri.getQuery();
-            if (query != null) {
-                for (String param : query.split("&")) {
-                    String[] pair = param.split("=", 2);
-                    if (pair.length == 2 && pair[0].equals("v")) {
-                        return pair[1];
-                    }
+    public static String extractVideoId(URI uri) {
+        String query = uri.getQuery();
+        if (query != null) {
+            for (String param : query.split("&")) {
+                String[] pair = param.split("=", 2);
+                if (pair.length == 2 && pair[0].equals("v")) {
+                    return pair[1];
                 }
             }
+        }
 
-            // If the URL is a shortened version or a YouTube Shorts link
-            String host = uri.getHost();
-            if (host != null && host.contains("youtu.be")) {
-                String path = uri.getPath();
-                if (path != null && path.length() > 1) {
-                    return path.substring(1);
-                }
-            } else if (host != null && host.contains("youtube.com")) {
-                String path = uri.getPath();
-                if (path != null && path.contains("shorts")) {
-                    return List.of(path.split("/")).getLast();
-                }
+        // If the URL is a shortened version or a YouTube Shorts link
+        String host = uri.getHost();
+        if (host != null && host.contains("youtu.be")) {
+            String path = uri.getPath();
+            if (path != null && path.length() > 1) {
+                return path.substring(1);
             }
-        } catch (URISyntaxException ignored) {
+        } else if (host != null && host.contains("youtube.com")) {
+            String path = uri.getPath();
+            if (path != null && path.contains("shorts")) {
+                return List.of(path.split("/")).getLast();
+            }
         }
 
         String regex = "(?<=([?&]v=))[^#&?]*";
-        Matcher m = Pattern.compile(regex).matcher(youtubeUrl);
+        Matcher m = Pattern.compile(regex).matcher(uri.getRawPath());
         return m.find() ? m.group() : null;
     }
 

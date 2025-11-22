@@ -18,6 +18,7 @@ import com.dreamdisplays.net.SyncPacket;
 import com.dreamdisplays.util.ImageUtil;
 import com.dreamdisplays.util.Utils;
 
+import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -48,7 +49,7 @@ public class Screen {
     // Use a combined MediaPlayer instead of the separate VideoDecoder and AudioPlayer.
     private MediaPlayer mediaPlayer;
 
-    private String videoUrl;
+    private URI uri;
 
     public DynamicTexture texture = null;
     public Identifier textureId = null;
@@ -82,25 +83,25 @@ public class Screen {
     }
 
     // Loads a video from a given URL and language
-    public void loadVideo(String videoUrl, String lang) {
-        if (Objects.equals(videoUrl, "")) return;
+    public void loadVideo(URI uri, String lang) {
+        if (Objects.equals(uri.getRawPath(), "")) return;
 
-        LoggingManager.info("Loading video: " + videoUrl);
+        LoggingManager.info("Loading video: " + uri);
 
         if (mediaPlayer != null) unregister();
 
         // Load the video URL and language into the screen.
-        this.videoUrl = videoUrl;
+        this.uri = uri;
         this.lang = lang;
         CompletableFuture.runAsync(() -> {
-            this.videoUrl = videoUrl;
-            mediaPlayer = new MediaPlayer(videoUrl, lang, this);
+            this.uri = uri;
+            mediaPlayer = new MediaPlayer(uri, lang, this);
             int qualityInt = Integer.parseInt(this.quality.replace("p", ""));
             textureWidth = (int) (width / (double) height * qualityInt);
             textureHeight = qualityInt;
 
             // TODO: note for INotSleep: we should delete video previews to avoid problems with videos
-            ImageUtil.fetchImageTextureFromUrl("https://img.youtube.com/vi/" + Utils.extractVideoId(videoUrl) + "/maxresdefault.jpg")
+            ImageUtil.fetchImageTextureFromUri(URI.create("https://img.youtube.com/vi/" + Utils.extractVideoId(uri) + "/maxresdefault.jpg"))
                     .thenAcceptAsync(nativeImageBackedTexture -> {
                         previewTexture = nativeImageBackedTexture;
                         previewTextureId = Identifier.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "screen-preview-"+id+"-"+UUID.randomUUID());
@@ -118,7 +119,7 @@ public class Screen {
     // Creates a custom RenderType for rendering the screen texture
     private static RenderType createRenderLayer(Identifier id) {
         return RenderType.create(
-                "frog-displays",
+                "dream-displays",
                 RenderSetup.builder(RenderTypes.blockScreenEffect(id).pipeline()).createRenderSetup()
         );
     }
@@ -137,8 +138,8 @@ public class Screen {
 
         owner = Minecraft.getInstance().player != null && (packet.ownerId() + "").equals(Minecraft.getInstance().player.getUUID() + "");
 
-        if (!Objects.equals(videoUrl, packet.url()) || !Objects.equals(lang, packet.lang())) {
-            loadVideo(packet.url(), packet.lang());
+        if (!Objects.equals(uri, packet.uri()) || !Objects.equals(lang, packet.lang())) {
+            loadVideo(packet.uri(), packet.lang());
             if (isSync) {
                 sendRequestSyncPacket();
             }

@@ -203,8 +203,8 @@ public class DisplayConfScreen extends Screen {
 
     // Renders the display configuration screen
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
-        super.render(guiGraphics, mouseX, mouseY, delta);
+    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        super.render(graphics, mouseX, mouseY, partialTick);
         Component headerText = Component.translatable("dreamdisplays.ui.title");
 
         int vCH = 25;
@@ -248,11 +248,11 @@ public class DisplayConfScreen extends Screen {
             }
 
             for (Component text : errorText) {
-                guiGraphics.drawString(font, text, this.width / 2 - font.width(text) / 2, yP += 2 + font.lineHeight, 0xFFFFFF, true);
+                graphics.drawString(font, text, this.width / 2 - font.width(text) / 2, yP += 2 + font.lineHeight, 0xFFFFFF, true);
             }
 
-            deleteButton.render(guiGraphics, mouseX, mouseY, delta);
-            reportButton.render(guiGraphics, mouseX, mouseY, delta);
+            deleteButton.render(graphics, mouseX, mouseY, partialTick);
+            reportButton.render(graphics, mouseX, mouseY, partialTick);
 
             return;
         }
@@ -264,7 +264,7 @@ public class DisplayConfScreen extends Screen {
         int headerTextWidth = font.width(headerText);
         int headerTextX = (this.width - headerTextWidth) / 2;
         int headerTextY = 15;
-        guiGraphics.drawString(font, headerText, headerTextX, headerTextY, 0xFFFFFF, true);
+        graphics.drawString(font, headerText, headerTextX, headerTextY, 0xFFFFFF, true);
 
         int maxSW = this.width / 3;
 
@@ -275,11 +275,11 @@ public class DisplayConfScreen extends Screen {
         int sX = this.width / 2 - sW / 2;
         int cY = font.lineHeight + 15 * 2;
 
-        guiGraphics.fill(this.width / 2 - maxSW / 2, cY, this.width / 2 + maxSW / 2, cY + sH, 0xff000000);
-        guiGraphics.pose().pushMatrix();
-        guiGraphics.pose().translate(0, 0); // see if the 10 offset is necessary, pls let it not be
-        renderScreen(guiGraphics, sX, cY, sW, sH);
-        guiGraphics.pose().popMatrix();
+        graphics.fill(this.width / 2 - maxSW / 2, cY, this.width / 2 + maxSW / 2, cY + sH, 0xff000000);
+        graphics.pose().pushMatrix();
+        graphics.pose().translate(0, 0); // see if the 10 offset is necessary, pls let it not be
+        renderScreen(graphics, sX, cY, sW, sH);
+        graphics.pose().popMatrix();
 
         cY += sH;
         cY += 5;
@@ -321,7 +321,7 @@ public class DisplayConfScreen extends Screen {
         Component renderDText = Component.translatable("dreamdisplays.button.render-distance");
         int renderDTextX = this.width / 2 - maxSW / 2;
         int renderDTextY = cY + vCH / 2 - font.lineHeight / 2;
-        guiGraphics.drawString(font, renderDText, renderDTextX, renderDTextY, 0xFFFFFF, true);
+        graphics.drawString(font, renderDText, renderDTextX, renderDTextY, 0xFFFFFF, true);
 
         // Tooltip
         List<Component> renderDTooltip = List.of(
@@ -344,7 +344,7 @@ public class DisplayConfScreen extends Screen {
         Component qualityText = Component.translatable("dreamdisplays.button.quality");
         int qualityTextX = this.width / 2 - maxSW / 2;
         int qualityTextY = cY + vCH / 2 - font.lineHeight / 2;
-        guiGraphics.drawString(font, qualityText, qualityTextX, qualityTextY, 0xFFFFFF, true);
+        graphics.drawString(font, qualityText, qualityTextX, qualityTextY, 0xFFFFFF, true);
 
         // Tooltip
         List<Component> qualityTooltip = new java.util.ArrayList<>(List.of(
@@ -366,7 +366,7 @@ public class DisplayConfScreen extends Screen {
         Component syncText = Component.translatable("dreamdisplays.button.synchronization");
         int syncTextX = this.width / 2 - maxSW / 2;
         int syncTextY = cY + vCH / 2 - font.lineHeight / 2;
-        guiGraphics.drawString(font, syncText, syncTextX, syncTextY, 0xFFFFFF, true);
+        graphics.drawString(font, syncText, syncTextX, syncTextY, 0xFFFFFF, true);
 
         List<Component> syncTooltip = List.of(
                 Component.translatable("dreamdisplays.button.synchronization.tooltip.1").withStyle(style -> style.withColor(ChatFormatting.WHITE).withBold(true)),
@@ -376,11 +376,11 @@ public class DisplayConfScreen extends Screen {
                 Component.translatable("dreamdisplays.button.synchronization.tooltip.5", sync.value ? Component.translatable("dreamdisplays.button.enabled") : Component.translatable("dreamdisplays.button.disabled")).withStyle(style -> style.withColor(ChatFormatting.GOLD))
         );
 
-        renderTooltipIfHovered(guiGraphics, mouseX, mouseY, renderDTextX, renderDTextY,
+        renderTooltipIfHovered(graphics, mouseX, mouseY, renderDTextX, renderDTextY,
                 font.width(renderDText), font.lineHeight, renderDTooltip);
-        renderTooltipIfHovered(guiGraphics, mouseX, mouseY, qualityTextX, qualityTextY,
+        renderTooltipIfHovered(graphics, mouseX, mouseY, qualityTextX, qualityTextY,
                 font.width(qualityText), font.lineHeight, qualityTooltip);
-        renderTooltipIfHovered(guiGraphics, mouseX, mouseY, syncTextX, syncTextY,
+        renderTooltipIfHovered(graphics, mouseX, mouseY, syncTextX, syncTextY,
                 font.width(syncText), font.lineHeight, syncTooltip);
 
         // Tooltips for delete and report buttons
@@ -394,15 +394,15 @@ public class DisplayConfScreen extends Screen {
                 Component.translatable("dreamdisplays.button.report.tooltip.2").withStyle(style -> style.withColor(ChatFormatting.GRAY))
         );
 
-        renderTooltipIfHovered(guiGraphics, mouseX, mouseY, deleteButton.getX(), deleteButton.getY(),
+        renderTooltipIfHovered(graphics, mouseX, mouseY, deleteButton.getX(), deleteButton.getY(),
                 deleteButton.getWidth(), deleteButton.getHeight(), deleteTooltip);
-        renderTooltipIfHovered(guiGraphics, mouseX, mouseY, reportButton.getX(), reportButton.getY(),
+        renderTooltipIfHovered(graphics, mouseX, mouseY, reportButton.getX(), reportButton.getY(),
                 reportButton.getWidth(), reportButton.getHeight(), reportTooltip);
 
         // Render all child elements (buttons, sliders, etc.)
         for (GuiEventListener child : children()) {
             if (child instanceof Renderable drawable) {
-                drawable.render(guiGraphics, mouseX, mouseY, delta);
+                drawable.render(graphics, mouseX, mouseY, partialTick);
             }
         }
     }
