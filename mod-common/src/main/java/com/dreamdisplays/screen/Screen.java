@@ -114,7 +114,7 @@ public class Screen {
     // Creates a custom RenderType for rendering the screen texture
     private static RenderType createRenderType(Identifier id) {
         return RenderType.create(
-                "frog-displays",
+                "dream-displays",
                 RenderSetup.builder(RenderPipelines.SOLID_BLOCK)
                         .withTexture("Sampler0", id)
                         .bufferSize(RenderType.BIG_BUFFER_SIZE)
