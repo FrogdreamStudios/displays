@@ -1,13 +1,10 @@
 package com.dreamdisplays.screen;
 
-import com.mojang.blaze3d.pipeline.RenderPipeline;
 import me.inotsleep.utils.logging.LoggingManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.rendertype.RenderSetup;
-import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.rendertype.TextureTransform;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.core.BlockPos;
@@ -24,8 +21,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-
-import static net.minecraft.client.renderer.RenderPipelines.LIGHTMAP;
 
 public class Screen {
     public boolean owner;
@@ -53,7 +48,7 @@ public class Screen {
 
     public DynamicTexture texture = null;
     public Identifier textureId = null;
-    public RenderType renderLayer = null;
+    public RenderType renderType = null;
 
     public int textureWidth = 0;
     public int textureHeight = 0;
@@ -63,7 +58,7 @@ public class Screen {
 
     private DynamicTexture previewTexture = null;
     public Identifier previewTextureId = null;
-    public RenderType previewRenderLayer = null;
+    public RenderType previewRenderType = null;
     private String lang;
 
     // Constructor for the Screen class
@@ -107,7 +102,7 @@ public class Screen {
                         previewTextureId = Identifier.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "screen-preview-"+id+"-"+UUID.randomUUID());
 
                         Minecraft.getInstance().getTextureManager().register(previewTextureId, previewTexture);
-                        previewRenderLayer = createRenderLayer(previewTextureId);
+                        previewRenderType = createRenderType(previewTextureId);
                     });
         });
 
@@ -117,7 +112,7 @@ public class Screen {
     }
 
     // Creates a custom RenderType for rendering the screen texture
-    private static RenderType createRenderLayer(Identifier id) {
+    private static RenderType createRenderType(Identifier id) {
         return RenderType.create(
                 "frog-displays",
                 RenderSetup.builder(RenderPipelines.SOLID_BLOCK)
@@ -400,7 +395,7 @@ public class Screen {
         textureId = Identifier.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "screen-main-texture-" + id + "-" + UUID.randomUUID());
 
         Minecraft.getInstance().getTextureManager().register(textureId, texture);
-        renderLayer = createRenderLayer(textureId);
+        renderType = createRenderType(textureId);
     }
 
     public void sendSync() {

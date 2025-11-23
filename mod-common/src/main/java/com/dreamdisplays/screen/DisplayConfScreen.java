@@ -423,9 +423,9 @@ public class DisplayConfScreen extends Screen {
     // Renders display screen preview
     private void renderScreen(GuiGraphics graphics, int x, int y, int w, int h) {
         if (screen.isVideoStarted()) {
-            RenderUtil2D.drawTexturedQuad(graphics.pose(), screen.texture.getTextureView(), x, y, w, h, screen.renderLayer);
+            RenderUtil2D.drawTexturedQuad(graphics.pose(), screen.texture.getTextureView(), x, y, w, h, screen.renderType);
         } else if (screen.hasPreviewTexture()) {
-            RenderUtil2D.drawTexturedQuad(graphics.pose(), screen.getPreviewTexture().getTextureView(), x, y, w, h, screen.previewRenderLayer);
+            RenderUtil2D.drawTexturedQuad(graphics.pose(), screen.getPreviewTexture().getTextureView(), x, y, w, h, screen.previewRenderType);
         } else {
             graphics.fill(x, y, x + w, y + h, 0xFF000000);
         }

@@ -61,11 +61,11 @@ public class ScreenWorldRenderer {
         // Render the screen texture or preview texture
         if (screen.isVideoStarted()) {
             screen.fitTexture();
-            RenderUtil.renderGpuTexture(matrices, tessellator, screen.texture.getTextureView(), screen.renderLayer);
+            RenderUtil.renderGpuTexture(matrices, tessellator, screen.texture.getTextureView(), screen.renderType);
         } else if (screen.hasPreviewTexture()) {
-            RenderUtil.renderGpuTexture(matrices, tessellator, screen.getPreviewTexture().getTextureView(), screen.previewRenderLayer);
+            RenderUtil.renderGpuTexture(matrices, tessellator, screen.getPreviewTexture().getTextureView(), screen.previewRenderType);
         } else {
-            RenderUtil.renderBlack(matrices, tessellator, screen.renderLayer);
+            RenderUtil.renderBlack(matrices, tessellator, screen.renderType);
         }
         matrices.popPose();
     }
