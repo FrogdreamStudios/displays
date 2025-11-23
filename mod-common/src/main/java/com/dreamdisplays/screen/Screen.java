@@ -1,5 +1,6 @@
 package com.dreamdisplays.screen;
 
+import com.mojang.blaze3d.pipeline.RenderPipeline;
 import me.inotsleep.utils.logging.LoggingManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderPipelines;
@@ -119,10 +120,14 @@ public class Screen {
     private static RenderType createRenderLayer(Identifier id) {
         return RenderType.create(
                 "frog-displays",
-                RenderSetup.builder(RenderTypes.blockScreenEffect(id).pipeline()).createRenderSetup()
+                RenderSetup.builder(RenderPipelines.SOLID_BLOCK)
+                        .withTexture("Sampler0", id)
+                        .bufferSize(RenderType.BIG_BUFFER_SIZE)
+                        .affectsCrumbling()
+                        .useLightmap()
+                        .createRenderSetup()
         );
     }
-
     // Updates the screen data based on a DisplayInfoPacket
     public void updateData(DisplayInfoPacket packet) {
         this.x = packet.pos().x;
