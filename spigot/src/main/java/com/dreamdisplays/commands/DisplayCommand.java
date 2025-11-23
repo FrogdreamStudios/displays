@@ -14,7 +14,6 @@ import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,7 +61,7 @@ public class DisplayCommand extends AbstractCommand {
                 return;
             }
 
-            data.setUri(URI.create("https://youtube.com/watch?v=" + code));
+            data.setUrl("https://youtube.com/watch?v=" + code);
             data.setLang(lang);
             data.setSync(false);
             data.sendUpdatePacket(data.getReceivers());
@@ -156,7 +155,7 @@ public class DisplayCommand extends AbstractCommand {
                             String.valueOf(data.getPos1().getBlockX()),
                             String.valueOf(data.getPos1().getBlockY()),
                             String.valueOf(data.getPos1().getBlockZ()),
-                            data.getUri() != null ? data.getUri().getRawPath() : "None"
+                            data.getUrl() != null ? data.getUrl() : "None"
                     ));
                 }
             }
@@ -164,7 +163,6 @@ public class DisplayCommand extends AbstractCommand {
     }
 
     // Sends help messages to the command sender
-    @SuppressWarnings("unchecked")
     private void sendHelp(CommandSender sender) {
         MessageUtil.sendColoredMessages(sender, (List<String>) DreamDisplaysPlugin.config.messages.get("displayCommandHelp"));
     }

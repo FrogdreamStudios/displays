@@ -7,7 +7,6 @@ import com.dreamdisplays.util.Utils;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
@@ -16,28 +15,28 @@ import java.util.zip.ZipFile;
 public class GStreamerDownloader {
 
     // URLs for downloading GStreamer builds and checksums
-    private static final URI GSTREAMER_DOWNLOAD_URL = URI.create("https://github.com/arsmotorin/dreamdisplays/releases/download/gstreamer/gstreamer-${platform}.zip");
-    private static final URI GSTREAMER_CHECKSUM_DOWNLOAD_URL = URI.create(GSTREAMER_DOWNLOAD_URL + ".sha256");
+    private static final String GSTREAMER_DOWNLOAD_URL = "https://github.com/arsmotorin/dreamdisplays/releases/download/gstreamer/gstreamer-${platform}.zip";
+    private static final String GSTREAMER_CHECKSUM_DOWNLOAD_URL = GSTREAMER_DOWNLOAD_URL + ".sha256";
 
     public GStreamerDownloader() {}
 
-    public URI getGStreamerDownloadUri() {
-        return formatURI(GSTREAMER_DOWNLOAD_URL);
+    public String getGStreamerDownloadUrl() {
+        return formatURL(GSTREAMER_DOWNLOAD_URL);
     }
 
-    public URI getGStreamerChecksumDownloadUri() {
-        return formatURI(GSTREAMER_CHECKSUM_DOWNLOAD_URL);
+    public String getGStreamerChecksumDownloadUrl() {
+        return formatURL(GSTREAMER_CHECKSUM_DOWNLOAD_URL);
     }
 
-    private URI formatURI(URI uri) {
-        String formatted = uri.getRawPath().replace("${platform}", Utils.detectPlatform());
-        return URI.create(formatted);
+    private String formatURL(String url) {
+        return url
+                .replace("${platform}", Utils.detectPlatform());
     }
 
     public void downloadGstreamerBuild() throws IOException {
         File gStreamerLibrariesPath = new File("./libs/gstreamer");
         GStreamerDownloadListener.INSTANCE.setTask("Downloading GStreamer");
-        downloadFile(getGStreamerDownloadUri(), new File(gStreamerLibrariesPath,  "gstreamer.zip"));
+        downloadFile(getGStreamerDownloadUrl(), new File(gStreamerLibrariesPath,  "gstreamer.zip"));
     }
 
     public boolean downloadGstreamerChecksum() throws IOException {
@@ -46,7 +45,7 @@ public class GStreamerDownloader {
         File gStreamerHashFile = new File(gStreamerLibrariesPath, "gstreamer.zip.sha256");
 
         GStreamerDownloadListener.INSTANCE.setTask("Downloading Checksum");
-        downloadFile(getGStreamerChecksumDownloadUri(), gStreamerHashFileTemp);
+        downloadFile(getGStreamerChecksumDownloadUrl(), gStreamerHashFileTemp);
 
         if (gStreamerHashFile.exists()) {
             boolean sameContent = FileUtils.contentEquals(gStreamerHashFile, gStreamerHashFileTemp);
@@ -76,15 +75,15 @@ public class GStreamerDownloader {
         }
     }
 
-    private static void downloadFile(URI uri, File outputFile) throws IOException {
-        LoggingManager.info(uri.getRawPath() + " -> " + outputFile.getCanonicalPath());
+    private static void downloadFile(String urlString, File outputFile) throws IOException {
+        LoggingManager.info(urlString + " -> " + outputFile.getCanonicalPath());
 
         HttpURLConnection conn = null;
         InputStream  in  = null;
         FileOutputStream out = null;
 
         try {
-            URL url = URL.of(uri, null);
+            URL url = new URL(urlString);
             conn = (HttpURLConnection) url.openConnection();
             conn.setInstanceFollowRedirects(true);
             conn.setRequestProperty("User-Agent", "Java/" + System.getProperty("java.version"));
@@ -92,15 +91,15 @@ public class GStreamerDownloader {
 
             int status = conn.getResponseCode();
             if (status / 100 == 3) {
-                URI redirectUri = URI.create(conn.getHeaderField("Location"));
+                String redirectUrl = conn.getHeaderField("Location");
                 conn.disconnect();
-                conn = (HttpURLConnection) URL.of(redirectUri, null).openConnection();
+                conn = (HttpURLConnection) new URL(redirectUrl).openConnection();
                 conn.setRequestProperty("User-Agent", "Java/" + System.getProperty("java.version"));
                 status = conn.getResponseCode();
             }
 
             if (status != HttpURLConnection.HTTP_OK) {
-                throw new IOException("Server returned HTTP " + status + " for " + uri.getRawPath());
+                throw new IOException("Server returned HTTP " + status + " for " + urlString);
             }
 
             int fileSize = conn.getContentLength(); // May be -1
@@ -119,7 +118,7 @@ public class GStreamerDownloader {
                 }
             }
         } catch (MalformedURLException e) {
-            throw new IOException("Bad URL: " + uri.getRawPath(), e);
+            throw new IOException("Bad URL: " + urlString, e);
         } finally {
             if (in  != null) try { in.close();  } catch (IOException ignored) {}
             if (out != null) try { out.close(); } catch (IOException ignored) {}

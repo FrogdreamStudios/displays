@@ -20,7 +20,6 @@ import com.dreamdisplays.util.RCUtil;
 import com.dreamdisplays.util.Utils;
 
 import java.io.File;
-import java.net.URI;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -87,15 +86,15 @@ public class PlatformlessInitializer {
             return;
         }
 
-        createScreen(packet.id(), packet.ownerId(), packet.pos(), packet.facing(), packet.width(), packet.height(), packet.uri(), packet.lang(), packet.isSync());
+        createScreen(packet.id(), packet.ownerId(), packet.pos(), packet.facing(), packet.width(), packet.height(), packet.url(), packet.lang(), packet.isSync());
     }
 
-    public static void createScreen(UUID id, UUID ownerId, Vector3i pos, Facing facing, int width, int height, URI uri, String lang, boolean isSync) {
+    public static void createScreen(UUID id, UUID ownerId, Vector3i pos, Facing facing, int width, int height, String code, String lang, boolean isSync) {
         Screen screen = new Screen(id, ownerId, pos.x(), pos.y(), pos.z(), facing.toString(), width, height, isSync);
         assert Minecraft.getInstance().player != null;
         if (screen.getDistanceToScreen(Minecraft.getInstance().player.blockPosition()) > PlatformlessInitializer.config.defaultDistance) return;
         ScreenManager.registerScreen(screen);
-        if (!Objects.equals(uri.getRawPath(), "")) screen.loadVideo(uri, lang);
+        if (!Objects.equals(code, "")) screen.loadVideo(code, lang);
     }
 
     public static void onSyncPacket(SyncPacket packet) {

@@ -8,7 +8,6 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.util.BoundingBox;
 
-import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,7 +18,7 @@ public class DisplayData {
     private final Location pos2;
     private final int width;
     private final int height;
-    private URI uri = null;
+    private String url = "";
     private final BlockFace facing;
     private Long duration = null;
     private boolean isSync = false;
@@ -96,12 +95,12 @@ public class DisplayData {
         return pos2;
     }
 
-    public URI getUri() {
-        return uri;
+    public String getUrl() {
+        return url;
     }
 
-    public void setUri(URI uri) {
-        this.uri = uri;
+    public void setUrl(String url) {
+        this.url = url;
     }
 
     public BlockFace getFacing() {
@@ -134,22 +133,19 @@ public class DisplayData {
 
     // Sends an update packet to a list of players
     public void sendUpdatePacket(List<Player> players) {
-        PacketUtils.sendDisplayInfoPacket(players, id, ownerId, box.getMin(), width, height, uri, lang, facing, isSync);
+        PacketUtils.sendDisplayInfoPacket(players, id, ownerId, box.getMin(), width, height, url, lang, facing, isSync);
     }
 
     public List<Player> getReceivers() {
-        if (pos1.getWorld() != null) {
-            return pos1.getWorld().getPlayers()
-                    .stream()
-                    .filter(player ->
-                            Utils.getDistanceToScreen(
-                                    player.getLocation(),
-                                    this
-                            ) < DreamDisplaysPlugin.config.settings.maxRenderDistance
-                    )
-                    .toList();
-        }
-        return List.of();
+        return pos1.getWorld().getPlayers()
+                .stream()
+                .filter(player ->
+                        Utils.getDistanceToScreen(
+                                player.getLocation(),
+                                this
+                        ) < DreamDisplaysPlugin.config.settings.maxRenderDistance
+                )
+                .toList();
     }
 
     public void setLang(String lang) {

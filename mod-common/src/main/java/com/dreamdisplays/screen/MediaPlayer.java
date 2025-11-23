@@ -17,7 +17,6 @@ import com.dreamdisplays.PlatformlessInitializer;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
-import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.*;
@@ -43,7 +42,7 @@ public class MediaPlayer {
             Executors.newSingleThreadExecutor(r -> new Thread(r, "MediaPlayer-init"));
 
     // === PUBLIC API FIELDS ===============================================================
-    private final URI uri;
+    private final String youtubeUrl;
     private volatile double currentVolume;
     public static boolean captureSamples = true;
 
@@ -75,8 +74,8 @@ public class MediaPlayer {
     private final Screen screen;
 
     // === CONSTRUCTOR =====================================================================
-    public MediaPlayer(URI uri, String lang, Screen screen) {
-        this.uri = uri;
+    public MediaPlayer(String youtubeUrl, String lang, Screen screen) {
+        this.youtubeUrl = youtubeUrl;
         this.screen     = screen;
         this.lang = lang;
         Gst.init("MediaPlayer");
@@ -160,10 +159,10 @@ public class MediaPlayer {
     // === INITIALIZATION ==================================================================
     private void initialize() {
         try {
-            Youtube yt = new Youtube(uri.getRawPath(), USER_AGENT_V);
+            Youtube yt = new Youtube(youtubeUrl, USER_AGENT_V);
             java.util.List<Stream> all = yt.streams().getAll();
 
-            Youtube ytA = new Youtube(uri.getRawPath(), USER_AGENT_A);
+            Youtube ytA = new Youtube(youtubeUrl, USER_AGENT_A);
             java.util.List<Stream> audioS = ytA.streams().getAll();
 
             availableVideoStreams = all.stream()

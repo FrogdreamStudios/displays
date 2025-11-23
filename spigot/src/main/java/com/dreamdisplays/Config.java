@@ -6,7 +6,6 @@ import com.moandjiezana.toml.Toml;
 import org.bukkit.Material;
 
 import java.io.*;
-import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.HashMap;
@@ -152,8 +151,9 @@ public class Config {
         private final Toml toml;
         public SettingsSection(Toml toml) { this.toml = toml; }
 
-        public URI getWebhookUri() {
-            return URI.create(toml.getString("reports.webhook_url"));
+        public String getWebhookUrl() {
+            String url = toml.getString("reports.webhook_url");
+            return url != null ? url : "";
         }
         public int getReportCooldown() {
             Long cooldown = toml.getLong("reports.cooldown");
@@ -237,7 +237,7 @@ public class Config {
         }
 
         // Cached properties
-        public URI webhookUri;
+        public String webhookUrl;
         public int reportCooldown;
         public String repoName;
         public String repoOwner;
@@ -255,7 +255,7 @@ public class Config {
         public double maxRenderDistance;
 
         private void cache() {
-            webhookUri = getWebhookUri();
+            webhookUrl = getWebhookUrl();
             reportCooldown = getReportCooldown();
             repoName = getRepoName();
             repoOwner = getRepoOwner();

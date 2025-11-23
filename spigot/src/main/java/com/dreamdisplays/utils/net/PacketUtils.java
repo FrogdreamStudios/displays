@@ -11,13 +11,12 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
 
 public class PacketUtils {
-    public static void sendDisplayInfoPacket(List<Player> players, UUID id, UUID ownerId, Vector pos, int width, int height, URI uri, String lang, BlockFace face, boolean isSync) {
+    public static void sendDisplayInfoPacket(List<Player> players, UUID id, UUID ownerId, Vector pos, int width, int height, String url, String lang, BlockFace face, boolean isSync) {
         try {
             ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
             DataOutputStream out = new DataOutputStream(byteStream);
@@ -35,7 +34,7 @@ public class PacketUtils {
             writeVarInt(out, width);
             writeVarInt(out, height);
 
-            writeString(out, uri.getRawPath());
+            writeString(out, url);
 
             out.writeByte(toFacingPacketByte(face));
             out.writeBoolean(isSync);

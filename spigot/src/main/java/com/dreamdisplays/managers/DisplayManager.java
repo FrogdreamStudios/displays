@@ -119,8 +119,8 @@ public class DisplayManager {
 
         Runnable reportTask = () -> {
             try {
-                if (Objects.equals(DreamDisplaysPlugin.config.settings.webhookUri.getRawPath(), "")) return;
-                ReportSender.sendReport(displayData.getPos1(), displayData.getUri().getRawPath(), displayData.getId(), player,  DreamDisplaysPlugin.config.settings.webhookUri.getRawPath(), Bukkit.getOfflinePlayer(displayData.getOwnerId()).getName());
+                if (Objects.equals(DreamDisplaysPlugin.config.settings.webhookUrl, "")) return;
+                ReportSender.sendReport(displayData.getPos1(), displayData.getUrl(), displayData.getId(), player,  DreamDisplaysPlugin.config.settings.webhookUrl, Bukkit.getOfflinePlayer(displayData.getOwnerId()).getName());
                 MessageUtil.sendColoredMessage(player, (String) DreamDisplaysPlugin.config.messages.get("reportSent"));
             } catch (Exception e) {
                 LoggingManager.error("Unable to send webhook message", e);

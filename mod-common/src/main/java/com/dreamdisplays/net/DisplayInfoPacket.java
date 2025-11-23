@@ -4,7 +4,6 @@ import org.joml.Vector3i;
 import com.dreamdisplays.PlatformlessInitializer;
 import com.dreamdisplays.util.Facing;
 
-import java.net.URI;
 import java.util.UUID;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.FriendlyByteBuf;
@@ -14,7 +13,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 
 // Packet for sending display information
-public record DisplayInfoPacket(UUID id, UUID ownerId, Vector3i pos, int width, int height, URI uri, Facing facing, boolean isSync, String lang) implements CustomPacketPayload {
+public record DisplayInfoPacket(UUID id, UUID ownerId, Vector3i pos, int width, int height, String url, Facing facing, boolean isSync, String lang) implements CustomPacketPayload {
     public static final CustomPacketPayload.Type<DisplayInfoPacket> PACKET_ID =
             new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath(PlatformlessInitializer.MOD_ID, "display_info"));
 
@@ -31,7 +30,7 @@ public record DisplayInfoPacket(UUID id, UUID ownerId, Vector3i pos, int width, 
                         ByteBufCodecs.VAR_INT.encode(buf, packet.width());
                         ByteBufCodecs.VAR_INT.encode(buf, packet.height());
 
-                        ByteBufCodecs.STRING_UTF8.encode(buf, packet.uri().getRawPath());
+                        ByteBufCodecs.STRING_UTF8.encode(buf, packet.url());
 
                         ByteBufCodecs.BYTE.encode(buf, packet.facing().toPacket());
                         ByteBufCodecs.BOOL.encode(buf, packet.isSync());
@@ -50,7 +49,7 @@ public record DisplayInfoPacket(UUID id, UUID ownerId, Vector3i pos, int width, 
                         int width = ByteBufCodecs.VAR_INT.decode(buf);
                         int height = ByteBufCodecs.VAR_INT.decode(buf);
 
-                        URI uri = URI.create(ByteBufCodecs.STRING_UTF8.decode(buf));
+                        String url = ByteBufCodecs.STRING_UTF8.decode(buf);
 
                         byte facingByte = ByteBufCodecs.BYTE.decode(buf);
                         Facing facing = Facing.fromPacket(facingByte);
@@ -58,7 +57,7 @@ public record DisplayInfoPacket(UUID id, UUID ownerId, Vector3i pos, int width, 
                         boolean isSync = ByteBufCodecs.BOOL.decode(buf);
                         String lang = ByteBufCodecs.STRING_UTF8.decode(buf);
 
-                        return new DisplayInfoPacket(id, ownerId, pos, width, height, uri, facing, isSync, lang);
+                        return new DisplayInfoPacket(id, ownerId, pos, width, height, url, facing, isSync, lang);
                     }
             );
 

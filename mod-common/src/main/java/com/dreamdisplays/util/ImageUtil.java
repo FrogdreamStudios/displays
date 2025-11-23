@@ -13,16 +13,16 @@ import java.util.concurrent.CompletableFuture;
 
 public class ImageUtil {
 
-    public static CompletableFuture<DynamicTexture> fetchImageTextureFromUri(URI uri) {
+    public static CompletableFuture<DynamicTexture> fetchImageTextureFromUrl(String url) {
         CompletableFuture<NativeImage> imageFuture = CompletableFuture.supplyAsync(() -> {
             try {
-                BufferedImage bi = ImageIO.read(URL.of(uri, null));
+                BufferedImage bi = ImageIO.read(URL.of(URI.create(url), null));
                 if (bi == null) {
-                    throw new IOException("Failed to decode image: " + uri.getRawPath());
+                    throw new IOException("Failed to decode image: " + url);
                 }
                 return convertToNativeImage(bi);
             } catch (Exception e) {
-                LoggingManager.error("Failed to load image from " + uri.getRawPath(), e);
+                LoggingManager.error("Failed to load image from " + url, e);
                 return null;
             }
         });
@@ -32,7 +32,7 @@ public class ImageUtil {
 
             Minecraft.getInstance().execute(() -> {
                     try {
-                        DynamicTexture tex = new DynamicTexture(uri::getRawPath, nativeImage);
+                        DynamicTexture tex = new DynamicTexture(() -> url, nativeImage);
                         texFuture.complete(tex);
                     } catch (Throwable t) {
                         texFuture.completeExceptionally(t);
