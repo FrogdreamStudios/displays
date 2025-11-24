@@ -1,8 +1,9 @@
 package com.dreamdisplays;
 
+import com.dreamdisplays.net.*;
+import com.dreamdisplays.render.World;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.dreamdisplays.net.*;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
@@ -14,7 +15,6 @@ import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import com.dreamdisplays.render.ScreenWorldRenderer;
 import org.jspecify.annotations.NullMarked;
 
 @NullMarked
@@ -24,19 +24,19 @@ public class DreamDisplaysMod implements ClientModInitializer, Mod {
         Initializer.onModInit(this);
 
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> dispatcher.register(
-                LiteralArgumentBuilder.<FabricClientCommandSource>literal("displays")
-                        .then(LiteralArgumentBuilder.<FabricClientCommandSource>literal("off")
-                                .executes((context) -> {
-                                    Initializer.displaysEnabled = false;
-                                    return 1;
-                                })
-                        )
-                        .then(LiteralArgumentBuilder.<FabricClientCommandSource>literal("on")
-                                .executes((context) -> {
-                                    Initializer.displaysEnabled = true;
-                                    return 1;
-                                })
-                        )
+            LiteralArgumentBuilder.<FabricClientCommandSource>literal("displays")
+                .then(LiteralArgumentBuilder.<FabricClientCommandSource>literal("off")
+                    .executes((context) -> {
+                        Initializer.displaysEnabled = false;
+                        return 1;
+                    })
+                )
+                .then(LiteralArgumentBuilder.<FabricClientCommandSource>literal("on")
+                    .executes((context) -> {
+                        Initializer.displaysEnabled = true;
+                        return 1;
+                    })
+                )
         ));
 
         PayloadTypeRegistry.playS2C().register(Info.PACKET_ID, Info.PACKET_CODEC);
@@ -67,7 +67,7 @@ public class DreamDisplaysMod implements ClientModInitializer, Mod {
             }
             PoseStack matrices = context.matrices();
             Camera camera = context.gameRenderer().getMainCamera();
-            ScreenWorldRenderer.render(matrices, camera);
+            World.render(matrices, camera);
         });
 
 

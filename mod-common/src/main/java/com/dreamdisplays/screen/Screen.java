@@ -1,5 +1,11 @@
 package com.dreamdisplays.screen;
 
+import com.dreamdisplays.Initializer;
+import com.dreamdisplays.net.Info;
+import com.dreamdisplays.net.RequestSync;
+import com.dreamdisplays.net.Sync;
+import com.dreamdisplays.util.Image;
+import com.dreamdisplays.util.Utils;
 import me.inotsleep.utils.logging.LoggingManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderPipelines;
@@ -9,12 +15,6 @@ import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
-import com.dreamdisplays.Initializer;
-import com.dreamdisplays.net.Info;
-import com.dreamdisplays.net.RequestSync;
-import com.dreamdisplays.net.Sync;
-import com.dreamdisplays.util.Image;
-import com.dreamdisplays.util.Utils;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -26,43 +26,36 @@ import java.util.concurrent.CompletableFuture;
 
 @NullMarked
 public class Screen {
+    private final UUID id;
     public boolean owner;
-
     public boolean errored;
-
+    public boolean isSync;
+    public boolean muted;
+    public @Nullable DynamicTexture texture = null;
+    public @Nullable Identifier textureId = null;
+    public @Nullable RenderType renderType = null;
+    public int textureWidth = 0;
+    public int textureHeight = 0;
+    public @Nullable Identifier previewTextureId = null;
+    public @Nullable RenderType previewRenderType = null;
     private int x;
     private int y;
     private int z;
     private String facing;
     private int width;
     private int height;
-    private final UUID id;
     private float volume;
     private boolean videoStarted;
     private boolean paused;
     private String quality = "720";
-    public boolean isSync;
-    public boolean muted;
-
     // Use a combined MediaPlayer instead of the separate VideoDecoder and AudioPlayer.
     private @Nullable MediaPlayer mediaPlayer;
-
     private @Nullable String videoUrl;
-
-    public @Nullable DynamicTexture texture = null;
-    public @Nullable Identifier textureId = null;
-    public @Nullable RenderType renderType = null;
-
-    public int textureWidth = 0;
-    public int textureHeight = 0;
-
     // Cache (good for performance)
     private transient @Nullable BlockPos blockPos;
-
     private @Nullable DynamicTexture previewTexture = null;
-    public @Nullable Identifier previewTextureId = null;
-    public @Nullable RenderType previewRenderType = null;
     private @Nullable String lang;
+    private volatile boolean loggedFitTexture = false;
 
     // Constructor for the Screen class
     public Screen(UUID id, UUID ownerId, int x, int y, int z, String facing, int width, int height, boolean isSync) {
@@ -86,6 +79,31 @@ public class Screen {
         }
     }
 
+    // Creates a custom RenderType for rendering the screen texture
+    private static RenderType createRenderType(Identifier id) {
+        return RenderType.create(
+            "dream-displays",
+            RenderSetup.builder(RenderPipelines.SOLID_BLOCK)
+                .withTexture("Sampler0", id)
+                .bufferSize(RenderType.BIG_BUFFER_SIZE)
+                .affectsCrumbling()
+                .useLightmap()
+                .createRenderSetup()
+        );
+    }
+
+    public int getX() {
+        return x;
+    }
+
+    public int getY() {
+        return y;
+    }
+
+    public int getZ() {
+        return z;
+    }
+
     // Loads a video from a given URL and language
     public void loadVideo(String videoUrl, String lang) {
         if (Objects.equals(videoUrl, "")) return;
@@ -106,15 +124,15 @@ public class Screen {
 
             // TODO: note for INotSleep: we should delete video previews to avoid problems with videos
             Image.fetchImageTextureFromUrl("https://img.youtube.com/vi/" + Utils.extractVideoId(videoUrl) + "/maxresdefault.jpg")
-                    .thenAcceptAsync(nativeImageBackedTexture -> {
-                        previewTexture = nativeImageBackedTexture;
-                        previewTextureId = Identifier.fromNamespaceAndPath(Initializer.MOD_ID, "screen-preview-"+id+"-"+UUID.randomUUID());
+                .thenAcceptAsync(nativeImageBackedTexture -> {
+                    previewTexture = nativeImageBackedTexture;
+                    previewTextureId = Identifier.fromNamespaceAndPath(Initializer.MOD_ID, "screen-preview-" + id + "-" + UUID.randomUUID());
 
-                        if (previewTexture != null) {
-                            Minecraft.getInstance().getTextureManager().register(previewTextureId, previewTexture);
-                            previewRenderType = createRenderType(previewTextureId);
-                        }
-                    });
+                    if (previewTexture != null) {
+                        Minecraft.getInstance().getTextureManager().register(previewTextureId, previewTexture);
+                        previewRenderType = createRenderType(previewTextureId);
+                    }
+                });
         });
 
         waitForMFInit(this::startVideo);
@@ -122,18 +140,6 @@ public class Screen {
         Minecraft.getInstance().execute(this::reloadTexture);
     }
 
-    // Creates a custom RenderType for rendering the screen texture
-    private static RenderType createRenderType(Identifier id) {
-        return RenderType.create(
-                "dream-displays",
-                RenderSetup.builder(RenderPipelines.SOLID_BLOCK)
-                        .withTexture("Sampler0", id)
-                        .bufferSize(RenderType.BIG_BUFFER_SIZE)
-                        .affectsCrumbling()
-                        .useLightmap()
-                        .createRenderSetup()
-        );
-    }
     // Updates the screen data based on a DisplayInfoPacket
     public void updateData(Info packet) {
         this.x = packet.pos().x;
@@ -206,8 +212,8 @@ public class Screen {
         }
 
         return x <= pos.getX() && maxX >= pos.getX() &&
-                y <= pos.getY() && maxY >= pos.getY() &&
-                z <= pos.getZ() && maxZ >= pos.getZ();
+            y <= pos.getY() && maxY >= pos.getY() &&
+            z <= pos.getZ() && maxZ >= pos.getZ();
     }
 
     // Checks if the video has started playing
@@ -237,6 +243,10 @@ public class Screen {
 
     // Updates the texture to fit the current video frame
     public void fitTexture() {
+        if (!loggedFitTexture) {
+            LoggingManager.info("fitTexture() called - mediaPlayer: " + (mediaPlayer != null) + ", texture: " + (texture != null));
+            loggedFitTexture = true;
+        }
         if (mediaPlayer != null && texture != null) {
             mediaPlayer.updateFrame(texture.getTexture());
         }
@@ -265,14 +275,6 @@ public class Screen {
         return height;
     }
 
-    // Sets video volume (0.0 to 1.0)
-    public void setVolume(float volume) {
-        this.volume = volume;
-        setVideoVolume(volume);
-        // Save settings
-        Settings.updateSettings(id, volume, quality, muted);
-    }
-
     // Sets video volume
     public void setVideoVolume(float volume) {
         if (mediaPlayer != null) {
@@ -285,12 +287,6 @@ public class Screen {
         return quality;
     }
 
-    // Returns list of available video qualities
-    public List<Integer> getQualityList() {
-        if (mediaPlayer == null) return Collections.emptyList();
-        return mediaPlayer.getAvailableQualities();
-    }
-
     // Sets video quality (e.g., "480", "720", "1080", "2160")
     public void setQuality(String quality) {
         this.quality = quality;
@@ -298,12 +294,23 @@ public class Screen {
         Settings.updateSettings(id, volume, quality, muted);
     }
 
+    // Returns list of available video qualities
+    public List<Integer> getQualityList() {
+        if (mediaPlayer == null) return Collections.emptyList();
+        return mediaPlayer.getAvailableQualities();
+    }
+
     // Starts video playback
     public void startVideo() {
+        LoggingManager.info("startVideo() called for screen " + id);
         if (mediaPlayer != null) {
+            LoggingManager.info("Calling mediaPlayer.play()...");
             mediaPlayer.play();
             videoStarted = true;
             paused = false;
+            LoggingManager.info("Video playback started - videoStarted: " + videoStarted + ", paused: " + paused);
+        } else {
+            LoggingManager.warn("Cannot start video - mediaPlayer is null!");
         }
     }
 
@@ -322,7 +329,7 @@ public class Screen {
             });
             return;
         }
-            this.paused = paused;
+        this.paused = paused;
         if (mediaPlayer != null) {
             if (paused) {
                 mediaPlayer.pause();
@@ -365,7 +372,7 @@ public class Screen {
         if (textureId != null) manager.release(textureId);
         if (previewTextureId != null) manager.release(previewTextureId);
 
-        if (Minecraft.getInstance().screen instanceof Configuration displayConfScreen) {
+        if (Minecraft.getInstance().screen instanceof Menu displayConfScreen) {
             if (displayConfScreen.screen == this) displayConfScreen.onClose();
         }
     }
@@ -396,6 +403,14 @@ public class Screen {
         return volume;
     }
 
+    // Sets video volume (0.0 to 1.0)
+    public void setVolume(float volume) {
+        this.volume = volume;
+        setVideoVolume(volume);
+        // Save settings
+        Settings.updateSettings(id, volume, quality, muted);
+    }
+
     // Creates a new texture for the screen based on its dimensions and quality
     public void createTexture() {
         int qualityInt = Integer.parseInt(this.quality.replace("p", ""));
@@ -406,8 +421,8 @@ public class Screen {
         if (texture != null) {
             texture.close();
             if (textureId != null) Minecraft.getInstance()
-                    .getTextureManager()
-                    .release(textureId);
+                .getTextureManager()
+                .release(textureId);
         }
         texture = new DynamicTexture(UUID.randomUUID().toString(), textureWidth, textureHeight, true);
         textureId = Identifier.fromNamespaceAndPath(Initializer.MOD_ID, "screen-main-texture-" + id + "-" + UUID.randomUUID());
