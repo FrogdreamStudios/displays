@@ -5,11 +5,12 @@ import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import me.inotsleep.utils.logging.LoggingManager
 import org.jspecify.annotations.NullMarked
-import java.io.File
-import java.io.FileReader
-import java.io.FileWriter
-import java.io.IOException
+import java.io.*
 import java.util.*
+import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Manages client display settings.
@@ -19,31 +20,39 @@ object Settings {
     // TODO: move to adequate path
     private val SETTINGS_FILE = File("./config/dreamdisplays/client-display-settings.json")
     private val GSON: Gson = GsonBuilder().setPrettyPrinting().create()
-    private val displaySettings: MutableMap<UUID, DisplaySettings> = HashMap<UUID, DisplaySettings>()
+    private val displaySettings: MutableMap<UUID, DisplaySettings> = HashMap<UUID, DisplaySettings>(64)
+    private val saveExecutor: ScheduledExecutorService = Executors.newSingleThreadScheduledExecutor { r ->
+        Thread(r, "DreamDisplays-SettingsSaver").apply { isDaemon = true }
+    }
+    private val pendingSave = AtomicBoolean(false)
+    private const val SAVE_DELAY_MS = 500L
 
     // Load settings from disk
     fun load() {
-        // Ensure directory exists
-
         val dir = SETTINGS_FILE.getParentFile()
         if (dir != null && !dir.exists() && !dir.mkdirs()) {
             LoggingManager.error("Failed to create settings directory.")
             return
         }
 
+        if (!SETTINGS_FILE.exists()) {
+            return
+        }
+
         try {
-            FileReader(SETTINGS_FILE).use { reader ->
-                val type = object : TypeToken<MutableMap<String, DisplaySettings>>() {
-                }.type
+            BufferedReader(FileReader(SETTINGS_FILE), 8192).use { reader ->
+                val type = object : TypeToken<MutableMap<String, DisplaySettings>>() {}.type
                 val loadedSettings = GSON.fromJson<MutableMap<String, DisplaySettings>>(reader, type)
                 if (loadedSettings != null) {
                     displaySettings.clear()
-                    for (entry in loadedSettings.entries) {
-                        try {
-                            val uuid = UUID.fromString(entry.key)
-                            displaySettings[uuid] = entry.value
-                        } catch (_: IllegalArgumentException) {
-                            LoggingManager.error("Invalid UUID in client display settings: " + entry.key)
+                    if (loadedSettings.isNotEmpty()) {
+                        for (entry in loadedSettings.entries) {
+                            try {
+                                val uuid = UUID.fromString(entry.key)
+                                displaySettings[uuid] = entry.value
+                            } catch (_: IllegalArgumentException) {
+                                LoggingManager.error("Invalid UUID in client display settings: ${entry.key}")
+                            }
                         }
                     }
                 }
@@ -54,7 +63,7 @@ object Settings {
     }
 
     // Save settings to disk
-    fun save() {
+    private fun saveInternal() {
         try {
             val dir = SETTINGS_FILE.getParentFile()
             if (dir != null && !dir.exists() && !dir.mkdirs()) {
@@ -62,16 +71,27 @@ object Settings {
                 return
             }
 
-            val toSave: MutableMap<String, DisplaySettings> = HashMap<String, DisplaySettings>()
+            val toSave: MutableMap<String, DisplaySettings> = HashMap<String, DisplaySettings>(displaySettings.size)
             for (entry in displaySettings.entries) {
                 toSave[entry.key.toString()] = entry.value
             }
 
-            FileWriter(SETTINGS_FILE).use { writer ->
+            BufferedWriter(FileWriter(SETTINGS_FILE), 8192).use { writer ->
                 GSON.toJson(toSave, writer)
             }
         } catch (e: IOException) {
             LoggingManager.error("Failed to save client display settings", e)
+        } finally {
+            pendingSave.set(false)
+        }
+    }
+
+    // Save settings to disk asynchronously with debouncing
+    fun save() {
+        if (pendingSave.compareAndSet(false, true)) {
+            saveExecutor.schedule({
+                saveInternal()
+            }, SAVE_DELAY_MS, TimeUnit.MILLISECONDS)
         }
     }
 
