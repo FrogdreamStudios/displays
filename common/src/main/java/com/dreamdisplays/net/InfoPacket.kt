@@ -18,7 +18,7 @@ import java.util.*
  */
 @NullMarked
 @JvmRecord
-data class Info(
+data class InfoPacket(
     val id: UUID,
     val ownerId: UUID,
     val pos: Vector3i,
@@ -35,15 +35,15 @@ data class Info(
 
     companion object {
         @JvmField
-        val PACKET_ID: CustomPacketPayload.Type<Info> = CustomPacketPayload.Type<Info>(
+        val PACKET_ID: CustomPacketPayload.Type<InfoPacket> = CustomPacketPayload.Type<InfoPacket>(
             Identifier.fromNamespaceAndPath(
                 Initializer.MOD_ID, "display_info"
             )
         )
 
         @JvmField
-        val PACKET_CODEC: StreamCodec<FriendlyByteBuf, Info> = StreamCodec.of<FriendlyByteBuf, Info>(
-            { buf: FriendlyByteBuf?, packet: Info? ->
+        val PACKET_CODEC: StreamCodec<FriendlyByteBuf, InfoPacket> = StreamCodec.of<FriendlyByteBuf, InfoPacket>(
+            { buf: FriendlyByteBuf?, packet: InfoPacket? ->
                 UUIDUtil.STREAM_CODEC.encode(buf!!, packet!!.id)
                 UUIDUtil.STREAM_CODEC.encode(buf, packet.ownerId)
 
@@ -79,7 +79,7 @@ data class Info(
 
                 val isSync = ByteBufCodecs.BOOL.decode(buf)
                 val lang = ByteBufCodecs.STRING_UTF8.decode(buf)
-                Info(id, ownerId, pos, width, height, url, facing, isSync, lang)
+                InfoPacket(id, ownerId, pos, width, height, url, facing, isSync, lang)
             }
         )
     }

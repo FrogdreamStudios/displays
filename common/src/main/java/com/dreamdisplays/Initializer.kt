@@ -91,7 +91,7 @@ object Initializer {
     }
 
     @JvmStatic
-    fun onDisplayInfoPacket(packet: Info) {
+    fun onDisplayInfoPacket(packet: InfoPacket) {
         if (!displaysEnabled) return
 
         if (Manager.screens.containsKey(packet.id)) {
@@ -132,7 +132,7 @@ object Initializer {
     }
 
     @JvmStatic
-    fun onSyncPacket(packet: Sync) {
+    fun onSyncPacket(packet: SyncPacket) {
         if (!Manager.screens.containsKey(packet.id)) return
         val screen = Manager.screens.get(packet.id)
         screen?.updateData(packet)
@@ -141,7 +141,7 @@ object Initializer {
     private fun checkVersionAndSendPacket() {
         try {
             val version = Utils.modVersion
-            sendPacket(Version(version))
+            sendPacket(VersionPacket(version))
         } catch (e: Exception) {
             LoggingManager.error("Unable to get version", e)
         }
@@ -239,7 +239,7 @@ object Initializer {
     }
 
     @JvmStatic
-    fun onDeletePacket(deletePacket: Delete) {
+    fun onDeletePacket(deletePacket: DeletePacket) {
         val screen = Manager.screens.get(deletePacket.id) ?: return
 
         Manager.unregisterScreen(screen)
@@ -253,7 +253,7 @@ object Initializer {
     }
 
     @JvmStatic
-    fun onPremiumPacket(packet: Premium) {
+    fun onPremiumPacket(packet: PremiumPacket) {
         isPremium = packet.premium
     }
 }

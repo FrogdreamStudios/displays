@@ -2,9 +2,9 @@ package com.dreamdisplays.screen
 
 import com.dreamdisplays.Initializer
 import com.dreamdisplays.Initializer.sendPacket
-import com.dreamdisplays.net.Info
-import com.dreamdisplays.net.RequestSync
-import com.dreamdisplays.net.Sync
+import com.dreamdisplays.net.InfoPacket
+import com.dreamdisplays.net.RequestSyncPacket
+import com.dreamdisplays.net.SyncPacket
 import com.dreamdisplays.screen.Settings.getSettings
 import com.dreamdisplays.screen.Settings.updateSettings
 import com.dreamdisplays.screen.mediaplayer.player.MediaPlayer
@@ -149,7 +149,7 @@ class Screen(
     }
 
     // Updates the screen data based on a DisplayInfoPacket
-    fun updateData(packet: Info) {
+    fun updateData(packet: InfoPacket) {
         this.x = packet.pos.x
         this.y = packet.pos.y
         this.z = packet.pos.z
@@ -174,11 +174,11 @@ class Screen(
 
     // Sends a RequestSyncPacket to the server to request synchronization data
     private fun sendRequestSyncPacket() {
-        sendPacket(RequestSync(this.iD))
+        sendPacket(RequestSyncPacket(this.iD))
     }
 
     // Updates the screen data based on a SyncPacket
-    fun updateData(packet: Sync) {
+    fun updateData(packet: SyncPacket) {
         isSync = packet.isSync
         if (!isSync) return
 
@@ -435,7 +435,7 @@ class Screen(
         if (mediaPlayer != null) {
             val currentTimeNanos = (mediaPlayer!!.currentTimeSeconds * 1000000000).toLong()
             val durationNanos = 0L // Duration not available in current implementation
-            sendPacket(Sync(this.iD, isSync, paused, currentTimeNanos, durationNanos))
+            sendPacket(SyncPacket(this.iD, isSync, paused, currentTimeNanos, durationNanos))
         }
     }
 

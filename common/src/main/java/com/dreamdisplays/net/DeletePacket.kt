@@ -14,22 +14,22 @@ import java.util.*
  */
 @NullMarked
 @JvmRecord
-data class Delete(val id: UUID) : CustomPacketPayload {
+data class DeletePacket(val id: UUID) : CustomPacketPayload {
     override fun type(): CustomPacketPayload.Type<out CustomPacketPayload> {
         return PACKET_ID
     }
 
     companion object {
         @JvmField
-        val PACKET_ID: CustomPacketPayload.Type<Delete> = CustomPacketPayload.Type<Delete>(
+        val PACKET_ID: CustomPacketPayload.Type<DeletePacket> = CustomPacketPayload.Type<DeletePacket>(
             Identifier.fromNamespaceAndPath(
                 Initializer.MOD_ID, "delete"
             )
         )
 
         @JvmField
-        val PACKET_CODEC: StreamCodec<FriendlyByteBuf, Delete> = StreamCodec.of(
-            { buf: FriendlyByteBuf?, packet: Delete? ->
+        val PACKET_CODEC: StreamCodec<FriendlyByteBuf, DeletePacket> = StreamCodec.of(
+            { buf: FriendlyByteBuf?, packet: DeletePacket? ->
                 UUIDUtil.STREAM_CODEC.encode(
                     buf!!,
                     packet!!.id
@@ -37,7 +37,7 @@ data class Delete(val id: UUID) : CustomPacketPayload {
             },
             { buf: FriendlyByteBuf? ->
                 val id = UUIDUtil.STREAM_CODEC.decode(buf!!)
-                Delete(id)
+                DeletePacket(id)
             })
     }
 }

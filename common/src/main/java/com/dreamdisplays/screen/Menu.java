@@ -1,8 +1,8 @@
 package com.dreamdisplays.screen;
 
 import com.dreamdisplays.Initializer;
-import com.dreamdisplays.net.Delete;
-import com.dreamdisplays.net.Report;
+import com.dreamdisplays.net.DeletePacket;
+import com.dreamdisplays.net.ReportPacket;
 import com.dreamdisplays.render.Render2D;
 import com.dreamdisplays.screen.widgets.Button;
 import com.dreamdisplays.screen.widgets.Slider;
@@ -181,7 +181,7 @@ public class Menu extends Screen {
         deleteButton = new Button(0, 0, 0, 0, 64, 64, Identifier.fromNamespaceAndPath(Initializer.MOD_ID, "delete"), 2) {
             @Override
             public void onPress() {
-                Initializer.sendPacket(new Delete(screen.getID()));
+                Initializer.sendPacket(new DeletePacket(screen.getID()));
                 onClose();
             }
         };
@@ -191,7 +191,7 @@ public class Menu extends Screen {
         reportButton = new Button(0, 0, 0, 0, 64, 64, Identifier.fromNamespaceAndPath(Initializer.MOD_ID, "report"), 2) {
             @Override
             public void onPress() {
-                Initializer.sendPacket(new Report(screen.getID()));
+                Initializer.sendPacket(new ReportPacket(screen.getID()));
                 onClose();
             }
         };

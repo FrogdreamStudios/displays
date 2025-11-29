@@ -17,22 +17,22 @@ import org.jspecify.annotations.NullMarked
  */
 @NullMarked
 @JvmRecord
-data class Version(val version: String) : CustomPacketPayload {
+data class VersionPacket(val version: String) : CustomPacketPayload {
     override fun type(): CustomPacketPayload.Type<out CustomPacketPayload> {
         return PACKET_ID
     }
 
     companion object {
         @JvmField
-        val PACKET_ID: CustomPacketPayload.Type<Version> = CustomPacketPayload.Type<Version>(
+        val PACKET_ID: CustomPacketPayload.Type<VersionPacket> = CustomPacketPayload.Type<VersionPacket>(
             Identifier.fromNamespaceAndPath(
                 Initializer.MOD_ID, "version"
             )
         )
 
         @JvmField
-        val PACKET_CODEC: StreamCodec<FriendlyByteBuf, Version> = StreamCodec.of<FriendlyByteBuf, Version>(
-            { buf: FriendlyByteBuf?, packet: Version? ->
+        val PACKET_CODEC: StreamCodec<FriendlyByteBuf, VersionPacket> = StreamCodec.of<FriendlyByteBuf, VersionPacket>(
+            { buf: FriendlyByteBuf?, packet: VersionPacket? ->
                 ByteBufCodecs.STRING_UTF8.encode(
                     buf!!,
                     packet!!.version
@@ -40,7 +40,7 @@ data class Version(val version: String) : CustomPacketPayload {
             },
             { buf: FriendlyByteBuf? ->
                 val version = ByteBufCodecs.STRING_UTF8.decode(buf!!)
-                Version(version)
+                VersionPacket(version)
             })
 
         // TODO: add version compatibility checks (for Arsenii)

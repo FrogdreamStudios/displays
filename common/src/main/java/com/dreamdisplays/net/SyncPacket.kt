@@ -15,7 +15,7 @@ import java.util.*
  */
 @NullMarked
 @JvmRecord
-data class Sync(
+data class SyncPacket(
     val id: UUID, val isSync: Boolean, val currentState: Boolean, val currentTime: Long,
     val limitTime: Long
 ) : CustomPacketPayload {
@@ -25,15 +25,15 @@ data class Sync(
 
     companion object {
         @JvmField
-        val PACKET_ID: CustomPacketPayload.Type<Sync> = CustomPacketPayload.Type<Sync>(
+        val PACKET_ID: CustomPacketPayload.Type<SyncPacket> = CustomPacketPayload.Type<SyncPacket>(
             Identifier.fromNamespaceAndPath(
                 Initializer.MOD_ID, "sync"
             )
         )
 
         @JvmField
-        val PACKET_CODEC: StreamCodec<FriendlyByteBuf, Sync> = StreamCodec.of(
-            { buf: FriendlyByteBuf?, packet: Sync? ->
+        val PACKET_CODEC: StreamCodec<FriendlyByteBuf, SyncPacket> = StreamCodec.of(
+            { buf: FriendlyByteBuf?, packet: SyncPacket? ->
                 UUIDUtil.STREAM_CODEC.encode(buf!!, packet!!.id)
                 ByteBufCodecs.BOOL.encode(buf, packet.isSync)
                 ByteBufCodecs.BOOL.encode(buf, packet.currentState)
@@ -46,7 +46,7 @@ data class Sync(
                 val currentState = ByteBufCodecs.BOOL.decode(buf)
                 val currentTime = ByteBufCodecs.VAR_LONG.decode(buf)
                 val limitTime = ByteBufCodecs.VAR_LONG.decode(buf)
-                Sync(id, isSync, currentState, currentTime, limitTime)
+                SyncPacket(id, isSync, currentState, currentTime, limitTime)
             })
     }
 }

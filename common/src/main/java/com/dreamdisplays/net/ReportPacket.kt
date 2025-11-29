@@ -10,26 +10,26 @@ import org.jspecify.annotations.NullMarked
 import java.util.*
 
 /**
- * Packet for sending a request for display synchronization.
+ * Packet for reporting about an inappropriate display.
  */
 @NullMarked
 @JvmRecord
-data class RequestSync(val id: UUID) : CustomPacketPayload {
+data class ReportPacket(val id: UUID) : CustomPacketPayload {
     override fun type(): CustomPacketPayload.Type<out CustomPacketPayload> {
         return PACKET_ID
     }
 
     companion object {
         @JvmField
-        val PACKET_ID: CustomPacketPayload.Type<RequestSync> = CustomPacketPayload.Type<RequestSync>(
+        val PACKET_ID: CustomPacketPayload.Type<ReportPacket> = CustomPacketPayload.Type<ReportPacket>(
             Identifier.fromNamespaceAndPath(
-                Initializer.MOD_ID, "req_sync"
+                Initializer.MOD_ID, "report"
             )
         )
 
         @JvmField
-        val PACKET_CODEC: StreamCodec<FriendlyByteBuf, RequestSync> = StreamCodec.of<FriendlyByteBuf, RequestSync>(
-            { buf: FriendlyByteBuf?, packet: RequestSync? ->
+        val PACKET_CODEC: StreamCodec<FriendlyByteBuf, ReportPacket> = StreamCodec.of<FriendlyByteBuf, ReportPacket>(
+            { buf: FriendlyByteBuf?, packet: ReportPacket? ->
                 UUIDUtil.STREAM_CODEC.encode(
                     buf!!,
                     packet!!.id
@@ -37,7 +37,7 @@ data class RequestSync(val id: UUID) : CustomPacketPayload {
             },
             { buf: FriendlyByteBuf? ->
                 val id = UUIDUtil.STREAM_CODEC.decode(buf!!)
-                RequestSync(id)
+                ReportPacket(id)
             })
     }
 }
