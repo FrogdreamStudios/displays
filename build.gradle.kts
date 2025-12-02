@@ -22,7 +22,7 @@ subprojects {
         jvmTarget.set(JvmTarget.JVM_21)
     }
 
-    // i (Toffikk) need this to compile
+    // TODO: for Toffikk: compile this
     java {
         toolchain {
             languageVersion.set(JavaLanguageVersion.of(21))
