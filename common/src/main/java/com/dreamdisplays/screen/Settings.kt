@@ -115,8 +115,10 @@ object Settings {
     class DisplaySettings {
         @JvmField
         var volume: Float = 0.5f
+
         @JvmField
         var quality: String = "720"
+
         @JvmField
         var muted: Boolean = false
 

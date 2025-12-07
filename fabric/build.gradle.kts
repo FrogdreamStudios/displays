@@ -1,13 +1,13 @@
 import net.fabricmc.loom.task.RemapJarTask
 
 plugins {
-    id("fabric-loom") version libs.versions.loom
+    id("net.fabricmc.fabric-loom-remap") version libs.versions.loom // remove -remap for MC 26.1
     id("maven-publish")
     id("com.gradleup.shadow") version libs.versions.shadow
 }
 
 loom {
-    accessWidenerPath.set(project(":common").file("src/main/resources/dreamdisplays.accesswidener"))
+    accessWidenerPath.set(project(":common").file("src/main/resources/dreamdisplays.classtweaker"))
 }
 
 dependencies {

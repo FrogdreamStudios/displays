@@ -28,16 +28,17 @@ data class RequestSyncPacket(val id: UUID) : CustomPacketPayload {
         )
 
         @JvmField
-        val PACKET_CODEC: StreamCodec<FriendlyByteBuf, RequestSyncPacket> = StreamCodec.of<FriendlyByteBuf, RequestSyncPacket>(
-            { buf: FriendlyByteBuf?, packet: RequestSyncPacket? ->
-                UUIDUtil.STREAM_CODEC.encode(
-                    buf!!,
-                    packet!!.id
-                )
-            },
-            { buf: FriendlyByteBuf? ->
-                val id = UUIDUtil.STREAM_CODEC.decode(buf!!)
-                RequestSyncPacket(id)
-            })
+        val PACKET_CODEC: StreamCodec<FriendlyByteBuf, RequestSyncPacket> =
+            StreamCodec.of<FriendlyByteBuf, RequestSyncPacket>(
+                { buf: FriendlyByteBuf?, packet: RequestSyncPacket? ->
+                    UUIDUtil.STREAM_CODEC.encode(
+                        buf!!,
+                        packet!!.id
+                    )
+                },
+                { buf: FriendlyByteBuf? ->
+                    val id = UUIDUtil.STREAM_CODEC.decode(buf!!)
+                    RequestSyncPacket(id)
+                })
     }
 }

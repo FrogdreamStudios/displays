@@ -63,7 +63,12 @@ object Render {
     }
 
     // Renders a GPU texture onto a quad using the provided matrix stack and tessellator
-    fun renderGpuTexture(matrices: PoseStack, tess: Tesselator, @Suppress("UNUSED_PARAMETER") gpuView: GpuTextureView, type: RenderType) {
+    fun renderGpuTexture(
+        matrices: PoseStack,
+        tess: Tesselator,
+        @Suppress("UNUSED_PARAMETER") gpuView: GpuTextureView,
+        type: RenderType
+    ) {
         val mat = matrices.last().pose()
 
         val buf = tess.begin(

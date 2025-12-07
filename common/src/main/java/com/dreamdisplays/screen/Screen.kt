@@ -40,19 +40,24 @@ class Screen(
 ) {
     @JvmField
     var owner: Boolean
+
     @JvmField
     var errored: Boolean = false
+
     @JvmField
     var isSync: Boolean = false
     var muted: Boolean
+
     @JvmField
     var texture: DynamicTexture? = null
     var textureId: Identifier? = null
+
     @JvmField
     var renderType: RenderType? = null
     var textureWidth: Int = 0
     var textureHeight: Int = 0
     var previewTextureId: Identifier? = null
+
     @JvmField
     var previewRenderType: RenderType? = null
     private var width: Int

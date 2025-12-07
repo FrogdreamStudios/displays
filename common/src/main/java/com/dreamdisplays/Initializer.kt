@@ -35,6 +35,7 @@ object Initializer {
     private val wasInMultiplayer = AtomicBoolean(false)
     private val lastLevel = AtomicReference<ClientLevel?>(null)
     private val wasFocused = AtomicBoolean(false)
+
     @JvmField
     var config: Config = Config(File("./config/$MOD_ID"))
     var timerThread: Thread = Thread {
@@ -53,9 +54,11 @@ object Initializer {
             }
         }
     }
+
     @JvmField
     var isOnScreen: Boolean = false
     var focusMode: Boolean = false
+
     @JvmField
     var displaysEnabled: Boolean = true
     var isPremium: Boolean = false

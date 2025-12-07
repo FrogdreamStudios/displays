@@ -17,7 +17,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
 @NullMarked
 class Crosshair {
     @Inject(method = ["renderCrosshair"], at = [At("HEAD")], cancellable = true)
-    fun renderCrosshair(@Suppress("UNUSED_PARAMETER") guiGraphics: GuiGraphics, @Suppress("UNUSED_PARAMETER") deltaTracker: DeltaTracker, ci: CallbackInfo) {
+    fun renderCrosshair(
+        @Suppress("UNUSED_PARAMETER") guiGraphics: GuiGraphics,
+        @Suppress("UNUSED_PARAMETER") deltaTracker: DeltaTracker,
+        ci: CallbackInfo
+    ) {
         if (Initializer.isOnScreen) {
             ci.cancel()
         }
