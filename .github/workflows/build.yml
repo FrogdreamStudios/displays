@@ -38,9 +38,14 @@ jobs:
         with:
           cache-read-only: false
           cache-write-only: false
+          gradle-home-cache-excludes: |
+            caches/neoformruntime
 
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
+
+      - name: Clean NeoForm cache
+        run: rm -rf ~/.gradle/caches/neoformruntime
 
       - name: Build with Gradle
         run: ./gradlew build --no-daemon --parallel --build-cache
