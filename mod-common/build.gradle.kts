@@ -4,8 +4,8 @@ plugins {
 
 dependencies {
     api(libs.gst1)
-	api(libs.utils)
-	api(libs.javatube)
+    api(libs.utils)
+    api(libs.javatube)
     api(libs.jspecify)
 }
 
@@ -19,9 +19,9 @@ java {
 }
 
 tasks.withType<JavaCompile>().configureEach {
-	options.encoding = Charsets.UTF_8.name()
+    options.encoding = Charsets.UTF_8.name()
 }
 
 tasks.jar {
-	from(rootProject.file("LICENSE"))
+    from(rootProject.file("LICENSE"))
 }

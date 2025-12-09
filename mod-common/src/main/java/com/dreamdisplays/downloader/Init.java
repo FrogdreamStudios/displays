@@ -15,6 +15,13 @@ import static com.dreamdisplays.util.Utils.detectPlatform;
 @NullMarked
 public class Init {
 
+    // Pattern to match Linux/Unix shared object files
+    private static final Pattern SO_PATTERN =
+            Pattern.compile(".*\\.so(\\.\\d+)*$", Pattern.CASE_INSENSITIVE);
+    // Pattern to match macOS dynamic libraries
+    private static final Pattern DYLIB_PATTERN =
+            Pattern.compile(".*\\.(dylib|jnilib)$", Pattern.CASE_INSENSITIVE);
+
     // Sets up the library path for GStreamer and loads the libraries
     private static void setupLibraryPath() throws IOException {
         final File gStreamerLibrariesDir = new File("./libs/gstreamer");
@@ -79,14 +86,6 @@ public class Init {
         Listener.INSTANCE.setDone(true);
     }
 
-    // Pattern to match Linux/Unix shared object files
-    private static final Pattern SO_PATTERN =
-            Pattern.compile(".*\\.so(\\.\\d+)*$", Pattern.CASE_INSENSITIVE);
-
-    // Pattern to match macOS dynamic libraries
-    private static final Pattern DYLIB_PATTERN =
-            Pattern.compile(".*\\.(dylib|jnilib)$", Pattern.CASE_INSENSITIVE);
-
     // Checks if a file name corresponds to a library file
     private static boolean isLib(@Nullable String name) {
         if (name == null) return false;
@@ -108,7 +107,8 @@ public class Init {
 
         for (File file : files) {
             if (isLib(file.getName())) libs.add(file.getAbsolutePath());
-            else if (file.isDirectory()) libs.addAll(recursiveLoadLibs(List.of(Objects.requireNonNull(file.listFiles()))));
+            else if (file.isDirectory())
+                libs.addAll(recursiveLoadLibs(List.of(Objects.requireNonNull(file.listFiles()))));
         }
 
         return libs;
@@ -123,7 +123,8 @@ public class Init {
 
 
         final File gStreamerLibrariesDir = new File("./libs/gstreamer");
-        if (!gStreamerLibrariesDir.exists() && gStreamerLibrariesDir.mkdirs()) LoggingManager.error("Unable to mk directory");
+        if (!gStreamerLibrariesDir.exists() && gStreamerLibrariesDir.mkdirs())
+            LoggingManager.error("Unable to mk directory");
 
         Thread downloadThread = new Thread(() -> {
             Downloader downloader = new Downloader();

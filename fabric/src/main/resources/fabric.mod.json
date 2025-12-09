@@ -4,8 +4,10 @@
   "name": "Dream Displays",
   "version": "${version}",
   "license": "LGPL-3.0",
-    "description": "Create in-game screens to stream videos on any Minecraft server.",
-  "authors": ["arsmotorin, INotSleep, Toffikk"],
+  "description": "Create in-game screens to stream videos on any Minecraft server.",
+  "authors": [
+    "arsmotorin, INotSleep, Toffikk"
+  ],
   "entrypoints": {
     "client": [
       "com.dreamdisplays.DreamDisplaysMod"
@@ -23,7 +25,9 @@
   },
   "custom": {
     "modmenu": {
-      "badges": ["library"]
+      "badges": [
+        "library"
+      ]
     },
     "quilt_loader": {
       "id": "dreamdisplays",

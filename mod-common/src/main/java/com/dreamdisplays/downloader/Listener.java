@@ -16,36 +16,36 @@ public class Listener {
     private boolean done;
     private boolean failed;
 
-    public void setTask(String name) {
-        this.task = name;
-        this.percent = 0;
-    }
-
     public String getTask() {
         return task;
     }
 
-    public void setProgress(float percent) {
-        this.percent =  ((float) (((int) (percent * 100))%100))/100;
+    public void setTask(String name) {
+        this.task = name;
+        this.percent = 0;
     }
 
     public float getProgress() {
         return percent;
     }
 
-    public void setDone(boolean done) {
-        this.done = done;
+    public void setProgress(float percent) {
+        this.percent = ((float) (((int) (percent * 100)) % 100)) / 100;
     }
 
     public boolean isDone() {
         return done;
     }
 
-    public void setFailed(boolean failed) {
-        this.failed = failed;
+    public void setDone(boolean done) {
+        this.done = done;
     }
 
     public boolean isFailed() {
         return failed;
+    }
+
+    public void setFailed(boolean failed) {
+        this.failed = failed;
     }
 }

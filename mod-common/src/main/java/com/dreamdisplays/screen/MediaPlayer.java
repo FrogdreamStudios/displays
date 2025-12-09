@@ -1,5 +1,6 @@
 package com.dreamdisplays.screen;
 
+import com.dreamdisplays.Initializer;
 import com.github.felipeucelli.javatube.Stream;
 import com.github.felipeucelli.javatube.Youtube;
 import com.mojang.blaze3d.platform.NativeImage;
@@ -12,7 +13,6 @@ import net.minecraft.core.BlockPos;
 import org.freedesktop.gstreamer.*;
 import org.freedesktop.gstreamer.elements.AppSink;
 import org.freedesktop.gstreamer.event.SeekFlags;
-import com.dreamdisplays.Initializer;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -32,76 +32,143 @@ import java.util.stream.Collectors;
 @NullMarked
 public class MediaPlayer {
 
-    private final String lang;
-    String[] clients = new String[] { "WEB_MUSIC", "ANDROID", "ANDROID_VR", "ANDROID_TESTSUITE", "IOS", "IOS_MUSIC" };
-
     // === CONSTANTS =======================================================================
     private static final String MIME_VIDEO = "video/webm";
     private static final String MIME_AUDIO = "audio/webm";
     private static final String USER_AGENT_V = "ANDROID_VR";
     private static final String USER_AGENT_A = "ANDROID_TESTSUITE";
-
     private static final ExecutorService INIT_EXECUTOR =
             Executors.newSingleThreadExecutor(r -> new Thread(r, "MediaPlayer-init"));
-
+    public static boolean captureSamples = true;
+    private final String lang;
     // === PUBLIC API FIELDS ===============================================================
     private final String youtubeUrl;
+    // === EXECUTORS & CONCURRENCY =========================================================
+    private final ExecutorService gstExecutor = Executors.newSingleThreadExecutor(r -> new Thread(r, "MediaPlayer-gst"));
+    private final ExecutorService frameExecutor = Executors.newSingleThreadExecutor(r -> new Thread(r, "MediaPlayer-frame"));
+    private final AtomicBoolean terminated = new AtomicBoolean(false);
+    private final Screen screen;
+    String[] clients = new String[]{"WEB_MUSIC", "ANDROID", "ANDROID_VR", "ANDROID_TESTSUITE", "IOS", "IOS_MUSIC"};
     private volatile double currentVolume;
-    public static boolean captureSamples = true;
-
     // === GST OBJECTS =====================================================================
     private volatile @Nullable Pipeline videoPipeline;
     private volatile @Nullable Pipeline audioPipeline;
-
     private volatile java.util.@Nullable List<Stream> availableVideoStreams;
     private volatile @Nullable Stream currentVideoStream;
     private volatile boolean initialized;
     private int lastQuality;
-
     // === FRAME BUFFERS ===================================================================
     private @Nullable BufferedImage currentFrame;
-    private volatile @Nullable ByteBuffer   preparedBuffer;
-
+    private volatile @Nullable ByteBuffer preparedBuffer;
     private volatile int lastTexW = 0, lastTexH = 0;
     private volatile int preparedW = 0, preparedH = 0;
-
     private volatile double userVolume = (Initializer.config.defaultDisplayVolume);
     private volatile double lastAttenuation = 1.0;
-
-    // === EXECUTORS & CONCURRENCY =========================================================
-    private final ExecutorService gstExecutor   = Executors.newSingleThreadExecutor(r -> new Thread(r, "MediaPlayer-gst"));
-    private final ExecutorService frameExecutor = Executors.newSingleThreadExecutor(r -> new Thread(r, "MediaPlayer-frame"));
-    private final AtomicBoolean   terminated    = new AtomicBoolean(false);
-
     private @Nullable BufferedImage textureImage;
-    private final Screen screen;
 
     // === CONSTRUCTOR =====================================================================
     public MediaPlayer(String youtubeUrl, String lang, Screen screen) {
         this.youtubeUrl = youtubeUrl;
-        this.screen     = screen;
+        this.screen = screen;
         this.lang = lang;
         Gst.init("MediaPlayer");
         INIT_EXECUTOR.submit(this::initialize);
     }
 
+    // === FRAME PROCESSING ================================================================
+    private static BufferedImage sampleToImage(Sample sample, @Nullable BufferedImage img) {
+        Structure st = sample.getCaps().getStructure(0);
+        int w = st.getInteger("width"), h = st.getInteger("height");
+        Buffer buf = sample.getBuffer();
+        ByteBuffer bb = buf.map(false);
+        try {
+            if (img == null || img.getWidth() != w || img.getHeight() != h)
+                img = new BufferedImage(w, h, BufferedImage.TYPE_4BYTE_ABGR);
+            byte[] dst = ((DataBufferByte) img.getRaster().getDataBuffer()).getData();
+            byte[] src = new byte[dst.length];
+            bb.get(src);
+            for (int i = 0; i < src.length; i += 4) {
+                byte r = src[i], g = src[i + 1], b = src[i + 2], a = src[i + 3];
+                dst[i] = a;
+                dst[i + 1] = b;
+                dst[i + 2] = g;
+                dst[i + 3] = r;
+            }
+        } finally {
+            buf.unmap();
+        }
+        return img;
+    }
+
+    private static ByteBuffer imageToDirect(BufferedImage img) {
+        byte[] abgr = ((DataBufferByte) img.getRaster().getDataBuffer()).getData();
+        ByteBuffer buf = ByteBuffer.allocateDirect(abgr.length).order(ByteOrder.nativeOrder());
+
+        // Native ByteBuffer conversion
+        Converter.abgrToRgbaDirect(abgr, buf, abgr.length);
+
+        // Set position to end of written data before flip()
+        // Native code writes directly to buffer memory, so position stays at 0
+        buf.position(abgr.length);
+        buf.flip(); // Now flip will set limit=abgr.length, position=0
+
+        return buf;
+    }
+
+    private static int parseQuality(Stream s) {
+        try {
+            return Integer.parseInt(s.getResolution().replaceAll("\\D+", ""));
+        } catch (Exception e) {
+            return Integer.MAX_VALUE;
+        }
+    }
+
+    private static void safeStopAndDispose(@Nullable Element e) {
+        if (e == null) return;
+        try {
+            e.setState(State.NULL);
+        } catch (Exception ignore) {
+        }
+        try {
+            e.dispose();
+        } catch (Exception ignore) {
+        }
+    }
+
     // === PUBLIC API ======================================================================
-    public void play()               { safeExecute(this::doPlay);  }
-    public void pause()              { safeExecute(this::doPause); }
-    public void seekTo(long ns, boolean b)      { safeExecute(() -> doSeek(ns, b)); }
+    public void play() {
+        safeExecute(this::doPlay);
+    }
+
+    public void pause() {
+        safeExecute(this::doPause);
+    }
+
+    public void seekTo(long ns, boolean b) {
+        safeExecute(() -> doSeek(ns, b));
+    }
+
     public void seekRelative(double s) {
         safeExecute(() -> {
             if (!initialized) return;
             long cur = audioPipeline.queryPosition(Format.TIME);
-            long tgt = Math.max(0, cur + (long)(s * 1e9));
+            long tgt = Math.max(0, cur + (long) (s * 1e9));
             long dur = Math.max(0, audioPipeline.queryDuration(Format.TIME) - 1);
             doSeek(Math.min(tgt, dur), true);
         });
     }
-    public long  getCurrentTime()    { return initialized ? audioPipeline.queryPosition(Format.TIME) : 0; }
-    public long  getDuration()       { return initialized ? audioPipeline.queryDuration(Format.TIME) : 0; }
 
-    public boolean isInitialized()   { return initialized; }
+    public long getCurrentTime() {
+        return initialized ? audioPipeline.queryPosition(Format.TIME) : 0;
+    }
+
+    public long getDuration() {
+        return initialized ? audioPipeline.queryDuration(Format.TIME) : 0;
+    }
+
+    public boolean isInitialized() {
+        return initialized;
+    }
 
     public void stop() {
         if (terminated.getAndSet(true)) return;
@@ -141,7 +208,8 @@ public class MediaPlayer {
         }
 
         if (w != lastTexW || h != lastTexH) {
-            lastTexW = w; lastTexH = h;
+            lastTexW = w;
+            lastTexH = h;
         }
 
         if (!texture.isClosed()) {
@@ -167,7 +235,9 @@ public class MediaPlayer {
                 .collect(Collectors.toList());
     }
 
-    public void setQuality(String q) { safeExecute(() -> changeQuality(q)); }
+    public void setQuality(String q) {
+        safeExecute(() -> changeQuality(q));
+    }
 
     // === INITIALIZATION ==================================================================
     private void initialize() {
@@ -204,7 +274,7 @@ public class MediaPlayer {
             }
 
             currentVideoStream = videoOpt.get();
-            lastQuality        = parseQuality(currentVideoStream);
+            lastQuality = parseQuality(currentVideoStream);
 
             audioPipeline = buildAudioPipeline(audioOpt.get().getUrl());
             videoPipeline = buildVideoPipeline(currentVideoStream.getUrl());
@@ -286,32 +356,14 @@ public class MediaPlayer {
         });
     }
 
-    // === FRAME PROCESSING ================================================================
-    private static BufferedImage sampleToImage(Sample sample, @Nullable BufferedImage img) {
-        Structure st = sample.getCaps().getStructure(0);
-        int w = st.getInteger("width"), h = st.getInteger("height");
-        Buffer buf = sample.getBuffer();
-        ByteBuffer bb = buf.map(false);
-        try {
-            if (img == null || img.getWidth() != w || img.getHeight() != h)
-                img = new BufferedImage(w, h, BufferedImage.TYPE_4BYTE_ABGR);
-            byte[] dst = ((DataBufferByte) img.getRaster().getDataBuffer()).getData();
-            byte[] src = new byte[dst.length];
-            bb.get(src);
-            for (int i = 0; i < src.length; i += 4) {
-                byte r = src[i], g = src[i + 1], b = src[i + 2], a = src[i + 3];
-                dst[i] = a; dst[i + 1] = b; dst[i + 2] = g; dst[i + 3] = r;
-            }
-        } finally { buf.unmap(); }
-        return img;
-    }
-
     private void prepareBufferAsync() {
         if (currentFrame == null) return;
         int w = screen.textureWidth, h = screen.textureHeight;
         if (w == 0 || h == 0) return;
-        try { frameExecutor.submit(this::prepareBuffer); }
-        catch (RejectedExecutionException ignored) {}
+        try {
+            frameExecutor.submit(this::prepareBuffer);
+        } catch (RejectedExecutionException ignored) {
+        }
     }
 
     private void prepareBuffer() {
@@ -328,31 +380,17 @@ public class MediaPlayer {
 
         double scale = Math.max((double) w / currentFrame.getWidth(),
                 (double) h / currentFrame.getHeight());
-        int sw = (int) Math.round(currentFrame.getWidth()  * scale);
+        int sw = (int) Math.round(currentFrame.getWidth() * scale);
         int sh = (int) Math.round(currentFrame.getHeight() * scale);
-        int x  = (w - sw) / 2, y = (h - sh) / 2;
+        int x = (w - sw) / 2, y = (h - sh) / 2;
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
                 RenderingHints.VALUE_INTERPOLATION_BILINEAR);
         g.drawImage(currentFrame, x, y, sw, sh, null);
         g.dispose();
 
         preparedBuffer = imageToDirect(textureImage);
-        preparedW = w; preparedH = h;
-    }
-
-    private static ByteBuffer imageToDirect(BufferedImage img) {
-        byte[] abgr = ((DataBufferByte) img.getRaster().getDataBuffer()).getData();
-        ByteBuffer buf = ByteBuffer.allocateDirect(abgr.length).order(ByteOrder.nativeOrder());
-
-        // Native ByteBuffer conversion
-        Converter.abgrToRgbaDirect(abgr, buf, abgr.length);
-
-        // Set position to end of written data before flip()
-        // Native code writes directly to buffer memory, so position stays at 0
-        buf.position(abgr.length);
-        buf.flip(); // Now flip will set limit=abgr.length, position=0
-
-        return buf;
+        preparedW = w;
+        preparedH = h;
     }
 
     // === PLAYBACK HELPERS ================================================================
@@ -408,16 +446,14 @@ public class MediaPlayer {
                 .min(Comparator.comparingInt(s -> Math.abs(parseQuality(s) - target)));
     }
 
-    private static int parseQuality(Stream s) {
-        try { return Integer.parseInt(s.getResolution().replaceAll("\\D+", "")); }
-        catch (Exception e) { return Integer.MAX_VALUE; }
-    }
-
     private void changeQuality(String desired) {
         if (!initialized || availableVideoStreams == null) return;
         int target;
-        try { target = Integer.parseInt(desired.replaceAll("\\D+", "")); }
-        catch (NumberFormatException e) { return; }
+        try {
+            target = Integer.parseInt(desired.replaceAll("\\D+", ""));
+        } catch (NumberFormatException e) {
+            return;
+        }
         if (target == lastQuality) return;
         Minecraft.getInstance().execute(screen::reloadTexture);
 
@@ -441,14 +477,14 @@ public class MediaPlayer {
 
         EnumSet<SeekFlags> flags = EnumSet.of(SeekFlags.FLUSH, SeekFlags.ACCURATE);
         audioPipeline.seekSimple(Format.TIME, flags, pos);
-        newVid.seekSimple (Format.TIME, flags, pos);
+        newVid.seekSimple(Format.TIME, flags, pos);
 
         audioPipeline.play();
         if (!screen.getPaused()) newVid.play();
 
-        videoPipeline      = newVid;
+        videoPipeline = newVid;
         currentVideoStream = chosen;
-        lastQuality        = parseQuality(chosen);
+        lastQuality = parseQuality(chosen);
     }
 
     // === TICK ================================================================
@@ -466,13 +502,10 @@ public class MediaPlayer {
     // === CONCURRENCY HELPERS =============================================================
     private void safeExecute(Runnable r) {
         if (!gstExecutor.isShutdown()) {
-            try { gstExecutor.submit(r); } catch (RejectedExecutionException ignored) {}
+            try {
+                gstExecutor.submit(r);
+            } catch (RejectedExecutionException ignored) {
+            }
         }
-    }
-
-    private static void safeStopAndDispose(@Nullable Element e) {
-        if (e == null) return;
-        try { e.setState(State.NULL); } catch (Exception ignore) {}
-        try { e.dispose(); }           catch (Exception ignore) {}
     }
 }

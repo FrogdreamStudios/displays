@@ -57,7 +57,7 @@ public class Menu extends Screen {
 
         String[] text = new String[]{
                 Listener.INSTANCE.getTask(),
-                (Math.round(Listener.INSTANCE.getProgress() * 100)%100) + "%",
+                (Math.round(Listener.INSTANCE.getProgress() * 100) % 100) + "%",
         };
 
         int oSet = ((font.lineHeight / 2) + ((font.lineHeight + 2) * (text.length + 2))) + 4;

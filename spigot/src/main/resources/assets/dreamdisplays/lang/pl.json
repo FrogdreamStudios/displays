@@ -10,7 +10,9 @@
   "structureWrongDepth": "&7D |&f Wybór musi mieć co najmniej 1 blok długości",
   "wrongStructure": "&7D |&f Dla wyświetlaczy można używać tylko bloków czarnego betonu",
   "selectionClear": "&7D |&f Wybór wyczyszczony!",
-  "displayCommandHelp": ["&7D |&f Wprowadziłeś coś nieprawidłowego!"],
+  "displayCommandHelp": [
+    "&7D |&f Wprowadziłeś coś nieprawidłowego!"
+  ],
   "successfulCreation": "&7D |&f Wyświetlacz utworzony! Wpisz /display video <link do youtube> [język] aby ustawić wideo",
   "noDisplay": "&7D |&f Wyświetlacz nie został znaleziony!",
   "settedURL": "&7D |&f Wideo załadowane!",
@@ -19,7 +21,11 @@
   "reportSent": "&7D |&f Raport wysłany!",
   "newVersion": "&7D |&f Nowa wersja Dream Displays (%s)! Proszę zaktualizować!",
   "newPluginVersion": "&7D |&f Nowa wersja pluginu Dream Displays (%s)! Proszę zaktualizować go na serwerze!",
-  "usageHeader": ["&a-== Dream Displays ==-", "&aZainstalowane: &f{0}&7/&f{1}", "&a-== Wersje ==-"],
+  "usageHeader": [
+    "&a-== Dream Displays ==-",
+    "&aZainstalowane: &f{0}&7/&f{1}",
+    "&a-== Wersje ==-"
+  ],
   "usageVersionEntry": " &7- &f{0}&a: &f{1}",
   "usageFooter": "&a-====== ======-",
   "configReloaded": "&7D | &fDream Displays został przeładowany!",
