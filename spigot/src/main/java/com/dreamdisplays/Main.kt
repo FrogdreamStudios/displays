@@ -9,6 +9,7 @@ import com.dreamdisplays.storage.Storage
 import com.dreamdisplays.utils.Updater
 import com.github.zafarkhaja.semver.Version
 import me.inotsleep.utils.AbstractPlugin
+import org.bstats.bukkit.Metrics
 import org.bukkit.Bukkit
 import org.jspecify.annotations.NullMarked
 
@@ -33,6 +34,9 @@ class Main : AbstractPlugin<Main>() {
 
         Bukkit.getPluginManager().registerEvents(Selection(this), this)
         Bukkit.getPluginManager().registerEvents(Player(), this)
+
+        // Initialize bStats metrics
+        Metrics(this, 26488)
 
         // Updating displays
         Provider.adapter.runRepeatingAsync(

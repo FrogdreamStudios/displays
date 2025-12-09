@@ -14,6 +14,7 @@ dependencies {
     }
     compileOnly("com.google.code.gson:gson:2.13.2")
     implementation(kotlin("stdlib-jdk8:2.2.21"))
+    implementation("org.bstats:bstats-bukkit:3.1.0")
 }
 
 val targetJavaVersion = 21
