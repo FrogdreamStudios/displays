@@ -7,9 +7,6 @@ dependencies {
 	api(libs.utils)
 	api(libs.javatube)
     api(libs.jspecify)
-    implementation(libs.jna)
-    implementation(libs.jnaPlatform)
-	implementation(libs.lwjgl)
 }
 
 neoForge {

@@ -14,11 +14,11 @@
   "mixins": [
     "dreamdisplays.mixins.json"
   ],
-  "accessWidener": "dreamdisplays.accesswidener",
+  "accessWidener": "dreamdisplays.classtweaker",
   "depends": {
     "fabricloader": ">=0.17",
     "fabric": "*",
-    "minecraft": "1.21.11-beta.2",
+    "minecraft": "1.21.11",
     "java": ">=21"
   },
   "custom": {

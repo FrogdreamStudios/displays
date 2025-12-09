@@ -7,14 +7,14 @@ plugins {
 }
 
 loom {
-    accessWidenerPath.set(project(":mod-common").file("src/main/resources/dreamdisplays.accesswidener"))
+    accessWidenerPath.set(project(":mod-common").file("src/main/resources/dreamdisplays.classtweaker"))
 }
 
 dependencies {
 	minecraft(libs.fabricMinecraft)
 	mappings(loom.layered {
         officialMojangMappings()
-        parchment(rootProject.property("neoForge.parchment.parchmentArtifact"))
+        parchment(rootProject.property("neoForge.parchment.parchmentArtifact")!!)
     })
 	modImplementation(libs.fabricLoader)
 	modImplementation(libs.fabricApi)
