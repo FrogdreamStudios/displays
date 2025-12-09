@@ -7,7 +7,7 @@ plugins {
 }
 
 loom {
-    accessWidenerPath.set(project(":mod-common").file("src/main/resources/dreamdisplays.classtweaker"))
+    accessWidenerPath.set(project(":common").file("src/main/resources/dreamdisplays.classtweaker"))
 }
 
 dependencies {
@@ -18,7 +18,7 @@ dependencies {
     })
     modImplementation(libs.fabricLoader)
     modImplementation(libs.fabricApi)
-    shadow(project(":mod-common"))
+    shadow(project(":common"))
 }
 
 tasks.processResources {
@@ -58,7 +58,7 @@ tasks.withType<RemapJarTask>().configureEach {
 tasks.shadowJar {
     configurations = listOf(project.configurations.getByName("shadow"))
     dependencies {
-        include(project(":mod-common"))
+        include(project(":common"))
         include(dependency("org.freedesktop.gstreamer:gst1-java-core"))
         include(dependency("com.github.felipeucelli:javatube"))
         include(dependency("org.json:json"))
