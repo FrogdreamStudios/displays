@@ -57,7 +57,7 @@ class Selection(plugin: Main) : Listener {
                         }
                     }
                 }
-            }.runTaskTimer(plugin, 0L, Main.config.settings.particles_color.toLong())
+            }.runTaskTimer(plugin, 0L, 2L)
         }
     }
 
