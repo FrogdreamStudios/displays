@@ -11,10 +11,10 @@ import com.dreamdisplays.managers.Player.setPluginUpdateNotified
 import com.dreamdisplays.managers.Player.setVersion
 import com.dreamdisplays.managers.State.processSyncPacket
 import com.dreamdisplays.managers.State.sendSyncPacket
+import com.dreamdisplays.utils.Message
 import com.dreamdisplays.utils.Utils
 import com.github.zafarkhaja.semver.Version
 import me.inotsleep.utils.logging.LoggingManager
-import org.bukkit.ChatColor
 import org.bukkit.entity.Player
 import org.bukkit.plugin.messaging.PluginMessageListener
 import org.jspecify.annotations.NullMarked
@@ -41,16 +41,13 @@ class Receiver(var plugin: Main?) : PluginMessageListener {
                     }
 
                     "delete" -> {
-                        run {
-                            delete(id, player)
-                        }
-                        run {
-                            report(id, player)
-                        }
+                        delete(id, player)
+                        Message.sendMessage(player, "displayDeleted")
                     }
 
                     "report" -> {
                         report(id, player)
+                        Message.sendMessage(player, "displayReported")
                     }
                 }
             }
@@ -93,11 +90,7 @@ class Receiver(var plugin: Main?) : PluginMessageListener {
             if (result < 0 && !hasBeenNotifiedAboutModUpdate(player)) {
                 val message = Main.config.messages["newVersion"] as? String
                     ?: "&7D |&f New version of Dream Displays (%s) is available! Please update your mod!"
-                player.sendMessage(
-                    ChatColor.translateAlternateColorCodes(
-                        '&', String.format(message, Main.modVersion.toString())
-                    )
-                )
+                Message.sendColoredMessage(player, String.format(message, Main.modVersion.toString()))
                 setModUpdateNotified(player, true)
             }
 
@@ -115,11 +108,7 @@ class Receiver(var plugin: Main?) : PluginMessageListener {
                     if (currentPluginVersion < latestPluginVersion) {
                         val message = Main.config.messages["newPluginVersion"] as? String
                             ?: "&7D |&f New version of Dream Displays plugin (%s) is available! Please update the server plugin!"
-                        player.sendMessage(
-                            ChatColor.translateAlternateColorCodes(
-                                '&', String.format(message, Main.pluginLatestVersion)
-                            )
-                        )
+                        Message.sendColoredMessage(player, String.format(message, Main.pluginLatestVersion))
                         setPluginUpdateNotified(player, true)
                     }
                 }
