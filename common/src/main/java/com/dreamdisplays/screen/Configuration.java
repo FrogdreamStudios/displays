@@ -500,8 +500,6 @@ public class Configuration extends Screen {
     private void renderScreen(GuiGraphics graphics, int x, int y, int w, int h) {
         if (screen != null && screen.isVideoStarted() && screen.texture != null && screen.renderType != null) {
             Render2D.drawTexturedQuad(graphics.pose(), screen.texture.getTextureView(), x, y, w, h, screen.renderType);
-        } else if (screen != null && screen.hasPreviewTexture() && screen.getPreviewTexture() != null && screen.previewRenderType != null) {
-            Render2D.drawTexturedQuad(graphics.pose(), screen.getPreviewTexture().getTextureView(), x, y, w, h, screen.previewRenderType);
         } else {
             graphics.fill(x, y, x + w, y + h, 0xFF000000);
         }

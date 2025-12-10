@@ -4,8 +4,6 @@ import com.dreamdisplays.Initializer;
 import com.dreamdisplays.net.Info;
 import com.dreamdisplays.net.RequestSync;
 import com.dreamdisplays.net.Sync;
-import com.dreamdisplays.util.Image;
-import com.dreamdisplays.util.Utils;
 import me.inotsleep.utils.logging.LoggingManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderPipelines;
@@ -36,8 +34,6 @@ public class Screen {
     public @Nullable RenderType renderType = null;
     public int textureWidth = 0;
     public int textureHeight = 0;
-    public @Nullable Identifier previewTextureId = null;
-    public @Nullable RenderType previewRenderType = null;
     private int x;
     private int y;
     private int z;
@@ -53,7 +49,6 @@ public class Screen {
     private @Nullable String videoUrl;
     // Cache (good for performance)
     private transient @Nullable BlockPos blockPos;
-    private @Nullable DynamicTexture previewTexture = null;
     private @Nullable String lang;
 
     // Constructor for the Screen class
@@ -99,7 +94,7 @@ public class Screen {
 
         if (mediaPlayer != null) unregister();
 
-        // Load the video URL and language into the screen.
+        // Load the video URL and language into the screen
         this.videoUrl = videoUrl;
         this.lang = lang;
         CompletableFuture.runAsync(() -> {
@@ -108,18 +103,6 @@ public class Screen {
             int qualityInt = Integer.parseInt(this.quality.replace("p", ""));
             textureWidth = (int) (width / (double) height * qualityInt);
             textureHeight = qualityInt;
-
-            // TODO: note for INotSleep: we should delete video previews to avoid problems with videos
-            Image.fetchImageTextureFromUrl("https://img.youtube.com/vi/" + Utils.extractVideoId(videoUrl) + "/maxresdefault.jpg")
-                    .thenAcceptAsync(nativeImageBackedTexture -> {
-                        previewTexture = nativeImageBackedTexture;
-                        previewTextureId = Identifier.fromNamespaceAndPath(Initializer.MOD_ID, "screen-preview-" + id + "-" + UUID.randomUUID());
-
-                        if (previewTexture != null) {
-                            Minecraft.getInstance().getTextureManager().register(previewTextureId, previewTexture);
-                            previewRenderType = createRenderType(previewTextureId);
-                        }
-                    });
         });
 
         waitForMFInit(this::startVideo);
@@ -348,20 +331,10 @@ public class Screen {
         TextureManager manager = Minecraft.getInstance().getTextureManager();
 
         if (textureId != null) manager.release(textureId);
-        if (previewTextureId != null) manager.release(previewTextureId);
 
         if (Minecraft.getInstance().screen instanceof Configuration displayConfScreen) {
             if (displayConfScreen.screen == this) displayConfScreen.onClose();
         }
-    }
-
-    @Nullable
-    public DynamicTexture getPreviewTexture() {
-        return previewTexture;
-    }
-
-    public boolean hasPreviewTexture() {
-        return false;
     }
 
     public UUID getID() {
@@ -373,7 +346,6 @@ public class Screen {
         muted = status;
 
         setVideoVolume(!status ? volume : 0);
-        // Save settings
         Settings.updateSettings(id, volume, quality, muted);
     }
 
@@ -385,7 +357,6 @@ public class Screen {
     public void setVolume(float volume) {
         this.volume = volume;
         setVideoVolume(volume);
-        // Save settings
         Settings.updateSettings(id, volume, quality, muted);
     }
 

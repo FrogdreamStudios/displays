@@ -59,13 +59,11 @@ public class ScreenWorldRenderer {
         Render.fixRotation(matrices, screen.getFacing());
         matrices.scale(screen.getWidth(), screen.getHeight(), 0);
 
-        // Render the screen texture or preview texture
-        if (screen.isVideoStarted()) {
+        // Render the screen texture or black square
+        if (screen.isVideoStarted() && screen.texture != null && screen.renderType != null) {
             screen.fitTexture();
             Render.renderGpuTexture(matrices, tessellator, screen.texture.getTextureView(), screen.renderType);
-        } else if (screen.hasPreviewTexture()) {
-            Render.renderGpuTexture(matrices, tessellator, screen.getPreviewTexture().getTextureView(), screen.previewRenderType);
-        } else {
+        } else if (screen.renderType != null) {
             Render.renderBlack(matrices, tessellator, screen.renderType);
         }
         matrices.popPose();
