@@ -150,9 +150,11 @@ public class Initializer {
         BlockHitResult result = RayCasting.rCBlock(64);
         hoveredScreen = null;
         Initializer.isOnScreen = false;
-
         for (Screen screen : Manager.getScreens()) {
-            if (Initializer.config.defaultDistance < screen.getDistanceToScreen(minecraft.player.blockPosition()) || !Initializer.displaysEnabled) {
+            double displayRenderDistance = screen.getRenderDistance();
+
+            if (displayRenderDistance < screen.getDistanceToScreen(minecraft.player.blockPosition()) || !Initializer.displaysEnabled) {
+                Manager.saveScreenData(screen);
                 Manager.unregisterScreen(screen);
                 if (hoveredScreen == screen) {
                     hoveredScreen = null;
@@ -167,6 +169,14 @@ public class Initializer {
                 screen.tick(minecraft.player.blockPosition());
             }
         }
+
+        // Restore displays that came back into range
+        Manager.restoreNearbyDisplays(
+                minecraft.player.blockPosition().getX(),
+                minecraft.player.blockPosition().getY(),
+                minecraft.player.blockPosition().getZ(),
+                Initializer.config.defaultDistance
+        );
 
         long window = minecraft.getWindow().handle();
         boolean pressed = GLFW.glfwGetMouseButton(window, GLFW.GLFW_MOUSE_BUTTON_RIGHT) == GLFW.GLFW_PRESS;
@@ -208,12 +218,16 @@ public class Initializer {
 
     public static void onDeletePacket(Delete deletePacket) {
         Screen screen = Manager.screens.get(deletePacket.id());
-        if (screen == null) return;
+        if (screen != null) {
+            Manager.unregisterScreen(screen);
+        }
 
-        Manager.unregisterScreen(screen);
+        Settings.removeDisplay(deletePacket.id());
+        LoggingManager.info("Display deleted and removed from saved data: " + deletePacket.id());
     }
 
     public static void onStop() {
+        Manager.saveAllScreens();
         timerThread.interrupt();
         Manager.unloadAll();
         Focuser.instance.interrupt();

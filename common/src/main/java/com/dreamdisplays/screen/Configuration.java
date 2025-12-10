@@ -97,7 +97,7 @@ public class Configuration extends Screen {
 
         pauseButton.setIconTexture(screen.getPaused() ? Identifier.fromNamespaceAndPath(Initializer.MOD_ID, "bupi") : Identifier.fromNamespaceAndPath(Initializer.MOD_ID, "bpi"));
 
-        renderD = new Slider(0, 0, 0, 0, Component.nullToEmpty(String.valueOf(Initializer.config.defaultDistance)), (Initializer.config.defaultDistance - 24) / (double) (96 - 24)) {
+        renderD = new Slider(0, 0, 0, 0, Component.nullToEmpty(String.valueOf(screen.getRenderDistance())), (screen.getRenderDistance() - 24) / (double) (96 - 24)) {
             @Override
             protected void updateMessage() {
                 setMessage(Component.nullToEmpty(String.valueOf((int) (value * (96 - 24)) + 24)));
@@ -105,9 +105,9 @@ public class Configuration extends Screen {
 
             @Override
             protected void applyValue() {
-                Initializer.config.defaultDistance = (int) (value * (96 - 24) + 24);
-                Initializer.config.save();
-                Initializer.config.reload();
+                int newDistance = (int) (value * (96 - 24) + 24);
+                screen.setRenderDistance(newDistance);
+                Manager.saveScreenData(screen);
             }
         };
 
@@ -126,11 +126,10 @@ public class Configuration extends Screen {
         renderDReset = new Button(0, 0, 0, 0, 64, 64, Identifier.fromNamespaceAndPath(Initializer.MOD_ID, "bri"), 2) {
             @Override
             public void onPress() {
-                Initializer.config.defaultDistance = 64;
-                Initializer.config.save();
-                Initializer.config.reload();
-                renderD.value = (64 - 24) / (double) (96 - 24);
-                renderD.setMessage(Component.nullToEmpty("64"));
+                screen.setRenderDistance(Initializer.config.defaultDistance);
+                renderD.value = (Initializer.config.defaultDistance - 24) / (double) (96 - 24);
+                renderD.setMessage(Component.nullToEmpty(String.valueOf(Initializer.config.defaultDistance)));
+                Manager.saveScreenData(screen);
             }
         };
 
@@ -184,6 +183,9 @@ public class Configuration extends Screen {
         deleteButton = new Button(0, 0, 0, 0, 64, 64, Identifier.fromNamespaceAndPath(Initializer.MOD_ID, "delete"), 2) {
             @Override
             public void onPress() {
+                Settings.removeDisplay(screen.getID());
+                Manager.unregisterScreen(screen);
+
                 Initializer.sendPacket(new Delete(screen.getID()));
                 onClose();
             }
@@ -317,8 +319,8 @@ public class Configuration extends Screen {
                 syncReset.active = screen.owner && screen.isSync;
             }
             if (renderDReset != null && renderD != null) {
-                int currentDistance = (int) (renderD.value * (96 - 24) + 24);
-                renderDReset.active = currentDistance != 64;
+                int currentDistance = screen.getRenderDistance();
+                renderDReset.active = currentDistance != Initializer.config.defaultDistance;
             }
             if (qualityReset != null) {
                 qualityReset.active = !Objects.equals(screen.getQuality(), "720");
@@ -532,7 +534,7 @@ public class Configuration extends Screen {
     private void renderScreen(GuiGraphics graphics, int x, int y, int w, int h) {
         if (screen != null && screen.isVideoStarted() && screen.texture != null && screen.textureId != null) {
             screen.fitTexture();
-            graphics.blit(screen.textureId, x, y, 0, 0, w, h, w, h);
+            graphics.blit(screen.textureId, x, y, 0, 0, screen.textureWidth, screen.textureHeight, screen.textureWidth, screen.textureHeight);
         } else {
             graphics.fill(x, y, x + w, y + h, 0xFF000000);
         }

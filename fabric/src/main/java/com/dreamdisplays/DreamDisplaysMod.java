@@ -2,6 +2,7 @@ package com.dreamdisplays;
 
 import com.dreamdisplays.net.*;
 import com.dreamdisplays.render.ScreenWorldRenderer;
+import com.dreamdisplays.screen.Manager;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.fabricmc.api.ClientModInitializer;
@@ -9,6 +10,7 @@ import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallba
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
@@ -72,6 +74,24 @@ public class DreamDisplaysMod implements ClientModInitializer, Mod {
 
 
         ClientTickEvents.END_CLIENT_TICK.register(Initializer::onEndTick);
+
+        // Load displays when joining a world
+        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
+            if (client.level != null && client.player != null) {
+                // Use server address as server ID for local singleplayer worlds
+                // TODO: add support for singleplayer in the future.
+                // For now, we just use "singleplayer" as the ID.
+                String serverId = client.isLocalServer() ? "singleplayer" :
+                        (client.getCurrentServer() != null ? client.getCurrentServer().ip : "unknown");
+                Manager.loadScreensForServer(serverId);
+            }
+        });
+
+        // Save displays when disconnecting from a world
+        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
+            Manager.saveAllScreens();
+            Manager.unloadAll();
+        });
 
         ClientLifecycleEvents.CLIENT_STOPPING.register(minecraftClient -> Initializer.onStop());
     }

@@ -13,6 +13,7 @@ import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -44,9 +45,12 @@ public class Screen {
     private boolean videoStarted;
     private boolean paused;
     private String quality = "720";
+    private long savedTimeNanos = 0;
+    private int renderDistance = 64;
     // Use a combined MediaPlayer instead of the separate VideoDecoder and AudioPlayer.
     private @Nullable MediaPlayer mediaPlayer;
     private @Nullable String videoUrl;
+    private final UUID ownerId;
     // Cache (good for performance)
     private transient @Nullable BlockPos blockPos;
     private @Nullable String lang;
@@ -54,6 +58,7 @@ public class Screen {
     // Constructor for the Screen class
     public Screen(UUID id, UUID ownerId, int x, int y, int z, String facing, int width, int height, boolean isSync) {
         this.id = id;
+        this.ownerId = ownerId;
         this.x = x;
         this.y = y;
         this.z = z;
@@ -272,6 +277,7 @@ public class Screen {
             mediaPlayer.play();
             videoStarted = true;
             paused = false;
+            restoreSavedTime();
         }
     }
 
@@ -328,13 +334,29 @@ public class Screen {
     public void unregister() {
         if (mediaPlayer != null) mediaPlayer.stop();
 
-        TextureManager manager = Minecraft.getInstance().getTextureManager();
+        // Schedule texture cleanup on render thread to avoid "Rendersystem called from wrong thread" error
+        Minecraft minecraft = getMinecraft();
 
-        if (textureId != null) manager.release(textureId);
-
-        if (Minecraft.getInstance().screen instanceof Configuration displayConfScreen) {
+        if (minecraft.screen instanceof Configuration displayConfScreen) {
             if (displayConfScreen.screen == this) displayConfScreen.onClose();
         }
+    }
+
+    private @NonNull Minecraft getMinecraft() {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (textureId != null) {
+            minecraft.execute(() -> {
+                TextureManager manager = minecraft.getTextureManager();
+                if (textureId != null) {
+                    try {
+                        manager.release(textureId);
+                    } catch (Exception e) {
+                        LoggingManager.warn("Failed to release texture: " + e.getMessage());
+                    }
+                }
+            });
+        }
+        return minecraft;
     }
 
     public UUID getID() {
@@ -386,6 +408,34 @@ public class Screen {
         }
     }
 
+    public long getCurrentTimeNanos() {
+        if (mediaPlayer != null) {
+            return mediaPlayer.getCurrentTime();
+        }
+        return 0;
+    }
+
+    public void setRenderDistance(int distance) {
+        this.renderDistance = distance;
+    }
+
+    public int getRenderDistance() {
+        return renderDistance;
+    }
+
+    // Set the saved time to restore when video loads
+    public void setSavedTimeNanos(long timeNanos) {
+        this.savedTimeNanos = timeNanos;
+    }
+
+    // Restore the saved video playback time
+    public void restoreSavedTime() {
+        if (savedTimeNanos > 0 && mediaPlayer != null && mediaPlayer.isInitialized()) {
+            mediaPlayer.seekTo(savedTimeNanos, false);
+            LoggingManager.info("Restored video time: " + (savedTimeNanos / 1_000_000_000) + "s");
+        }
+    }
+
     public void waitForMFInit(Runnable action) {
         new Thread(() -> {
             while (mediaPlayer == null || !mediaPlayer.isInitialized()) {
@@ -397,6 +447,18 @@ public class Screen {
             }
             action.run();
         }).start();
+    }
+
+    public @Nullable String getVideoUrl() {
+        return videoUrl;
+    }
+
+    public @Nullable String getLang() {
+        return lang;
+    }
+
+    public @Nullable UUID getOwnerId() {
+        return ownerId;
     }
 
     public void tick(BlockPos pos) {
