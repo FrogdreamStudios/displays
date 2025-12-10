@@ -4,7 +4,6 @@ plugins {
 subprojects {
     repositories {
         mavenCentral()
-        maven("https://prmaven.neoforged.net/NeoForge/pr2815") // TODO: remove me when 1.21.11 releases
         maven("https://maven.fabricmc.net/")
         maven("https://repo.l0sty.ru/releases")
         maven("https://repo.papermc.io/repository/maven-public/")

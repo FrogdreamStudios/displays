@@ -12,7 +12,6 @@ dependencies {
     implementation("com.moandjiezana.toml:toml4j:0.7.2") {
         exclude(group = "com.google.code.gson", module = "gson")
     }
-    compileOnly("com.google.code.gson:gson:2.13.2")
     implementation(kotlin("stdlib-jdk8:2.2.21"))
     implementation("org.bstats:bstats-bukkit:3.1.0")
 }
@@ -56,5 +55,14 @@ tasks.shadowJar {
         attributes(
             "paperweight-mappings-namespace" to "mojang",
         )
+    }
+    val prefix = "com.dreamdisplays.libs"
+    listOf(
+        "me.inotsleep.utils",
+        "org.bstats",
+        "com.moandjiezana.toml",
+        "com.github.zafarkhaja.semver",
+    ).forEach { pack ->
+        relocate(pack, "$prefix.$pack")
     }
 }

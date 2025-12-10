@@ -16,8 +16,8 @@ dependencies {
         officialMojangMappings()
         parchment(rootProject.property("neoForge.parchment.parchmentArtifact")!!)
     })
-    modImplementation(libs.fabricLoader)
-    modImplementation(libs.fabricApi)
+    modCompileOnly(libs.fabricLoader)
+    modCompileOnly(libs.fabricApi)
     shadow(project(":common"))
 }
 
@@ -63,5 +63,14 @@ tasks.shadowJar {
         include(dependency("com.github.felipeucelli:javatube"))
         include(dependency("org.json:json"))
         include(dependency("me.inotsleep:utils"))
+    }
+    val prefix = "com.dreamdisplays.libs"
+    listOf(
+        "com.github.felipeucelli.javatube",
+        "me.inotsleep.utils",
+        "org.freedesktop.gstreamer",
+        "org.json",
+    ).forEach { pack ->
+        relocate(pack, "$prefix.$pack")
     }
 }
