@@ -35,37 +35,77 @@ public class Utils {
     // Extracts video ID from various YouTube URL formats
     @Nullable
     public static String extractVideoId(String youtubeUrl) {
+        if (youtubeUrl == null || youtubeUrl.isEmpty()) {
+            return null;
+        }
+
         try {
             URI uri = new URI(youtubeUrl);
-            String query = uri.getQuery();
-            if (query != null) {
-                for (String param : query.split("&")) {
-                    String[] pair = param.split("=", 2);
-                    if (pair.length == 2 && pair[0].equals("v")) {
-                        return pair[1];
-                    }
-                }
-            }
-
-            // If the URL is a shortened version or a YouTube Shorts link
             String host = uri.getHost();
+
+            // Handle youtu.be shortened URLs
             if (host != null && host.contains("youtu.be")) {
                 String path = uri.getPath();
                 if (path != null && path.length() > 1) {
-                    return path.substring(1);
+                    String videoId = path.substring(1);
+                    // Remove any query parameters from the video ID
+                    videoId = videoId.split("[?#]")[0];
+                    return videoId.isEmpty() ? null : videoId;
                 }
-            } else if (host != null && host.contains("youtube.com")) {
+            }
+
+            // Handle youtube.com URLs
+            if (host != null && host.contains("youtube.com")) {
+                String query = uri.getQuery();
+
+                // Extract video ID from v parameter
+                if (query != null) {
+                    for (String param : query.split("&")) {
+                        String[] pair = param.split("=", 2);
+                        if (pair.length == 2 && pair[0].equals("v")) {
+                            return pair[1];
+                        }
+                    }
+                }
+
+                // Handle YouTube Shorts URLs
                 String path = uri.getPath();
                 if (path != null && path.contains("shorts")) {
-                    return List.of(path.split("/")).getLast();
+                    String[] pathSegments = path.split("/");
+                    for (String segment : pathSegments) {
+                        if (!segment.isEmpty() && !segment.equals("shorts")) {
+                            // Remove any query parameters
+                            String videoId = segment.split("[?#]")[0];
+                            return videoId.isEmpty() ? null : videoId;
+                        }
+                    }
                 }
             }
         } catch (URISyntaxException ignored) {
         }
 
-        String regex = "(?<=([?&]v=))[^#&?]*";
-        Matcher m = Pattern.compile(regex).matcher(youtubeUrl);
-        return m.find() ? m.group() : null;
+        // Fallback regex patterns for various YouTube URL formats
+        // Pattern for ?v=VIDEOID or &v=VIDEOID
+        String videoIdRegex = "(?:(?:[?&]v=)|(?:youtu\\.be/)([^?&#]*))";
+        Matcher matcher = Pattern.compile(videoIdRegex).matcher(youtubeUrl);
+
+        if (matcher.find()) {
+            String match = matcher.group();
+            // Extract the actual video ID
+            String videoId = match.replaceAll("(?:[?&]v=|youtu\\.be/)", "");
+            // Remove any trailing parameters
+            videoId = videoId.split("[?&#]")[0];
+            return videoId.isEmpty() ? null : videoId;
+        }
+
+        // Additional pattern for direct video IDs (11 character alphanumeric)
+        String directIdRegex = "[a-zA-Z0-9_-]{11}";
+        matcher = Pattern.compile(directIdRegex).matcher(youtubeUrl);
+        if (matcher.find()) {
+            return matcher.group();
+        }
+
+        return null;
     }
 
     public static String readResource(String resourcePath) throws IOException {
