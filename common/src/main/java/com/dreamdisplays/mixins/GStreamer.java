@@ -40,7 +40,12 @@ public abstract class GStreamer {
             if (!(screen instanceof Menu) && !(screen instanceof Error)) {
                 if (Listener.INSTANCE.isDone() && !Listener.INSTANCE.isFailed()) {
                     dreamdisplays$downloaded = true;
-                    Gst.init("MediaPlayer");
+                    try {
+                        Gst.init("MediaPlayer");
+                    } catch (Throwable e) {
+                        LoggingManager.error("Failed to initialize GStreamer", e);
+                        setScreen(new Error(screen, "Dream Displays failed to initialize GStreamer."));
+                    }
                 } else if (!Listener.INSTANCE.isDone() && !Listener.INSTANCE.isFailed()) {
                     LoggingManager.warn("GStreamer has not finished loading, displaying loading screen");
                     setScreen(new Menu(screen));
@@ -54,7 +59,7 @@ public abstract class GStreamer {
                         LoggingManager.info("GStreamer downloader not needed on " + Utils.detectPlatform() + " - using system installation");
                         try {
                             Gst.init("MediaPlayer");
-                        } catch (Exception e) {
+                        } catch (Throwable e) {
                             LoggingManager.error("Failed to initialize system GStreamer", e);
                             setScreen(new Error(screen, "Dream Displays failed to initialize GStreamer. Please install GStreamer via your package manager."));
                         }

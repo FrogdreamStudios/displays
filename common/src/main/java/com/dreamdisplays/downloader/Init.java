@@ -42,7 +42,13 @@ public class Init {
                                 .getCanonicalPath()
                 )
         );
-        Gst.init("MediaPlayer");
+        try {
+            Gst.init("MediaPlayer");
+        } catch (Throwable e) {
+            LoggingManager.error("Failed to initialize GStreamer after loading libraries", e);
+            Listener.INSTANCE.setFailed(true);
+            throw new RuntimeException(e);
+        }
     }
 
     // Loads the specified libraries, handling dependencies
