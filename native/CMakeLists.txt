@@ -6,9 +6,25 @@ set(CMAKE_C_STANDARD 11)
 # Option to enable SIMD optimizations
 option(USE_SIMD "Enable SIMD optimizations (SSE2/NEON)" ON)
 
+# Set JAVA_HOME from environment if available
+if(DEFINED ENV{JAVA_HOME})
+    set(JAVA_HOME $ENV{JAVA_HOME})
+    message(STATUS "Using JAVA_HOME from environment: ${JAVA_HOME}")
+    set(JAVA_INCLUDE_PATH "${JAVA_HOME}/include")
+    if(APPLE)
+        set(JAVA_INCLUDE_PATH2 "${JAVA_HOME}/include/darwin")
+    elseif(UNIX)
+        set(JAVA_INCLUDE_PATH2 "${JAVA_HOME}/include/linux")
+    endif()
+    set(JAVA_AWT_INCLUDE_PATH "${JAVA_HOME}/include")
+endif()
+
 # Find JNI
 find_package(JNI REQUIRED)
 include_directories(${JNI_INCLUDE_DIRS})
+
+message(STATUS "JNI_INCLUDE_DIRS: ${JNI_INCLUDE_DIRS}")
+message(STATUS "JNI_LIBRARIES: ${JNI_LIBRARIES}")
 
 # Use single optimized source file
 set(SOURCE_FILE src/image_converter.c)
@@ -32,8 +48,10 @@ if(USE_SIMD)
     endif()
 endif()
 
-# Link JNI
-target_link_libraries(dreamdisplays_native ${JNI_LIBRARIES})
+# Link JNI libraries
+if(NOT APPLE)
+    target_link_libraries(dreamdisplays_native ${JNI_LIBRARIES})
+endif()
 
 # Set output name
 set_target_properties(dreamdisplays_native PROPERTIES
