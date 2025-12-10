@@ -19,5 +19,4 @@ rootProject.name = "displays"
 include(":common")
 include(":fabric")
 include(":neoforge")
-include(":forge")
 include(":spigot")
