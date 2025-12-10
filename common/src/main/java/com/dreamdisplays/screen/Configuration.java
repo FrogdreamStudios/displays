@@ -290,7 +290,7 @@ public class Configuration extends Screen {
             }
 
             for (Component text : errorText) {
-                guiGraphics.drawString(font, text, this.width / 2 - font.width(text) / 2, yP += 2 + font.lineHeight, 0xFFFFFF, true);
+                guiGraphics.drawString(font, text, this.width / 2 - font.width(text) / 2, yP += 2 + font.lineHeight, 0xFFFFFFFF, true);
             }
 
             if (deleteButton != null) deleteButton.render(guiGraphics, mouseX, mouseY, delta);
@@ -315,7 +315,7 @@ public class Configuration extends Screen {
         int headerTextWidth = font.width(headerText);
         int headerTextX = (this.width - headerTextWidth) / 2;
         int headerTextY = 15;
-        guiGraphics.drawString(font, headerText, headerTextX, headerTextY, 0xFFFFFF, true);
+        guiGraphics.drawString(font, headerText, headerTextX, headerTextY, 0xFFFFFFFF, true);
 
         int maxSW = this.width / 3;
 
@@ -386,7 +386,7 @@ public class Configuration extends Screen {
         Component renderDText = Component.translatable("dreamdisplays.button.render-distance");
         int renderDTextX = this.width / 2 - maxSW / 2;
         int renderDTextY = cY + vCH / 2 - font.lineHeight / 2;
-        guiGraphics.drawString(font, renderDText, renderDTextX, renderDTextY, 0xFFFFFF, true);
+        guiGraphics.drawString(font, renderDText, renderDTextX, renderDTextY, 0xFFFFFFFF, true);
 
         // Tooltip
         List<Component> renderDTooltip = List.of(
@@ -411,7 +411,7 @@ public class Configuration extends Screen {
         Component qualityText = Component.translatable("dreamdisplays.button.quality");
         int qualityTextX = this.width / 2 - maxSW / 2;
         int qualityTextY = cY + vCH / 2 - font.lineHeight / 2;
-        guiGraphics.drawString(font, qualityText, qualityTextX, qualityTextY, 0xFFFFFF, true);
+        guiGraphics.drawString(font, qualityText, qualityTextX, qualityTextY, 0xFFFFFFFF, true);
 
         // Tooltip
         List<Component> qualityTooltip = null;
@@ -438,7 +438,7 @@ public class Configuration extends Screen {
         Component syncText = Component.translatable("dreamdisplays.button.synchronization");
         int syncTextX = this.width / 2 - maxSW / 2;
         int syncTextY = cY + vCH / 2 - font.lineHeight / 2;
-        guiGraphics.drawString(font, syncText, syncTextX, syncTextY, 0xFFFFFF, true);
+        guiGraphics.drawString(font, syncText, syncTextX, syncTextY, 0xFFFFFFFF, true);
 
         List<Component> syncTooltip = List.of(
                 Component.translatable("dreamdisplays.button.synchronization.tooltip.1").withStyle(style -> style.withColor(ChatFormatting.WHITE).withBold(true)),
