@@ -39,6 +39,7 @@ public class Configuration extends Screen {
 
     @Nullable Button renderDReset = null;
     @Nullable Button qualityReset = null;
+    @Nullable Button volumeReset = null;
     @Nullable Button syncReset = null;
 
     @Nullable Button deleteButton = null;
@@ -144,6 +145,15 @@ public class Configuration extends Screen {
             }
         };
 
+        volumeReset = new Button(0, 0, 0, 0, 64, 64, Identifier.fromNamespaceAndPath(Initializer.MOD_ID, "bri"), 2) {
+            @Override
+            public void onPress() {
+                screen.setVolume(0.5f);
+                volume.value = 0.5;
+                volume.setMessage(Component.literal("50%"));
+            }
+        };
+
         sync = new Toggle(0, 0, 0, 0, Component.translatable(screen.isSync ? "dreamdisplays.button.enabled" : "dreamdisplays.button.disabled"), screen.isSync) {
             @Override
             protected void updateMessage() {
@@ -203,6 +213,7 @@ public class Configuration extends Screen {
         addRenderableWidget(quality);
         addRenderableWidget(qualityReset);
         addRenderableWidget(renderDReset);
+        addRenderableWidget(volumeReset);
         addRenderableWidget(sync);
         addRenderableWidget(syncReset);
         addRenderableWidget(deleteButton);
@@ -270,6 +281,9 @@ public class Configuration extends Screen {
             if (qualityReset != null) {
                 qualityReset.active = false;
             }
+            if (volumeReset != null) {
+                volumeReset.active = false;
+            }
             if (syncReset != null) {
                 syncReset.active = false;
             }
@@ -310,6 +324,9 @@ public class Configuration extends Screen {
             if (qualityReset != null) {
                 qualityReset.active = !Objects.equals(screen.getQuality(), "720");
             }
+            if (volumeReset != null && volume != null) {
+                volumeReset.active = Math.abs(volume.value - 0.5) > 0.01; // Allow small floating point tolerance
+            }
         }
 
         int headerTextWidth = font.width(headerText);
@@ -335,16 +352,9 @@ public class Configuration extends Screen {
         cY += sH;
         cY += 5;
 
-        // Settings for volume, backButton, forwardButton, pauseButton
-        if (volume != null) {
-            volume.setX(this.width / 2 - maxSW / 2);
-            volume.setY(cY);
-            volume.setHeight(vCH);
-            volume.setWidth(Math.min(maxSW / 3, maxSW / 2 - vCH * 9 / 8 - 5));
-        }
-
+        // Settings for backButton, forwardButton, pauseButton
         if (backButton != null) {
-            backButton.setX(this.width / 2 - vCH * 9 / 8);
+            backButton.setX(this.width / 2 - maxSW / 2);
             backButton.setY(cY);
             backButton.setHeight(vCH);
             backButton.setWidth(vCH);
@@ -352,7 +362,7 @@ public class Configuration extends Screen {
         }
 
         if (forwardButton != null) {
-            forwardButton.setX(this.width / 2 + vCH / 8);
+            forwardButton.setX(this.width / 2 - maxSW / 2 + vCH + 5);
             forwardButton.setY(cY);
             forwardButton.setHeight(vCH);
             forwardButton.setWidth(vCH);
@@ -377,7 +387,28 @@ public class Configuration extends Screen {
 
         cY += 10 + vCH;
 
-        // Volume, backButton, forwardButton, pauseButton
+        // Volume slider and reset button
+        if (volume != null && volumeReset != null) {
+            placeButton(vCH, maxSW, cY, volume, volumeReset);
+        }
+
+        // Volume text
+        Component volumeText = Component.translatable("dreamdisplays.button.volume");
+        int volumeTextX = this.width / 2 - maxSW / 2;
+        int volumeTextY = cY + vCH / 2 - font.lineHeight / 2;
+        guiGraphics.drawString(font, volumeText, volumeTextX, volumeTextY, 0xFFFFFFFF, true);
+
+        // Tooltip for Volume
+        List<Component> volumeTooltip = List.of(
+                Component.translatable("dreamdisplays.button.volume.tooltip.1").withStyle(style -> style.withColor(ChatFormatting.WHITE).withBold(true)),
+                Component.translatable("dreamdisplays.button.volume.tooltip.2").withStyle(style -> style.withColor(ChatFormatting.GRAY)),
+                Component.translatable("dreamdisplays.button.volume.tooltip.3").withStyle(style -> style.withColor(ChatFormatting.GRAY)),
+                Component.translatable("dreamdisplays.button.volume.tooltip.4", (int) (volume.value * 100)).withStyle(style -> style.withColor(ChatFormatting.GOLD))
+        );
+
+        cY += 5 + vCH;
+
+        // Render Distance slider and reset button
         if (renderD != null && renderDReset != null) {
             placeButton(vCH, maxSW, cY, renderD, renderDReset);
         }
@@ -448,6 +479,8 @@ public class Configuration extends Screen {
                 Component.translatable("dreamdisplays.button.synchronization.tooltip.5", sync.value ? Component.translatable("dreamdisplays.button.enabled") : Component.translatable("dreamdisplays.button.disabled")).withStyle(style -> style.withColor(ChatFormatting.GOLD))
         );
 
+        renderTooltipIfHovered(guiGraphics, mouseX, mouseY, volumeTextX, volumeTextY,
+                font.width(volumeText), font.lineHeight, volumeTooltip);
         renderTooltipIfHovered(guiGraphics, mouseX, mouseY, renderDTextX, renderDTextY,
                 font.width(renderDText), font.lineHeight, renderDTooltip);
         renderTooltipIfHovered(guiGraphics, mouseX, mouseY, qualityTextX, qualityTextY,
@@ -499,6 +532,7 @@ public class Configuration extends Screen {
     // Renders display screen preview
     private void renderScreen(GuiGraphics graphics, int x, int y, int w, int h) {
         if (screen != null && screen.isVideoStarted() && screen.texture != null && screen.renderType != null) {
+            screen.fitTexture();
             Render2D.drawTexturedQuad(graphics.pose(), screen.texture.getTextureView(), x, y, w, h, screen.renderType);
         } else {
             graphics.fill(x, y, x + w, y + h, 0xFF000000);
