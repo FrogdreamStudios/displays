@@ -27,7 +27,7 @@ Done! To customize the display, look at it and press `Shift + RMB`
 
 - YouTube video playback without ads
 - Adjustable resolution settings
-- Configurable screen sizes rangings
+- Configurable screen sizes ranging
 - Multiplayer synchronization
 - Integrated controls for pausing and playing
 - Convenient server-side configuration management
