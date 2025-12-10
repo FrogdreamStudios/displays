@@ -228,20 +228,10 @@ public class MediaPlayer {
     // === INITIALIZATION ==================================================================
     private void initialize() {
         try {
-            // Extract video ID from URL to handle URLs with parameters like ?t=10&list=PLxxx
-            String videoId = com.dreamdisplays.util.Utils.extractVideoId(youtubeUrl);
-            if (videoId == null || videoId.isEmpty()) {
-                LoggingManager.error("Could not extract video ID from URL: " + youtubeUrl);
-                return;
-            }
-
-            // Build proper YouTube URL with just the video ID
-            String cleanUrl = "https://www.youtube.com/watch?v=" + videoId;
-
-            Youtube yt = new Youtube(cleanUrl, USER_AGENT_V);
+            Youtube yt = new Youtube(youtubeUrl, USER_AGENT_V);
             java.util.List<Stream> all = yt.streams().getAll();
 
-            Youtube ytA = new Youtube(cleanUrl, USER_AGENT_A);
+            Youtube ytA = new Youtube(youtubeUrl, USER_AGENT_A);
             java.util.List<Stream> audioS = ytA.streams().getAll();
 
             availableVideoStreams = all.stream()
