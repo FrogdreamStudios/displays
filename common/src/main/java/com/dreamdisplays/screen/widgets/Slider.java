@@ -63,12 +63,7 @@ public abstract class Slider extends AbstractWidget {
 
     @Override
     public void onClick(MouseButtonEvent event, boolean doubleClick) {
-        super.onClick(event, doubleClick);
         this.setValueFromMouse(event.x());
-    }
-
-    @Override
-    public void onRelease(MouseButtonEvent event) {
         super.playDownSound(Minecraft.getInstance().getSoundManager());
     }
 

@@ -78,10 +78,6 @@ public abstract class Toggle extends AbstractWidget {
         this.setValueFromMouse();
         this.updateMessage();
         this.applyValue();
-    }
-
-    @Override
-    public void onRelease(MouseButtonEvent event) {
         super.playDownSound(Minecraft.getInstance().getSoundManager());
     }
 

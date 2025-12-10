@@ -45,10 +45,6 @@ public abstract class Button extends AbstractWidget {
     @Override
     public void onClick(MouseButtonEvent event, boolean doubleClick) {
         this.onPress();
-    }
-
-    @Override
-    public void onRelease(MouseButtonEvent event) {
         super.playDownSound(Minecraft.getInstance().getSoundManager());
     }
 
