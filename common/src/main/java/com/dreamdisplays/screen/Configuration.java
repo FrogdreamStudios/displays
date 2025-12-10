@@ -3,7 +3,6 @@ package com.dreamdisplays.screen;
 import com.dreamdisplays.Initializer;
 import com.dreamdisplays.net.Delete;
 import com.dreamdisplays.net.Report;
-import com.dreamdisplays.render.Render2D;
 import com.dreamdisplays.screen.widgets.Button;
 import com.dreamdisplays.screen.widgets.Slider;
 import com.dreamdisplays.screen.widgets.Toggle;
@@ -531,9 +530,9 @@ public class Configuration extends Screen {
 
     // Renders display screen preview
     private void renderScreen(GuiGraphics graphics, int x, int y, int w, int h) {
-        if (screen != null && screen.isVideoStarted() && screen.texture != null && screen.renderType != null) {
+        if (screen != null && screen.isVideoStarted() && screen.texture != null && screen.textureId != null) {
             screen.fitTexture();
-            Render2D.drawTexturedQuad(graphics.pose(), screen.texture.getTextureView(), x, y, w, h, screen.renderType);
+            graphics.blit(screen.textureId, x, y, 0, 0, w, h, w, h);
         } else {
             graphics.fill(x, y, x + w, y + h, 0xFF000000);
         }
