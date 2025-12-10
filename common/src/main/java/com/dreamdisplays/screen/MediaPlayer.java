@@ -16,9 +16,6 @@ import org.freedesktop.gstreamer.event.SeekFlags;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.*;
@@ -58,13 +55,14 @@ public class MediaPlayer {
     private volatile boolean initialized;
     private int lastQuality;
     // === FRAME BUFFERS ===================================================================
-    private @Nullable BufferedImage currentFrame;
+    private volatile @Nullable ByteBuffer currentFrameBuffer;
+    private volatile int currentFrameWidth = 0;
+    private volatile int currentFrameHeight = 0;
     private volatile @Nullable ByteBuffer preparedBuffer;
     private volatile int lastTexW = 0, lastTexH = 0;
     private volatile int preparedW = 0, preparedH = 0;
     private volatile double userVolume = (Initializer.config.defaultDisplayVolume);
     private volatile double lastAttenuation = 1.0;
-    private @Nullable BufferedImage textureImage;
 
     // === CONSTRUCTOR =====================================================================
     public MediaPlayer(String youtubeUrl, String lang, Screen screen) {
@@ -76,43 +74,31 @@ public class MediaPlayer {
     }
 
     // === FRAME PROCESSING ================================================================
-    private static BufferedImage sampleToImage(Sample sample, @Nullable BufferedImage img) {
+    private static ByteBuffer sampleToBuffer(Sample sample) {
         Structure st = sample.getCaps().getStructure(0);
         int w = st.getInteger("width"), h = st.getInteger("height");
         Buffer buf = sample.getBuffer();
         ByteBuffer bb = buf.map(false);
-        try {
-            if (img == null || img.getWidth() != w || img.getHeight() != h)
-                img = new BufferedImage(w, h, BufferedImage.TYPE_4BYTE_ABGR);
-            byte[] dst = ((DataBufferByte) img.getRaster().getDataBuffer()).getData();
-            byte[] src = new byte[dst.length];
-            bb.get(src);
-            for (int i = 0; i < src.length; i += 4) {
-                byte r = src[i], g = src[i + 1], b = src[i + 2], a = src[i + 3];
-                dst[i] = a;
-                dst[i + 1] = b;
-                dst[i + 2] = g;
-                dst[i + 3] = r;
-            }
-        } finally {
-            buf.unmap();
-        }
-        return img;
+
+        // Create a direct buffer and copy data
+        ByteBuffer result = ByteBuffer.allocateDirect(bb.remaining()).order(ByteOrder.nativeOrder());
+        bb.rewind();
+        result.put(bb);
+        result.flip();
+
+        buf.unmap();
+        return result;
     }
 
-    private static ByteBuffer imageToDirect(BufferedImage img) {
-        byte[] abgr = ((DataBufferByte) img.getRaster().getDataBuffer()).getData();
-        ByteBuffer buf = ByteBuffer.allocateDirect(abgr.length).order(ByteOrder.nativeOrder());
+    private static ByteBuffer convertToRGBA(ByteBuffer source, int width, int height) {
+        int size = width * height * 4;
+        ByteBuffer result = ByteBuffer.allocateDirect(size).order(ByteOrder.nativeOrder());
 
-        // Native ByteBuffer conversion
-        Converter.abgrToRgbaDirect(abgr, buf, abgr.length);
+        source.rewind();
+        result.put(source);
+        result.flip();
 
-        // Set position to end of written data before flip()
-        // Native code writes directly to buffer memory, so position stays at 0
-        buf.position(abgr.length);
-        buf.flip(); // Now flip will set limit=abgr.length, position=0
-
-        return buf;
+        return result;
     }
 
     private static int parseQuality(Stream s) {
@@ -343,11 +329,16 @@ public class MediaPlayer {
     private void configureVideoSink(AppSink sink) {
         sink.set("emit-signals", true);
         sink.set("sync", true);
+        sink.set("max-buffers", 1);    // Drop old frames to stay in sync
+        sink.set("drop", true);        // Drop frames when queue is full
         sink.connect((AppSink.NEW_SAMPLE) elem -> {
             Sample s = elem.pullSample();
             if (s == null || !captureSamples) return FlowReturn.OK;
             try {
-                currentFrame = sampleToImage(s, currentFrame);
+                Structure st = s.getCaps().getStructure(0);
+                currentFrameWidth = st.getInteger("width");
+                currentFrameHeight = st.getInteger("height");
+                currentFrameBuffer = sampleToBuffer(s);
                 prepareBufferAsync();
             } finally {
                 s.dispose();
@@ -357,7 +348,7 @@ public class MediaPlayer {
     }
 
     private void prepareBufferAsync() {
-        if (currentFrame == null) return;
+        if (currentFrameBuffer == null) return;
         int w = screen.textureWidth, h = screen.textureHeight;
         if (w == 0 || h == 0) return;
         try {
@@ -367,42 +358,62 @@ public class MediaPlayer {
     }
 
     private void prepareBuffer() {
-        int w = screen.textureWidth, h = screen.textureHeight;
-        if (w == 0 || h == 0) return;
+        int targetW = screen.textureWidth, targetH = screen.textureHeight;
+        if (targetW == 0 || targetH == 0 || currentFrameBuffer == null) return;
 
-        if (textureImage == null || textureImage.getWidth() != w || textureImage.getHeight() != h)
-            textureImage = new BufferedImage(w, h, BufferedImage.TYPE_4BYTE_ABGR);
+        // Convert the frame buffer to RGBA
+        ByteBuffer converted = convertToRGBA(currentFrameBuffer, currentFrameWidth, currentFrameHeight);
 
-        Graphics2D g = textureImage.createGraphics();
-        g.setComposite(AlphaComposite.Clear);
-        g.fillRect(0, 0, w, h);
-        g.setComposite(AlphaComposite.SrcOver);
+        // If dimensions match, use directly
+        if (currentFrameWidth == targetW && currentFrameHeight == targetH) {
+            preparedBuffer = converted;
+            preparedW = targetW;
+            preparedH = targetH;
+            return;
+        }
 
-        double scale = Math.max((double) w / currentFrame.getWidth(),
-                (double) h / currentFrame.getHeight());
-        int sw = (int) Math.round(currentFrame.getWidth() * scale);
-        int sh = (int) Math.round(currentFrame.getHeight() * scale);
-        int x = (w - sw) / 2, y = (h - sh) / 2;
-        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-                RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-        g.drawImage(currentFrame, x, y, sw, sh, null);
-        g.dispose();
+        // Scale the buffer to target dimensions
+        ByteBuffer scaled = ByteBuffer.allocateDirect(targetW * targetH * 4).order(ByteOrder.nativeOrder());
+        Converter.scaleRGBA(converted, currentFrameWidth, currentFrameHeight, scaled, targetW, targetH);
 
-        preparedBuffer = imageToDirect(textureImage);
-        preparedW = w;
-        preparedH = h;
+        preparedBuffer = scaled;
+        preparedW = targetW;
+        preparedH = targetH;
     }
 
     // === PLAYBACK HELPERS ================================================================
     private void doPlay() {
         if (!initialized) return;
-        audioPipeline.play();
-        Clock c = audioPipeline.getClock();
-        if (c != null && videoPipeline != null) videoPipeline.setClock(c);
-        if (!screen.getPaused()) videoPipeline.play();
-        else {
-            videoPipeline.play();
+
+        audioPipeline.pause();
+        if (videoPipeline != null) {
             videoPipeline.pause();
+        }
+
+        // Wait for pipelines to be ready
+        audioPipeline.getState();
+        if (videoPipeline != null) {
+            videoPipeline.getState();
+        }
+
+        // Use audio pipeline's clock for video sync
+        Clock audioClock = audioPipeline.getClock();
+        if (audioClock != null && videoPipeline != null) {
+            videoPipeline.setClock(audioClock);
+            videoPipeline.setBaseTime(audioPipeline.getBaseTime());
+        }
+
+        // Start audio first
+        audioPipeline.play();
+
+        // Then start video
+        if (videoPipeline != null) {
+            if (!screen.getPaused()) {
+                videoPipeline.play();
+            } else {
+                videoPipeline.play();
+                videoPipeline.pause();
+            }
         }
     }
 
@@ -468,8 +479,13 @@ public class MediaPlayer {
         safeStopAndDispose(videoPipeline);
 
         Pipeline newVid = buildVideoPipeline(chosen.getUrl());
+
+        // Get the clock from audio pipeline and use it for video
         Clock clock = audioPipeline.getClock();
-        if (clock != null) newVid.setClock(clock);
+        if (clock != null) {
+            newVid.setClock(clock);
+            newVid.setBaseTime(audioPipeline.getBaseTime());
+        }
         newVid.pause();
 
         // Pre-roll the pipeline to ensure it's ready

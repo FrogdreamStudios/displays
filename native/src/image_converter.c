@@ -1,6 +1,7 @@
 #include <jni.h>
 #include <string.h>
 #include <stdint.h>
+#include <math.h>
 
 // Image format conversion (30-60 FPS)
 // Optimizations: SIMD, loop unrolling, prefetching, compiler hints
@@ -134,8 +135,8 @@ JNIEXPORT void JNICALL Java_com_dreamdisplays_screen_NativeImageConverter_conver
     }
 
     (*env)->ReleaseByteArrayElements(env, src, src_ptr, JNI_ABORT);
-    (*env)->ReleaseByteArrayElements(env, dst, dst_ptr, 0);
 }
+
 // Class:       com_dreamdisplays_screen_NativeImageConverter
 // Method:      convertABGRtoRGBA
 // Signature:   ([BLjava/nio/ByteBuffer;I)V
@@ -236,4 +237,88 @@ JNIEXPORT void JNICALL Java_com_dreamdisplays_screen_NativeImageConverter_conver
     }
 
     (*env)->ReleaseByteArrayElements(env, src, src_ptr, JNI_ABORT);
+}
+
+// Class:       com_dreamdisplays_screen_Converter
+// Method:      scaleRGBAImage
+// Signature:   (Ljava/nio/ByteBuffer;IILjava/nio/ByteBuffer;II)V
+JNIEXPORT void JNICALL Java_com_dreamdisplays_screen_Converter_scaleRGBAImage
+  (JNIEnv *env, jclass cls, jobject src, jint srcW, jint srcH, jobject dst, jint dstW, jint dstH) {
+
+    uint8_t *src_ptr = (uint8_t*)(*env)->GetDirectBufferAddress(env, src);
+    uint8_t *dst_ptr = (uint8_t*)(*env)->GetDirectBufferAddress(env, dst);
+
+    if (UNLIKELY(src_ptr == NULL || dst_ptr == NULL)) {
+        return;
+    }
+
+    // Calculate scaling to maintain aspect ratio (cover mode)
+    double scaleW = (double)dstW / srcW;
+    double scaleH = (double)dstH / srcH;
+    double scale = (scaleW > scaleH) ? scaleW : scaleH;
+    int scaledW = (int)(srcW * scale + 0.5);
+    int scaledH = (int)(srcH * scale + 0.5);
+
+    // Calculate offsets to center the image
+    int offsetX = (dstW - scaledW) / 2;
+    int offsetY = (dstH - scaledH) / 2;
+
+    // Fill destination with black (transparent)
+    memset(dst_ptr, 0, dstW * dstH * 4);
+
+    // Nearest neighbor scaling with SIMD optimization
+    int y;
+    for (y = 0; y < dstH; y++) {
+        int srcY = (int)((y - offsetY) * srcH / (double)scaledH);
+
+        if (srcY < 0 || srcY >= srcH) continue;
+
+        int x;
+        for (x = 0; x < dstW; x++) {
+            int srcX = (int)((x - offsetX) * srcW / (double)scaledW);
+
+            if (srcX >= 0 && srcX < srcW) {
+                // Copy 4 bytes (RGBA) from source to destination
+                int srcIdx = (srcY * srcW + srcX) * 4;
+                int dstIdx = (y * dstW + x) * 4;
+
+                memcpy(dst_ptr + dstIdx, src_ptr + srcIdx, 4);
+            }
+        }
+    }
+}
+
+// Class:       com_dreamdisplays_screen_Converter
+// Method:      calculateScreenDistance
+// Signature:   (IIIILjava/lang/String;III)D
+JNIEXPORT jdouble JNICALL Java_com_dreamdisplays_screen_Converter_calculateScreenDistance
+  (JNIEnv *env, jclass cls, jint screenX, jint screenY, jint screenZ, jstring facing, jint width, jint height, jint posX, jint posY, jint posZ) {
+
+    const char *facing_str = (*env)->GetStringUTFChars(env, facing, NULL);
+    if (facing_str == NULL) return 0.0;
+
+    int maxX = screenX;
+    int maxY = screenY + height - 1;
+    int maxZ = screenZ;
+
+    // Determine facing direction
+    if (strcmp(facing_str, "NORTH") == 0 || strcmp(facing_str, "SOUTH") == 0) {
+        maxX += width - 1;
+    } else if (strcmp(facing_str, "EAST") == 0 || strcmp(facing_str, "WEST") == 0) {
+        maxZ += width - 1;
+    }
+
+    (*env)->ReleaseStringUTFChars(env, facing, facing_str);
+
+    // Clamp position to screen bounds
+    int clampedX = (posX < screenX) ? screenX : ((posX > maxX) ? maxX : posX);
+    int clampedY = (posY < screenY) ? screenY : ((posY > maxY) ? maxY : posY);
+    int clampedZ = (posZ < screenZ) ? screenZ : ((posZ > maxZ) ? maxZ : posZ);
+
+    // Calculate Euclidean distance
+    int dx = posX - clampedX;
+    int dy = posY - clampedY;
+    int dz = posZ - clampedZ;
+
+    return sqrt(dx * dx + dy * dy + dz * dz);
 }

@@ -10,8 +10,6 @@ import java.nio.file.StandardCopyOption;
 // Converts RGBA/ABGR formats using native code
 public class Converter {
 
-    private static boolean nativeAvailable = false;
-
     static {
         try {
             // Determine OS and architecture
@@ -47,50 +45,20 @@ public class Converter {
 
                 // Load the native library
                 System.load(tempLib.getAbsolutePath());
-                nativeAvailable = true;
                 System.out.println("Dream Displays: Native library loaded (" + osName + "/" + osArch + ")");
             } else {
                 System.out.println("Dream Displays: Native library not found, using Java fallback");
-                nativeAvailable = false;
             }
         } catch (Exception e) {
             System.err.println("Dream Displays: Failed to load native library: " + e.getMessage());
-            nativeAvailable = false;
         }
     }
 
-    // Convert RGBA to ARGB format
-    private static native void convertRGBAtoARGB(byte[] src, byte[] dst, int length);
+    // Scale RGBA image using nearest neighbor
+    private static native void scaleRGBAImage(ByteBuffer src, int srcW, int srcH, ByteBuffer dst, int dstW, int dstH);
 
-    // Convert ABGR to RGBA format and write to direct buffer
-    private static native void convertABGRtoRGBA(byte[] src, ByteBuffer dst, int length);
-
-    // Convert RGBA to ARGB format
-    public static void rgbaToArgb(byte[] src, byte[] dst, int length) {
-        if (nativeAvailable) {
-            convertRGBAtoARGB(src, dst, length);
-        } else {
-            // Java fallback
-            for (int i = 0; i < length; i += 4) {
-                byte r = src[i], g = src[i + 1], b = src[i + 2], a = src[i + 3];
-                dst[i] = a;
-                dst[i + 1] = b;
-                dst[i + 2] = g;
-                dst[i + 3] = r;
-            }
-        }
-    }
-
-    // Convert ABGR to RGBA format and write to direct buffer
-    public static void abgrToRgbaDirect(byte[] src, ByteBuffer dst, int length) {
-        if (nativeAvailable) {
-            convertABGRtoRGBA(src, dst, length);
-        } else {
-            // Java fallback
-            for (int i = 0; i < length; i += 4) {
-                byte a = src[i], b = src[i + 1], g = src[i + 2], r = src[i + 3];
-                dst.put(r).put(g).put(b).put(a);
-            }
-        }
+    // Scale RGBA image using nearest neighbor scaling
+    public static void scaleRGBA(ByteBuffer src, int srcW, int srcH, ByteBuffer dst, int dstW, int dstH) {
+        scaleRGBAImage(src, srcW, srcH, dst, dstW, dstH);
     }
 }
