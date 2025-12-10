@@ -14,7 +14,7 @@ public class Config extends AbstractConfig {
     }
 
     @Path("mute-on-alt-tab")
-    public boolean muteOnAltTab = true;
+    public boolean muteOnAltTab = false;
 
     @Path("default-render-distance")
     public int defaultDistance = 64;
