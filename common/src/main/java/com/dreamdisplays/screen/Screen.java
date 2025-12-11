@@ -103,7 +103,6 @@ public class Screen {
         this.videoUrl = videoUrl;
         this.lang = lang;
         CompletableFuture.runAsync(() -> {
-            this.videoUrl = videoUrl;
             mediaPlayer = new MediaPlayer(videoUrl, lang, this);
             int qualityInt = Integer.parseInt(this.quality.replace("p", ""));
             textureWidth = (int) (width / (double) height * qualityInt);
@@ -388,7 +387,6 @@ public class Screen {
         textureWidth = (int) (width / (double) height * qualityInt);
         textureHeight = qualityInt;
 
-        //textureId = RenderUtil2D.createEmptyTexture(textureWidth, textureHeight);
         if (texture != null) {
             texture.close();
             if (textureId != null) Minecraft.getInstance()

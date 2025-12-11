@@ -67,7 +67,7 @@ public class Initializer {
     public static void onModInit(Mod DreamDisplaysMod) {
         mod = DreamDisplaysMod;
         LoggingManager.setLogger(LoggerFactory.getLogger(MOD_ID));
-        LoggingManager.info("Starting Dream Displays");
+        LoggingManager.info("Starting Dream Displays...");
         config.reload();
 
         // Load client display settings

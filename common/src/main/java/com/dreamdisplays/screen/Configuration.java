@@ -544,8 +544,6 @@ public class Configuration extends Screen {
                     screen.textureWidth, screen.textureHeight,
                     screen.textureWidth, screen.textureHeight
             );
-        } else {
-            graphics.fill(x, y, x + w, y + h, 0xFF000000);
         }
     }
 

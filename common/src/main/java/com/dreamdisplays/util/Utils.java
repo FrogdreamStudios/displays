@@ -1,16 +1,11 @@
 package com.dreamdisplays.util;
 
-import me.inotsleep.utils.logging.LoggingManager;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -34,7 +29,7 @@ public class Utils {
     // Extracts video ID from various YouTube URL formats
     @Nullable
     public static String extractVideoId(String youtubeUrl) {
-        if (youtubeUrl == null || youtubeUrl.isEmpty()) {
+        if (youtubeUrl.isEmpty()) {
             return null;
         }
 
@@ -83,23 +78,9 @@ public class Utils {
         } catch (URISyntaxException ignored) {
         }
 
-        // Fallback regex patterns for various YouTube URL formats
-        // Pattern for ?v=VIDEOID or &v=VIDEOID
-        String videoIdRegex = "(?:(?:[?&]v=)|(?:youtu\\.be/)([^?&#]*))";
-        Matcher matcher = Pattern.compile(videoIdRegex).matcher(youtubeUrl);
-
-        if (matcher.find()) {
-            String match = matcher.group();
-            // Extract the actual video ID
-            String videoId = match.replaceAll("(?:[?&]v=|youtu\\.be/)", "");
-            // Remove any trailing parameters
-            videoId = videoId.split("[?&#]")[0];
-            return videoId.isEmpty() ? null : videoId;
-        }
-
         // Additional pattern for direct video IDs (11 character alphanumeric)
         String directIdRegex = "[a-zA-Z0-9_-]{11}";
-        matcher = Pattern.compile(directIdRegex).matcher(youtubeUrl);
+        Matcher matcher = Pattern.compile(directIdRegex).matcher(youtubeUrl);
         if (matcher.find()) {
             return matcher.group();
         }
@@ -147,69 +128,5 @@ public class Utils {
         }
 
         return "unknown";
-    }
-
-    // Check if a certificate is already installed in the CurrentUser\Root store
-    private static boolean isInstalled(File certFile) throws Exception {
-
-        String subject;
-        try (InputStream is = Files.newInputStream(certFile.toPath())) {
-            X509Certificate cert = (X509Certificate)
-                    CertificateFactory.getInstance("X.509").generateCertificate(is);
-            subject = cert.getSubjectX500Principal().getName();
-        }
-
-        ProcessBuilder pb = new ProcessBuilder("certutil", "-store", "-user", "Root");
-        Process p = pb.start();
-        String all = new String(p.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-        p.waitFor();
-        return all.contains(subject);
-    }
-
-    // Install all .cer files from certDir to the CurrentUser\Root store
-    public static void installToCurrentUserRoot(File certDir) throws Exception {
-        if (!certDir.exists() || !certDir.isDirectory()) {
-            throw new IllegalArgumentException("Error while installing certificates: " +
-                    certDir.getAbsolutePath());
-        }
-
-        File[] cerFiles = certDir.listFiles((dir, name) -> name.toLowerCase().endsWith(".cer"));
-        if (cerFiles == null || cerFiles.length == 0) {
-            LoggingManager.info("No .cer files found in " + certDir.getAbsolutePath());
-            return;
-        }
-
-        for (File cert : cerFiles) {
-            LoggingManager.info("Installing " + cert.getAbsolutePath());
-
-            if (isInstalled(cert)) {
-                LoggingManager.info("Cert already installed: " + cert.getAbsolutePath());
-                return;
-            }
-
-            ProcessBuilder pb = new ProcessBuilder(
-                    "certutil",
-                    "-addstore",
-                    "-user",
-                    "Root",
-                    cert.getAbsolutePath()
-            );
-            pb.redirectErrorStream(true);
-
-            Process proc = pb.start();
-            try (InputStream is = proc.getInputStream()) {
-                is.transferTo(System.out);
-            }
-
-            int code = proc.waitFor();
-            if (code != 0) {
-                throw new RuntimeException(
-                        "Certificate error " +
-                                cert.getName() + ", error code: " + code
-                );
-            }
-        }
-
-        LoggingManager.info("Certificates installed successfully from ");
     }
 }

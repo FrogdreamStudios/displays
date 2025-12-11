@@ -3,7 +3,7 @@ package com.dreamdisplays;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.dreamdisplays.net.*;
-import com.dreamdisplays.render.ScreenWorldRenderer;
+import com.dreamdisplays.render.ScreenRenderer;
 import com.dreamdisplays.screen.Manager;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
@@ -84,7 +84,7 @@ public class DreamDisplaysMod implements com.dreamdisplays.Mod {
 
         PoseStack poseStack = event.getPoseStack();
         Camera camera = mc.gameRenderer.getMainCamera();
-        ScreenWorldRenderer.render(poseStack, camera);
+        ScreenRenderer.render(poseStack, camera);
     }
 
     @SubscribeEvent

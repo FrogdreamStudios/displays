@@ -74,7 +74,7 @@ public class Manager {
 
         Collection<Settings.FullDisplayData> allDisplays = Settings.getAllDisplaysForServer();
         for (Settings.FullDisplayData data : allDisplays) {
-            if (data.id == null || data.videoUrl == null || data.videoUrl.isEmpty()) {
+            if (data.videoUrl.isEmpty()) {
                 LoggingManager.warn("Skipping invalid display data: " + data.id);
                 continue;
             }

@@ -1,17 +1,77 @@
 package com.dreamdisplays.render;
 
-import com.mojang.blaze3d.textures.GpuTextureView;
+import com.dreamdisplays.screen.Manager;
+import com.dreamdisplays.screen.Screen;
 import com.mojang.blaze3d.vertex.*;
+import net.minecraft.client.Camera;
 import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.NullMarked;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
-import org.jspecify.annotations.NullMarked;
 
 @NullMarked
-public final class Render {
+public class ScreenRenderer {
+
+    // Renders all screens in the world relative to the camera position
+    public static void render(PoseStack matrices, Camera camera) {
+        Vec3 cameraPos = camera.position();
+        for (Screen screen : Manager.getScreens()) {
+            if (screen.texture == null) screen.createTexture();
+
+            matrices.pushPose();
+
+            // Translate the matrix stack to the player's screen position
+            BlockPos pos = screen.getPos();
+            Vec3 screenCenter = Vec3.atLowerCornerOf(pos);
+            Vec3 relativePos = screenCenter.subtract(cameraPos);
+            matrices.translate(relativePos.x, relativePos.y, relativePos.z);
+
+            // Move the matrix stack forward based on the screen's facing direction
+            Tesselator tessellator = Tesselator.getInstance();
+
+            renderScreenTexture(screen, matrices, tessellator);
+
+            matrices.popPose();
+        }
+    }
+
+    // Renders the texture of a single screen
+    private static void renderScreenTexture(Screen screen, PoseStack matrices, Tesselator tessellator) {
+        matrices.pushPose();
+        moveForward(matrices, screen.getFacing(), 0.008f);
+
+        switch (screen.getFacing()) {
+            case "NORTH":
+                moveHorizontal(matrices, "NORTH", -(screen.getWidth()));
+                moveForward(matrices, "NORTH", 1);
+                break;
+            case "SOUTH":
+                moveHorizontal(matrices, "SOUTH", 1);
+                moveForward(matrices, "SOUTH", 1);
+                break;
+            case "EAST":
+                moveHorizontal(matrices, "EAST", -(screen.getWidth() - 1));
+                moveForward(matrices, "EAST", 2);
+                break;
+        }
+
+        // Fix the rotation of the matrix stack based on the screen's facing direction
+        fixRotation(matrices, screen.getFacing());
+        matrices.scale(screen.getWidth(), screen.getHeight(), 0);
+
+        // Render the screen texture or black square
+        if (screen.isVideoStarted() && screen.texture != null && screen.renderType != null) {
+            renderGpuTexture(matrices, tessellator, screen.texture.getTextureView(), screen.renderType);
+        } else if (screen.renderType != null) {
+            renderColor(matrices, tessellator, screen.renderType, 0, 0, 0);
+        }
+        matrices.popPose();
+    }
 
     // Prevent rotation issues
-    public static void fixRotation(PoseStack stack, String facing) {
+    private static void fixRotation(PoseStack stack, String facing) {
         final Quaternionf rotation;
 
         switch (facing) {
@@ -36,7 +96,7 @@ public final class Render {
     }
 
     // Moves the matrix stack forward based on the facing direction
-    public static void moveForward(PoseStack stack, String facing, float amount) {
+    private static void moveForward(PoseStack stack, String facing, float amount) {
         switch (facing) {
             case "NORTH":
                 stack.translate(0, 0, -amount);
@@ -54,7 +114,7 @@ public final class Render {
     }
 
     // Moves the matrix stack horizontally based on the facing direction
-    public static void moveHorizontal(PoseStack stack, String facing, float amount) {
+    private static void moveHorizontal(PoseStack stack, String facing, float amount) {
         switch (facing) {
             case "NORTH":
                 stack.translate(-amount, 0, 0);
@@ -72,8 +132,7 @@ public final class Render {
     }
 
     // Renders a GPU texture onto a quad using the provided matrix stack and tessellator
-    public static void renderGpuTexture(PoseStack matrices, Tesselator tess, GpuTextureView gpuView, RenderType type) {
-        // RenderSystem.setShaderLights(0, gpuView); // FIXME: do we need this? refer to RenderUtils2D comment
+    private static void renderGpuTexture(PoseStack matrices, Tesselator tess, com.mojang.blaze3d.textures.GpuTextureView gpuView, RenderType type) {
         Matrix4f mat = matrices.last().pose();
 
         BufferBuilder buf = tess.begin(
@@ -114,7 +173,7 @@ public final class Render {
     }
 
     // Renders a solid color square with the specified RGB values
-    public static void renderColor(PoseStack matrices, Tesselator tess, RenderType type, int r, int g, int b) {
+    private static void renderColor(PoseStack matrices, Tesselator tess, RenderType type, int r, int g, int b) {
         Matrix4f mat = matrices.last().pose();
 
         BufferBuilder buf = tess.begin(
@@ -152,10 +211,5 @@ public final class Render {
 
         MeshData built = buf.buildOrThrow();
         type.draw(built);
-    }
-
-    // Renders a black square
-    public static void renderBlack(PoseStack stack, Tesselator tess, RenderType type) {
-        renderColor(stack, tess, type, 0, 0, 0);
     }
 }

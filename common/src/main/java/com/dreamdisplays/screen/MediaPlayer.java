@@ -63,6 +63,8 @@ public class MediaPlayer {
     private volatile int preparedW = 0, preparedH = 0;
     private volatile double userVolume = (Initializer.config.defaultDisplayVolume);
     private volatile double lastAttenuation = 1.0;
+    private volatile boolean frameReady = false;
+    private volatile int cachedScreenW = -1, cachedScreenH = -1;  // Cache screen dimensions
 
     // === CONSTRUCTOR =====================================================================
     public MediaPlayer(String youtubeUrl, String lang, Screen screen) {
@@ -75,17 +77,25 @@ public class MediaPlayer {
 
     // === FRAME PROCESSING ================================================================
     private static ByteBuffer sampleToBuffer(Sample sample) {
-        Structure st = sample.getCaps().getStructure(0);
-        int w = st.getInteger("width"), h = st.getInteger("height");
         Buffer buf = sample.getBuffer();
         ByteBuffer bb = buf.map(false);
 
-        // Create a direct buffer and copy data
+        // If buffer is already in native order, use it directly
+        if (bb.order() == ByteOrder.nativeOrder()) {
+            ByteBuffer result = ByteBuffer.allocateDirect(bb.remaining()).order(ByteOrder.nativeOrder());
+            result.put(bb);
+            result.flip();
+            buf.unmap();
+            return result;
+        }
+
+        // Otherwise convert to native order
         ByteBuffer result = ByteBuffer.allocateDirect(bb.remaining()).order(ByteOrder.nativeOrder());
         bb.rewind();
-        result.put(bb);
+        for (int i = 0; i < bb.remaining(); i++) {
+            result.put(bb.get());
+        }
         result.flip();
-
         buf.unmap();
         return result;
     }
@@ -176,7 +186,9 @@ public class MediaPlayer {
     }
 
     public void updateFrame(GpuTexture texture) {
-        if (preparedBuffer == null) return;
+        // Only update if a new frame is ready
+        if (!frameReady || preparedBuffer == null) return;
+
         int w = screen.textureWidth, h = screen.textureHeight;
         if (w != preparedW || h != preparedH) return;
 
@@ -207,6 +219,9 @@ public class MediaPlayer {
                     texture.getWidth(0), texture.getHeight(0)
             );
         }
+
+        // Mark frame as processed - don't process same frame again
+        frameReady = false;
     }
 
     public java.util.List<Integer> getAvailableQualities() {
@@ -360,7 +375,16 @@ public class MediaPlayer {
     private void prepareBufferAsync() {
         if (currentFrameBuffer == null) return;
         int w = screen.textureWidth, h = screen.textureHeight;
+
+        // Skip if screen dimensions are zero
         if (w == 0 || h == 0) return;
+
+        // Skip if dimensions haven't changed (avoid re-processing)
+        if (cachedScreenW == w && cachedScreenH == h && frameReady) return;
+
+        cachedScreenW = w;
+        cachedScreenH = h;
+
         try {
             frameExecutor.submit(this::prepareBuffer);
         } catch (RejectedExecutionException ignored) {
@@ -379,6 +403,9 @@ public class MediaPlayer {
             preparedBuffer = converted;
             preparedW = targetW;
             preparedH = targetH;
+            frameReady = true;  // Mark that new frame is ready
+            // Update texture on render thread
+            Minecraft.getInstance().execute(screen::fitTexture);
             return;
         }
 
@@ -389,6 +416,9 @@ public class MediaPlayer {
         preparedBuffer = scaled;
         preparedW = targetW;
         preparedH = targetH;
+        frameReady = true;  // Mark that new frame is ready
+        // Update texture on render thread
+        Minecraft.getInstance().execute(screen::fitTexture);
     }
 
     // === PLAYBACK HELPERS ================================================================

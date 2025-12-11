@@ -1,7 +1,7 @@
 package com.dreamdisplays;
 
 import com.dreamdisplays.net.*;
-import com.dreamdisplays.render.ScreenWorldRenderer;
+import com.dreamdisplays.render.ScreenRenderer;
 import com.dreamdisplays.screen.Manager;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -69,7 +69,7 @@ public class DreamDisplaysMod implements ClientModInitializer, Mod {
             }
             PoseStack matrices = context.matrices();
             Camera camera = context.gameRenderer().getMainCamera();
-            ScreenWorldRenderer.render(matrices, camera);
+            ScreenRenderer.render(matrices, camera);
         });
 
 
