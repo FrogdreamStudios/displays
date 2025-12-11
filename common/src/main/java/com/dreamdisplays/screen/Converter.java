@@ -1,64 +1,60 @@
 package com.dreamdisplays.screen;
 
-import java.io.File;
-import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 
-// Native image format converter for high-performance pixel operations.
-// Converts RGBA/ABGR formats using native code
+// Native (temporary not) image format converter for high-performance pixel operations.
+// Converts RGBA/ABGR formats using native code (temporarily implemented in Java).
 public class Converter {
 
-    static {
-        try {
-            // Determine OS and architecture
-            String osName = System.getProperty("os.name").toLowerCase();
-            String osArch = System.getProperty("os.arch").toLowerCase();
-            String libName;
-            String libExtension;
+    // Java implementation for image scaling with aspect ratio preservation (cover mode)
+    private static void scaleRGBAImageJava(ByteBuffer src, int srcW, int srcH, ByteBuffer dst, int dstW, int dstH) {
+        if (src == null || dst == null) {
+            throw new IllegalArgumentException("Source and destination buffers cannot be null");
+        }
 
-            if (osName.contains("win")) {
-                libName = "dreamdisplays_native";
-                libExtension = ".dll";
-            } else if (osName.contains("mac")) {
-                libName = "libdreamdisplays_native";
-                libExtension = ".dylib";
-            } else {
-                libName = "libdreamdisplays_native";
-                libExtension = ".so";
+        if (srcW <= 0 || srcH <= 0 || dstW <= 0 || dstH <= 0) {
+            throw new IllegalArgumentException("Image dimensions must be positive");
+        }
+
+        // Calculate scaling to maintain aspect ratio (cover mode)
+        double scaleW = (double) dstW / srcW;
+        double scaleH = (double) dstH / srcH;
+        double scale = Math.max(scaleW, scaleH); // Use larger scale to cover entire area
+        int scaledW = (int) (srcW * scale + 0.5);
+        int scaledH = (int) (srcH * scale + 0.5);
+
+        // Calculate offsets to center the image
+        int offsetX = (dstW - scaledW) / 2;
+        int offsetY = (dstH - scaledH) / 2;
+
+        // Fill destination with black (transparent)
+        for (int i = 0; i < dstW * dstH * 4; i++) {
+            dst.put(i, (byte) 0);
+        }
+
+        // Nearest neighbor scaling with centering
+        for (int y = 0; y < dstH; y++) {
+            int srcY = (int) ((y - offsetY) * srcH / (double) scaledH);
+
+            if (srcY < 0 || srcY >= srcH) continue;
+
+            for (int x = 0; x < dstW; x++) {
+                int srcX = (int) ((x - offsetX) * srcW / (double) scaledW);
+
+                if (srcX >= 0 && srcX < srcW) {
+                    // Copy 4 bytes (RGBA) from source to destination
+                    int srcIdx = (srcY * srcW + srcX) * 4;
+                    int dstIdx = (y * dstW + x) * 4;
+
+                    int pixel = src.getInt(srcIdx);
+                    dst.putInt(dstIdx, pixel);
+                }
             }
-
-            String fullLibName = libName + libExtension;
-            String resourcePath = "/natives/" + fullLibName;
-
-            // Load the library from resources
-            InputStream libStream = Converter.class.getResourceAsStream(resourcePath);
-
-            if (libStream != null) {
-                File tempLib = File.createTempFile("dreamdisplays_native_", libExtension);
-                tempLib.deleteOnExit();
-
-                // Copy the library to a temporary file
-                Files.copy(libStream, tempLib.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                libStream.close();
-
-                // Load the native library
-                System.load(tempLib.getAbsolutePath());
-                System.out.println("Dream Displays: Native library loaded (" + osName + "/" + osArch + ")");
-            } else {
-                System.out.println("Dream Displays: Native library not found, using Java fallback");
-            }
-        } catch (Exception e) {
-            System.err.println("Dream Displays: Failed to load native library: " + e.getMessage());
         }
     }
 
-    // Scale RGBA image using nearest neighbor
-    private static native void scaleRGBAImage(ByteBuffer src, int srcW, int srcH, ByteBuffer dst, int dstW, int dstH);
-
-    // Scale RGBA image using nearest neighbor scaling
+    // Scale RGBA image using nearest neighbor scaling - pure Java implementation
     public static void scaleRGBA(ByteBuffer src, int srcW, int srcH, ByteBuffer dst, int dstW, int dstH) {
-        scaleRGBAImage(src, srcW, srcH, dst, dstW, dstH);
+        scaleRGBAImageJava(src, srcW, srcH, dst, dstW, dstH);
     }
 }
