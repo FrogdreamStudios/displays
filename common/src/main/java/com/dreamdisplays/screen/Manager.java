@@ -25,6 +25,17 @@ public class Manager {
             old.unregister();
         }
 
+        Settings.DisplaySettings clientSettings = Settings.getSettings(screen.getID());
+        screen.setVolume(clientSettings.volume);
+        screen.setQuality(clientSettings.quality);
+        screen.muted = clientSettings.muted;
+
+        Settings.FullDisplayData savedData = Settings.getDisplayData(screen.getID());
+        if (savedData != null) {
+            screen.setRenderDistance(savedData.renderDistance);
+            screen.setSavedTimeNanos(savedData.currentTimeNanos);
+        }
+
         screens.put(screen.getID(), screen);
 
         // Save the display data for persistence
@@ -69,30 +80,12 @@ public class Manager {
     }
 
     // Load displays from persistent storage for a server
+    // Actual display data comes from the server via Info packets.
+    // Local cache is used only for client preferences (volume, quality, muted).
     public static void loadScreensForServer(String serverId) {
         Settings.loadServerDisplays(serverId);
-
-        Collection<Settings.FullDisplayData> allDisplays = Settings.getAllDisplaysForServer();
-        for (Settings.FullDisplayData data : allDisplays) {
-            if (data.videoUrl.isEmpty()) {
-                LoggingManager.warn("Skipping invalid display data: " + data.id);
-                continue;
-            }
-
-            Screen screen = new Screen(data.id, data.ownerId, data.x, data.y, data.z,
-                    data.facing, data.width, data.height, data.isSync);
-
-            screen.setVolume(data.volume);
-            screen.setQuality(data.quality);
-            screen.muted = data.muted;
-            screen.setSavedTimeNanos(data.currentTimeNanos);
-            screen.setRenderDistance(data.renderDistance);
-
-            screen.loadVideo(data.videoUrl, data.lang);
-
-            registerScreen(screen);
-            LoggingManager.info("Restored display: " + data.id + " at " + data.x + ", " + data.y + ", " + data.z + " (time: " + (data.currentTimeNanos / 1_000_000_000) + "s)");
-        }
+        LoggingManager.info("Initialized display settings storage for server: " + serverId);
+        // Displays will be received from server via Info packets
     }
 
     // Save all screens to persistent storage for current server
@@ -103,40 +96,9 @@ public class Manager {
         LoggingManager.info("Saved " + screens.size() + " displays");
     }
 
-    // Restore displays that were unloaded but stored in persistent storage
+    // Server sends display info when player connects and periodically updates.
+    // Keeping this method empty for backwards compatibility.
     public static void restoreNearbyDisplays(int playerX, int playerY, int playerZ, double maxDistance) {
-        Collection<Settings.FullDisplayData> allDisplays = Settings.getAllDisplaysForServer();
-        for (Settings.FullDisplayData data : allDisplays) {
-            if (screens.containsKey(data.id)) {
-                continue;
-            }
-
-            // Use display's saved render distance, fallback to config if not set
-            double displayRenderDistance = data.renderDistance > 0 ? data.renderDistance : maxDistance;
-
-            double distance = Math.sqrt(
-                    Math.pow(data.x - playerX, 2) +
-                            Math.pow(data.y - playerY, 2) +
-                            Math.pow(data.z - playerZ, 2)
-            );
-
-            if (distance <= displayRenderDistance && data.videoUrl != null && !data.videoUrl.isEmpty()) {
-                // Restore this display
-                Screen screen = new Screen(data.id, data.ownerId, data.x, data.y, data.z,
-                        data.facing, data.width, data.height, data.isSync);
-
-                screen.setVolume(data.volume);
-                screen.setQuality(data.quality);
-                screen.muted = data.muted;
-                screen.setSavedTimeNanos(data.currentTimeNanos);
-                screen.setRenderDistance(data.renderDistance);
-
-                // Load the video
-                screen.loadVideo(data.videoUrl, data.lang);
-
-                registerScreen(screen);
-                LoggingManager.info("Restored nearby display: " + data.id + " at " + data.x + ", " + data.y + ", " + data.z + " (render distance: " + displayRenderDistance + ")");
-            }
-        }
+        // No-op: displays are now synchronized from server
     }
 }

@@ -6,6 +6,7 @@ import com.dreamdisplays.managers.Display.delete
 import com.dreamdisplays.managers.Display.report
 import com.dreamdisplays.managers.Player.hasBeenNotifiedAboutModUpdate
 import com.dreamdisplays.managers.Player.hasBeenNotifiedAboutPluginUpdate
+import com.dreamdisplays.managers.Display
 import com.dreamdisplays.managers.Player.setModUpdateNotified
 import com.dreamdisplays.managers.Player.setPluginUpdateNotified
 import com.dreamdisplays.managers.Player.setVersion
@@ -72,6 +73,9 @@ class Receiver(var plugin: Main?) : PluginMessageListener {
                 player,
                 player.hasPermission(Main.config.permissions.premium)
             )
+
+            // Send all existing displays to the player
+            sendAllDisplaysToPlayer(player)
 
             val version = Utils.sanitize(String(data, 0, len))
 
@@ -144,5 +148,30 @@ class Receiver(var plugin: Main?) : PluginMessageListener {
             LoggingManager.error("Unable to decode RequestSyncPacket", e)
         }
         return null
+    }
+
+    private fun sendAllDisplaysToPlayer(player: Player) {
+        val displays = Display.getDisplays()
+        val playerList = mutableListOf<Player?>(player)
+
+        LoggingManager.info("Sending ${displays.size} displays to ${player.name}")
+
+        for (display in displays) {
+            // Only send displays from the same world as the player
+            if (display.pos1.world != player.world) continue
+
+            Net.sendDisplayInfoPacket(
+                playerList,
+                display.id,
+                display.ownerId,
+                display.box.min,
+                display.width,
+                display.height,
+                display.url,
+                display.lang,
+                display.facing ?: org.bukkit.block.BlockFace.NORTH,
+                display.isSync
+            )
+        }
     }
 }
