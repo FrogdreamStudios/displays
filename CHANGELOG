@@ -1,9 +1,9 @@
 # Version 1.1.1
 Mod:
-- [x] Less logging
 - [x] Fix display desynchronization with server and client
-- [x] Update rendering logic and improve screen handling
-- [ ] Code cleanup
+- [x] A bit improved screen rendering
+- [x] Less logging
+- [x] Code cleanup
 
 Plugin:
 - [x] Fix display desynchronization with server and client
@@ -24,7 +24,7 @@ Mod:
 - [x] Enhanced logging
 - [x] Improved wiki
 
-- Plugin:
+Plugin:
 - [x] Fixed repeated update notifications when switching dimensions
 - [x] Refined, new configuration
 - [x] Enhanced particle effects for selections
@@ -42,7 +42,7 @@ Mod:
 - [x] Tips for removing and reporting display
 - [x] Warn player when switching to 1080p+
 
-- Plugin:
+Plugin:
 - [x] Support Spigot and Bukkit servers
 - [x] New commands: /display list and /display reload
 - [x] More languages for plugin configuration
