@@ -58,6 +58,17 @@ jobs:
           retention-days: 30
           compression-level: 6
 
+      # NeoForge
+      - name: Upload NeoForge client
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dreamdisplays-neoforge
+          path: build/libs/dreamdisplays-neoforge-*.jar
+          if-no-files-found: warn
+          retention-days: 30
+          compression-level: 6
+
       # Spigot
       - name: Upload Spigot plugin
         if: success()
