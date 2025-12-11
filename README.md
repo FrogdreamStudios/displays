@@ -36,4 +36,4 @@ Done! To customize the display, look at it and press `Shift + RMB`
 
 ## Questions?
 
-Questions you can ask in Discord (@arsmotorin) or in Telegram (@arsmotorin).
+Questions you can ask in the Issues, [here](https://github.com/arsmotorin/dreamdisplays/issues).
