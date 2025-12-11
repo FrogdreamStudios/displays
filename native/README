@@ -1,0 +1,17 @@
+Building native library
+
+cd native
+chmod +x build.sh
+
+# Build for current platform (default)
+./build.sh
+
+# Or specify target platform
+./build.sh current    # Same as default
+./build.sh linux      # Build for Linux (requires Docker)
+./build.sh windows    # Build for Windows (requires Docker)
+./build.sh all        # Build for all platforms
+
+Then build the Java project:
+cd ..
+./gradlew build

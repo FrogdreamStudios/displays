@@ -1,10 +1,10 @@
-name: Dream Displays
+name: Build
 
 on:
   push:
-    branches: [ main ]
+    branches: [ "*" ]
   pull_request:
-    branches: [ main ]
+    branches: [ "*" ]
   workflow_dispatch:
 
 concurrency:
@@ -12,16 +12,141 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Step 1: Build native libraries for all platforms
+  build-native:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact_name: libdreamdisplays_native.so
+            artifact_path: common/src/main/resources/natives/libdreamdisplays_native.so
+          - os: macos-latest
+            artifact_name: libdreamdisplays_native.dylib
+            artifact_path: common/src/main/resources/natives/libdreamdisplays_native.dylib
+          - os: windows-latest
+            artifact_name: dreamdisplays_native.dll
+            artifact_path: common/src/main/resources/natives/dreamdisplays_native.dll
+
+    runs-on: ${{ matrix.os }}
+    name: Build Native - ${{ matrix.os }}
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: 'temurin'
+
+      # Ubuntu: Install CMake and build tools
+      - name: Install dependencies (Ubuntu)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake make build-essential
+
+      # macOS: Install CMake
+      - name: Install dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install cmake
+
+      # Windows: Install CMake and MinGW
+      - name: Install dependencies (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          choco install cmake mingw-w64 -y
+
+      # Build native library
+      - name: Build native library
+        shell: bash
+        run: |
+          cd native
+          chmod +x build.sh
+          ./build.sh
+
+      # Prepare artifact
+      - name: Prepare artifact
+        shell: bash
+        run: |
+          mkdir -p native_artifacts
+          if [ -f "${{ matrix.artifact_path }}" ]; then
+            cp "${{ matrix.artifact_path }}" native_artifacts/${{ matrix.artifact_name }}
+          else
+            echo "Error: artifact not found at ${{ matrix.artifact_path }}."
+            echo "Available files:"
+            find native -type f \( -name "*.so" -o -name "*.dylib" -o -name "*.dll" \) -ls
+            exit 1
+          fi
+
+      # Upload native library artifact
+      - name: Upload native artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-${{ matrix.os }}
+          path: native_artifacts/${{ matrix.artifact_name }}
+          retention-days: 1
+
+  # Step 2: Collect all native libraries
+  collect-natives:
+    needs: build-native
+    runs-on: ubuntu-latest
+    name: Collect Native Libraries
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create natives directory
+        run: mkdir -p common/src/main/resources/natives
+
+      - name: Download Linux native
+        uses: actions/download-artifact@v4
+        with:
+          name: native-ubuntu-latest
+          path: common/src/main/resources/natives
+
+      - name: Download macOS native
+        uses: actions/download-artifact@v4
+        with:
+          name: native-macos-latest
+          path: common/src/main/resources/natives
+
+      - name: Download Windows native
+        uses: actions/download-artifact@v4
+        with:
+          name: native-windows-latest
+          path: common/src/main/resources/natives
+
+      - name: Upload natives package
+        uses: actions/upload-artifact@v4
+        with:
+          name: all-natives
+          path: common/src/main/resources/natives
+          retention-days: 1
+
+  # Step 3: Build Java project with all native libraries
   build:
-    name: Build
+    needs: collect-natives
+    name: Build Java Project
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 30
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Full history
+          fetch-depth: 0
+
+      - name: Download all native libraries
+        uses: actions/download-artifact@v4
+        with:
+          name: all-natives
+          path: common/src/main/resources/natives
 
       - name: Validate Gradle wrapper
         uses: gradle/actions/wrapper-validation@v4
