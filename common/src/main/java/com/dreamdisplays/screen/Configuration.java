@@ -14,6 +14,7 @@ import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import org.jspecify.annotations.NullMarked;
@@ -534,7 +535,15 @@ public class Configuration extends Screen {
     private void renderScreen(GuiGraphics graphics, int x, int y, int w, int h) {
         if (screen != null && screen.isVideoStarted() && screen.texture != null && screen.textureId != null) {
             screen.fitTexture();
-            graphics.blit(screen.textureId, x, y, 0, 0, screen.textureWidth, screen.textureHeight, screen.textureWidth, screen.textureHeight);
+            graphics.blit(
+                    RenderPipelines.GUI_TEXTURED,
+                    screen.textureId,
+                    x, y,
+                    0f, 0f,
+                    w, h,
+                    screen.textureWidth, screen.textureHeight,
+                    screen.textureWidth, screen.textureHeight
+            );
         } else {
             graphics.fill(x, y, x + w, y + h, 0xFF000000);
         }
