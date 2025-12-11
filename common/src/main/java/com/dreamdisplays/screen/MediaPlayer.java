@@ -270,9 +270,6 @@ public class MediaPlayer {
                     .reduce((f, n) -> n);
 
             if (audioOpt.isEmpty()) {
-                LoggingManager.warn("No audio stream available with lang " + lang);
-                LoggingManager.warn("Choosing random one...");
-
                 audioOpt = all.stream()
                         .filter(s -> MIME_AUDIO.equals(s.getMimeType()))
                         .reduce((f, n) -> n);
@@ -310,7 +307,7 @@ public class MediaPlayer {
         Bus bus = p.getBus();
         final AtomicReference<Bus.ERROR> errRef = new AtomicReference<>();
         errRef.set((source, code, message) -> {
-            LoggingManager.error("[MediaPlayer V][ERROR] GStreamer: " + message);
+            LoggingManager.error("[MediaPlayer V] [ERROR] GStreamer: " + message);
             bus.disconnect(errRef.get());
             screen.errored = true;
             initialized = false;
@@ -324,10 +321,9 @@ public class MediaPlayer {
                 "! volume name=volumeElement volume=" + currentVolume + " ! autoaudiosink";
         Pipeline p = (Pipeline) Gst.parseLaunch(desc);
         p.getBus().connect((Bus.ERROR) (source, code, message) ->
-                LoggingManager.error("[MediaPlayer A][ERROR] GStreamer: " + message));
+                LoggingManager.error("[MediaPlayer A] [ERROR] GStreamer: " + message));
 
         p.getBus().connect((Bus.EOS) source -> {
-            LoggingManager.info("Got EOS, looping back to start");
             safeExecute(() -> {
                 audioPipeline.seekSimple(
                         Format.TIME,
@@ -416,7 +412,8 @@ public class MediaPlayer {
         preparedBuffer = scaled;
         preparedW = targetW;
         preparedH = targetH;
-        frameReady = true;  // Mark that new frame is ready
+        frameReady = true;    // Mark that new frame is ready
+
         // Update texture on render thread
         Minecraft.getInstance().execute(screen::fitTexture);
     }

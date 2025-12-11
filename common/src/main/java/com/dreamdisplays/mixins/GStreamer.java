@@ -56,7 +56,6 @@ public abstract class GStreamer {
                         LoggingManager.error("GStreamer failed to initialize on Windows");
                         setScreen(new Error(screen, "Dream Displays failed to download libraries"));
                     } else {
-                        LoggingManager.info("GStreamer downloader not needed on " + Utils.detectPlatform() + " - using system installation");
                         try {
                             Gst.init("MediaPlayer");
                         } catch (Throwable e) {

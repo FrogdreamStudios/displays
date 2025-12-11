@@ -95,8 +95,6 @@ public class Screen {
     public void loadVideo(String videoUrl, String lang) {
         if (Objects.equals(videoUrl, "")) return;
 
-        LoggingManager.info("Loading video: " + videoUrl);
-
         if (mediaPlayer != null) unregister();
 
         // Load the video URL and language into the screen
@@ -349,9 +347,7 @@ public class Screen {
                 if (textureId != null) {
                     try {
                         manager.release(textureId);
-                    } catch (Exception e) {
-                        LoggingManager.warn("Failed to release texture: " + e.getMessage());
-                    }
+                    } catch (Exception e) {}
                 }
             });
         }
@@ -430,7 +426,6 @@ public class Screen {
     public void restoreSavedTime() {
         if (savedTimeNanos > 0 && mediaPlayer != null && mediaPlayer.isInitialized()) {
             mediaPlayer.seekTo(savedTimeNanos, false);
-            LoggingManager.info("Restored video time: " + (savedTimeNanos / 1_000_000_000) + "s");
         }
     }
 

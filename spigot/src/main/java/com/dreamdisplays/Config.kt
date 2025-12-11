@@ -105,7 +105,6 @@ class Config(private val plugin: Main) {
             )
             messages.clear()
             messages.putAll(msgs)
-            LoggingManager.log("Loaded ${msgs.size} messages for: ${language.messageLanguage}")
         }.onFailure {
             LoggingManager.error("Error loading language file: ${language.messageLanguage}", it)
         }
