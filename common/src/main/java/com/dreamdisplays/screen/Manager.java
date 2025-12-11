@@ -2,7 +2,6 @@ package com.dreamdisplays.screen;
 
 import me.inotsleep.utils.logging.LoggingManager;
 import org.jspecify.annotations.NullMarked;
-import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.UUID;

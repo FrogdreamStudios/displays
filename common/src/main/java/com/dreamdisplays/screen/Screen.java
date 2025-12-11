@@ -26,6 +26,7 @@ import java.util.concurrent.CompletableFuture;
 @NullMarked
 public class Screen {
     private final UUID id;
+    private final UUID ownerId;
     public boolean owner;
     public boolean errored;
     public boolean isSync;
@@ -50,7 +51,6 @@ public class Screen {
     // Use a combined MediaPlayer instead of the separate VideoDecoder and AudioPlayer.
     private @Nullable MediaPlayer mediaPlayer;
     private @Nullable String videoUrl;
-    private final UUID ownerId;
     // Cache (good for performance)
     private transient @Nullable BlockPos blockPos;
     private @Nullable String lang;
@@ -415,12 +415,12 @@ public class Screen {
         return 0;
     }
 
-    public void setRenderDistance(int distance) {
-        this.renderDistance = distance;
-    }
-
     public int getRenderDistance() {
         return renderDistance;
+    }
+
+    public void setRenderDistance(int distance) {
+        this.renderDistance = distance;
     }
 
     // Set the saved time to restore when video loads
