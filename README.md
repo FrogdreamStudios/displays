@@ -6,9 +6,9 @@ Download our mod or plugin on [Modrinth](https://modrinth.com/mod/dreamdisplays)
 
 ## Available platforms
 
-- Client: Fabric 1.21.x
+- Client: Fabric, NeoForge 1.21.x
 - Server: Spigot, Paper, Folia and other forks
-- In the future: NeoForge, Quilt support
+- In the future: Quilt support
 
 > [!NOTE]
 > For this mod to work, you need to install the client mod and the server plugin. Without this, Dream Displays will not

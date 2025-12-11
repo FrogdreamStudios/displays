@@ -97,7 +97,7 @@ public class Menu extends Screen {
     // Update method to check download status
     @Override
     public void tick() {
-        if (Listener.INSTANCE.isDone() || Listener.INSTANCE.isFailed()) {
+        if (Listener.INSTANCE.isDone() && !Listener.INSTANCE.isFailed()) {
             Minecraft.getInstance().setScreen(menu);
         }
     }

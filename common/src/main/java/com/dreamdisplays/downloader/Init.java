@@ -124,6 +124,8 @@ public class Init {
         String platform = detectPlatform();
         if (!platform.equals("windows")) {
             Listener.INSTANCE.setFailed(true);
+            Listener.INSTANCE.setDone(false);
+            LoggingManager.info("GStreamer downloader only runs on Windows. On " + platform + ", system GStreamer will be used.");
             return;
         }
 

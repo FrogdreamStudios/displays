@@ -1,6 +1,3 @@
-plugins {
-    idea
-}
 subprojects {
     repositories {
         mavenCentral()

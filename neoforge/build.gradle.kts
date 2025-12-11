@@ -5,6 +5,7 @@ plugins {
 }
 
 dependencies {
+    implementation(project(":common"))
     shadow(project(":common"))
 }
 
@@ -12,6 +13,7 @@ neoForge {
     enable {
         version = libs.versions.neoforge.get()
     }
+    accessTransformers.from(file("src/main/resources/META-INF/accesstransformer.cfg"))
     runs {
         register("neoClient") {
             client()
@@ -51,5 +53,14 @@ tasks.shadowJar {
         include(dependency("com.github.felipeucelli:javatube"))
         include(dependency("org.json:json"))
         include(dependency("me.inotsleep:utils"))
+    }
+    val prefix = "com.dreamdisplays.libs"
+    listOf(
+        "com.github.felipeucelli.javatube",
+        "me.inotsleep.utils",
+        "org.freedesktop.gstreamer",
+        "org.json",
+    ).forEach { pack ->
+        relocate(pack, "$prefix.$pack")
     }
 }

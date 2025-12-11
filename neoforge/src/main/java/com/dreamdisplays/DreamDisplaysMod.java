@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.dreamdisplays.net.*;
 import com.dreamdisplays.render.ScreenWorldRenderer;
+import com.dreamdisplays.screen.Manager;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -21,51 +22,59 @@ import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
+import org.jspecify.annotations.NullMarked;
 
 @NullMarked
 @Mod(value = DreamDisplaysMod.MOD_ID, dist = Dist.CLIENT)
-public class DreamDisplaysMod {
+public class DreamDisplaysMod implements com.dreamdisplays.Mod {
 
     public static final String MOD_ID = "dreamdisplays";
 
     public DreamDisplaysMod(IEventBus modEventBus) {
+        Initializer.onModInit(this);
         modEventBus.addListener(this::registerPayloads);
         NeoForge.EVENT_BUS.register(this);
     }
 
     public void registerPayloads(RegisterPayloadHandlersEvent event) {
         PayloadRegistrar registrar = event.registrar(MOD_ID).optional().versioned("1");
-        registrar.playBidirectional(DeletePacket.PACKET_ID, DeletePacket.PACKET_CODEC,
+        registrar.playBidirectional(Delete.PACKET_ID, Delete.PACKET_CODEC,
                 (serverPayload, ctx) -> {
                 },
-                (clientPayload, ctx) -> PlatformlessInitializer.onDeletePacket(clientPayload)
+                (clientPayload, ctx) -> Initializer.onDeletePacket(clientPayload)
         );
-        registrar.playToClient(DisplayInfoPacket.PACKET_ID, DisplayInfoPacket.PACKET_CODEC,
-                (payload, ctx) -> PlatformlessInitializer.onDisplayInfoPacket(payload));
+        registrar.playToClient(Info.PACKET_ID, Info.PACKET_CODEC,
+                (payload, ctx) -> Initializer.onDisplayInfoPacket(payload));
 
-        registrar.playToClient(SyncPacket.PACKET_ID, SyncPacket.PACKET_CODEC,
-                (payload, ctx) -> PlatformlessInitializer.onSyncPacket(payload));
+        registrar.playToClient(Sync.PACKET_ID, Sync.PACKET_CODEC,
+                (payload, ctx) -> Initializer.onSyncPacket(payload));
 
-        registrar.playToClient(PremiumPacket.PACKET_ID, PremiumPacket.PACKET_CODEC,
-                (payload, ctx) -> PlatformlessInitializer.onPremiumPacket(payload));
+        registrar.playToClient(Premium.PACKET_ID, Premium.PACKET_CODEC,
+                (payload, ctx) -> Initializer.onPremiumPacket(payload));
 
-        registrar.playToServer(RequestSyncPacket.PACKET_ID, RequestSyncPacket.PACKET_CODEC, (p, c) -> {
+        registrar.playToServer(RequestSync.PACKET_ID, RequestSync.PACKET_CODEC, (p, c) -> {
         });
-        registrar.playToServer(ReportPacket.PACKET_ID, ReportPacket.PACKET_CODEC, (p, c) -> {
+        registrar.playToServer(Report.PACKET_ID, Report.PACKET_CODEC, (p, c) -> {
         });
-        registrar.playToServer(VersionPacket.PACKET_ID, VersionPacket.PACKET_CODEC, (p, c) -> {
+        registrar.playToServer(Version.PACKET_ID, Version.PACKET_CODEC, (p, c) -> {
         });
     }
 
 
     @SubscribeEvent
     public void onClientTick(ClientTickEvent.Post event) {
-        PlatformlessInitializer.onEndTick(Minecraft.getInstance());
+        Initializer.onEndTick(Minecraft.getInstance());
     }
 
     @SubscribeEvent
     public void onClientStop(ClientPlayerNetworkEvent.LoggingOut event) {
-        PlatformlessInitializer.onStop();
+        Manager.saveAllScreens();
+        Manager.unloadAll();
+    }
+
+    @SubscribeEvent
+    public void onClientStopping(ClientPlayerNetworkEvent.LoggingOut event) {
+        Initializer.onStop();
     }
 
     @SubscribeEvent
@@ -84,7 +93,7 @@ public class DreamDisplaysMod {
                 LiteralArgumentBuilder.<CommandSourceStack>literal("displays")
                         .then(LiteralArgumentBuilder.<CommandSourceStack>literal("off")
                                 .executes(ctx -> {
-                                    PlatformlessInitializer.displaysEnabled = false;
+                                    Initializer.displaysEnabled = false;
                                     LocalPlayer p = Minecraft.getInstance().player;
                                     if (p != null)
                                         p.displayClientMessage(Component.literal("Displays disabled"), false);
@@ -92,7 +101,7 @@ public class DreamDisplaysMod {
                                 }))
                         .then(LiteralArgumentBuilder.<CommandSourceStack>literal("on")
                                 .executes(ctx -> {
-                                    PlatformlessInitializer.displaysEnabled = true;
+                                    Initializer.displaysEnabled = true;
                                     LocalPlayer p = Minecraft.getInstance().player;
                                     if (p != null) p.displayClientMessage(Component.literal("Displays enabled"), false);
                                     return 1;
@@ -100,6 +109,7 @@ public class DreamDisplaysMod {
         );
     }
 
+    @Override
     public void sendPacket(CustomPacketPayload packet) {
         var connection = Minecraft.getInstance().getConnection();
         if (connection != null) {
