@@ -4,6 +4,8 @@ import com.dreamdisplays.util.Utils;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
@@ -32,7 +34,7 @@ public class Downloader {
         FileOutputStream out = null;
 
         try {
-            URL url = new URL(urlString);
+            URL url = new URI(urlString).toURL();
             conn = (HttpURLConnection) url.openConnection();
             conn.setInstanceFollowRedirects(true);
             conn.setRequestProperty(
@@ -45,9 +47,9 @@ public class Downloader {
             if (status / 100 == 3) {
                 String redirectUrl = conn.getHeaderField("Location");
                 conn.disconnect();
-                conn = (HttpURLConnection) new URL(
-                    redirectUrl
-                ).openConnection();
+                conn = (HttpURLConnection) new URI(redirectUrl)
+                    .toURL()
+                    .openConnection();
                 conn.setRequestProperty(
                     "User-Agent",
                     "Java/" + System.getProperty("java.version")
@@ -76,7 +78,7 @@ public class Downloader {
                     Listener.INSTANCE.setProgress(percent);
                 }
             }
-        } catch (MalformedURLException e) {
+        } catch (MalformedURLException | URISyntaxException e) {
             throw new IOException("Bad URL: " + urlString, e);
         } finally {
             if (in != null) try {
