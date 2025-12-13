@@ -33,10 +33,10 @@
   "dreamdisplays.button.synchronization.tooltip.3": "Устанаўлівае, ці будзе дысплей сінхранізаваны паміж гульцамі",
   "dreamdisplays.button.synchronization.tooltip.4": "",
   "dreamdisplays.button.synchronization.tooltip.5": "Зараз: %s",
-  "dreamdisplays.button.delete": "Delete",
-  "dreamdisplays.button.delete.tooltip.1": "Delete display",
-  "dreamdisplays.button.delete.tooltip.2": "Permanently removes this display",
-  "dreamdisplays.button.report": "Report",
-  "dreamdisplays.button.report.tooltip.1": "Report display",
-  "dreamdisplays.button.report.tooltip.2": "Report inappropriate content"
+  "dreamdisplays.button.delete": "Выдаліць",
+  "dreamdisplays.button.delete.tooltip.1": "Выдаліць дысплей",
+  "dreamdisplays.button.delete.tooltip.2": "Наўсцяж выдаляе гэты дысплей",
+  "dreamdisplays.button.report": "Паведаміць",
+  "dreamdisplays.button.report.tooltip.1": "Паведаміць пра дысплей",
+  "dreamdisplays.button.report.tooltip.2": "Паведаміць пра непрыстойны кантэнт"
 }

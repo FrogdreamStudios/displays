@@ -33,10 +33,10 @@
   "dreamdisplays.button.synchronization.tooltip.3": "Określa, czy wyświetlacz jest synchronizowany między graczami",
   "dreamdisplays.button.synchronization.tooltip.4": "",
   "dreamdisplays.button.synchronization.tooltip.5": "Obecnie: %s",
-  "dreamdisplays.button.delete": "Delete",
-  "dreamdisplays.button.delete.tooltip.1": "Delete display",
-  "dreamdisplays.button.delete.tooltip.2": "Permanently removes this display",
-  "dreamdisplays.button.report": "Report",
-  "dreamdisplays.button.report.tooltip.1": "Report display",
-  "dreamdisplays.button.report.tooltip.2": "Report inappropriate content"
+  "dreamdisplays.button.delete": "Usunąć",
+  "dreamdisplays.button.delete.tooltip.1": "Usunąć wyświetlacz",
+  "dreamdisplays.button.delete.tooltip.2": "Usunie na stałe ten wyświetlacz",
+  "dreamdisplays.button.report": "Zgłoś",
+  "dreamdisplays.button.report.tooltip.1": "Zgłoś wyświetlacz",
+  "dreamdisplays.button.report.tooltip.2": "Zgłoś o nieodpowiednie treści"
 }

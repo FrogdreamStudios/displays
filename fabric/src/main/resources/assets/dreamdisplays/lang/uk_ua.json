@@ -33,10 +33,10 @@
   "dreamdisplays.button.synchronization.tooltip.3": "Встановлює, чи буде дисплей синхронізовано між гравцями",
   "dreamdisplays.button.synchronization.tooltip.4": "",
   "dreamdisplays.button.synchronization.tooltip.5": "Зараз: %s",
-  "dreamdisplays.button.delete": "Delete",
-  "dreamdisplays.button.delete.tooltip.1": "Delete display",
-  "dreamdisplays.button.delete.tooltip.2": "Permanently removes this display",
-  "dreamdisplays.button.report": "Report",
-  "dreamdisplays.button.report.tooltip.1": "Report display",
-  "dreamdisplays.button.report.tooltip.2": "Report inappropriate content"
+  "dreamdisplays.button.delete": "Видалити",
+  "dreamdisplays.button.delete.tooltip.1": "Видалити дисплей",
+  "dreamdisplays.button.delete.tooltip.2": "Назавжди видаляє цей дисплей",
+  "dreamdisplays.button.report": "Поскаржитися",
+  "dreamdisplays.button.report.tooltip.1": "Поскаржитися на дисплей",
+  "dreamdisplays.button.report.tooltip.2": "Поскаржитися на неприйнятний контент"
 }
