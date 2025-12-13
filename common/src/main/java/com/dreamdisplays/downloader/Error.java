@@ -8,6 +8,7 @@ import org.jspecify.annotations.NullMarked;
 
 @NullMarked
 public class Error extends Screen {
+
     private final Screen parent;
     private final String errorMessage;
 
@@ -24,15 +25,22 @@ public class Error extends Screen {
         super.init();
 
         this.addRenderableWidget(
-                Button.builder(Component.nullToEmpty("Continue"), button -> minecraft.setScreen(parent))
-                        .bounds(this.width / 2 - 50, this.height / 2 + 40, 100, 20)
-                        .build()
+            Button.builder(Component.nullToEmpty("Continue"), button ->
+                minecraft.setScreen(parent)
+            )
+                .bounds(this.width / 2 - 50, this.height / 2 + 40, 100, 20)
+                .build()
         );
     }
 
     // Renders the error screen with title and error message
     @Override
-    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
+    public void render(
+        GuiGraphics context,
+        int mouseX,
+        int mouseY,
+        float delta
+    ) {
         this.renderBackground(context, mouseX, mouseY, delta);
 
         String titleText = this.title.getString();
@@ -41,11 +49,25 @@ public class Error extends Screen {
         int titleWidth = this.font.width(titleText);
 
         // Draw the title text in the center of the screen
-        context.drawString(font, titleText, (int) ((this.width - titleWidth) / 2f), (int) (this.height / 2f - 40f), 0xFF5555, true);
+        context.drawString(
+            font,
+            titleText,
+            (int) ((this.width - titleWidth) / 2f),
+            (int) (this.height / 2f - 40f),
+            0xFF5555,
+            true
+        );
 
         // Error message
         int msgWidth = this.font.width(errorMessage);
-        context.drawString(font, errorMessage, (int) ((this.width - msgWidth) / 2f), (int) (this.height / 2f - 20f), 0xFF5555, true);
+        context.drawString(
+            font,
+            errorMessage,
+            (int) ((this.width - msgWidth) / 2f),
+            (int) (this.height / 2f - 20f),
+            0xFF5555,
+            true
+        );
 
         super.render(context, mouseX, mouseY, delta);
     }
