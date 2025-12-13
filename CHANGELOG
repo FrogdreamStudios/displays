@@ -1,3 +1,14 @@
+# Version 1.1.2
+Mod:
+- [x] Fix missing translations
+- [ ] Fix NeoForge build issues
+- [ ] Add toggle button for window focus
+- [ ] Add toggle button for video repeating
+- [ ] Support natives
+
+Plugin:
+- [ ] ...
+
 # Version 1.1.1
 Mod:
 - [x] Fix display desynchronization with server and client
@@ -7,8 +18,6 @@ Mod:
 
 Plugin:
 - [x] Fix display desynchronization with server and client
-
----
 
 # Version 1.1.0
 Mod:

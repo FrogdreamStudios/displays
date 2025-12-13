@@ -32,5 +32,11 @@
   "dreamdisplays.button.synchronization.tooltip.2": "Tato možnost je dostupná pouze pro vlastníka displeje",
   "dreamdisplays.button.synchronization.tooltip.3": "Určuje, zda bude displej synchronizován mezi hráči",
   "dreamdisplays.button.synchronization.tooltip.4": "",
-  "dreamdisplays.button.synchronization.tooltip.5": "Nyní: %s"
+  "dreamdisplays.button.synchronization.tooltip.5": "Nyní: %s",
+  "dreamdisplays.button.delete": "Smazat",
+  "dreamdisplays.button.delete.tooltip.1": "Smazat displej",
+  "dreamdisplays.button.delete.tooltip.2": "Trvale odstraní tento displej",
+  "dreamdisplays.button.report": "Nahlásit",
+  "dreamdisplays.button.report.tooltip.1": "Nahlásit displej",
+  "dreamdisplays.button.report.tooltip.2": "Nahlásit nevhodný obsah"
 }

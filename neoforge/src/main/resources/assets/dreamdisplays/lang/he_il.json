@@ -32,5 +32,11 @@
   "dreamdisplays.button.synchronization.tooltip.2": "אפשרות זמינה רק לבעלים של המסך",
   "dreamdisplays.button.synchronization.tooltip.3": "קובע האם המסך יהיה מסונכרן בין שחקנים",
   "dreamdisplays.button.synchronization.tooltip.4": "",
-  "dreamdisplays.button.synchronization.tooltip.5": "כעת: s%"
+  "dreamdisplays.button.synchronization.tooltip.5": "כעת: s%",
+  "dreamdisplays.button.delete": "מחק",
+  "dreamdisplays.button.delete.tooltip.1": "מחק תצוגה",
+  "dreamdisplays.button.delete.tooltip.2": "מוחק לצמיתות את התצוגה הזו",
+  "dreamdisplays.button.report": "דווח",
+  "dreamdisplays.button.report.tooltip.1": "דווח על תצוגה",
+  "dreamdisplays.button.report.tooltip.2": "דווח על תוכן לא הולם"
 }
