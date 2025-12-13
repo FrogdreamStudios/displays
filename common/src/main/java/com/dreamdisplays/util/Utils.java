@@ -1,8 +1,5 @@
 package com.dreamdisplays.util;
 
-import org.jspecify.annotations.NullMarked;
-import org.jspecify.annotations.Nullable;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,6 +9,8 @@ import java.net.URISyntaxException;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 @NullMarked
 public class Utils {
@@ -23,7 +22,9 @@ public class Utils {
             return "windows";
         } else if (os.contains("mac")) {
             return "macos";
-        } else if (os.contains("nux") || os.contains("nix") || os.contains("aix")) {
+        } else if (
+            os.contains("nux") || os.contains("nix") || os.contains("aix")
+        ) {
             return "linux";
         }
         throw new UnsupportedOperationException("Unsupported OS: " + os);
@@ -78,8 +79,7 @@ public class Utils {
                     }
                 }
             }
-        } catch (URISyntaxException ignored) {
-        }
+        } catch (URISyntaxException ignored) {}
 
         // Additional pattern for direct video IDs (11 character alphanumeric)
         String directIdRegex = "[a-zA-Z0-9_-]{11}";
@@ -94,9 +94,13 @@ public class Utils {
     public static String readResource(String resourcePath) throws IOException {
         try (InputStream in = Utils.class.getResourceAsStream(resourcePath)) {
             if (in == null) {
-                throw new IOException("Can't find the resource: " + resourcePath);
+                throw new IOException(
+                    "Can't find the resource: " + resourcePath
+                );
             }
-            BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+            BufferedReader reader = new BufferedReader(
+                new InputStreamReader(in)
+            );
             StringBuilder sb = new StringBuilder();
             String line;
             while ((line = reader.readLine()) != null) {
@@ -111,13 +115,14 @@ public class Utils {
         // Fabric
         try {
             String fabricJson = readResource("/fabric.mod.json");
-            Pattern pattern = Pattern.compile("\"version\"\\s*:\\s*\"([^\"]+)\"");
+            Pattern pattern = Pattern.compile(
+                "\"version\"\\s*:\\s*\"([^\"]+)\""
+            );
             Matcher matcher = pattern.matcher(fabricJson);
             if (matcher.find()) {
                 return matcher.group(1).trim();
             }
-        } catch (IOException ignored) {
-        }
+        } catch (IOException ignored) {}
 
         // NeoForge/Forge
         try {
@@ -127,8 +132,7 @@ public class Utils {
             if (matcher.find()) {
                 return matcher.group(1).trim();
             }
-        } catch (IOException ignored) {
-        }
+        } catch (IOException ignored) {}
 
         return "unknown";
     }

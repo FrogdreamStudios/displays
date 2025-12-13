@@ -7,13 +7,24 @@ import java.nio.ByteBuffer;
 public class Converter {
 
     // Java implementation for image scaling with aspect ratio preservation (cover mode)
-    private static void scaleRGBAImageJava(ByteBuffer src, int srcW, int srcH, ByteBuffer dst, int dstW, int dstH) {
+    private static void scaleRGBAImageJava(
+        ByteBuffer src,
+        int srcW,
+        int srcH,
+        ByteBuffer dst,
+        int dstW,
+        int dstH
+    ) {
         if (src == null || dst == null) {
-            throw new IllegalArgumentException("Source and destination buffers cannot be null");
+            throw new IllegalArgumentException(
+                "Source and destination buffers cannot be null"
+            );
         }
 
         if (srcW <= 0 || srcH <= 0 || dstW <= 0 || dstH <= 0) {
-            throw new IllegalArgumentException("Image dimensions must be positive");
+            throw new IllegalArgumentException(
+                "Image dimensions must be positive"
+            );
         }
 
         // Calculate scaling to maintain aspect ratio (cover mode)
@@ -34,12 +45,12 @@ public class Converter {
 
         // Nearest neighbor scaling with centering
         for (int y = 0; y < dstH; y++) {
-            int srcY = (int) ((y - offsetY) * srcH / (double) scaledH);
+            int srcY = (int) (((y - offsetY) * srcH) / (double) scaledH);
 
             if (srcY < 0 || srcY >= srcH) continue;
 
             for (int x = 0; x < dstW; x++) {
-                int srcX = (int) ((x - offsetX) * srcW / (double) scaledW);
+                int srcX = (int) (((x - offsetX) * srcW) / (double) scaledW);
 
                 if (srcX >= 0 && srcX < srcW) {
                     // Copy 4 bytes (RGBA) from source to destination
@@ -54,7 +65,14 @@ public class Converter {
     }
 
     // Scale RGBA image using nearest neighbor scaling - pure Java implementation
-    public static void scaleRGBA(ByteBuffer src, int srcW, int srcH, ByteBuffer dst, int dstW, int dstH) {
+    public static void scaleRGBA(
+        ByteBuffer src,
+        int srcW,
+        int srcH,
+        ByteBuffer dst,
+        int dstW,
+        int dstH
+    ) {
         scaleRGBAImageJava(src, srcW, srcH, dst, dstW, dstH);
     }
 }

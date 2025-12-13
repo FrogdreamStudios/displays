@@ -4,6 +4,11 @@ import com.dreamdisplays.Initializer;
 import com.dreamdisplays.net.Info;
 import com.dreamdisplays.net.RequestSync;
 import com.dreamdisplays.net.Sync;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.rendertype.RenderSetup;
@@ -15,14 +20,9 @@ import net.minecraft.resources.Identifier;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-
 @NullMarked
 public class Screen {
+
     private final UUID id;
     private final UUID ownerId;
     public boolean owner;
@@ -54,7 +54,17 @@ public class Screen {
     private @Nullable String lang;
 
     // Constructor for the Screen class
-    public Screen(UUID id, UUID ownerId, int x, int y, int z, String facing, int width, int height, boolean isSync) {
+    public Screen(
+        UUID id,
+        UUID ownerId,
+        int x,
+        int y,
+        int z,
+        String facing,
+        int width,
+        int height,
+        boolean isSync
+    ) {
         this.id = id;
         this.ownerId = ownerId;
         this.x = x;
@@ -63,7 +73,11 @@ public class Screen {
         this.facing = facing;
         this.width = width;
         this.height = height;
-        owner = Minecraft.getInstance().player != null && (ownerId + "").equals(Minecraft.getInstance().player.getUUID() + "");
+        owner =
+            Minecraft.getInstance().player != null &&
+            (ownerId + "").equals(
+                Minecraft.getInstance().player.getUUID() + ""
+            );
 
         // Load saved settings for this display
         Settings.DisplaySettings savedSettings = Settings.getSettings(id);
@@ -79,13 +93,13 @@ public class Screen {
     // Creates a custom RenderType for rendering the screen texture
     private static RenderType createRenderType(Identifier id) {
         return RenderType.create(
-                "dream-displays",
-                RenderSetup.builder(RenderPipelines.SOLID_BLOCK)
-                        .withTexture("Sampler0", id)
-                        .bufferSize(RenderType.BIG_BUFFER_SIZE)
-                        .affectsCrumbling()
-                        .useLightmap()
-                        .createRenderSetup()
+            "dream-displays",
+            RenderSetup.builder(RenderPipelines.SOLID_BLOCK)
+                .withTexture("Sampler0", id)
+                .bufferSize(RenderType.BIG_BUFFER_SIZE)
+                .affectsCrumbling()
+                .useLightmap()
+                .createRenderSetup()
         );
     }
 
@@ -101,7 +115,7 @@ public class Screen {
         CompletableFuture.runAsync(() -> {
             mediaPlayer = new MediaPlayer(videoUrl, lang, this);
             int qualityInt = Integer.parseInt(this.quality.replace("p", ""));
-            textureWidth = (int) (width / (double) height * qualityInt);
+            textureWidth = (int) ((width / (double) height) * qualityInt);
             textureHeight = qualityInt;
         });
 
@@ -122,9 +136,16 @@ public class Screen {
         this.height = packet.height();
         this.isSync = packet.isSync();
 
-        owner = Minecraft.getInstance().player != null && (packet.ownerId() + "").equals(Minecraft.getInstance().player.getUUID() + "");
+        owner =
+            Minecraft.getInstance().player != null &&
+            (packet.ownerId() + "").equals(
+                Minecraft.getInstance().player.getUUID() + ""
+            );
 
-        if (!Objects.equals(videoUrl, packet.url()) || !Objects.equals(lang, packet.lang())) {
+        if (
+            !Objects.equals(videoUrl, packet.url()) ||
+            !Objects.equals(lang, packet.lang())
+        ) {
             loadVideo(packet.url(), packet.lang());
             if (isSync) {
                 sendRequestSyncPacket();
@@ -181,9 +202,14 @@ public class Screen {
             default -> maxZ += width - 1;
         }
 
-        return x <= pos.getX() && maxX >= pos.getX() &&
-                y <= pos.getY() && maxY >= pos.getY() &&
-                z <= pos.getZ() && maxZ >= pos.getZ();
+        return (
+            x <= pos.getX() &&
+            maxX >= pos.getX() &&
+            y <= pos.getY() &&
+            maxY >= pos.getY() &&
+            z <= pos.getZ() &&
+            maxZ >= pos.getZ()
+        );
     }
 
     // Checks if the video has started playing
@@ -345,8 +371,7 @@ public class Screen {
                 if (textureId != null) {
                     try {
                         manager.release(textureId);
-                    } catch (Exception ignored) {
-                    }
+                    } catch (Exception ignored) {}
                 }
             });
         }
@@ -379,25 +404,43 @@ public class Screen {
     // Creates a new texture for the screen based on its dimensions and quality
     public void createTexture() {
         int qualityInt = Integer.parseInt(this.quality.replace("p", ""));
-        textureWidth = (int) (width / (double) height * qualityInt);
+        textureWidth = (int) ((width / (double) height) * qualityInt);
         textureHeight = qualityInt;
 
         if (texture != null) {
             texture.close();
             if (textureId != null) Minecraft.getInstance()
-                    .getTextureManager()
-                    .release(textureId);
+                .getTextureManager()
+                .release(textureId);
         }
-        texture = new DynamicTexture(UUID.randomUUID().toString(), textureWidth, textureHeight, true);
-        textureId = Identifier.fromNamespaceAndPath(Initializer.MOD_ID, "screen-main-texture-" + id + "-" + UUID.randomUUID());
+        texture = new DynamicTexture(
+            UUID.randomUUID().toString(),
+            textureWidth,
+            textureHeight,
+            true
+        );
+        textureId = Identifier.fromNamespaceAndPath(
+            Initializer.MOD_ID,
+            "screen-main-texture-" + id + "-" + UUID.randomUUID()
+        );
 
-        Minecraft.getInstance().getTextureManager().register(textureId, texture);
+        Minecraft.getInstance()
+            .getTextureManager()
+            .register(textureId, texture);
         renderType = createRenderType(textureId);
     }
 
     public void sendSync() {
         if (mediaPlayer != null) {
-            Initializer.sendPacket(new Sync(id, isSync, paused, mediaPlayer.getCurrentTime(), mediaPlayer.getDuration()));
+            Initializer.sendPacket(
+                new Sync(
+                    id,
+                    isSync,
+                    paused,
+                    mediaPlayer.getCurrentTime(),
+                    mediaPlayer.getDuration()
+                )
+            );
         }
     }
 
@@ -423,7 +466,11 @@ public class Screen {
 
     // Restore the saved video playback time
     public void restoreSavedTime() {
-        if (savedTimeNanos > 0 && mediaPlayer != null && mediaPlayer.isInitialized()) {
+        if (
+            savedTimeNanos > 0 &&
+            mediaPlayer != null &&
+            mediaPlayer.isInitialized()
+        ) {
             mediaPlayer.seekTo(savedTimeNanos, false);
         }
     }
@@ -438,7 +485,8 @@ public class Screen {
                 }
             }
             action.run();
-        }).start();
+        })
+            .start();
     }
 
     public @Nullable String getVideoUrl() {
@@ -454,7 +502,10 @@ public class Screen {
     }
 
     public void tick(BlockPos pos) {
-        if (mediaPlayer != null) mediaPlayer.tick(pos, Initializer.config.defaultDistance);
+        if (mediaPlayer != null) mediaPlayer.tick(
+            pos,
+            Initializer.config.defaultDistance
+        );
     }
 
     public void afterSeek() {

@@ -21,7 +21,7 @@ Plugin:
 
 # Version 1.1.0
 Mod:
-- [x] Support 1.21.11 version 
+- [x] Support 1.21.11 version
 - [x] Support NeoForge
 - [x] Huge reduction of CPU usage, more stable and optimized
 - [x] Store all displays from the servers

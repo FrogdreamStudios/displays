@@ -3,10 +3,7 @@
   "minVersion": "0.8",
   "package": "com.dreamdisplays.mixins",
   "compatibilityLevel": "JAVA_21",
-  "client": [
-    "Crosshair",
-    "GStreamer"
-  ],
+  "client": ["Crosshair", "GStreamer"],
   "injectors": {
     "defaultRequire": 1
   }

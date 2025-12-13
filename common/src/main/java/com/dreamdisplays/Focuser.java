@@ -7,6 +7,7 @@ import org.jspecify.annotations.NullMarked;
 
 @NullMarked
 public class Focuser extends Thread {
+
     public static Focuser instance = new Focuser();
 
     public Focuser() {
@@ -22,7 +23,9 @@ public class Focuser extends Thread {
 
             boolean focused = client.isWindowActive();
 
-            if (Initializer.getConfig().muteOnAltTab) for (Screen screen : Manager.getScreens()) {
+            if (
+                Initializer.getConfig().muteOnAltTab
+            ) for (Screen screen : Manager.getScreens()) {
                 screen.mute(!focused);
             }
 

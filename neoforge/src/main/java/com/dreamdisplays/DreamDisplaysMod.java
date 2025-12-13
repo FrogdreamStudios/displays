@@ -37,29 +37,50 @@ public class DreamDisplaysMod implements com.dreamdisplays.Mod {
     }
 
     public void registerPayloads(RegisterPayloadHandlersEvent event) {
-        PayloadRegistrar registrar = event.registrar(MOD_ID).optional().versioned("1");
-        registrar.playBidirectional(Delete.PACKET_ID, Delete.PACKET_CODEC,
-                (serverPayload, ctx) -> {
-                },
-                (clientPayload, ctx) -> Initializer.onDeletePacket(clientPayload)
+        PayloadRegistrar registrar = event
+            .registrar(MOD_ID)
+            .optional()
+            .versioned("1");
+        registrar.playBidirectional(
+            Delete.PACKET_ID,
+            Delete.PACKET_CODEC,
+            (serverPayload, ctx) -> {},
+            (clientPayload, ctx) -> Initializer.onDeletePacket(clientPayload)
         );
-        registrar.playToClient(Info.PACKET_ID, Info.PACKET_CODEC,
-                (payload, ctx) -> Initializer.onDisplayInfoPacket(payload));
+        registrar.playToClient(
+            Info.PACKET_ID,
+            Info.PACKET_CODEC,
+            (payload, ctx) -> Initializer.onDisplayInfoPacket(payload)
+        );
 
-        registrar.playToClient(Sync.PACKET_ID, Sync.PACKET_CODEC,
-                (payload, ctx) -> Initializer.onSyncPacket(payload));
+        registrar.playToClient(
+            Sync.PACKET_ID,
+            Sync.PACKET_CODEC,
+            (payload, ctx) -> Initializer.onSyncPacket(payload)
+        );
 
-        registrar.playToClient(Premium.PACKET_ID, Premium.PACKET_CODEC,
-                (payload, ctx) -> Initializer.onPremiumPacket(payload));
+        registrar.playToClient(
+            Premium.PACKET_ID,
+            Premium.PACKET_CODEC,
+            (payload, ctx) -> Initializer.onPremiumPacket(payload)
+        );
 
-        registrar.playToServer(RequestSync.PACKET_ID, RequestSync.PACKET_CODEC, (p, c) -> {
-        });
-        registrar.playToServer(Report.PACKET_ID, Report.PACKET_CODEC, (p, c) -> {
-        });
-        registrar.playToServer(Version.PACKET_ID, Version.PACKET_CODEC, (p, c) -> {
-        });
+        registrar.playToServer(
+            RequestSync.PACKET_ID,
+            RequestSync.PACKET_CODEC,
+            (p, c) -> {}
+        );
+        registrar.playToServer(
+            Report.PACKET_ID,
+            Report.PACKET_CODEC,
+            (p, c) -> {}
+        );
+        registrar.playToServer(
+            Version.PACKET_ID,
+            Version.PACKET_CODEC,
+            (p, c) -> {}
+        );
     }
-
 
     @SubscribeEvent
     public void onClientTick(ClientTickEvent.Post event) {
@@ -78,7 +99,9 @@ public class DreamDisplaysMod implements com.dreamdisplays.Mod {
     }
 
     @SubscribeEvent
-    public void onRenderLevelAfterEntities(RenderLevelStageEvent.AfterEntities event) {
+    public void onRenderLevelAfterEntities(
+        RenderLevelStageEvent.AfterEntities event
+    ) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null || mc.player == null) return;
 
@@ -89,24 +112,37 @@ public class DreamDisplaysMod implements com.dreamdisplays.Mod {
 
     @SubscribeEvent
     public void registerCommands(RegisterClientCommandsEvent event) {
-        event.getDispatcher().register(
+        event
+            .getDispatcher()
+            .register(
                 LiteralArgumentBuilder.<CommandSourceStack>literal("displays")
-                        .then(LiteralArgumentBuilder.<CommandSourceStack>literal("off")
-                                .executes(ctx -> {
-                                    Initializer.displaysEnabled = false;
-                                    LocalPlayer p = Minecraft.getInstance().player;
-                                    if (p != null)
-                                        p.displayClientMessage(Component.literal("Displays disabled"), false);
-                                    return 1;
-                                }))
-                        .then(LiteralArgumentBuilder.<CommandSourceStack>literal("on")
-                                .executes(ctx -> {
-                                    Initializer.displaysEnabled = true;
-                                    LocalPlayer p = Minecraft.getInstance().player;
-                                    if (p != null) p.displayClientMessage(Component.literal("Displays enabled"), false);
-                                    return 1;
-                                }))
-        );
+                    .then(
+                        LiteralArgumentBuilder.<CommandSourceStack>literal(
+                            "off"
+                        ).executes(ctx -> {
+                            Initializer.displaysEnabled = false;
+                            LocalPlayer p = Minecraft.getInstance().player;
+                            if (p != null) p.displayClientMessage(
+                                Component.literal("Displays disabled"),
+                                false
+                            );
+                            return 1;
+                        })
+                    )
+                    .then(
+                        LiteralArgumentBuilder.<CommandSourceStack>literal(
+                            "on"
+                        ).executes(ctx -> {
+                            Initializer.displaysEnabled = true;
+                            LocalPlayer p = Minecraft.getInstance().player;
+                            if (p != null) p.displayClientMessage(
+                                Component.literal("Displays enabled"),
+                                false
+                            );
+                            return 1;
+                        })
+                    )
+            );
     }
 
     @Override

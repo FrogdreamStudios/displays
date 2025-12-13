@@ -15,20 +15,21 @@ public class RayCasting {
     public static BlockHitResult rCBlock(double maxDistance) {
         Minecraft client = Minecraft.getInstance();
 
-        if (client.player == null || client.level == null)
-            return null;
+        if (client.player == null || client.level == null) return null;
 
         Vec3 start = client.player.getEyePosition(1.0f);
         Vec3 direction = client.player.getViewVector(1.0f);
         Vec3 end = start.add(direction.scale(maxDistance));
 
-        BlockHitResult hit = client.level.clip(new net.minecraft.world.level.ClipContext(
+        BlockHitResult hit = client.level.clip(
+            new net.minecraft.world.level.ClipContext(
                 start,
                 end,
                 net.minecraft.world.level.ClipContext.Block.OUTLINE,
                 net.minecraft.world.level.ClipContext.Fluid.NONE,
                 client.player
-        ));
+            )
+        );
 
         if (hit.getType() == HitResult.Type.BLOCK) {
             return hit;

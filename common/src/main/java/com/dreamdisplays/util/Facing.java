@@ -7,11 +7,15 @@ import org.jspecify.annotations.NullMarked;
 // used in network packets.
 @NullMarked
 public enum Facing {
-    NORTH, EAST, SOUTH, WEST;
+    NORTH,
+    EAST,
+    SOUTH,
+    WEST;
 
     public static Facing fromPacket(byte data) {
-        if (data < 0 || data >= values().length)
-            throw new IllegalArgumentException("Invalid facing ID: " + data);
+        if (
+            data < 0 || data >= values().length
+        ) throw new IllegalArgumentException("Invalid facing ID: " + data);
         return values()[data];
     }
 

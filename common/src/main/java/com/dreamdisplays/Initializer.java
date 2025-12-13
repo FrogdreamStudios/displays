@@ -9,6 +9,11 @@ import com.dreamdisplays.screen.Settings;
 import com.dreamdisplays.util.Facing;
 import com.dreamdisplays.util.RayCasting;
 import com.dreamdisplays.util.Utils;
+import java.io.File;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import me.inotsleep.utils.logging.LoggingManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -22,19 +27,16 @@ import org.jspecify.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.util.Objects;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
-
 @NullMarked
 public class Initializer {
 
     public static final String MOD_ID = "dreamdisplays";
-    private static final boolean[] wasPressed = {false};
-    private static final AtomicBoolean wasInMultiplayer = new AtomicBoolean(false);
-    private static final AtomicReference<@Nullable ClientLevel> lastLevel = new AtomicReference<>(null);
+    private static final boolean[] wasPressed = { false };
+    private static final AtomicBoolean wasInMultiplayer = new AtomicBoolean(
+        false
+    );
+    private static final AtomicReference<@Nullable ClientLevel> lastLevel =
+        new AtomicReference<>(null);
     private static final AtomicBoolean wasFocused = new AtomicBoolean(false);
     public static Config config = new Config(new File("./config/" + MOD_ID));
     public static Thread timerThread = new Thread(() -> {
@@ -88,14 +90,48 @@ public class Initializer {
             return;
         }
 
-        createScreen(packet.id(), packet.ownerId(), packet.pos(), packet.facing(), packet.width(), packet.height(), packet.url(), packet.lang(), packet.isSync());
+        createScreen(
+            packet.id(),
+            packet.ownerId(),
+            packet.pos(),
+            packet.facing(),
+            packet.width(),
+            packet.height(),
+            packet.url(),
+            packet.lang(),
+            packet.isSync()
+        );
     }
 
-    public static void createScreen(UUID id, UUID ownerId, Vector3i pos, Facing facing, int width, int height, String code, String lang, boolean isSync) {
-        Screen screen = new Screen(id, ownerId, pos.x(), pos.y(), pos.z(), facing.toString(), width, height, isSync);
+    public static void createScreen(
+        UUID id,
+        UUID ownerId,
+        Vector3i pos,
+        Facing facing,
+        int width,
+        int height,
+        String code,
+        String lang,
+        boolean isSync
+    ) {
+        Screen screen = new Screen(
+            id,
+            ownerId,
+            pos.x(),
+            pos.y(),
+            pos.z(),
+            facing.toString(),
+            width,
+            height,
+            isSync
+        );
         assert Minecraft.getInstance().player != null;
-        if (screen.getDistanceToScreen(Minecraft.getInstance().player.blockPosition()) > Initializer.config.defaultDistance)
-            return;
+        if (
+            screen.getDistanceToScreen(
+                Minecraft.getInstance().player.blockPosition()
+            ) >
+            Initializer.config.defaultDistance
+        ) return;
         Manager.registerScreen(screen);
         if (!Objects.equals(code, "")) screen.loadVideo(code, lang);
     }
@@ -131,7 +167,6 @@ public class Initializer {
                 hoveredScreen = null;
 
                 checkVersionAndSendPacket();
-
             }
 
             wasInMultiplayer.set(true);
@@ -153,7 +188,13 @@ public class Initializer {
         for (Screen screen : Manager.getScreens()) {
             double displayRenderDistance = screen.getRenderDistance();
 
-            if (displayRenderDistance < screen.getDistanceToScreen(minecraft.player.blockPosition()) || !Initializer.displaysEnabled) {
+            if (
+                displayRenderDistance <
+                    screen.getDistanceToScreen(
+                        minecraft.player.blockPosition()
+                    ) ||
+                !Initializer.displaysEnabled
+            ) {
                 Manager.saveScreenData(screen);
                 Manager.unregisterScreen(screen);
                 if (hoveredScreen == screen) {
@@ -161,7 +202,9 @@ public class Initializer {
                     Initializer.isOnScreen = false;
                 }
             } else {
-                if (result != null) if (screen.isInScreen(result.getBlockPos())) {
+                if (result != null) if (
+                    screen.isInScreen(result.getBlockPos())
+                ) {
                     hoveredScreen = screen;
                     Initializer.isOnScreen = true;
                 }
@@ -171,7 +214,9 @@ public class Initializer {
         }
 
         long window = minecraft.getWindow().handle();
-        boolean pressed = GLFW.glfwGetMouseButton(window, GLFW.GLFW_MOUSE_BUTTON_RIGHT) == GLFW.GLFW_PRESS;
+        boolean pressed =
+            GLFW.glfwGetMouseButton(window, GLFW.GLFW_MOUSE_BUTTON_RIGHT) ==
+            GLFW.GLFW_PRESS;
 
         if (pressed && !wasPressed[0]) {
             if (minecraft.player != null && minecraft.player.isShiftKeyDown()) {
@@ -181,19 +226,28 @@ public class Initializer {
 
         wasPressed[0] = pressed;
 
-        if (Initializer.focusMode && minecraft.player != null && hoveredScreen != null) {
-            minecraft.player.addEffect(new MobEffectInstance(
+        if (
+            Initializer.focusMode &&
+            minecraft.player != null &&
+            hoveredScreen != null
+        ) {
+            minecraft.player.addEffect(
+                new MobEffectInstance(
                     MobEffects.BLINDNESS,
                     20 * 2,
                     1,
                     false,
                     false,
                     false
-            ));
+                )
+            );
 
             wasFocused.set(true);
-
-        } else if (!Initializer.focusMode && wasFocused.get() && minecraft.player != null) {
+        } else if (
+            !Initializer.focusMode &&
+            wasFocused.get() &&
+            minecraft.player != null
+        ) {
             minecraft.player.removeEffect(MobEffects.BLINDNESS);
             wasFocused.set(false);
         }
@@ -215,7 +269,9 @@ public class Initializer {
         }
 
         Settings.removeDisplay(deletePacket.id());
-        LoggingManager.info("Display deleted and removed from saved data: " + deletePacket.id());
+        LoggingManager.info(
+            "Display deleted and removed from saved data: " + deletePacket.id()
+        );
     }
 
     public static void onStop() {
