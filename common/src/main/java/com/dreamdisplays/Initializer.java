@@ -1,7 +1,11 @@
 package com.dreamdisplays;
 
 import com.dreamdisplays.downloader.Init;
-import com.dreamdisplays.net.*;
+import com.dreamdisplays.net.Packets.Delete;
+import com.dreamdisplays.net.Packets.Info;
+import com.dreamdisplays.net.Packets.Premium;
+import com.dreamdisplays.net.Packets.Sync;
+import com.dreamdisplays.net.Packets.Version;
 import com.dreamdisplays.screen.Configuration;
 import com.dreamdisplays.screen.Manager;
 import com.dreamdisplays.screen.Screen;

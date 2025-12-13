@@ -1,0 +1,181 @@
+package com.dreamdisplays.net;
+
+import com.dreamdisplays.Initializer;
+import com.dreamdisplays.util.Facing;
+import java.util.UUID;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.Identifier;
+import org.joml.Vector3i;
+import org.jspecify.annotations.NullMarked;
+
+@NullMarked
+public final class Packets {
+
+    private static <T extends CustomPacketPayload> CustomPacketPayload.Type<
+        T
+    > createType(String path) {
+        return new CustomPacketPayload.Type<>(
+            Identifier.fromNamespaceAndPath(Initializer.MOD_ID, path)
+        );
+    }
+
+    public record Delete(UUID id) implements CustomPacketPayload {
+        public static final Type<Delete> PACKET_ID = createType("delete");
+        public static final StreamCodec<FriendlyByteBuf, Delete> PACKET_CODEC =
+            StreamCodec.of(
+                (buf, packet) -> buf.writeUUID(packet.id),
+                buf -> new Delete(buf.readUUID())
+            );
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return PACKET_ID;
+        }
+    }
+
+    public record Info(
+        UUID id,
+        UUID ownerId,
+        Vector3i pos,
+        int width,
+        int height,
+        String url,
+        Facing facing,
+        boolean isSync,
+        String lang
+    ) implements CustomPacketPayload {
+        public static final Type<Info> PACKET_ID = createType("display_info");
+        public static final StreamCodec<FriendlyByteBuf, Info> PACKET_CODEC =
+            StreamCodec.of(
+                (buf, packet) -> {
+                    buf.writeUUID(packet.id);
+                    buf.writeUUID(packet.ownerId);
+                    buf.writeVarInt(packet.pos.x());
+                    buf.writeVarInt(packet.pos.y());
+                    buf.writeVarInt(packet.pos.z());
+                    buf.writeVarInt(packet.width);
+                    buf.writeVarInt(packet.height);
+                    buf.writeUtf(packet.url);
+                    buf.writeByte(packet.facing.toPacket());
+                    buf.writeBoolean(packet.isSync);
+                    buf.writeUtf(packet.lang);
+                },
+                buf ->
+                    new Info(
+                        buf.readUUID(),
+                        buf.readUUID(),
+                        new Vector3i(
+                            buf.readVarInt(),
+                            buf.readVarInt(),
+                            buf.readVarInt()
+                        ),
+                        buf.readVarInt(),
+                        buf.readVarInt(),
+                        buf.readUtf(),
+                        Facing.fromPacket(buf.readByte()),
+                        buf.readBoolean(),
+                        buf.readUtf()
+                    )
+            );
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return PACKET_ID;
+        }
+    }
+
+    public record Premium(boolean premium) implements CustomPacketPayload {
+        public static final Type<Premium> PACKET_ID = createType("premium");
+        public static final StreamCodec<FriendlyByteBuf, Premium> PACKET_CODEC =
+            StreamCodec.of(
+                (buf, packet) -> buf.writeBoolean(packet.premium),
+                buf -> new Premium(buf.readBoolean())
+            );
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return PACKET_ID;
+        }
+    }
+
+    public record Report(UUID id) implements CustomPacketPayload {
+        public static final Type<Report> PACKET_ID = createType("report");
+        public static final StreamCodec<FriendlyByteBuf, Report> PACKET_CODEC =
+            StreamCodec.of(
+                (buf, packet) -> buf.writeUUID(packet.id),
+                buf -> new Report(buf.readUUID())
+            );
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return PACKET_ID;
+        }
+    }
+
+    public record RequestSync(UUID id) implements CustomPacketPayload {
+        public static final Type<RequestSync> PACKET_ID = createType(
+            "req_sync"
+        );
+        public static final StreamCodec<
+            FriendlyByteBuf,
+            RequestSync
+        > PACKET_CODEC = StreamCodec.of(
+            (buf, packet) -> buf.writeUUID(packet.id),
+            buf -> new RequestSync(buf.readUUID())
+        );
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return PACKET_ID;
+        }
+    }
+
+    public record Sync(
+        UUID id,
+        boolean isSync,
+        boolean currentState,
+        long currentTime,
+        long limitTime
+    ) implements CustomPacketPayload {
+        public static final Type<Sync> PACKET_ID = createType("sync");
+        public static final StreamCodec<FriendlyByteBuf, Sync> PACKET_CODEC =
+            StreamCodec.of(
+                (buf, packet) -> {
+                    buf.writeUUID(packet.id);
+                    buf.writeBoolean(packet.isSync);
+                    buf.writeBoolean(packet.currentState);
+                    buf.writeVarLong(packet.currentTime);
+                    buf.writeVarLong(packet.limitTime);
+                },
+                buf ->
+                    new Sync(
+                        buf.readUUID(),
+                        buf.readBoolean(),
+                        buf.readBoolean(),
+                        buf.readVarLong(),
+                        buf.readVarLong()
+                    )
+            );
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return PACKET_ID;
+        }
+    }
+
+    public record Version(String version) implements CustomPacketPayload {
+        public static final Type<Version> PACKET_ID = createType("version");
+        public static final StreamCodec<FriendlyByteBuf, Version> PACKET_CODEC =
+            StreamCodec.of(
+                (buf, packet) -> buf.writeUtf(packet.version),
+                buf -> new Version(buf.readUtf())
+            );
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return PACKET_ID;
+        }
+    }
+}

@@ -1,8 +1,8 @@
 package com.dreamdisplays.screen;
 
 import com.dreamdisplays.Initializer;
-import com.dreamdisplays.net.Delete;
-import com.dreamdisplays.net.Report;
+import com.dreamdisplays.net.Packets.Delete;
+import com.dreamdisplays.net.Packets.Report;
 import com.dreamdisplays.screen.widgets.Button;
 import com.dreamdisplays.screen.widgets.Slider;
 import com.dreamdisplays.screen.widgets.Toggle;

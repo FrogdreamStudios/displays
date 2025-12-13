@@ -1,9 +1,9 @@
 package com.dreamdisplays.screen;
 
 import com.dreamdisplays.Initializer;
-import com.dreamdisplays.net.Info;
-import com.dreamdisplays.net.RequestSync;
-import com.dreamdisplays.net.Sync;
+import com.dreamdisplays.net.Packets.Info;
+import com.dreamdisplays.net.Packets.RequestSync;
+import com.dreamdisplays.net.Packets.Sync;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
