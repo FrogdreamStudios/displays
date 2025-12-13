@@ -45,7 +45,6 @@ public class MediaPlayer {
     private final ExecutorService frameExecutor = Executors.newSingleThreadExecutor(r -> new Thread(r, "MediaPlayer-frame"));
     private final AtomicBoolean terminated = new AtomicBoolean(false);
     private final Screen screen;
-    String[] clients = new String[]{"WEB_MUSIC", "ANDROID", "ANDROID_VR", "ANDROID_TESTSUITE", "IOS", "IOS_MUSIC"};
     private volatile double currentVolume;
     // === GST OBJECTS =====================================================================
     private volatile @Nullable Pipeline videoPipeline;

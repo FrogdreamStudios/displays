@@ -7,9 +7,9 @@ import net.minecraft.client.Camera;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.Vec3;
-import org.jspecify.annotations.NullMarked;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
+import org.jspecify.annotations.NullMarked;
 
 @NullMarked
 public class ScreenRenderer {
@@ -63,9 +63,9 @@ public class ScreenRenderer {
 
         // Render the screen texture or black square
         if (screen.isVideoStarted() && screen.texture != null && screen.renderType != null) {
-            renderGpuTexture(matrices, tessellator, screen.texture.getTextureView(), screen.renderType);
+            renderGpuTexture(matrices, tessellator, screen.renderType);
         } else if (screen.renderType != null) {
-            renderColor(matrices, tessellator, screen.renderType, 0, 0, 0);
+            renderColor(matrices, tessellator, screen.renderType);
         }
         matrices.popPose();
     }
@@ -132,7 +132,7 @@ public class ScreenRenderer {
     }
 
     // Renders a GPU texture onto a quad using the provided matrix stack and tessellator
-    private static void renderGpuTexture(PoseStack matrices, Tesselator tess, com.mojang.blaze3d.textures.GpuTextureView gpuView, RenderType type) {
+    private static void renderGpuTexture(PoseStack matrices, Tesselator tess, RenderType type) {
         Matrix4f mat = matrices.last().pose();
 
         BufferBuilder buf = tess.begin(
@@ -173,7 +173,7 @@ public class ScreenRenderer {
     }
 
     // Renders a solid color square with the specified RGB values
-    private static void renderColor(PoseStack matrices, Tesselator tess, RenderType type, int r, int g, int b) {
+    private static void renderColor(PoseStack matrices, Tesselator tess, RenderType type) {
         Matrix4f mat = matrices.last().pose();
 
         BufferBuilder buf = tess.begin(
@@ -183,28 +183,28 @@ public class ScreenRenderer {
 
         buf
                 .addVertex(mat, 0f, 0f, 0f)
-                .setColor(r, g, b, 255)
+                .setColor(0, 0, 0, 255)
                 .setUv(0f, 1f)
                 .setLight(0xF000F0)
                 .setNormal(0f, 0f, 1f);
 
         buf
                 .addVertex(mat, 1f, 0f, 0f)
-                .setColor(r, g, b, 255)
+                .setColor(0, 0, 0, 255)
                 .setUv(1f, 1f)
                 .setLight(0xF000F0)
                 .setNormal(0f, 0f, 1f);
 
         buf
                 .addVertex(mat, 1f, 1f, 0f)
-                .setColor(r, g, b, 255)
+                .setColor(0, 0, 0, 255)
                 .setUv(1f, 0f)
                 .setLight(0xF000F0)
                 .setNormal(0f, 0f, 1f);
 
         buf
                 .addVertex(mat, 0f, 1f, 0f)
-                .setColor(r, g, b, 255)
+                .setColor(0, 0, 0, 255)
                 .setUv(0f, 0f)
                 .setLight(0xF000F0)
                 .setNormal(0f, 0f, 1f);

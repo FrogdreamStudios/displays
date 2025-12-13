@@ -24,9 +24,7 @@ public class Error extends Screen {
         super.init();
 
         this.addRenderableWidget(
-                Button.builder(Component.nullToEmpty("Continue"), button -> {
-                            minecraft.setScreen(parent);
-                        })
+                Button.builder(Component.nullToEmpty("Continue"), button -> minecraft.setScreen(parent))
                         .bounds(this.width / 2 - 50, this.height / 2 + 40, 100, 20)
                         .build()
         );

@@ -4,7 +4,6 @@ import com.dreamdisplays.Initializer;
 import com.dreamdisplays.net.Info;
 import com.dreamdisplays.net.RequestSync;
 import com.dreamdisplays.net.Sync;
-import me.inotsleep.utils.logging.LoggingManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.rendertype.RenderSetup;
@@ -13,7 +12,6 @@ import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -45,7 +43,7 @@ public class Screen {
     private float volume;
     private boolean videoStarted;
     private boolean paused;
-    private String quality = "720";
+    private String quality;
     private long savedTimeNanos = 0;
     private int renderDistance = 64;
     // Use a combined MediaPlayer instead of the separate VideoDecoder and AudioPlayer.
@@ -339,7 +337,7 @@ public class Screen {
         }
     }
 
-    private @NonNull Minecraft getMinecraft() {
+    private Minecraft getMinecraft() {
         Minecraft minecraft = Minecraft.getInstance();
         if (textureId != null) {
             minecraft.execute(() -> {
@@ -347,7 +345,8 @@ public class Screen {
                 if (textureId != null) {
                     try {
                         manager.release(textureId);
-                    } catch (Exception e) {}
+                    } catch (Exception ignored) {
+                    }
                 }
             });
         }

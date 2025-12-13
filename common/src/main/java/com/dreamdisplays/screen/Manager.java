@@ -95,10 +95,4 @@ public class Manager {
         }
         LoggingManager.info("Saved " + screens.size() + " displays");
     }
-
-    // Server sends display info when player connects and periodically updates.
-    // Keeping this method empty for backwards compatibility.
-    public static void restoreNearbyDisplays(int playerX, int playerY, int playerZ, double maxDistance) {
-        // No-op: displays are now synchronized from server
-    }
 }

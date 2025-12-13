@@ -162,12 +162,6 @@ public class Settings {
         saveServerDisplays(currentServerId);
     }
 
-    // Get all displays for current server
-    public static Collection<FullDisplayData> getAllDisplaysForServer() {
-        if (currentServerId == null) return Collections.emptyList();
-        return serverDisplays.getOrDefault(currentServerId, new HashMap<>()).values();
-    }
-
     // Remove display from all servers and client settings
     public static void removeDisplay(UUID displayId) {
         // Remove from server-specific display data
@@ -201,12 +195,6 @@ public class Settings {
 
         public DisplaySettings() {
         }
-
-        public DisplaySettings(float volume, String quality, boolean muted) {
-            this.volume = volume;
-            this.quality = quality;
-            this.muted = muted;
-        }
     }
 
     // Full display data (stored per server)
@@ -227,9 +215,6 @@ public class Settings {
         public UUID ownerId;
         public int renderDistance = 64;
         public long currentTimeNanos = 0;
-
-        public FullDisplayData() {
-        }
 
         public FullDisplayData(UUID id, int x, int y, int z, String facing, int width, int height,
                                String videoUrl, String lang, float volume, String quality, boolean muted,
@@ -256,10 +241,6 @@ public class Settings {
             this(id, x, y, z, facing, width, height, videoUrl, lang, volume, quality, muted, isSync, ownerId);
             this.renderDistance = renderDistance;
             this.currentTimeNanos = currentTimeNanos;
-        }
-
-        public BlockPos getBlockPos() {
-            return new BlockPos(x, y, z);
         }
     }
 }

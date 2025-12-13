@@ -1,18 +1,18 @@
 package com.dreamdisplays;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.dreamdisplays.net.*;
 import com.dreamdisplays.render.ScreenRenderer;
 import com.dreamdisplays.screen.Manager;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.neoforged.bus.api.IEventBus;
 import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;

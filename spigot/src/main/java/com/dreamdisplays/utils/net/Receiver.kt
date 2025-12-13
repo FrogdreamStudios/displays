@@ -2,11 +2,11 @@ package com.dreamdisplays.utils.net
 
 import com.dreamdisplays.Main
 import com.dreamdisplays.datatypes.Sync
+import com.dreamdisplays.managers.Display
 import com.dreamdisplays.managers.Display.delete
 import com.dreamdisplays.managers.Display.report
 import com.dreamdisplays.managers.Player.hasBeenNotifiedAboutModUpdate
 import com.dreamdisplays.managers.Player.hasBeenNotifiedAboutPluginUpdate
-import com.dreamdisplays.managers.Display
 import com.dreamdisplays.managers.Player.setModUpdateNotified
 import com.dreamdisplays.managers.Player.setPluginUpdateNotified
 import com.dreamdisplays.managers.Player.setVersion

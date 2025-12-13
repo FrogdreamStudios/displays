@@ -170,14 +170,6 @@ public class Initializer {
             }
         }
 
-        // Restore displays that came back into range
-        Manager.restoreNearbyDisplays(
-                minecraft.player.blockPosition().getX(),
-                minecraft.player.blockPosition().getY(),
-                minecraft.player.blockPosition().getZ(),
-                Initializer.config.defaultDistance
-        );
-
         long window = minecraft.getWindow().handle();
         boolean pressed = GLFW.glfwGetMouseButton(window, GLFW.GLFW_MOUSE_BUTTON_RIGHT) == GLFW.GLFW_PRESS;
 
