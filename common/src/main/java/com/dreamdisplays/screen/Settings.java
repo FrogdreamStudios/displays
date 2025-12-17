@@ -7,7 +7,6 @@ import java.io.*;
 import java.lang.reflect.Type;
 import java.util.*;
 import me.inotsleep.utils.logging.LoggingManager;
-import net.minecraft.core.BlockPos;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -19,10 +18,10 @@ public class Settings {
     private static final Gson GSON = new GsonBuilder()
         .setPrettyPrinting()
         .create();
-    // displayId -> DisplaySettings
+    // displayUuid -> DisplaySettings
     private static final Map<UUID, DisplaySettings> displaySettings =
         new HashMap<>();
-    // serverId -> (displayId -> FullDisplayData)
+    // serverId -> (displayUuid -> FullDisplayData)
     private static final Map<
         String,
         Map<UUID, FullDisplayData>
@@ -190,20 +189,20 @@ public class Settings {
     }
 
     // Get client display settings
-    public static DisplaySettings getSettings(UUID displayId) {
-        return displaySettings.computeIfAbsent(displayId, k ->
+    public static DisplaySettings getSettings(UUID displayUuid) {
+        return displaySettings.computeIfAbsent(displayUuid, k ->
             new DisplaySettings()
         );
     }
 
     // Update client display settings
     public static void updateSettings(
-        UUID displayId,
+        UUID displayUuid,
         float volume,
         String quality,
         boolean muted
     ) {
-        DisplaySettings settings = getSettings(displayId);
+        DisplaySettings settings = getSettings(displayUuid);
         settings.volume = volume;
         settings.quality = quality;
         settings.muted = muted;
@@ -211,28 +210,28 @@ public class Settings {
     }
 
     // Get full display data for a server
-    public static @Nullable FullDisplayData getDisplayData(UUID displayId) {
+    public static @Nullable FullDisplayData getDisplayData(UUID displayUuid) {
         if (currentServerId == null) return null;
         return serverDisplays
             .getOrDefault(currentServerId, new HashMap<>())
-            .get(displayId);
+            .get(displayUuid);
     }
 
     // Save full display data
-    public static void saveDisplayData(UUID displayId, FullDisplayData data) {
+    public static void saveDisplayData(UUID displayUuid, FullDisplayData data) {
         if (currentServerId == null) return;
 
         serverDisplays
             .computeIfAbsent(currentServerId, k -> new HashMap<>())
-            .put(displayId, data);
+            .put(displayUuid, data);
         saveServerDisplays(currentServerId);
     }
 
     // Remove display from all servers and client settings
-    public static void removeDisplay(UUID displayId) {
+    public static void removeDisplay(UUID displayUuid) {
         // Remove from server-specific display data
         for (Map<UUID, FullDisplayData> displays : serverDisplays.values()) {
-            if (displays.remove(displayId) != null) {
+            if (displays.remove(displayUuid) != null) {
                 String serverId = null;
                 for (Map.Entry<
                     String,
@@ -250,11 +249,11 @@ public class Settings {
         }
 
         // Also remove from client display settings (volume, quality, muted)
-        displaySettings.remove(displayId);
+        displaySettings.remove(displayUuid);
         save();
 
         LoggingManager.info(
-            "Removed display from all saved data: " + displayId
+            "Removed display from all saved data: " + displayUuid
         );
     }
 
@@ -271,7 +270,7 @@ public class Settings {
     // Full display data (stored per server)
     public static class FullDisplayData {
 
-        public UUID id;
+        public UUID uuid;
         public int x;
         public int y;
         public int z;
@@ -284,12 +283,12 @@ public class Settings {
         public String quality;
         public boolean muted;
         public boolean isSync;
-        public UUID ownerId;
+        public UUID ownerUuid;
         public int renderDistance = 64;
         public long currentTimeNanos = 0;
 
         public FullDisplayData(
-            UUID id,
+            UUID uuid,
             int x,
             int y,
             int z,
@@ -302,9 +301,9 @@ public class Settings {
             String quality,
             boolean muted,
             boolean isSync,
-            UUID ownerId
+            UUID ownerUuid
         ) {
-            this.id = id;
+            this.uuid = uuid;
             this.x = x;
             this.y = y;
             this.z = z;
@@ -317,11 +316,11 @@ public class Settings {
             this.quality = quality;
             this.muted = muted;
             this.isSync = isSync;
-            this.ownerId = ownerId;
+            this.ownerUuid = ownerUuid;
         }
 
         public FullDisplayData(
-            UUID id,
+            UUID uuid,
             int x,
             int y,
             int z,
@@ -334,12 +333,11 @@ public class Settings {
             String quality,
             boolean muted,
             boolean isSync,
-            UUID ownerId,
+            UUID ownerUuid,
             int renderDistance,
             long currentTimeNanos
         ) {
-            this(
-                id,
+            this(uuid,
                 x,
                 y,
                 z,
@@ -351,9 +349,7 @@ public class Settings {
                 volume,
                 quality,
                 muted,
-                isSync,
-                ownerId
-            );
+                isSync, ownerUuid);
             this.renderDistance = renderDistance;
             this.currentTimeNanos = currentTimeNanos;
         }

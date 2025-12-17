@@ -1,4 +1,22 @@
+plugins {
+    java
+}
+
 subprojects {
+    apply(plugin = "java")
+    java {
+        toolchain {
+            languageVersion.set(JavaLanguageVersion.of(21))
+        }
+    }
+    tasks.withType<AbstractArchiveTask>().configureEach {
+        isPreserveFileTimestamps = false
+        isReproducibleFileOrder = true
+    }
+
+    tasks.withType<ProcessResources>().configureEach {
+        filteringCharset = Charsets.UTF_8.name()
+    }
     repositories {
         mavenCentral()
         maven("https://maven.fabricmc.net/")

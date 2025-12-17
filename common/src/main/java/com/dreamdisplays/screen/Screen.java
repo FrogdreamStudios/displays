@@ -23,8 +23,8 @@ import org.jspecify.annotations.Nullable;
 @NullMarked
 public class Screen {
 
-    private final UUID id;
-    private final UUID ownerId;
+    private final UUID uuid;
+    private final UUID ownerUuid;
     public boolean owner;
     public boolean errored;
     public boolean isSync;
@@ -55,8 +55,8 @@ public class Screen {
 
     // Constructor for the Screen class
     public Screen(
-        UUID id,
-        UUID ownerId,
+        UUID uuid,
+        UUID ownerUuid,
         int x,
         int y,
         int z,
@@ -65,8 +65,8 @@ public class Screen {
         int height,
         boolean isSync
     ) {
-        this.id = id;
-        this.ownerId = ownerId;
+        this.uuid = uuid;
+        this.ownerUuid = ownerUuid;
         this.x = x;
         this.y = y;
         this.z = z;
@@ -75,12 +75,12 @@ public class Screen {
         this.height = height;
         owner =
             Minecraft.getInstance().player != null &&
-            (ownerId + "").equals(
+            (ownerUuid + "").equals(
                 Minecraft.getInstance().player.getUUID() + ""
             );
 
         // Load saved settings for this display
-        Settings.DisplaySettings savedSettings = Settings.getSettings(id);
+        Settings.DisplaySettings savedSettings = Settings.getSettings(uuid);
         this.volume = savedSettings.volume;
         this.quality = savedSettings.quality;
         this.muted = savedSettings.muted;
@@ -138,7 +138,7 @@ public class Screen {
 
         owner =
             Minecraft.getInstance().player != null &&
-            (packet.ownerId() + "").equals(
+            (packet.ownerUuid() + "").equals(
                 Minecraft.getInstance().player.getUUID() + ""
             );
 
@@ -155,7 +155,7 @@ public class Screen {
 
     // Sends a RequestSyncPacket to the server to request synchronization data
     private void sendRequestSyncPacket() {
-        Initializer.sendPacket(new RequestSync(id));
+        Initializer.sendPacket(new RequestSync(uuid));
     }
 
     // Updates the screen data based on a SyncPacket
@@ -232,9 +232,9 @@ public class Screen {
         int clampedY = Math.min(Math.max(pos.getY(), y), maxY);
         int clampedZ = Math.min(Math.max(pos.getZ(), z), maxZ);
 
-        BlockPos closestPoint = new BlockPos(clampedX, clampedY, clampedZ);
+        BlockPos closestPos = new BlockPos(clampedX, clampedY, clampedZ);
 
-        return Math.sqrt(pos.distSqr(closestPoint));
+        return Math.sqrt(pos.distSqr(closestPos));
     }
 
     // Updates the texture to fit the current video frame
@@ -283,7 +283,7 @@ public class Screen {
     public void setQuality(String quality) {
         this.quality = quality;
         // Save settings
-        Settings.updateSettings(id, volume, quality, muted);
+        Settings.updateSettings(uuid, volume, quality, muted);
     }
 
     // Returns list of available video qualities
@@ -378,8 +378,8 @@ public class Screen {
         return minecraft;
     }
 
-    public UUID getID() {
-        return id;
+    public UUID getUUID() {
+        return uuid;
     }
 
     public void mute(boolean status) {
@@ -387,7 +387,7 @@ public class Screen {
         muted = status;
 
         setVideoVolume(!status ? volume : 0);
-        Settings.updateSettings(id, volume, quality, muted);
+        Settings.updateSettings(uuid, volume, quality, muted);
     }
 
     public double getVolume() {
@@ -398,7 +398,7 @@ public class Screen {
     public void setVolume(float volume) {
         this.volume = volume;
         setVideoVolume(volume);
-        Settings.updateSettings(id, volume, quality, muted);
+        Settings.updateSettings(uuid, volume, quality, muted);
     }
 
     // Creates a new texture for the screen based on its dimensions and quality
@@ -421,7 +421,7 @@ public class Screen {
         );
         textureId = Identifier.fromNamespaceAndPath(
             Initializer.MOD_ID,
-            "screen-main-texture-" + id + "-" + UUID.randomUUID()
+            "screen-main-texture-" + uuid + "-" + UUID.randomUUID()
         );
 
         Minecraft.getInstance()
@@ -434,7 +434,7 @@ public class Screen {
         if (mediaPlayer != null) {
             Initializer.sendPacket(
                 new Sync(
-                    id,
+                        uuid,
                     isSync,
                     paused,
                     mediaPlayer.getCurrentTime(),
@@ -497,8 +497,8 @@ public class Screen {
         return lang;
     }
 
-    public @Nullable UUID getOwnerId() {
-        return ownerId;
+    public @Nullable UUID getOwnerUuid() {
+        return ownerUuid;
     }
 
     public void tick(BlockPos pos) {

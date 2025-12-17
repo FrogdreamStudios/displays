@@ -16,7 +16,7 @@ import org.jspecify.annotations.Nullable;
 @NullMarked
 public abstract class Button extends AbstractWidget {
 
-    private static final WidgetSprites TEXTURES = new WidgetSprites(
+    private static final WidgetSprites SPRITES = new WidgetSprites(
         Identifier.withDefaultNamespace("widget/button"),
         Identifier.withDefaultNamespace("widget/button_disabled"),
         Identifier.withDefaultNamespace("widget/button_highlighted")
@@ -24,8 +24,8 @@ public abstract class Button extends AbstractWidget {
     private final int iconWidth;
     private final int iconHeight;
     private final int margin;
-    private Identifier iconTexture;
-    private @Nullable WidgetSprites settedTextures = null;
+    private Identifier iconTextureId;
+    private @Nullable WidgetSprites setSprites = null;
 
     public Button(
         int x,
@@ -34,22 +34,22 @@ public abstract class Button extends AbstractWidget {
         int height,
         int iconWidth,
         int iconHeight,
-        Identifier iconTexture,
+        Identifier iconTextureId,
         int margin
     ) {
         super(x, y, width, height, Component.empty());
         this.iconWidth = iconWidth;
         this.iconHeight = iconHeight;
-        this.iconTexture = iconTexture;
+        this.iconTextureId = iconTextureId;
         this.margin = margin;
     }
 
-    public void setIconTexture(Identifier iconTexture) {
-        this.iconTexture = iconTexture;
+    public void setIconTextureId(Identifier iconTextureId) {
+        this.iconTextureId = iconTextureId;
     }
 
-    public void setTextures(WidgetSprites settedTextures) {
-        this.settedTextures = settedTextures;
+    public void setSprites(WidgetSprites setSprites) {
+        this.setSprites = setSprites;
     }
 
     public abstract void onPress();
@@ -65,16 +65,16 @@ public abstract class Button extends AbstractWidget {
 
     @Override
     protected void renderWidget(
-        GuiGraphics graphics,
+        GuiGraphics guiGraphics,
         int mouseX,
         int mouseY,
         float partialTick
     ) {
-        graphics.blitSprite(
+        guiGraphics.blitSprite(
             RenderPipelines.GUI_TEXTURED,
-            settedTextures != null
-                ? settedTextures.get(this.active, this.isHoveredOrFocused())
-                : TEXTURES.get(this.active, this.isHoveredOrFocused()),
+            setSprites != null
+                ? setSprites.get(this.active, this.isHoveredOrFocused())
+                : SPRITES.get(this.active, this.isHoveredOrFocused()),
             this.getX(),
             this.getY(),
             this.getWidth(),
@@ -95,9 +95,9 @@ public abstract class Button extends AbstractWidget {
         int dx = getX() + getWidth() / 2 - iconW / 2;
         int dy = getY() + getHeight() / 2 - iconH / 2;
 
-        graphics.blitSprite(
+        guiGraphics.blitSprite(
             RenderPipelines.GUI_TEXTURED,
-            iconTexture,
+                iconTextureId,
             dx,
             dy,
             iconW,

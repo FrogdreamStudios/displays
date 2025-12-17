@@ -17,14 +17,14 @@ import org.jspecify.annotations.NullMarked;
 @NullMarked
 public abstract class Slider extends AbstractWidget {
 
-    private static final Identifier TEXTURE = Identifier.withDefaultNamespace(
+    private static final Identifier TEXTURE_ID = Identifier.withDefaultNamespace(
         "widget/slider"
     );
-    private static final Identifier HIGHLIGHTED_TEXTURE =
+    private static final Identifier HIGHLIGHTED_TEXTURE_ID =
         Identifier.withDefaultNamespace("widget/slider_highlighted");
-    private static final Identifier HANDLE_TEXTURE =
+    private static final Identifier HANDLE_TEXTURE_ID =
         Identifier.withDefaultNamespace("widget/slider_handle");
-    private static final Identifier HANDLE_HIGHLIGHTED_TEXTURE =
+    private static final Identifier HANDLE_HIGHLIGHTED_TEXTURE_ID =
         Identifier.withDefaultNamespace("widget/slider_handle_highlighted");
     public double value;
     private boolean sliderFocused;
@@ -43,14 +43,14 @@ public abstract class Slider extends AbstractWidget {
 
     private Identifier getTexture() {
         return this.isFocused() && !this.sliderFocused
-            ? HIGHLIGHTED_TEXTURE
-            : TEXTURE;
+            ? HIGHLIGHTED_TEXTURE_ID
+            : TEXTURE_ID;
     }
 
     private Identifier getHandleTexture() {
         return !this.isHovered && !this.sliderFocused
-            ? HANDLE_TEXTURE
-            : HANDLE_HIGHLIGHTED_TEXTURE;
+            ? HANDLE_TEXTURE_ID
+            : HANDLE_HIGHLIGHTED_TEXTURE_ID;
     }
 
     protected MutableComponent createNarrationMessage() {

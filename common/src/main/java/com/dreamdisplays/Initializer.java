@@ -24,6 +24,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
 import org.joml.Vector3i;
 import org.jspecify.annotations.NullMarked;
@@ -70,8 +71,8 @@ public class Initializer {
         return config;
     }
 
-    public static void onModInit(Mod DreamDisplaysMod) {
-        mod = DreamDisplaysMod;
+    public static void onModInit(Mod dreamDisplaysMod) {
+        mod = dreamDisplaysMod;
         LoggingManager.setLogger(LoggerFactory.getLogger(MOD_ID));
         LoggingManager.info("Starting Dream Displays...");
         config.reload();
@@ -88,15 +89,15 @@ public class Initializer {
     public static void onDisplayInfoPacket(Info packet) {
         if (!Initializer.displaysEnabled) return;
 
-        if (Manager.screens.containsKey(packet.id())) {
-            Screen screen = Manager.screens.get(packet.id());
+        if (Manager.screens.containsKey(packet.uuid())) {
+            Screen screen = Manager.screens.get(packet.uuid());
             screen.updateData(packet);
             return;
         }
 
         createScreen(
-            packet.id(),
-            packet.ownerId(),
+            packet.uuid(),
+            packet.ownerUuid(),
             packet.pos(),
             packet.facing(),
             packet.width(),
@@ -108,8 +109,8 @@ public class Initializer {
     }
 
     public static void createScreen(
-        UUID id,
-        UUID ownerId,
+        UUID uuid,
+        UUID ownerUuid,
         Vector3i pos,
         Facing facing,
         int width,
@@ -119,8 +120,8 @@ public class Initializer {
         boolean isSync
     ) {
         Screen screen = new Screen(
-            id,
-            ownerId,
+            uuid,
+            ownerUuid,
             pos.x(),
             pos.y(),
             pos.z(),
@@ -129,20 +130,15 @@ public class Initializer {
             height,
             isSync
         );
-        assert Minecraft.getInstance().player != null;
-        if (
-            screen.getDistanceToScreen(
-                Minecraft.getInstance().player.blockPosition()
-            ) >
-            Initializer.config.defaultDistance
-        ) return;
+        Player player = Minecraft.getInstance().player;
+        if (player != null && screen.getDistanceToScreen(player.blockPosition()) > Initializer.config.defaultDistance) return;
         Manager.registerScreen(screen);
         if (!Objects.equals(code, "")) screen.loadVideo(code, lang);
     }
 
     public static void onSyncPacket(Sync packet) {
-        if (!Manager.screens.containsKey(packet.id())) return;
-        Screen screen = Manager.screens.get(packet.id());
+        if (!Manager.screens.containsKey(packet.uuid())) return;
+        Screen screen = Manager.screens.get(packet.uuid());
         if (screen != null) {
             screen.updateData(packet);
         }
@@ -158,14 +154,15 @@ public class Initializer {
     }
 
     public static void onEndTick(Minecraft minecraft) {
-        if (minecraft.level != null && minecraft.getCurrentServer() != null) {
+        ClientLevel level = minecraft.level;
+        if (level != null && minecraft.getCurrentServer() != null) {
             if (lastLevel.get() == null) {
-                lastLevel.set(minecraft.level);
+                lastLevel.set(level);
                 checkVersionAndSendPacket();
             }
 
-            if (minecraft.level != lastLevel.get()) {
-                lastLevel.set(minecraft.level);
+            if (level != lastLevel.get()) {
+                lastLevel.set(level);
 
                 Manager.unloadAll();
                 hoveredScreen = null;
@@ -184,18 +181,18 @@ public class Initializer {
             }
         }
 
-        if (minecraft.player == null) return;
-
         BlockHitResult result = RayCasting.rCBlock(64);
         hoveredScreen = null;
         Initializer.isOnScreen = false;
+        Player player = minecraft.player;
+        if (player == null) return;
         for (Screen screen : Manager.getScreens()) {
             double displayRenderDistance = screen.getRenderDistance();
 
             if (
                 displayRenderDistance <
                     screen.getDistanceToScreen(
-                        minecraft.player.blockPosition()
+                        player.blockPosition()
                     ) ||
                 !Initializer.displaysEnabled
             ) {
@@ -213,7 +210,7 @@ public class Initializer {
                     Initializer.isOnScreen = true;
                 }
 
-                screen.tick(minecraft.player.blockPosition());
+                screen.tick(player.blockPosition());
             }
         }
 
@@ -223,7 +220,7 @@ public class Initializer {
             GLFW.GLFW_PRESS;
 
         if (pressed && !wasPressed[0]) {
-            if (minecraft.player != null && minecraft.player.isShiftKeyDown()) {
+            if (player.isShiftKeyDown()) {
                 checkAndOpenScreen();
             }
         }
@@ -232,10 +229,9 @@ public class Initializer {
 
         if (
             Initializer.focusMode &&
-            minecraft.player != null &&
             hoveredScreen != null
         ) {
-            minecraft.player.addEffect(
+            player.addEffect(
                 new MobEffectInstance(
                     MobEffects.BLINDNESS,
                     20 * 2,
@@ -249,10 +245,9 @@ public class Initializer {
             wasFocused.set(true);
         } else if (
             !Initializer.focusMode &&
-            wasFocused.get() &&
-            minecraft.player != null
+            wasFocused.get()
         ) {
-            minecraft.player.removeEffect(MobEffects.BLINDNESS);
+            player.removeEffect(MobEffects.BLINDNESS);
             wasFocused.set(false);
         }
     }
@@ -266,15 +261,15 @@ public class Initializer {
         mod.sendPacket(packet);
     }
 
-    public static void onDeletePacket(Delete deletePacket) {
-        Screen screen = Manager.screens.get(deletePacket.id());
+    public static void onDeletePacket(Delete packet) {
+        Screen screen = Manager.screens.get(packet.uuid());
         if (screen != null) {
             Manager.unregisterScreen(screen);
         }
 
-        Settings.removeDisplay(deletePacket.id());
+        Settings.removeDisplay(packet.uuid());
         LoggingManager.info(
-            "Display deleted and removed from saved data: " + deletePacket.id()
+            "Display deleted and removed from saved data: " + packet.uuid()
         );
     }
 

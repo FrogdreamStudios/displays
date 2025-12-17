@@ -8,14 +8,14 @@ public class Converter {
 
     // Java implementation for image scaling with aspect ratio preservation (cover mode)
     private static void scaleRGBAImageJava(
-        ByteBuffer src,
+        ByteBuffer srcBuffer,
         int srcW,
         int srcH,
-        ByteBuffer dst,
+        ByteBuffer dstBuffer,
         int dstW,
         int dstH
     ) {
-        if (src == null || dst == null) {
+        if (srcBuffer == null || dstBuffer == null) {
             throw new IllegalArgumentException(
                 "Source and destination buffers cannot be null"
             );
@@ -40,7 +40,7 @@ public class Converter {
 
         // Fill destination with black (transparent)
         for (int i = 0; i < dstW * dstH * 4; i++) {
-            dst.put(i, (byte) 0);
+            dstBuffer.put(i, (byte) 0);
         }
 
         // Nearest neighbor scaling with centering
@@ -57,8 +57,8 @@ public class Converter {
                     int srcIdx = (srcY * srcW + srcX) * 4;
                     int dstIdx = (y * dstW + x) * 4;
 
-                    int pixel = src.getInt(srcIdx);
-                    dst.putInt(dstIdx, pixel);
+                    int pixel = srcBuffer.getInt(srcIdx);
+                    dstBuffer.putInt(dstIdx, pixel);
                 }
             }
         }
@@ -66,13 +66,13 @@ public class Converter {
 
     // Scale RGBA image using nearest neighbor scaling - pure Java implementation
     public static void scaleRGBA(
-        ByteBuffer src,
+        ByteBuffer srcBuffer,
         int srcW,
         int srcH,
-        ByteBuffer dst,
+        ByteBuffer dstBuffer,
         int dstW,
         int dstH
     ) {
-        scaleRGBAImageJava(src, srcW, srcH, dst, dstW, dstH);
+        scaleRGBAImageJava(srcBuffer, srcW, srcH, dstBuffer, dstW, dstH);
     }
 }

@@ -19,34 +19,34 @@ public class Manager {
     }
 
     public static void registerScreen(Screen screen) {
-        if (screens.containsKey(screen.getID())) {
-            Screen old = screens.get(screen.getID());
+        if (screens.containsKey(screen.getUUID())) {
+            Screen old = screens.get(screen.getUUID());
             old.unregister();
         }
 
         Settings.DisplaySettings clientSettings = Settings.getSettings(
-            screen.getID()
+            screen.getUUID()
         );
         screen.setVolume(clientSettings.volume);
         screen.setQuality(clientSettings.quality);
         screen.muted = clientSettings.muted;
 
         Settings.FullDisplayData savedData = Settings.getDisplayData(
-            screen.getID()
+            screen.getUUID()
         );
         if (savedData != null) {
             screen.setRenderDistance(savedData.renderDistance);
             screen.setSavedTimeNanos(savedData.currentTimeNanos);
         }
 
-        screens.put(screen.getID(), screen);
+        screens.put(screen.getUUID(), screen);
 
         // Save the display data for persistence
         saveScreenData(screen);
     }
 
     public static void unregisterScreen(Screen screen) {
-        screens.remove(screen.getID());
+        screens.remove(screen.getUUID());
         screen.unregister();
     }
 
@@ -61,7 +61,7 @@ public class Manager {
     // Save screen data to persistent storage
     public static void saveScreenData(Screen screen) {
         Settings.FullDisplayData data = new Settings.FullDisplayData(
-            screen.getID(),
+            screen.getUUID(),
             screen.getPos().getX(),
             screen.getPos().getY(),
             screen.getPos().getZ(),
@@ -74,12 +74,12 @@ public class Manager {
             screen.getQuality(),
             screen.muted,
             screen.isSync,
-            screen.getOwnerId(),
+            screen.getOwnerUuid(),
             screen.getRenderDistance(),
             screen.getCurrentTimeNanos()
         );
 
-        Settings.saveDisplayData(screen.getID(), data);
+        Settings.saveDisplayData(screen.getUUID(), data);
     }
 
     // Load displays from persistent storage for a server

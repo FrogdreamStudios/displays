@@ -15,14 +15,14 @@ import org.jspecify.annotations.NullMarked;
 @NullMarked
 public abstract class Toggle extends AbstractWidget {
 
-    private static final Identifier TEXTURE = Identifier.withDefaultNamespace(
+    private static final Identifier TEXTURE_ID = Identifier.withDefaultNamespace(
         "widget/slider"
     );
-    private static final Identifier HIGHLIGHTED_TEXTURE =
+    private static final Identifier HIGHLIGHTED_TEXTURE_ID =
         Identifier.withDefaultNamespace("widget/slider_highlighted");
-    private static final Identifier HANDLE_TEXTURE =
+    private static final Identifier HANDLE_TEXTURE_ID =
         Identifier.withDefaultNamespace("widget/slider_handle");
-    private static final Identifier HANDLE_HIGHLIGHTED_TEXTURE =
+    private static final Identifier HANDLE_HIGHLIGHTED_TEXTURE_ID =
         Identifier.withDefaultNamespace("widget/slider_handle_highlighted");
     public boolean value;
     private double dValue;
@@ -43,14 +43,14 @@ public abstract class Toggle extends AbstractWidget {
 
     private Identifier getTexture() {
         return this.isFocused() && !this.sliderFocused
-            ? HIGHLIGHTED_TEXTURE
-            : TEXTURE;
+            ? HIGHLIGHTED_TEXTURE_ID
+            : TEXTURE_ID;
     }
 
     private Identifier getHandleTexture() {
         return !this.isHovered && !this.sliderFocused
-            ? HANDLE_TEXTURE
-            : HANDLE_HIGHLIGHTED_TEXTURE;
+            ? HANDLE_TEXTURE_ID
+            : HANDLE_HIGHLIGHTED_TEXTURE_ID;
     }
 
     @Override
@@ -59,16 +59,16 @@ public abstract class Toggle extends AbstractWidget {
     }
 
     @Override
-    public void updateWidgetNarration(NarrationElementOutput builder) {}
+    public void updateWidgetNarration(NarrationElementOutput output) {}
 
     @Override
     public void renderWidget(
-        GuiGraphics graphics,
+        GuiGraphics guiGraphics,
         int mouseX,
         int mouseY,
         float partialTick
     ) {
-        graphics.blitSprite(
+        guiGraphics.blitSprite(
             RenderPipelines.GUI_TEXTURED,
             this.getTexture(),
             this.getX(),
@@ -76,7 +76,7 @@ public abstract class Toggle extends AbstractWidget {
             this.getWidth(),
             this.getHeight()
         );
-        graphics.blitSprite(
+        guiGraphics.blitSprite(
             RenderPipelines.GUI_TEXTURED,
             this.getHandleTexture(),
             this.getX() + (int) (this.dValue * (double) (this.width - 8)),
@@ -89,7 +89,7 @@ public abstract class Toggle extends AbstractWidget {
             .copy()
             .withStyle(style -> style.withColor(i));
         this.renderScrollingStringOverContents(
-            graphics.textRendererForWidget(
+            guiGraphics.textRendererForWidget(
                 this,
                 GuiGraphics.HoveredTextEffects.TOOLTIP_AND_CURSOR
             ),

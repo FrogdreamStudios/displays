@@ -147,7 +147,7 @@ public class Configuration extends Screen {
             @Override
             public void onPress() {
                 screen.setPaused(!screen.getPaused());
-                setIconTexture(
+                setIconTextureId(
                     screen.getPaused()
                         ? Identifier.fromNamespaceAndPath(
                               Initializer.MOD_ID,
@@ -161,7 +161,7 @@ public class Configuration extends Screen {
             }
         };
 
-        pauseButton.setIconTexture(
+        pauseButton.setIconTextureId(
             screen.getPaused()
                 ? Identifier.fromNamespaceAndPath(Initializer.MOD_ID, "bupi")
                 : Identifier.fromNamespaceAndPath(Initializer.MOD_ID, "bpi")
@@ -352,10 +352,10 @@ public class Configuration extends Screen {
         ) {
             @Override
             public void onPress() {
-                Settings.removeDisplay(screen.getID());
+                Settings.removeDisplay(screen.getUUID());
                 Manager.unregisterScreen(screen);
 
-                Initializer.sendPacket(new Delete(screen.getID()));
+                Initializer.sendPacket(new Delete(screen.getUUID()));
                 onClose();
             }
         };
@@ -374,12 +374,12 @@ public class Configuration extends Screen {
         ) {
             @Override
             public void onPress() {
-                Initializer.sendPacket(new Report(screen.getID()));
+                Initializer.sendPacket(new Report(screen.getUUID()));
                 onClose();
             }
         };
 
-        WidgetSprites textures = new WidgetSprites(
+        WidgetSprites sprites = new WidgetSprites(
             Identifier.fromNamespaceAndPath(
                 Initializer.MOD_ID,
                 "widgets/red_button"
@@ -394,8 +394,8 @@ public class Configuration extends Screen {
             )
         );
 
-        deleteButton.setTextures(textures);
-        reportButton.setTextures(textures);
+        deleteButton.setSprites(sprites);
+        reportButton.setSprites(sprites);
 
         if (volume != null) addRenderableWidget(volume);
         addRenderableWidget(backButton);
@@ -500,7 +500,7 @@ public class Configuration extends Screen {
                 syncReset.active = false;
             }
 
-            List<Component> errorText = List.of(
+            List<Component> errorComponent = List.of(
                 Component.translatable(
                     "dreamdisplays.error.loadingerror.1"
                 ).withStyle(style -> style.withColor(0xff0000)),
@@ -519,18 +519,18 @@ public class Configuration extends Screen {
             );
 
             int yP = (int) ((double) this.height / 2 -
-                ((double) (font.lineHeight + 2) * errorText.size()) / 2);
+                ((double) (font.lineHeight + 2) * errorComponent.size()) / 2);
 
             int mW = 0;
-            for (Component text : errorText) {
-                mW = Math.max(font.width(text), mW);
+            for (Component component : errorComponent) {
+                mW = Math.max(font.width(component), mW);
             }
 
-            for (Component text : errorText) {
+            for (Component component : errorComponent) {
                 guiGraphics.drawString(
                     font,
-                    text,
-                    this.width / 2 - font.width(text) / 2,
+                    component,
+                    this.width / 2 - font.width(component) / 2,
                     yP += 2 + font.lineHeight,
                     0xFFFFFFFF,
                     true
@@ -693,14 +693,14 @@ public class Configuration extends Screen {
         }
 
         // Tooltip for Render Distance
-        Component renderDText = Component.translatable(
+        Component renderDComponent = Component.translatable(
             "dreamdisplays.button.render-distance"
         );
         int renderDTextX = this.width / 2 - maxSW / 2;
         int renderDTextY = cY + vCH / 2 - font.lineHeight / 2;
         guiGraphics.drawString(
             font,
-            renderDText,
+            renderDComponent,
             renderDTextX,
             renderDTextY,
             0xFFFFFFFF,
@@ -746,14 +746,14 @@ public class Configuration extends Screen {
         }
 
         // Setting the quality text and calculating coordinates for tooltip
-        Component qualityText = Component.translatable(
+        Component qualityComponent = Component.translatable(
             "dreamdisplays.button.quality"
         );
         int qualityTextX = this.width / 2 - maxSW / 2;
         int qualityTextY = cY + vCH / 2 - font.lineHeight / 2;
         guiGraphics.drawString(
             font,
-            qualityText,
+            qualityComponent,
             qualityTextX,
             qualityTextY,
             0xFFFFFFFF,
@@ -802,14 +802,14 @@ public class Configuration extends Screen {
         }
 
         // Setting the sync text and calculating coordinates for the tooltip
-        Component syncText = Component.translatable(
+        Component syncComponent = Component.translatable(
             "dreamdisplays.button.synchronization"
         );
         int syncTextX = this.width / 2 - maxSW / 2;
         int syncTextY = cY + vCH / 2 - font.lineHeight / 2;
         guiGraphics.drawString(
             font,
-            syncText,
+            syncComponent,
             syncTextX,
             syncTextY,
             0xFFFFFFFF,
@@ -855,7 +855,7 @@ public class Configuration extends Screen {
             mouseY,
             renderDTextX,
             renderDTextY,
-            font.width(renderDText),
+            font.width(renderDComponent),
             font.lineHeight,
             renderDTooltip
         );
@@ -865,7 +865,7 @@ public class Configuration extends Screen {
             mouseY,
             qualityTextX,
             qualityTextY,
-            font.width(qualityText),
+            font.width(qualityComponent),
             font.lineHeight,
             qualityTooltip
         );
@@ -875,7 +875,7 @@ public class Configuration extends Screen {
             mouseY,
             syncTextX,
             syncTextY,
-            font.width(syncText),
+            font.width(syncComponent),
             font.lineHeight,
             syncTooltip
         );
@@ -957,7 +957,7 @@ public class Configuration extends Screen {
 
     // Renders display screen preview
     private void renderScreen(
-        GuiGraphics graphics,
+        GuiGraphics guiGraphics,
         int x,
         int y,
         int w,
@@ -970,7 +970,7 @@ public class Configuration extends Screen {
             screen.textureId != null
         ) {
             screen.fitTexture();
-            graphics.blit(
+            guiGraphics.blit(
                 RenderPipelines.GUI_TEXTURED,
                 screen.textureId,
                 x,

@@ -21,11 +21,11 @@ public final class Packets {
         );
     }
 
-    public record Delete(UUID id) implements CustomPacketPayload {
+    public record Delete(UUID uuid) implements CustomPacketPayload {
         public static final Type<Delete> PACKET_ID = createType("delete");
         public static final StreamCodec<FriendlyByteBuf, Delete> PACKET_CODEC =
             StreamCodec.of(
-                (buf, packet) -> buf.writeUUID(packet.id),
+                (buf, packet) -> buf.writeUUID(packet.uuid),
                 buf -> new Delete(buf.readUUID())
             );
 
@@ -36,8 +36,8 @@ public final class Packets {
     }
 
     public record Info(
-        UUID id,
-        UUID ownerId,
+        UUID uuid,
+        UUID ownerUuid,
         Vector3i pos,
         int width,
         int height,
@@ -50,8 +50,8 @@ public final class Packets {
         public static final StreamCodec<FriendlyByteBuf, Info> PACKET_CODEC =
             StreamCodec.of(
                 (buf, packet) -> {
-                    buf.writeUUID(packet.id);
-                    buf.writeUUID(packet.ownerId);
+                    buf.writeUUID(packet.uuid);
+                    buf.writeUUID(packet.ownerUuid);
                     buf.writeVarInt(packet.pos.x());
                     buf.writeVarInt(packet.pos.y());
                     buf.writeVarInt(packet.pos.z());
@@ -100,11 +100,11 @@ public final class Packets {
         }
     }
 
-    public record Report(UUID id) implements CustomPacketPayload {
+    public record Report(UUID uuid) implements CustomPacketPayload {
         public static final Type<Report> PACKET_ID = createType("report");
         public static final StreamCodec<FriendlyByteBuf, Report> PACKET_CODEC =
             StreamCodec.of(
-                (buf, packet) -> buf.writeUUID(packet.id),
+                (buf, packet) -> buf.writeUUID(packet.uuid),
                 buf -> new Report(buf.readUUID())
             );
 
@@ -114,7 +114,7 @@ public final class Packets {
         }
     }
 
-    public record RequestSync(UUID id) implements CustomPacketPayload {
+    public record RequestSync(UUID uuid) implements CustomPacketPayload {
         public static final Type<RequestSync> PACKET_ID = createType(
             "req_sync"
         );
@@ -122,7 +122,7 @@ public final class Packets {
             FriendlyByteBuf,
             RequestSync
         > PACKET_CODEC = StreamCodec.of(
-            (buf, packet) -> buf.writeUUID(packet.id),
+            (buf, packet) -> buf.writeUUID(packet.uuid),
             buf -> new RequestSync(buf.readUUID())
         );
 
@@ -133,7 +133,7 @@ public final class Packets {
     }
 
     public record Sync(
-        UUID id,
+        UUID uuid,
         boolean isSync,
         boolean currentState,
         long currentTime,
@@ -143,7 +143,7 @@ public final class Packets {
         public static final StreamCodec<FriendlyByteBuf, Sync> PACKET_CODEC =
             StreamCodec.of(
                 (buf, packet) -> {
-                    buf.writeUUID(packet.id);
+                    buf.writeUUID(packet.uuid);
                     buf.writeBoolean(packet.isSync);
                     buf.writeBoolean(packet.currentState);
                     buf.writeVarLong(packet.currentTime);

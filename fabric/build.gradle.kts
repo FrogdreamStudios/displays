@@ -1,7 +1,7 @@
 import net.fabricmc.loom.task.RemapJarTask
 
 plugins {
-    id("fabric-loom") version libs.versions.loom
+    id("net.fabricmc.fabric-loom-remap") version libs.versions.loom // remove remap in 26.1
     id("maven-publish")
     id("com.gradleup.shadow") version libs.versions.shadow
 }
@@ -16,8 +16,8 @@ dependencies {
         officialMojangMappings()
         parchment(rootProject.property("neoForge.parchment.parchmentArtifact")!!)
     })
-    modCompileOnly(libs.fabricLoader)
-    modCompileOnly(libs.fabricApi)
+    modImplementation(libs.fabricLoader)
+    modImplementation(libs.fabricApi)
     shadow(project(":common"))
 }
 

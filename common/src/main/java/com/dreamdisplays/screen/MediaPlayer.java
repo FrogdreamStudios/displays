@@ -115,7 +115,7 @@ public class MediaPlayer {
     }
 
     private static ByteBuffer convertToRGBA(
-        ByteBuffer source,
+        ByteBuffer srcBuffer,
         int width,
         int height
     ) {
@@ -124,16 +124,16 @@ public class MediaPlayer {
             ByteOrder.nativeOrder()
         );
 
-        source.rewind();
-        result.put(source);
+        srcBuffer.rewind();
+        result.put(srcBuffer);
         result.flip();
 
         return result;
     }
 
-    private static int parseQuality(Stream s) {
+    private static int parseQuality(Stream stream) {
         try {
-            return Integer.parseInt(s.getResolution().replaceAll("\\D+", ""));
+            return Integer.parseInt(stream.getResolution().replaceAll("\\D+", ""));
         } catch (Exception e) {
             return Integer.MAX_VALUE;
         }
@@ -158,8 +158,8 @@ public class MediaPlayer {
         safeExecute(this::doPause);
     }
 
-    public void seekTo(long ns, boolean b) {
-        safeExecute(() -> doSeek(ns, b));
+    public void seekTo(long nanos, boolean b) {
+        safeExecute(() -> doSeek(nanos, b));
     }
 
     public void seekRelative(double s) {
@@ -272,8 +272,8 @@ public class MediaPlayer {
             .collect(Collectors.toList());
     }
 
-    public void setQuality(String q) {
-        safeExecute(() -> changeQuality(q));
+    public void setQuality(String quality) {
+        safeExecute(() -> changeQuality(quality));
     }
 
     // === INITIALIZATION ==================================================================
@@ -552,7 +552,7 @@ public class MediaPlayer {
         audioPipeline = null;
     }
 
-    private void doSeek(long ns, boolean b) {
+    private void doSeek(long nanos, boolean b) {
         if (!initialized) return;
         EnumSet<SeekFlags> flags = EnumSet.of(
             SeekFlags.FLUSH,
@@ -563,9 +563,9 @@ public class MediaPlayer {
         if (videoPipeline != null) videoPipeline.seekSimple(
             Format.TIME,
             flags,
-            ns
+            nanos
         );
-        audioPipeline.seekSimple(Format.TIME, flags, ns);
+        audioPipeline.seekSimple(Format.TIME, flags, nanos);
         if (videoPipeline != null) videoPipeline.getState(); // Waiting for pre-roll
         audioPipeline.play();
         if (videoPipeline != null && !screen.getPaused()) videoPipeline.play();
@@ -651,10 +651,10 @@ public class MediaPlayer {
     }
 
     // === CONCURRENCY HELPERS =============================================================
-    private void safeExecute(Runnable r) {
+    private void safeExecute(Runnable action) {
         if (!gstExecutor.isShutdown()) {
             try {
-                gstExecutor.submit(r);
+                gstExecutor.submit(action);
             } catch (RejectedExecutionException ignored) {}
         }
     }
