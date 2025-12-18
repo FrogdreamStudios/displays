@@ -24,6 +24,7 @@ object Updater {
 
             Main.modVersion = releases
                 .mapNotNull { parseVersion(it.tagName) }
+                .filter { !it.toString().contains("-SNAPSHOT") }
                 .maxOrNull()
 
             Main.pluginLatestVersion = releases
