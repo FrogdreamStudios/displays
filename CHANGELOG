@@ -12,9 +12,10 @@ Plugin:
 
 # Version 1.1.2
 Mod:
-- [x] Update mappings
 - [x] Fix missing translations
+- [x] Fix snapshot version detection as stable
 - [x] Better releases system of mod
+- [x] Update mappings
 
 Plugin:
 - [x] Add message when client doesn't have the mod installed
