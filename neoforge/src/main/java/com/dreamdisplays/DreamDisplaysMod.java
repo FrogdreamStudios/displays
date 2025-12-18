@@ -144,6 +144,19 @@ public class DreamDisplaysMod implements com.dreamdisplays.Mod {
             );
     }
 
+    @SubscribeEvent
+    public void onClientLogin(ClientPlayerNetworkEvent.LoggingIn event) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.level != null && mc.player != null) {
+            String serverId = mc.hasSingleplayerServer()
+                ? "singleplayer"
+                : (mc.getCurrentServer() != null
+                      ? mc.getCurrentServer().ip
+                      : "unknown");
+            Manager.loadScreensForServer(serverId);
+        }
+    }
+
     @Override
     public void sendPacket(CustomPacketPayload packet) {
         var connection = Minecraft.getInstance().getConnection();
