@@ -57,7 +57,7 @@ jobs:
           
           # Generate changelog
           if [[ $VERSION == *"-SNAPSHOT"* ]]; then
-            CHANGELOG=$(git log -1 --pretty=format:"%s")
+            CHANGELOG="" # No changelog for snapshot versions (idk what to put here)
           else
             CHANGELOG="Check changelogs in [Modrinth](https://modrinth.com/plugin/dreamdisplays/changelog)."
           fi
