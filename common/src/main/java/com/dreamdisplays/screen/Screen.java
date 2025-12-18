@@ -286,6 +286,7 @@ public class Screen {
         if (mediaPlayer != null) {
             mediaPlayer.setQuality(quality);
         }
+        // reloadTexture();
         // Save settings
         Settings.updateSettings(uuid, volume, quality, muted);
     }
