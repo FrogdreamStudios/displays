@@ -118,7 +118,7 @@ jobs:
     name: Release
     runs-on: ubuntu-24.04
     needs: build
-    if: !contains(needs.build.outputs.version, '-SNAPSHOT')
+    if: "!contains(needs.build.outputs.version, '-SNAPSHOT')"
     permissions:
       contents: write
     steps:
