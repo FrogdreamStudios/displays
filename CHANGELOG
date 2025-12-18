@@ -12,9 +12,10 @@ Plugin:
 
 # Version 1.1.3
 Mod:
-- [x] Fix crash if sync display is loaded
-- [x] Fix NeoForge screen info reading issue
-- [x] Fix quality changing
+- [x] Fix sync packet registration issues
+- [x] Fix video playback time saving for non-synced displays
+- [x] Fix texture errors when changing video quality
+- [x] Fix NeoForge screen loading on server join
 
 Plugin:
 - [x] No changes

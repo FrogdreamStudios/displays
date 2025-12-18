@@ -241,7 +241,11 @@ public class Screen {
     // Updates the texture to fit the current video frame
     public void fitTexture() {
         if (mediaPlayer != null && texture != null) {
-            mediaPlayer.updateFrame(texture.getTexture());
+            try {
+                mediaPlayer.updateFrame(texture.getTexture());
+            } catch (Exception e) {
+                // Ignore errors if texture is not ready
+            }
         }
     }
 
