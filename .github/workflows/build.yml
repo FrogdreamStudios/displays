@@ -21,11 +21,12 @@ jobs:
       packages: write
     outputs:
       version: ${{ steps.get_version.outputs.version }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Full history
+          fetch-depth: 0
 
       - name: Validate Gradle wrapper
         uses: gradle/actions/wrapper-validation@v4
@@ -34,8 +35,8 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: 21
-          distribution: 'temurin'
-          cache: 'gradle'
+          distribution: temurin
+          cache: gradle
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -61,8 +62,6 @@ jobs:
           name: dreamdisplays-fabric
           path: build/libs/dreamdisplays-fabric-*.jar
           if-no-files-found: warn
-          retention-days: 30
-          compression-level: 6
 
       # NeoForge
       - name: Upload NeoForge client
@@ -71,8 +70,6 @@ jobs:
           name: dreamdisplays-neoforge
           path: build/libs/dreamdisplays-neoforge-*.jar
           if-no-files-found: warn
-          retention-days: 30
-          compression-level: 6
 
       # Spigot
       - name: Upload Spigot plugin
@@ -81,8 +78,6 @@ jobs:
           name: dreamdisplays-spigot
           path: build/libs/dreamdisplays-spigot-*.jar
           if-no-files-found: warn
-          retention-days: 30
-          compression-level: 6
 
   pre-release:
     name: Pre-release
@@ -94,6 +89,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
@@ -146,25 +142,18 @@ jobs:
       - name: Publish to Modrinth
         run: |
           VERSION=${{ needs.build.outputs.version }}
-          
-          # Versions
-          MOD_VERSIONS='["1.21.5", "1.21.11"]'
-          PLUGIN_VERSIONS='["1.21", "1.21.1", "1.21.2", "1.21.3", "1.21.4", "1.21.5", "1.21.6", "1.21.7", "1.21.8", "1.21.9", "1.21.10", "1.21.11"]'
           MOD_LATEST_VERSION="1.21.11"
-          
-          # Parse changelog
-          MOD_CHANGELOG=$(sed -n "/^# Version $VERSION$/,/^# Version /p" CHANGELOG | sed -n '/^Mod:/,/^Plugin:/p' | sed '1d;$d' | sed 's/^- \[[x ]\]\s*//')
-          PLUGIN_CHANGELOG=$(sed -n "/^# Version $VERSION$/,/^# Version /p" CHANGELOG | sed -n '/^Plugin:/,$p' | sed '1d' | sed 's/^- \[[x ]\]\s*//')
-          
-          # Escape newlines for JSON
-          MOD_CHANGELOG=$(echo "$MOD_CHANGELOG" | sed 's/\n/\\n/g' | sed 's/\r//g' | sed 's/\t/\\t/g')
-          PLUGIN_CHANGELOG=$(echo "$PLUGIN_CHANGELOG" | sed 's/\n/\\n/g' | sed 's/\r//g' | sed 's/\t/\\t/g')
-          
-          # Publish Fabric mod
+          MOD_VERSIONS='["1.21.5", "1.21.11"]'
+          PLUGIN_VERSIONS='["1.21","1.21.1","1.21.2","1.21.3","1.21.4","1.21.5","1.21.6","1.21.7","1.21.8","1.21.9","1.21.10","1.21.11"]'
+
+          # Parse and escape changelog
+          MOD_CHANGELOG=$(sed -n "/^# Version $VERSION$/,/^# Version /p" CHANGELOG | sed -n '/^Mod:/,/^Plugin:/p' | sed '1d;$d' | sed 's/^- \[[x ]\]\s*//' | sed 's/\n/\\n/g')
+          PLUGIN_CHANGELOG=$(sed -n "/^# Version $VERSION$/,/^# Version /p" CHANGELOG | sed -n '/^Plugin:/,$p' | sed '1d' | sed 's/^- \[[x ]\]\s*//' | sed 's/\n/\\n/g')
+
+          # Fabric
           curl -X POST https://api.modrinth.com/v2/version \
             -H "Authorization: ${{ secrets.MODRINTH_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            -d "{
+            -F "data={
               \"name\": \"[Fabric $MOD_LATEST_VERSION] Dream Displays $VERSION\",
               \"project_id\": \"dreamdisplays\",
               \"version_number\": \"fabric-$VERSION\",
@@ -172,17 +161,15 @@ jobs:
               \"loaders\": [\"fabric\"],
               \"game_versions\": $MOD_VERSIONS,
               \"changelog\": \"$MOD_CHANGELOG\",
-              \"dependencies\": {\"fabric-api\": \"*\"},
-              \"files\": [
-                {\"url\": \"https://github.com/arsmotorin/dreamdisplays/releases/download/v$VERSION/dreamdisplays-fabric-$VERSION.jar\"}
-              ]
-            }"
-          
-          # Publish NeoForge mod
+              \"dependencies\": [{\"project_id\":\"fabric-api\",\"dependency_type\":\"required\"}],
+              \"file_parts\": [\"fabric\"]
+            }" \
+            -F "fabric=jars/dreamdisplays-fabric/dreamdisplays-fabric-$VERSION.jar"
+
+          # NeoForge
           curl -X POST https://api.modrinth.com/v2/version \
             -H "Authorization: ${{ secrets.MODRINTH_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            -d "{
+            -F "data={
               \"name\": \"[NeoForge $MOD_LATEST_VERSION] Dream Displays $VERSION\",
               \"project_id\": \"dreamdisplays\",
               \"version_number\": \"neoforge-$VERSION\",
@@ -190,24 +177,21 @@ jobs:
               \"loaders\": [\"neoforge\"],
               \"game_versions\": $MOD_VERSIONS,
               \"changelog\": \"$MOD_CHANGELOG\",
-              \"files\": [
-                {\"url\": \"https://github.com/arsmotorin/dreamdisplays/releases/download/v$VERSION/dreamdisplays-neoforge-$VERSION.jar\"}
-              ]
-            }"
-          
-          # Publish plugin
+              \"file_parts\": [\"neoforge\"]
+            }" \
+            -F "neoforge=jars/dreamdisplays-neoforge/dreamdisplays-neoforge-$VERSION.jar"
+
+          # Spigot
           curl -X POST https://api.modrinth.com/v2/version \
             -H "Authorization: ${{ secrets.MODRINTH_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            -d "{
+            -F "data={
               \"name\": \"[Spigot 1.21.x] Dream Displays $VERSION\",
               \"project_id\": \"dreamdisplays\",
               \"version_number\": \"spigot-$VERSION\",
               \"version_type\": \"release\",
-              \"loaders\": [\"bukkit\", \"folia\", \"paper\", \"spigot\", \"purpur\"],
+              \"loaders\": [\"bukkit\",\"folia\",\"paper\",\"spigot\",\"purpur\"],
               \"game_versions\": $PLUGIN_VERSIONS,
               \"changelog\": \"$PLUGIN_CHANGELOG\",
-              \"files\": [
-                {\"url\": \"https://github.com/arsmotorin/dreamdisplays/releases/download/v$VERSION/dreamdisplays-spigot-$VERSION.jar\"}
-              ]
-            }"
+              \"file_parts\": [\"spigot\"]
+            }" \
+            -F "spigot=jars/dreamdisplays-spigot/dreamdisplays-spigot-$VERSION.jar"
