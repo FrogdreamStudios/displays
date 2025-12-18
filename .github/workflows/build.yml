@@ -133,7 +133,24 @@ jobs:
           echo "$MOD_CHANGELOG" > mod_changelog.md
           echo "$PLUGIN_CHANGELOG" > plugin_changelog.md
 
-      - name: Publish Fabric
+      - name: Test Modrinth token
+        run: |
+          RESPONSE=$(curl -s -w "\n%{http_code}" -H "Authorization: ${{ secrets.MODRINTH_TOKEN }}" \
+            https://api.modrinth.com/v2/user)
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | head -n-1)
+          
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "Token is valid"
+            echo "$BODY" | python3 -c "import sys, json; data=json.load(sys.stdin); print(f\"User: {data.get('username', 'N/A')}\")"
+          else
+            echo "Token is invalid or expired"
+            echo "HTTP Code: $HTTP_CODE"
+            echo "Response: $BODY"
+            exit 1
+          fi
+
+      - name: Publish Fabric to Modrinth
         uses: Kir-Antipov/mc-publish@v3.3
         with:
           name: '[Fabric 1.21.11] Dream Displays ${{ needs.build.outputs.version }}'
