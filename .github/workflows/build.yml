@@ -56,30 +56,27 @@ jobs:
           VERSION=$(grep '^version=' gradle.properties | cut -d'=' -f2)
           
           # Generate changelog
-          LATEST_TAG=$(gh release list --limit 1 --json tagName --jq '.[0].tagName' || echo "")
-          if [ -z "$LATEST_TAG" ]; then
-            CHANGELOG=$(git log --oneline --pretty=format:"- %s" | head -20)
+          if [[ $VERSION == *"-SNAPSHOT"* ]]; then
+            CHANGELOG=$(git log -1 --pretty=format:"%s")
           else
-            CHANGELOG=$(git log --oneline --pretty=format:"- %s" ${LATEST_TAG}..HEAD)
+            CHANGELOG="Check changelogs in [Modrinth](https://modrinth.com/plugin/dreamdisplays/changelog)."
           fi
           
           # Determine release type
           if [[ $VERSION == *"-SNAPSHOT"* ]]; then
-            TAG="v${VERSION}-${GITHUB_SHA::7}"
-            TITLE="Pre-release $VERSION (${GITHUB_SHA::7})"
+            TAG="v${VERSION}"
+            TITLE="$VERSION"
             PRERELEASE="--prerelease"
           else
             TAG="v${VERSION}"
-            TITLE="Release $VERSION"
+            TITLE="$VERSION"
             PRERELEASE=""
           fi
           
           # Create release
-          gh release create "$TAG" \
-            --title "$TITLE" \
-            --notes "$CHANGELOG" \
-            $PRERELEASE \
-            build/libs/*.jar
+          if gh release create "$TAG" --title "$TITLE" --notes "$CHANGELOG" $PRERELEASE build/libs/dreamdisplays-*.jar 2>&1 | grep -q "already exists"; then
+            gh release upload "$TAG" build/libs/dreamdisplays-*.jar --clobber
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
