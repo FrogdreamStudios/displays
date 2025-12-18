@@ -56,10 +56,6 @@ public class DreamDisplaysMod implements ClientModInitializer, Mod {
             Info.PACKET_CODEC
         );
 
-        PayloadTypeRegistry.playS2C().register(
-            Sync.PACKET_ID,
-            Sync.PACKET_CODEC
-        );
         PayloadTypeRegistry.playC2S().register(
             Sync.PACKET_ID,
             Sync.PACKET_CODEC
@@ -83,10 +79,6 @@ public class DreamDisplaysMod implements ClientModInitializer, Mod {
             Version.PACKET_CODEC
         );
 
-        PayloadTypeRegistry.playS2C().register(
-            Delete.PACKET_ID,
-            Delete.PACKET_CODEC
-        );
         PayloadTypeRegistry.playS2C().register(
             Premium.PACKET_ID,
             Premium.PACKET_CODEC

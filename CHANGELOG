@@ -1,4 +1,4 @@
-# Version 1.1.3
+# Version 1.1.4
 Mod:
 - [ ] Add toggle button for window focus
 - [ ] Add toggle button for video repeating
@@ -8,7 +8,15 @@ Mod:
 
 Plugin:
 - [ ] Improve /display list command output
-- [ ] Add /display info <id> command
+- [ ] Add /display help command
+
+# Version 1.1.3
+Mod:
+- [x] Fix crash if sync display is loaded
+- [ ] Fix quality changing
+
+Plugin:
+- [x] No changes
 
 # Version 1.1.2
 Mod:

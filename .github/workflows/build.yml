@@ -133,7 +133,7 @@ jobs:
           echo "$MOD_CHANGELOG" > mod_changelog.md
           echo "$PLUGIN_CHANGELOG" > plugin_changelog.md
 
-      - name: Publish Fabric to Modrinth
+      - name: Publish Fabric
         uses: Kir-Antipov/mc-publish@v3.3
         with:
           name: '[Fabric 1.21.11] Dream Displays ${{ needs.build.outputs.version }}'

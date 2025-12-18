@@ -54,17 +54,16 @@ public class DreamDisplaysMod implements com.dreamdisplays.Mod {
         );
 
         registrar.playToClient(
-            Sync.PACKET_ID,
-            Sync.PACKET_CODEC,
-            (payload, ctx) -> Initializer.onSyncPacket(payload)
-        );
-
-        registrar.playToClient(
             Premium.PACKET_ID,
             Premium.PACKET_CODEC,
             (payload, ctx) -> Initializer.onPremiumPacket(payload)
         );
 
+        registrar.playToServer(
+            Sync.PACKET_ID,
+            Sync.PACKET_CODEC,
+            (p, c) -> {}
+        );
         registrar.playToServer(
             RequestSync.PACKET_ID,
             RequestSync.PACKET_CODEC,
