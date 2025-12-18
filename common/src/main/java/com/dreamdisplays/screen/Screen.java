@@ -283,6 +283,9 @@ public class Screen {
     // Sets video quality (e.g., "480", "720", "1080", "2160")
     public void setQuality(String quality) {
         this.quality = quality;
+        if (mediaPlayer != null) {
+            mediaPlayer.setQuality(quality);
+        }
         // Save settings
         Settings.updateSettings(uuid, volume, quality, muted);
     }
