@@ -1,18 +1,15 @@
 package com.dreamdisplays.downloader;
 
 import com.dreamdisplays.util.Utils;
-import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.Enumeration;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 import me.inotsleep.utils.logging.LoggingManager;
 import org.apache.commons.io.FileUtils;
 import org.jspecify.annotations.NullMarked;
+
+import java.io.*;
+import java.net.*;
+import java.util.Enumeration;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 @NullMarked
 public class Downloader {

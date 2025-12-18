@@ -1,15 +1,16 @@
 package com.dreamdisplays.downloader;
 
-import static com.dreamdisplays.util.Utils.detectPlatform;
+import me.inotsleep.utils.logging.LoggingManager;
+import org.freedesktop.gstreamer.Gst;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
-import me.inotsleep.utils.logging.LoggingManager;
-import org.freedesktop.gstreamer.Gst;
-import org.jspecify.annotations.NullMarked;
-import org.jspecify.annotations.Nullable;
+
+import static com.dreamdisplays.util.Utils.detectPlatform;
 
 @NullMarked
 public class Init {

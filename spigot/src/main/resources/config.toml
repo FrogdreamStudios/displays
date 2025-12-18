@@ -23,6 +23,10 @@ max_height = 24
 particles = true
 particles_color = "#00FFFF"
 
+# Mod detection notifications
+# Players without Dream Displays will be asked to install it
+mod_detection_enabled = true
+
 # Update notifications
 updates = true
 

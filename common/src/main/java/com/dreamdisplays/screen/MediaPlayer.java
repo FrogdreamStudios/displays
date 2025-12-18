@@ -7,6 +7,15 @@ import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.systems.CommandEncoder;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.textures.GpuTexture;
+import me.inotsleep.utils.logging.LoggingManager;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
+import org.freedesktop.gstreamer.*;
+import org.freedesktop.gstreamer.elements.AppSink;
+import org.freedesktop.gstreamer.event.SeekFlags;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.*;
@@ -16,14 +25,6 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
-import me.inotsleep.utils.logging.LoggingManager;
-import net.minecraft.client.Minecraft;
-import net.minecraft.core.BlockPos;
-import org.freedesktop.gstreamer.*;
-import org.freedesktop.gstreamer.elements.AppSink;
-import org.freedesktop.gstreamer.event.SeekFlags;
-import org.jspecify.annotations.NullMarked;
-import org.jspecify.annotations.Nullable;
 
 @NullMarked
 public class MediaPlayer {

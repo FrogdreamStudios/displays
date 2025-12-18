@@ -4,7 +4,6 @@ import com.dreamdisplays.downloader.Error;
 import com.dreamdisplays.downloader.Listener;
 import com.dreamdisplays.downloader.Menu;
 import com.dreamdisplays.util.Utils;
-import java.util.concurrent.atomic.AtomicBoolean;
 import me.inotsleep.utils.logging.LoggingManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
@@ -17,6 +16,8 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @NullMarked
 @Mixin(Minecraft.class)

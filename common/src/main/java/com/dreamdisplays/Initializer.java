@@ -1,11 +1,7 @@
 package com.dreamdisplays;
 
 import com.dreamdisplays.downloader.Init;
-import com.dreamdisplays.net.Packets.Delete;
-import com.dreamdisplays.net.Packets.Info;
-import com.dreamdisplays.net.Packets.Premium;
-import com.dreamdisplays.net.Packets.Sync;
-import com.dreamdisplays.net.Packets.Version;
+import com.dreamdisplays.net.Packets.*;
 import com.dreamdisplays.screen.Configuration;
 import com.dreamdisplays.screen.Manager;
 import com.dreamdisplays.screen.Screen;
@@ -13,11 +9,6 @@ import com.dreamdisplays.screen.Settings;
 import com.dreamdisplays.util.Facing;
 import com.dreamdisplays.util.RayCasting;
 import com.dreamdisplays.util.Utils;
-import java.io.File;
-import java.util.Objects;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 import me.inotsleep.utils.logging.LoggingManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -31,6 +22,12 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 @NullMarked
 public class Initializer {

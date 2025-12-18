@@ -122,7 +122,8 @@ class Config(private val plugin: Main) {
         val updates: UpdatesConfig = UpdatesConfig(),
         val display: DisplayConfig = DisplayConfig(),
         val particles: Boolean = true,
-        val particles_color: String = "#00FFFF"
+        val particles_color: String = "#00FFFF",
+        val mod_detection_enabled: Boolean = true
     ) {
         // Reports
         val webhookUrl get() = reports.webhook_url
@@ -140,6 +141,9 @@ class Config(private val plugin: Main) {
         // Particles
         val particlesEnabled get() = particles
         val particleRenderDelay = 2
+
+        // Mod detection
+        val modDetectionEnabled get() = mod_detection_enabled
 
         // Display
         val minWidth get() = display.min_width

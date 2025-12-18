@@ -2,7 +2,6 @@ package com.dreamdisplays.net;
 
 import com.dreamdisplays.Initializer;
 import com.dreamdisplays.util.Facing;
-import java.util.UUID;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -10,12 +9,12 @@ import net.minecraft.resources.Identifier;
 import org.joml.Vector3i;
 import org.jspecify.annotations.NullMarked;
 
+import java.util.UUID;
+
 @NullMarked
 public final class Packets {
 
-    private static <T extends CustomPacketPayload> CustomPacketPayload.Type<
-        T
-    > createType(String path) {
+    private static <T extends CustomPacketPayload> CustomPacketPayload.Type<T>createType(String path) {
         return new CustomPacketPayload.Type<>(
             Identifier.fromNamespaceAndPath(Initializer.MOD_ID, path)
         );

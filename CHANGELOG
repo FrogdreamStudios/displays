@@ -1,5 +1,7 @@
 # Version 1.1.2
 Mod:
+- [x] Add message when client doesn't have the mod installed
+- [x] Update mappings
 - [x] Fix missing translations
 - [ ] Fix NeoForge build issues
 - [ ] Add toggle button for window focus

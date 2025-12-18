@@ -34,5 +34,6 @@
   "configReloaded": "&7D | &fDream Displays has been reloaded!",
   "noDisplaysFound": "&7D |&f No displays found",
   "displayListHeader": "&7D |&f Displays:",
-  "displayListEntry": "&7D |&f - ID: {0}, Owner: {1}, Location: {2}, {3}, {4}, URL: {5}"
+  "displayListEntry": "&7D |&f - ID: {0}, Owner: {1}, Location: {2}, {3}, {4}, URL: {5}",
+  "modRequired": "&7D |&f Dream Displays mod is required to see displays on the server. Please install it for a good experience!"
 }

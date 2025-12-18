@@ -10,6 +10,7 @@ object Player {
     private val versions: MutableMap<UUID?, Version?> = HashMap<UUID?, Version?>()
     private val modUpdateNotified: MutableMap<UUID?, Boolean?> = HashMap<UUID?, Boolean?>()
     private val pluginUpdateNotified: MutableMap<UUID?, Boolean?> = HashMap<UUID?, Boolean?>()
+    private val modRequiredNotified: MutableMap<UUID?, Boolean?> = HashMap<UUID?, Boolean?>()
 
     @JvmStatic
     fun setVersion(player: Player, version: Version?) {
@@ -20,6 +21,12 @@ object Player {
         versions.remove(player.uniqueId)
         modUpdateNotified.remove(player.uniqueId)
         pluginUpdateNotified.remove(player.uniqueId)
+        modRequiredNotified.remove(player.uniqueId)
+    }
+
+    @JvmStatic
+    fun getVersion(player: Player): Version? {
+        return versions[player.uniqueId]
     }
 
     @JvmStatic
@@ -40,5 +47,15 @@ object Player {
     @JvmStatic
     fun setPluginUpdateNotified(player: Player, notified: Boolean) {
         pluginUpdateNotified[player.uniqueId] = notified
+    }
+
+    @JvmStatic
+    fun hasBeenNotifiedAboutModRequired(player: Player): Boolean {
+        return modRequiredNotified[player.uniqueId] ?: false
+    }
+
+    @JvmStatic
+    fun setModRequiredNotified(player: Player, notified: Boolean) {
+        modRequiredNotified[player.uniqueId] = notified
     }
 }
