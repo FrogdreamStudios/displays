@@ -117,17 +117,20 @@ jobs:
         run: |
           VERSION=${{ needs.build.outputs.version }}
           
-          # Extract mod changelog
+          # Parse changelog
           MOD_CHANGELOG=$(sed -n "/^# Version $VERSION$/,/^# Version /p" CHANGELOG \
+            | sed '/^#/d' \
             | sed -n '/^Mod:/,/^Plugin:/p' \
             | sed '1d;$d' \
-            | sed 's/^- \[[x ]\]\s*//')
+            | sed 's/^- \[[x ]\]\s*/- /' \
+            | python3 -c 'import sys, json; print(json.dumps(sys.stdin.read()))')
           
-          # Extract plugin changelog
           PLUGIN_CHANGELOG=$(sed -n "/^# Version $VERSION$/,/^# Version /p" CHANGELOG \
+            | sed '/^#/d' \
             | sed -n '/^Plugin:/,$p' \
             | sed '1d' \
-            | sed 's/^- \[[x ]\]\s*//')
+            | sed 's/^- \[[x ]\]\s*/- /' \
+            | python3 -c 'import sys, json; print(json.dumps(sys.stdin.read()))')
           
           # Save to files
           echo "$MOD_CHANGELOG" > mod_changelog.md
