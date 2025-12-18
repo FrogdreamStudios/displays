@@ -1,16 +1,24 @@
-# Version 1.1.2
+# Version 1.1.3
 Mod:
-- [x] Add message when client doesn't have the mod installed
-- [x] Update mappings
-- [x] Fix missing translations
-- [x] Support snapshot versions of mod
-- [ ] Fix NeoForge build issues
 - [ ] Add toggle button for window focus
 - [ ] Add toggle button for video repeating
 - [ ] Support natives
+- [ ] Change /displays command to /display
+- [ ] Add missing message for /display on/off
 
 Plugin:
-- [ ] ...
+- [ ] Improve /display list command output
+- [ ] Add /display info <id> command
+
+# Version 1.1.2
+Mod:
+- [x] Update mappings
+- [x] Fix missing translations
+- [x] Better releases system of mod
+
+Plugin:
+- [x] Add message when client doesn't have the mod installed
+- [x] Better releases system of mod
 
 # Version 1.1.1
 Mod:

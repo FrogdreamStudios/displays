@@ -19,7 +19,8 @@ jobs:
     permissions:
       contents: write
       packages: write
-
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -50,35 +51,11 @@ jobs:
         env:
           GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.caching=true -Xmx4G
 
-      - name: Create release
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      - name: Get version
+        id: get_version
         run: |
           VERSION=$(grep '^version=' gradle.properties | cut -d'=' -f2)
-          
-          # Generate changelog
-          if [[ $VERSION == *"-SNAPSHOT"* ]]; then
-            CHANGELOG="" # No changelog for snapshot versions (idk what to put here)
-          else
-            CHANGELOG="Check changelogs in [Modrinth](https://modrinth.com/plugin/dreamdisplays/changelog)."
-          fi
-          
-          # Determine release type
-          if [[ $VERSION == *"-SNAPSHOT"* ]]; then
-            TAG="v${VERSION}"
-            TITLE="$VERSION"
-            PRERELEASE="--prerelease"
-          else
-            TAG="v${VERSION}"
-            TITLE="$VERSION"
-            PRERELEASE=""
-          fi
-          
-          # Create release
-          if gh release create "$TAG" --title "$TITLE" --notes "$CHANGELOG" $PRERELEASE build/libs/dreamdisplays-*.jar 2>&1 | grep -q "already exists"; then
-            gh release upload "$TAG" build/libs/dreamdisplays-*.jar --clobber
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       # Fabric
       - name: Upload Fabric client
@@ -112,3 +89,116 @@ jobs:
           if-no-files-found: warn
           retention-days: 30
           compression-level: 6
+
+  pre-release:
+    name: Pre-release
+    runs-on: ubuntu-24.04
+    needs: build
+    if: contains(needs.build.outputs.version, '-SNAPSHOT')
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create pre-release
+        run: |
+          VERSION=${{ needs.build.outputs.version }}
+          TAG="v${VERSION}"
+          TITLE="$VERSION"
+          
+          # Create release
+          if gh release create "$TAG" --title "$TITLE" --prerelease build/libs/dreamdisplays-*.jar 2>&1 | grep -q "already exists"; then
+            gh release upload "$TAG" build/libs/dreamdisplays-*.jar --clobber
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  release:
+    name: Release
+    runs-on: ubuntu-24.04
+    needs: build
+    if: !contains(needs.build.outputs.version, '-SNAPSHOT')
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create release
+        run: |
+          VERSION=${{ needs.build.outputs.version }}
+          TAG="v${VERSION}"
+          TITLE="$VERSION"
+          CHANGELOG="Check changelogs in [Modrinth](https://modrinth.com/plugin/dreamdisplays/changelog)."
+          
+          gh release create "$TAG" --title "$TITLE" --notes "$CHANGELOG" build/libs/dreamdisplays-*.jar
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish to Modrinth
+        run: |
+          VERSION=${{ needs.build.outputs.version }}
+          
+          # Versions
+          MOD_VERSIONS='["1.21.5", "1.21.11"]'
+          PLUGIN_VERSIONS='["1.21", "1.21.1", "1.21.2", "1.21.3", "1.21.4", "1.21.5", "1.21.6", "1.21.7", "1.21.8", "1.21.9", "1.21.10", "1.21.11"]'
+          MOD_LATEST_VERSION="1.21.11"
+          
+          # Parse changelog
+          MOD_CHANGELOG=$(sed -n "/^# Version $VERSION$/,/^# Version /p" CHANGELOG | sed -n '/^Mod:/,/^Plugin:/p' | sed '1d;$d' | sed 's/^- \[[x ]\]\s*//')
+          PLUGIN_CHANGELOG=$(sed -n "/^# Version $VERSION$/,/^# Version /p" CHANGELOG | sed -n '/^Plugin:/,$p' | sed '1d' | sed 's/^- \[[x ]\]\s*//')
+          
+          # Publish Fabric mod
+          curl -X POST https://api.modrinth.com/v2/version \
+            -H "Authorization: ${{ secrets.MODRINTH_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"name\": \"[Fabric $MOD_LATEST_VERSION] Dream Displays $VERSION\",
+              \"project_id\": \"dreamdisplays\",
+              \"version_number\": \"fabric-$VERSION\",
+              \"version_type\": \"beta\",
+              \"loaders\": [\"fabric\"],
+              \"game_versions\": $MOD_VERSIONS,
+              \"changelog\": \"$MOD_CHANGELOG\",
+              \"dependencies\": {\"fabric-api\": \"*\"},
+              \"files\": [
+                {\"url\": \"https://github.com/arsmotorin/dreamdisplays/releases/download/v$VERSION/dreamdisplays-fabric-$VERSION.jar\"}
+              ]
+            }"
+          
+          # Publish NeoForge mod
+          curl -X POST https://api.modrinth.com/v2/version \
+            -H "Authorization: ${{ secrets.MODRINTH_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"name\": \"[NeoForge $MOD_LATEST_VERSION] Dream Displays $VERSION\",
+              \"project_id\": \"dreamdisplays\",
+              \"version_number\": \"neoforge-$VERSION\",
+              \"version_type\": \"beta\",
+              \"loaders\": [\"neoforge\"],
+              \"game_versions\": $MOD_VERSIONS,
+              \"changelog\": \"$MOD_CHANGELOG\",
+              \"files\": [
+                {\"url\": \"https://github.com/arsmotorin/dreamdisplays/releases/download/v$VERSION/dreamdisplays-neoforge-$VERSION.jar\"}
+              ]
+            }"
+          
+          # Publish plugin
+          curl -X POST https://api.modrinth.com/v2/version \
+            -H "Authorization: ${{ secrets.MODRINTH_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"name\": \"[Spigot 1.21.x] Dream Displays $VERSION\",
+              \"project_id\": \"dreamdisplays\",
+              \"version_number\": \"spigot-$VERSION\",
+              \"version_type\": \"release\",
+              \"loaders\": [\"bukkit\", \"folia\", \"paper\", \"spigot\", \"purpur\"],
+              \"game_versions\": $PLUGIN_VERSIONS,
+              \"changelog\": \"$PLUGIN_CHANGELOG\",
+              \"files\": [
+                {\"url\": \"https://github.com/arsmotorin/dreamdisplays/releases/download/v$VERSION/dreamdisplays-spigot-$VERSION.jar\"}
+              ]
+            }"
