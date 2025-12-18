@@ -47,6 +47,39 @@ jobs:
         env:
           GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.caching=true -Xmx4G
 
+      - name: Create release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          VERSION=$(grep '^version=' gradle.properties | cut -d'=' -f2)
+          
+          # Generate changelog
+          LATEST_TAG=$(gh release list --limit 1 --json tagName --jq '.[0].tagName' || echo "")
+          if [ -z "$LATEST_TAG" ]; then
+            CHANGELOG=$(git log --oneline --pretty=format:"- %s" | head -20)
+          else
+            CHANGELOG=$(git log --oneline --pretty=format:"- %s" ${LATEST_TAG}..HEAD)
+          fi
+          
+          # Determine release type
+          if [[ $VERSION == *"-SNAPSHOT"* ]]; then
+            TAG="v${VERSION}-${GITHUB_SHA::7}"
+            TITLE="Pre-release $VERSION (${GITHUB_SHA::7})"
+            PRERELEASE="--prerelease"
+          else
+            TAG="v${VERSION}"
+            TITLE="Release $VERSION"
+            PRERELEASE=""
+          fi
+          
+          # Create release
+          gh release create "$TAG" \
+            --title "$TITLE" \
+            --notes "$CHANGELOG" \
+            $PRERELEASE \
+            build/libs/*.jar
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       # Fabric
       - name: Upload Fabric client
         if: success()

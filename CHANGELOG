@@ -3,6 +3,7 @@ Mod:
 - [x] Add message when client doesn't have the mod installed
 - [x] Update mappings
 - [x] Fix missing translations
+- [x] Support snapshot versions of mod
 - [ ] Fix NeoForge build issues
 - [ ] Add toggle button for window focus
 - [ ] Add toggle button for video repeating
