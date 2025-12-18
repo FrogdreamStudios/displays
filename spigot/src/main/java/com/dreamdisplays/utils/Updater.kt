@@ -35,6 +35,7 @@ object Updater {
                     )
                 }
                 .mapNotNull { parseVersion(it.tagName)?.toString() }
+                .filter { !it.contains("-SNAPSHOT") }
                 .maxOrNull() ?: Main.modVersion?.toString()
 
         } catch (e: Exception) {
