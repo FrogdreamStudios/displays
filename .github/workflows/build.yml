@@ -16,6 +16,9 @@ jobs:
     name: Build
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    permissions:
+      contents: write
+      packages: write
 
     steps:
       - name: Checkout repository
