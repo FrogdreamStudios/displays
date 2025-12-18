@@ -101,16 +101,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Download JARs
+        uses: actions/download-artifact@v4
+        with:
+          name: jars
+          path: jars
+
       - name: Create pre-release
         run: |
           VERSION=${{ needs.build.outputs.version }}
           TAG="v${VERSION}"
           TITLE="$VERSION"
           
-          # Create release
-          if gh release create "$TAG" --title "$TITLE" --prerelease build/libs/dreamdisplays-*.jar 2>&1 | grep -q "already exists"; then
-            gh release upload "$TAG" build/libs/dreamdisplays-*.jar --clobber
-          fi
+          gh release create "$TAG" --title "$TITLE" --prerelease jars/dreamdisplays-*.jar || gh release upload "$TAG" jars/dreamdisplays-*.jar --clobber
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -127,6 +130,12 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Download JARs
+        uses: actions/download-artifact@v4
+        with:
+          name: jars
+          path: jars
+
       - name: Create release
         run: |
           VERSION=${{ needs.build.outputs.version }}
@@ -134,7 +143,7 @@ jobs:
           TITLE="$VERSION"
           CHANGELOG="Check changelogs in [Modrinth](https://modrinth.com/plugin/dreamdisplays/changelog)."
           
-          gh release create "$TAG" --title "$TITLE" --notes "$CHANGELOG" build/libs/dreamdisplays-*.jar
+          gh release create "$TAG" --title "$TITLE" --notes "$CHANGELOG" jars/dreamdisplays-*.jar
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
