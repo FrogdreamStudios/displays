@@ -145,53 +145,77 @@ jobs:
           MOD_LATEST_VERSION="1.21.11"
           MOD_VERSIONS='["1.21.5", "1.21.11"]'
           PLUGIN_VERSIONS='["1.21","1.21.1","1.21.2","1.21.3","1.21.4","1.21.5","1.21.6","1.21.7","1.21.8","1.21.9","1.21.10","1.21.11"]'
-
-          # Parse and escape changelog
-          MOD_CHANGELOG=$(sed -n "/^# Version $VERSION$/,/^# Version /p" CHANGELOG | sed -n '/^Mod:/,/^Plugin:/p' | sed '1d;$d' | sed 's/^- \[[x ]\]\s*//' | sed 's/\n/\\n/g')
-          PLUGIN_CHANGELOG=$(sed -n "/^# Version $VERSION$/,/^# Version /p" CHANGELOG | sed -n '/^Plugin:/,$p' | sed '1d' | sed 's/^- \[[x ]\]\s*//' | sed 's/\n/\\n/g')
-
+          
+          # Extract changelog sections
+          MOD_CHANGELOG=$(sed -n "/^# Version $VERSION$/,/^# Version /p" CHANGELOG \
+            | sed -n '/^Mod:/,/^Plugin:/p' \
+            | sed '1d;$d' \
+            | sed 's/^- \[[x ]\]\s*//' \
+            | python3 -c 'import sys, json; print(json.dumps(sys.stdin.read()))')
+          
+          PLUGIN_CHANGELOG=$(sed -n "/^# Version $VERSION$/,/^# Version /p" CHANGELOG \
+            | sed -n '/^Plugin:/,$p' \
+            | sed '1d' \
+            | sed 's/^- \[[x ]\]\s*//' \
+            | python3 -c 'import sys, json; print(json.dumps(sys.stdin.read()))')
+          
           # Fabric
+          MOD_JSON=$(cat <<EOF
+          {
+            "name": "[Fabric $MOD_LATEST_VERSION] Dream Displays $VERSION",
+            "project_id": "dreamdisplays",
+            "version_number": "fabric-$VERSION",
+            "version_type": "beta",
+            "loaders": ["fabric"],
+            "game_versions": $MOD_VERSIONS,
+            "changelog": $MOD_CHANGELOG,
+            "dependencies": [{"project_id":"fabric-api","dependency_type":"required"}],
+            "file_parts": ["fabric"]
+          }
+          EOF
+          )
+          
           curl -X POST https://api.modrinth.com/v2/version \
             -H "Authorization: ${{ secrets.MODRINTH_TOKEN }}" \
-            -F "data={
-              \"name\": \"[Fabric $MOD_LATEST_VERSION] Dream Displays $VERSION\",
-              \"project_id\": \"dreamdisplays\",
-              \"version_number\": \"fabric-$VERSION\",
-              \"version_type\": \"beta\",
-              \"loaders\": [\"fabric\"],
-              \"game_versions\": $MOD_VERSIONS,
-              \"changelog\": \"$MOD_CHANGELOG\",
-              \"dependencies\": [{\"project_id\":\"fabric-api\",\"dependency_type\":\"required\"}],
-              \"file_parts\": [\"fabric\"]
-            }" \
+            -F "data=$MOD_JSON" \
             -F "fabric=jars/dreamdisplays-fabric/dreamdisplays-fabric-$VERSION.jar"
-
+          
           # NeoForge
+          NEO_JSON=$(cat <<EOF
+          {
+            "name": "[NeoForge $MOD_LATEST_VERSION] Dream Displays $VERSION",
+            "project_id": "dreamdisplays",
+            "version_number": "neoforge-$VERSION",
+            "version_type": "beta",
+            "loaders": ["neoforge"],
+            "game_versions": $MOD_VERSIONS,
+            "changelog": $MOD_CHANGELOG,
+            "file_parts": ["neoforge"]
+          }
+          EOF
+          )
+          
           curl -X POST https://api.modrinth.com/v2/version \
             -H "Authorization: ${{ secrets.MODRINTH_TOKEN }}" \
-            -F "data={
-              \"name\": \"[NeoForge $MOD_LATEST_VERSION] Dream Displays $VERSION\",
-              \"project_id\": \"dreamdisplays\",
-              \"version_number\": \"neoforge-$VERSION\",
-              \"version_type\": \"beta\",
-              \"loaders\": [\"neoforge\"],
-              \"game_versions\": $MOD_VERSIONS,
-              \"changelog\": \"$MOD_CHANGELOG\",
-              \"file_parts\": [\"neoforge\"]
-            }" \
+            -F "data=$NEO_JSON" \
             -F "neoforge=jars/dreamdisplays-neoforge/dreamdisplays-neoforge-$VERSION.jar"
-
+          
           # Spigot
+          SPIGOT_JSON=$(cat <<EOF
+          {
+            "name": "[Spigot 1.21.x] Dream Displays $VERSION",
+            "project_id": "dreamdisplays",
+            "version_number": "spigot-$VERSION",
+            "version_type": "release",
+            "loaders": ["bukkit","folia","paper","spigot","purpur"],
+            "game_versions": $PLUGIN_VERSIONS,
+            "changelog": $PLUGIN_CHANGELOG,
+            "file_parts": ["spigot"]
+          }
+          EOF
+          )
+          
           curl -X POST https://api.modrinth.com/v2/version \
             -H "Authorization: ${{ secrets.MODRINTH_TOKEN }}" \
-            -F "data={
-              \"name\": \"[Spigot 1.21.x] Dream Displays $VERSION\",
-              \"project_id\": \"dreamdisplays\",
-              \"version_number\": \"spigot-$VERSION\",
-              \"version_type\": \"release\",
-              \"loaders\": [\"bukkit\",\"folia\",\"paper\",\"spigot\",\"purpur\"],
-              \"game_versions\": $PLUGIN_VERSIONS,
-              \"changelog\": \"$PLUGIN_CHANGELOG\",
-              \"file_parts\": [\"spigot\"]
-            }" \
+            -F "data=$SPIGOT_JSON" \
             -F "spigot=jars/dreamdisplays-spigot/dreamdisplays-spigot-$VERSION.jar"
