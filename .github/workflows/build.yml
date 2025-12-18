@@ -55,28 +55,12 @@ jobs:
           VERSION=$(grep '^version=' gradle.properties | cut -d'=' -f2)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-      # Fabric
-      - name: Upload Fabric client
+      # Upload artifacts for reuse
+      - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: dreamdisplays-fabric
-          path: build/libs/dreamdisplays-fabric-*.jar
-          if-no-files-found: warn
-
-      # NeoForge
-      - name: Upload NeoForge client
-        uses: actions/upload-artifact@v4
-        with:
-          name: dreamdisplays-neoforge
-          path: build/libs/dreamdisplays-neoforge-*.jar
-          if-no-files-found: warn
-
-      # Spigot
-      - name: Upload Spigot plugin
-        uses: actions/upload-artifact@v4
-        with:
-          name: dreamdisplays-spigot
-          path: build/libs/dreamdisplays-spigot-*.jar
+          name: build-jars
+          path: build/libs/*.jar
           if-no-files-found: warn
 
   pre-release:
@@ -90,10 +74,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download all artifacts
+      - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
-          path: jars
+          name: build-jars
+          path: build/libs
 
       - name: Create pre-release
         run: |
@@ -103,8 +88,8 @@ jobs:
           gh release create "$TAG" \
             --title "$VERSION" \
             --prerelease \
-            jars/**/dreamdisplays-*.jar \
-          || gh release upload "$TAG" jars/**/dreamdisplays-*.jar --clobber
+            build/libs/dreamdisplays-*.jar \
+          || gh release upload "$TAG" build/libs/dreamdisplays-*.jar --clobber
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -121,101 +106,116 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Download JARs
+      - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
-          path: jars
+          name: build-jars
+          path: build/libs
 
-      - name: Create release
+      - name: Extract changelogs
+        id: changelog
         run: |
           VERSION=${{ needs.build.outputs.version }}
-          TAG="v${VERSION}"
-          CHANGELOG="Check changelogs in [Modrinth](https://modrinth.com/plugin/dreamdisplays/changelog)."
-
-          gh release create "$TAG" \
-            --title "$VERSION" \
-            --notes "$CHANGELOG" \
-            jars/**/dreamdisplays-*.jar
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Publish to Modrinth
-        run: |
-          VERSION=${{ needs.build.outputs.version }}
-          MOD_LATEST_VERSION="1.21.11"
-          MOD_VERSIONS='["1.21.5", "1.21.11"]'
-          PLUGIN_VERSIONS='["1.21","1.21.1","1.21.2","1.21.3","1.21.4","1.21.5","1.21.6","1.21.7","1.21.8","1.21.9","1.21.10","1.21.11"]'
           
-          # Extract changelog sections
+          # Extract mod changelog
           MOD_CHANGELOG=$(sed -n "/^# Version $VERSION$/,/^# Version /p" CHANGELOG \
             | sed -n '/^Mod:/,/^Plugin:/p' \
             | sed '1d;$d' \
-            | sed 's/^- \[[x ]\]\s*//' \
-            | python3 -c 'import sys, json; print(json.dumps(sys.stdin.read()))')
+            | sed 's/^- \[[x ]\]\s*//')
           
+          # Extract plugin changelog
           PLUGIN_CHANGELOG=$(sed -n "/^# Version $VERSION$/,/^# Version /p" CHANGELOG \
             | sed -n '/^Plugin:/,$p' \
             | sed '1d' \
-            | sed 's/^- \[[x ]\]\s*//' \
-            | python3 -c 'import sys, json; print(json.dumps(sys.stdin.read()))')
+            | sed 's/^- \[[x ]\]\s*//')
           
-          # Fabric
-          MOD_JSON=$(cat <<EOF
-          {
-            "name": "[Fabric $MOD_LATEST_VERSION] Dream Displays $VERSION",
-            "project_id": "dreamdisplays",
-            "version_number": "fabric-$VERSION",
-            "version_type": "beta",
-            "loaders": ["fabric"],
-            "game_versions": $MOD_VERSIONS,
-            "changelog": $MOD_CHANGELOG,
-            "dependencies": [{"project_id":"fabric-api","dependency_type":"required"}],
-            "file_parts": ["fabric"]
-          }
-          EOF
-          )
-          
-          curl -X POST https://api.modrinth.com/v2/version \
-            -H "Authorization: ${{ secrets.MODRINTH_TOKEN }}" \
-            -F "data=$MOD_JSON" \
-            -F "fabric=jars/dreamdisplays-fabric/dreamdisplays-fabric-$VERSION.jar"
-          
-          # NeoForge
-          NEO_JSON=$(cat <<EOF
-          {
-            "name": "[NeoForge $MOD_LATEST_VERSION] Dream Displays $VERSION",
-            "project_id": "dreamdisplays",
-            "version_number": "neoforge-$VERSION",
-            "version_type": "beta",
-            "loaders": ["neoforge"],
-            "game_versions": $MOD_VERSIONS,
-            "changelog": $MOD_CHANGELOG,
-            "file_parts": ["neoforge"]
-          }
-          EOF
-          )
-          
-          curl -X POST https://api.modrinth.com/v2/version \
-            -H "Authorization: ${{ secrets.MODRINTH_TOKEN }}" \
-            -F "data=$NEO_JSON" \
-            -F "neoforge=jars/dreamdisplays-neoforge/dreamdisplays-neoforge-$VERSION.jar"
-          
-          # Spigot
-          SPIGOT_JSON=$(cat <<EOF
-          {
-            "name": "[Spigot 1.21.x] Dream Displays $VERSION",
-            "project_id": "dreamdisplays",
-            "version_number": "spigot-$VERSION",
-            "version_type": "release",
-            "loaders": ["bukkit","folia","paper","spigot","purpur"],
-            "game_versions": $PLUGIN_VERSIONS,
-            "changelog": $PLUGIN_CHANGELOG,
-            "file_parts": ["spigot"]
-          }
-          EOF
-          )
-          
-          curl -X POST https://api.modrinth.com/v2/version \
-            -H "Authorization: ${{ secrets.MODRINTH_TOKEN }}" \
-            -F "data=$SPIGOT_JSON" \
-            -F "spigot=jars/dreamdisplays-spigot/dreamdisplays-spigot-$VERSION.jar"
+          # Save to files
+          echo "$MOD_CHANGELOG" > mod_changelog.md
+          echo "$PLUGIN_CHANGELOG" > plugin_changelog.md
+
+      - name: Publish Fabric
+        uses: Kir-Antipov/mc-publish@v3.3
+        with:
+          name: '[Fabric 1.21.11] Dream Displays ${{ needs.build.outputs.version }}'
+          version: fabric-${{ needs.build.outputs.version }}
+          version-type: beta
+
+          files: build/libs/dreamdisplays-fabric-*.jar
+
+          changelog-file: mod_changelog.md
+
+          modrinth-id: dreamdisplays
+          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+
+          loaders: fabric
+          game-versions: |
+            1.21.11
+
+          dependencies: |
+            fabric-api(required){modrinth:P7dR8mSH}
+
+      - name: Publish NeoForge
+        uses: Kir-Antipov/mc-publish@v3.3
+        with:
+          name: '[NeoForge 1.21.11] Dream Displays ${{ needs.build.outputs.version }}'
+          version: neoforge-${{ needs.build.outputs.version }}
+          version-type: beta
+
+          files: build/libs/dreamdisplays-neoforge-*.jar
+
+          changelog-file: mod_changelog.md
+
+          modrinth-id: dreamdisplays
+          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+
+          loaders: neoforge
+          game-versions: |
+            1.21.11
+
+      - name: Publish Spigot
+        uses: Kir-Antipov/mc-publish@v3.3
+        with:
+          name: '[Spigot 1.21.x] Dream Displays ${{ needs.build.outputs.version }}'
+          version: spigot-${{ needs.build.outputs.version }}
+          version-type: release
+
+          files: build/libs/dreamdisplays-spigot-*.jar
+
+          changelog-file: plugin_changelog.md
+
+          modrinth-id: dreamdisplays
+          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+
+          loaders: |
+            bukkit
+            folia
+            paper
+            spigot
+            purpur
+
+          game-versions: |
+            1.21
+            1.21.1
+            1.21.2
+            1.21.3
+            1.21.4
+            1.21.5
+            1.21.6
+            1.21.7
+            1.21.8
+            1.21.9
+            1.21.10
+            1.21.11
+
+      - name: Create GitHub Release
+        uses: Kir-Antipov/mc-publish@v3.3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-tag: v${{ needs.build.outputs.version }}
+          github-generate-changelog: false
+          github-draft: false
+
+          files: build/libs/dreamdisplays-*.jar
+
+          changelog: |
+            Check changelogs in [Modrinth](https://modrinth.com/plugin/dreamdisplays/changelog).
