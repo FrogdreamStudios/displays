@@ -118,23 +118,19 @@ jobs:
           VERSION=${{ needs.build.outputs.version }}
           
           # Parse changelog
-          MOD_CHANGELOG=$(sed -n "/^# Version $VERSION$/,/^# Version /p" CHANGELOG \
-            | sed '/^#/d' \
+          sed -n "/^# Version $VERSION$/,/^# Version /p" CHANGELOG.md \
             | sed -n '/^Mod:/,/^Plugin:/p' \
             | sed '1d;$d' \
-            | sed 's/^- \[[x ]\]\s*/- /' \
-            | python3 -c 'import sys, json; print(json.dumps(sys.stdin.read()))')
+            | sed 's/^- \[[x ]\]\s*//' \
+            | sed '/^$/d' \
+            | sed 's/^/- /' > mod_changelog.md
           
-          PLUGIN_CHANGELOG=$(sed -n "/^# Version $VERSION$/,/^# Version /p" CHANGELOG \
-            | sed '/^#/d' \
-            | sed -n '/^Plugin:/,$p' \
-            | sed '1d' \
-            | sed 's/^- \[[x ]\]\s*/- /' \
-            | python3 -c 'import sys, json; print(json.dumps(sys.stdin.read()))')
-          
-          # Save to files
-          echo "$MOD_CHANGELOG" > mod_changelog.md
-          echo "$PLUGIN_CHANGELOG" > plugin_changelog.md
+          sed -n "/^# Version $VERSION$/,/^# Version /p" CHANGELOG.md \
+            | sed -n '/^Plugin:/,/^# Version /p' \
+            | sed '1d;$d' \
+            | sed 's/^- \[[x ]\]\s*//' \
+            | sed '/^$/d' \
+            | sed 's/^/- /' > plugin_changelog.md
 
       - name: Publish Fabric
         uses: Kir-Antipov/mc-publish@v3.3
