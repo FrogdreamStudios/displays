@@ -39,9 +39,6 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
-        with:
-          cache-read-only: false
-          cache-write-only: false
 
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
@@ -59,7 +56,6 @@ jobs:
 
       # Fabric
       - name: Upload Fabric client
-        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: dreamdisplays-fabric
@@ -70,7 +66,6 @@ jobs:
 
       # NeoForge
       - name: Upload NeoForge client
-        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: dreamdisplays-neoforge
@@ -81,7 +76,6 @@ jobs:
 
       # Spigot
       - name: Upload Spigot plugin
-        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: dreamdisplays-spigot
@@ -97,23 +91,24 @@ jobs:
     if: contains(needs.build.outputs.version, '-SNAPSHOT')
     permissions:
       contents: write
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
 
-      - name: Download JARs
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          name: release-jars
           path: jars
 
       - name: Create pre-release
         run: |
           VERSION=${{ needs.build.outputs.version }}
           TAG="v${VERSION}"
-          TITLE="$VERSION"
-          
-          gh release create "$TAG" --title "$TITLE" --prerelease jars/dreamdisplays-*.jar || gh release upload "$TAG" jars/dreamdisplays-*.jar --clobber
+
+          gh release create "$TAG" \
+            --title "$VERSION" \
+            --prerelease \
+            jars/**/dreamdisplays-*.jar \
+          || gh release upload "$TAG" jars/**/dreamdisplays-*.jar --clobber
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -124,16 +119,15 @@ jobs:
     if: "!contains(needs.build.outputs.version, '-SNAPSHOT')"
     permissions:
       contents: write
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Download JARs
         uses: actions/download-artifact@v4
         with:
-          name: release-jars
           path: jars
 
       - name: Create release
@@ -142,8 +136,11 @@ jobs:
           TAG="v${VERSION}"
           TITLE="$VERSION"
           CHANGELOG="Check changelogs in [Modrinth](https://modrinth.com/plugin/dreamdisplays/changelog)."
-          
-          gh release create "$TAG" --title "$TITLE" --notes "$CHANGELOG" jars/dreamdisplays-*.jar
+
+          gh release create "$TAG" \
+            --title "$VERSION" \
+            --notes "$CHANGELOG" \
+            jars/**/dreamdisplays-*.jar
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
