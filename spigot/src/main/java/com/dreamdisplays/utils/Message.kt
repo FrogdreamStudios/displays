@@ -1,6 +1,7 @@
 package com.dreamdisplays.utils
 
 import com.dreamdisplays.Main
+import net.kyori.adventure.text.Component
 import org.bukkit.ChatColor
 import org.bukkit.command.CommandSender
 import org.jspecify.annotations.NullMarked
@@ -19,6 +20,11 @@ object Message {
                 sendColoredMessage(player, message)
             }
         }
+    }
+
+    fun sendComponent(player: CommandSender?, component: Component?) {
+        if (player == null || component == null) return
+        Main.getInstance().audiences?.sender(player)?.sendMessage(component)
     }
 
     fun sendMessage(player: CommandSender?, messageKey: String) {

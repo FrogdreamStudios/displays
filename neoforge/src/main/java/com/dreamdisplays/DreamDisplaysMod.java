@@ -114,7 +114,7 @@ public class DreamDisplaysMod implements com.dreamdisplays.Mod {
         event
             .getDispatcher()
             .register(
-                LiteralArgumentBuilder.<CommandSourceStack>literal("displays")
+                LiteralArgumentBuilder.<CommandSourceStack>literal("display")
                     .then(
                         LiteralArgumentBuilder.<CommandSourceStack>literal(
                             "off"
@@ -122,7 +122,7 @@ public class DreamDisplaysMod implements com.dreamdisplays.Mod {
                             Initializer.displaysEnabled = false;
                             LocalPlayer p = Minecraft.getInstance().player;
                             if (p != null) p.displayClientMessage(
-                                Component.literal("Displays disabled"),
+                                Component.literal("§7D | §f").append(Component.translatable("dreamdisplays.display.disabled")),
                                 false
                             );
                             return 1;
@@ -135,7 +135,7 @@ public class DreamDisplaysMod implements com.dreamdisplays.Mod {
                             Initializer.displaysEnabled = true;
                             LocalPlayer p = Minecraft.getInstance().player;
                             if (p != null) p.displayClientMessage(
-                                Component.literal("Displays enabled"),
+                                Component.literal("§7D | §f").append(Component.translatable("dreamdisplays.display.enabled")),
                                 false
                             );
                             return 1;

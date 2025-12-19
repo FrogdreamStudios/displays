@@ -9,6 +9,7 @@ import com.dreamdisplays.storage.Storage
 import com.dreamdisplays.utils.Updater
 import com.github.zafarkhaja.semver.Version
 import me.inotsleep.utils.AbstractPlugin
+import net.kyori.adventure.platform.bukkit.BukkitAudiences
 import org.bstats.bukkit.Metrics
 import org.bukkit.Bukkit
 import org.jspecify.annotations.NullMarked
@@ -17,6 +18,7 @@ import org.jspecify.annotations.NullMarked
 class Main : AbstractPlugin<Main>() {
 
     lateinit var storage: Storage
+    var audiences: BukkitAudiences? = null
 
     override fun onEnable() = try {
         super.onEnable()
@@ -26,6 +28,13 @@ class Main : AbstractPlugin<Main>() {
     }
 
     override fun doEnable() {
+        try {
+            audiences = BukkitAudiences.create(this)
+        } catch (_: Exception) {
+            logger.warning("Adventure API not supported on this server. Using legacy messaging.")
+            audiences = null
+        }
+
         Companion.config = Config(this)
         storage = Storage(this)
 
@@ -52,6 +61,7 @@ class Main : AbstractPlugin<Main>() {
     }
 
     override fun doDisable() {
+        audiences?.close()
         storage.onDisable()
     }
 

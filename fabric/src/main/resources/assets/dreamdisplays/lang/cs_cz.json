@@ -38,5 +38,7 @@
   "dreamdisplays.button.delete.tooltip.2": "Trvale odstraní tento displej",
   "dreamdisplays.button.report": "Nahlásit",
   "dreamdisplays.button.report.tooltip.1": "Nahlásit displej",
-  "dreamdisplays.button.report.tooltip.2": "Nahlásit nevhodný obsah"
+  "dreamdisplays.button.report.tooltip.2": "Nahlásit nevhodný obsah",
+  "dreamdisplays.display.enabled": "Displays povoleny",
+  "dreamdisplays.display.disabled": "Displays zakázány"
 }

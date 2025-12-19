@@ -6,6 +6,7 @@ import com.dreamdisplays.managers.Display
 import com.dreamdisplays.utils.Message
 import com.dreamdisplays.utils.Utils
 import me.inotsleep.utils.AbstractCommand
+import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
@@ -24,6 +25,7 @@ class Command : AbstractCommand(Main.getInstance().name, "display") {
 
     private fun handleVideo(sender: CommandSender, args: Array<String?>) {
         val player = sender as? Player ?: return
+        if (!player.hasPermission(Main.config.permissions.video)) return
         if (args[0] != "video") return
 
         val block = player.getTargetBlock(null, 32)
@@ -63,6 +65,7 @@ class Command : AbstractCommand(Main.getInstance().name, "display") {
 
     private fun handleCreate(sender: CommandSender) {
         val player = sender as? Player ?: return
+        if (!player.hasPermission(Main.config.permissions.create)) return
 
         val sel = Selection.selectionPoints[player.uniqueId]
             ?: return msg(player, "noDisplayTerritories")
@@ -113,7 +116,7 @@ class Command : AbstractCommand(Main.getInstance().name, "display") {
     }
 
     private fun handleList(sender: CommandSender) {
-        if (!sender.hasPermission(Main.config.permissions.list)) {
+        if (!sender.isOp) {
             sendHelp(sender)
             return
         }
@@ -126,20 +129,31 @@ class Command : AbstractCommand(Main.getInstance().name, "display") {
 
         msg(sender, "displayListHeader")
 
-        val entry = Main.config.messages["displayListEntry"] as String?
-
-        displays.forEach { d ->
-            val owner = Bukkit.getOfflinePlayer(d.ownerId).name ?: "Unknown"
-            val formatted = me.inotsleep.utils.MessageUtil.parsePlaceholders(
-                entry,
-                d.id.toString(),
-                owner,
-                d.pos1.blockX.toString(),
-                d.pos1.blockY.toString(),
-                d.pos1.blockZ.toString(),
-                d.url
-            )
-            Message.sendColoredMessage(sender, formatted)
+        val audiences = Main.getInstance().audiences
+        if (audiences != null) {
+            displays.forEachIndexed { index, d ->
+                val owner = Bukkit.getOfflinePlayer(d.ownerId).name ?: "Unknown"
+                val locationText = "[${d.pos1.blockX}, ${d.pos1.blockY}, ${d.pos1.blockZ}]"
+                val component = Component.text("${index + 1}. Owner: $owner, Location: ")
+                    .append(Component.text(locationText))
+                    .append(Component.text(", URL: ${d.url}"))
+                Message.sendComponent(sender, component)
+            }
+        } else {
+            val entry = Main.config.messages["displayListEntry"] as String?
+            displays.forEachIndexed { index, d ->
+                val owner = Bukkit.getOfflinePlayer(d.ownerId).name ?: "Unknown"
+                val formatted = me.inotsleep.utils.MessageUtil.parsePlaceholders(
+                    entry,
+                    (index + 1).toString(),
+                    owner,
+                    d.pos1.blockX.toString(),
+                    d.pos1.blockY.toString(),
+                    d.pos1.blockZ.toString(),
+                    d.url
+                )
+                Message.sendColoredMessage(sender, formatted)
+            }
         }
     }
 
@@ -154,12 +168,16 @@ class Command : AbstractCommand(Main.getInstance().name, "display") {
     override fun complete(sender: CommandSender, args: Array<String?>): MutableList<String?> {
         if (args.size != 1) return mutableListOf()
 
-        val list = mutableListOf<String?>("create", "video")
+        val list = mutableListOf<String?>()
         val perms = Main.config.permissions
 
+        if (sender.hasPermission(perms.create)) list += "create"
+        if (sender.hasPermission(perms.video)) list += "video"
         if (sender.hasPermission(perms.delete)) list += "delete"
         if (sender.hasPermission(perms.list)) list += "list"
         if (sender.hasPermission(perms.reload)) list += "reload"
+        list += "on"
+        list += "off"
 
         return list
     }

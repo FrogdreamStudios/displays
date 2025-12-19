@@ -38,5 +38,7 @@
   "dreamdisplays.button.delete.tooltip.2": "Навсегда удаляет этот дисплей",
   "dreamdisplays.button.report": "Жалоба",
   "dreamdisplays.button.report.tooltip.1": "Пожаловаться на дисплей",
-  "dreamdisplays.button.report.tooltip.2": "Пожаловаться на неподобающий контент"
+  "dreamdisplays.button.report.tooltip.2": "Пожаловаться на неподобающий контент",
+  "dreamdisplays.display.enabled": "Дисплеи включены",
+  "dreamdisplays.display.disabled": "Дисплеи отключены"
 }

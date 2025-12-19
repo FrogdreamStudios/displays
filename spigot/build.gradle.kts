@@ -14,6 +14,8 @@ dependencies {
     }
     implementation(kotlin("stdlib-jdk8:2.2.21"))
     implementation("org.bstats:bstats-bukkit:3.1.0")
+    implementation(libs.adventure)
+    implementation(libs.adventurePlatform)
 }
 
 val targetJavaVersion = 21
@@ -62,6 +64,7 @@ tasks.shadowJar {
         "org.bstats",
         "com.moandjiezana.toml",
         "com.github.zafarkhaja.semver",
+        "net.kyori",
     ).forEach { pack ->
         relocate(pack, "$prefix.$pack")
     }

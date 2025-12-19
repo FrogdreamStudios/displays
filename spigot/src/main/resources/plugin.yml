@@ -5,3 +5,8 @@ description: 'Plugin for Dream Displays mod.'
 main: com.dreamdisplays.Main
 api-version: '1.21'
 folia-supported: true
+permissions:
+  dreamdisplays.create:
+    default: true
+  dreamdisplays.video:
+    default: true

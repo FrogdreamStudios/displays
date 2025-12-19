@@ -8,6 +8,8 @@ javatube = "6692a32"
 utils = "1.3.1"
 gst1 = "1.4.0"
 jspecify = "1.0.0"
+adventure = "4.18.0"
+adventurePlatform = "4.3.4"
 
 neoforge = "21.11.10-beta"
 
@@ -26,3 +28,5 @@ javatube = { module = "com.github.felipeucelli:javatube", version.ref = "javatub
 utils = { module = "me.inotsleep:utils", version.ref = "utils" }
 gst1 = { module = "org.freedesktop.gstreamer:gst1-java-core", version.ref = "gst1" }
 jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
+adventure = { module = "net.kyori:adventure-api", version.ref = "adventure" }
+adventurePlatform = { module = "net.kyori:adventure-platform-bukkit", version.ref = "adventurePlatform" }

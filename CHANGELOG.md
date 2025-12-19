@@ -1,13 +1,22 @@
-# Version 1.1.4
-Mod:
+# Version 1.2.0
+- [ ] Add spacial audio support
+- [ ] Add action bar messages when player looks at display
 - [ ] Add toggle button for window focus
 - [ ] Add toggle button for video repeating
 - [ ] Support natives
-- [ ] Change /displays command to /display
-- [ ] Add missing message for /display on/off
 
 Plugin:
-- [ ] Improve /display list command output
+- [ ] No changes
+
+# Version 1.1.4
+Mod:
+- [x] Change /displays command to /display
+- [x] Add missing message for /display on/off
+- [ ] Fix an issue when after re-enabling displays they don't load until relog
+
+Plugin:
+- [x] Improve permissions handling for `/display create` and `/display video`
+- [x] Improve /display list command output
 - [ ] Add /display help command
 
 # Version 1.1.3
@@ -153,5 +162,3 @@ Mod:
 
 Plugin:
 - [x] First version (not public)
-
-

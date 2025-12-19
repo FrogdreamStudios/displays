@@ -17,6 +17,7 @@ import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.network.chat.Component;
 import org.jspecify.annotations.NullMarked;
 
 @NullMarked
@@ -30,21 +31,25 @@ public class DreamDisplaysMod implements ClientModInitializer, Mod {
             (dispatcher, dedicated) ->
                 dispatcher.register(
                     LiteralArgumentBuilder.<FabricClientCommandSource>literal(
-                        "displays"
-                    )
-                        .then(
+                        "display"
+                    ).then(
                             LiteralArgumentBuilder.<
                                     FabricClientCommandSource
                                 >literal("off").executes(context -> {
                                 Initializer.displaysEnabled = false;
+                                if (Minecraft.getInstance().player != null) {
+                                    Minecraft.getInstance().player.displayClientMessage(Component.literal("§7D | §f").append(Component.translatable("dreamdisplays.display.disabled")), false);
+                                }
                                 return 1;
                             })
-                        )
-                        .then(
+                        ).then(
                             LiteralArgumentBuilder.<
                                     FabricClientCommandSource
                                 >literal("on").executes(context -> {
                                 Initializer.displaysEnabled = true;
+                                if (Minecraft.getInstance().player != null) {
+                                    Minecraft.getInstance().player.displayClientMessage(Component.literal("§7D | §f").append(Component.translatable("dreamdisplays.display.enabled")), false);
+                                }
                                 return 1;
                             })
                         )

@@ -34,6 +34,6 @@
   "configReloaded": "&7D | &fDream Displays перезавантажено!",
   "noDisplaysFound": "&7D |&f Дисплеї не знайдені",
   "displayListHeader": "&7D |&f Дисплеї:",
-  "displayListEntry": "&7D |&f - ID: {0}, Власник: {1}, Місцезнаходження: {2}, {3}, {4}, URL: {5}",
+    "displayListEntry": "&7D |&f {0}. Власник: {1}, Розташування: [{2}, {3}, {4}], URL: {5}",
   "modRequired": "&7D |&f Мод Dream Displays необхідний для відображення дисплеїв на сервері. Будь ласка, встановіть його для приємної гри!"
 }
