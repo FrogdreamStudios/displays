@@ -1,7 +1,7 @@
 [![Latest release](https://img.shields.io/github/release/arsmotorin/dreamdisplays.svg)](https://github.com/arsmotorin/dreamdisplays/releases/latest)
 [![License](https://img.shields.io/github/license/arsmotorin/dreamdisplays)](https://github.com/arsmotorin/dreamdisplays/blob/master/LICENSE)
 
-<div align="center"> <img src="https://i.imgur.com/tno54Vz.png" alt="Dream Displays"> </div>
+<div align="center"> <img src="https://i.imgur.com/wAndZVq.png" alt="Dream Displays"> </div>
 
 Download from [Modrinth](https://modrinth.com/plugin/dreamdisplays)!
 
@@ -11,7 +11,7 @@ Create interactive in-game displays that stream YouTube videos in real time, wit
 
 For this mod to work, players install the client mod, while server admins only need to install the server plugin.
 
-![img](https://i.imgur.com/x6ZVqbT.png)
+![img](https://i.imgur.com/mzaeKQN.png)
 
 ## Features
 
@@ -49,7 +49,7 @@ Done! To customize the display, look at it and press `Shift + RMB`
 
 [Read more in our wiki](https://github.com/arsmotorin/dreamdisplays/wiki).
 
-![img](https://i.imgur.com/WhR1Zo5.png)
+![img](https://i.imgur.com/VbICiJo.png)
 
 ## For developers
 
