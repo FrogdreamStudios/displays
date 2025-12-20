@@ -1,18 +1,44 @@
 [![Latest release](https://img.shields.io/github/release/arsmotorin/dreamdisplays.svg)](https://github.com/arsmotorin/dreamdisplays/releases/latest)
 [![License](https://img.shields.io/github/license/arsmotorin/dreamdisplays)](https://github.com/arsmotorin/dreamdisplays/blob/master/LICENSE)
 
-![img](https://i.imgur.com/qMsgLB9.png)
-Download our mod or plugin on [Modrinth](https://modrinth.com/mod/dreamdisplays)!
+<div align="center"> <img src="https://i.imgur.com/tno54Vz.png" alt="Dream Displays"> </div>
 
-## Available platforms
+Download from [Modrinth](https://modrinth.com/plugin/dreamdisplays)!
 
-- Client: Fabric, NeoForge 1.21.x
-- Server: Spigot, Paper, Folia and other forks
-- In the future: Quilt support
+## Available for Fabric, NeoForge and popular server forks
 
-> [!NOTE]
-> For this mod to work, you need to install the client mod and the server plugin. Without this, Dream Displays will not
-> work.
+Create interactive in-game displays that stream YouTube videos in real time, with smooth playback, configurable resolution and even with synchronization mode for all players on the server.
+
+For this mod to work, players install the client mod, while server admins only need to install the server plugin.
+
+![img](https://i.imgur.com/x6ZVqbT.png)
+
+## Features
+
+### Client
+
+- **Ad-free YouTube video playback, so you can enjoy uninterrupted viewing**
+- **Seamless multiplayer synchronization**
+- Adjustable resolutions from 144p up to 4K
+- Customizable screen sizes in blocks
+- Integrated controls for play, pause, and seek
+- Native optimizations (in development)
+
+### Server
+
+- **Screens and settings remain after server restarts or when unloaded**
+- **Simple and precise server-side configuration**
+- Display commands – manage your in-game screens: create, delete, etc.
+- Fine-grained permissions for admin-only control
+
+## Planned features
+
+- Support for additional video platforms
+- Support real-time streams
+- Switch from GStreamer to FFmpeg for better performance
+- Better user interface
+- Native optimizations
+- Expanded /display commands
 
 ## How to use this mod?
 
@@ -21,19 +47,18 @@ created, type `/display video <link to YouTube video> [language]`
 
 Done! To customize the display, look at it and press `Shift + RMB`
 
-![img](https://i.imgur.com/VvkgLaS.png)
-
-## Features
-
-- YouTube video playback without ads
-- Adjustable resolution settings
-- Configurable screen sizes ranging
-- Multiplayer synchronization
-- Integrated controls for pausing and playing
-- Convenient server-side configuration management
-
 [Read more in our wiki](https://github.com/arsmotorin/dreamdisplays/wiki).
 
-## Questions?
+![img](https://i.imgur.com/WhR1Zo5.png)
+
+## For developers
+
+We welcome contributions! If you want to improve the mod, fix bugs, or add new features, feel free to submit a PR!
+
+- Fork the repository and make your changes
+- Follow the existing code style and structure (that's real important)
+- Test your changes carefully before submitting and that's it!
+
+## Any questions?
 
 Questions you can ask in the Issues, [here](https://github.com/arsmotorin/dreamdisplays/issues).
