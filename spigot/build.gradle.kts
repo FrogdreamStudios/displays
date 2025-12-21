@@ -12,7 +12,7 @@ dependencies {
     implementation("com.moandjiezana.toml:toml4j:0.7.2") {
         exclude(group = "com.google.code.gson", module = "gson")
     }
-    implementation(kotlin("stdlib-jdk8:2.2.21"))
+    implementation(kotlin("stdlib-jdk8:2.3.0"))
     implementation("org.bstats:bstats-bukkit:3.1.0")
     implementation(libs.adventure)
     implementation(libs.adventurePlatform)
