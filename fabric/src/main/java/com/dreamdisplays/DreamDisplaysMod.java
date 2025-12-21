@@ -4,10 +4,7 @@ import com.dreamdisplays.net.Packets.*;
 import com.dreamdisplays.render.ScreenRenderer;
 import com.dreamdisplays.screen.Manager;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
-import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
@@ -17,7 +14,6 @@ import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.network.chat.Component;
 import org.jspecify.annotations.NullMarked;
 
 @NullMarked
@@ -26,35 +22,6 @@ public class DreamDisplaysMod implements ClientModInitializer, Mod {
     @Override
     public void onInitializeClient() {
         Initializer.onModInit(this);
-
-        ClientCommandRegistrationCallback.EVENT.register(
-            (dispatcher, dedicated) ->
-                dispatcher.register(
-                    LiteralArgumentBuilder.<FabricClientCommandSource>literal(
-                        "display"
-                    ).then(
-                            LiteralArgumentBuilder.<
-                                    FabricClientCommandSource
-                                >literal("off").executes(context -> {
-                                Initializer.displaysEnabled = false;
-                                if (Minecraft.getInstance().player != null) {
-                                    Minecraft.getInstance().player.displayClientMessage(Component.literal("§7D | §f").append(Component.translatable("dreamdisplays.display.disabled")), false);
-                                }
-                                return 1;
-                            })
-                        ).then(
-                            LiteralArgumentBuilder.<
-                                    FabricClientCommandSource
-                                >literal("on").executes(context -> {
-                                Initializer.displaysEnabled = true;
-                                if (Minecraft.getInstance().player != null) {
-                                    Minecraft.getInstance().player.displayClientMessage(Component.literal("§7D | §f").append(Component.translatable("dreamdisplays.display.enabled")), false);
-                                }
-                                return 1;
-                            })
-                        )
-                )
-        );
 
         PayloadTypeRegistry.playS2C().register(
             Info.PACKET_ID,
@@ -74,6 +41,11 @@ public class DreamDisplaysMod implements ClientModInitializer, Mod {
         PayloadTypeRegistry.playS2C().register(
             Delete.PACKET_ID,
             Delete.PACKET_CODEC
+        );
+
+        PayloadTypeRegistry.playS2C().register(
+            DisplayEnabled.PACKET_ID,
+            DisplayEnabled.PACKET_CODEC
         );
 
         PayloadTypeRegistry.playC2S().register(
@@ -110,6 +82,11 @@ public class DreamDisplaysMod implements ClientModInitializer, Mod {
         ClientPlayNetworking.registerGlobalReceiver(
             Delete.PACKET_ID,
             (deletePacket, unused) -> Initializer.onDeletePacket(deletePacket)
+        );
+
+        ClientPlayNetworking.registerGlobalReceiver(
+            DisplayEnabled.PACKET_ID,
+            (payload, unused) -> Initializer.onDisplayEnabledPacket(payload)
         );
 
         ClientPlayNetworking.registerGlobalReceiver(

@@ -38,7 +38,5 @@
   "dreamdisplays.button.delete.tooltip.2": "Назавжди видаляє цей дисплей",
   "dreamdisplays.button.report": "Поскаржитися",
   "dreamdisplays.button.report.tooltip.1": "Поскаржитися на дисплей",
-  "dreamdisplays.button.report.tooltip.2": "Поскаржитися на неприйнятний контент",
-  "dreamdisplays.display.enabled": "Дисплеї увімкнено",
-  "dreamdisplays.display.disabled": "Дисплеї вимкнено"
+  "dreamdisplays.button.report.tooltip.2": "Поскаржитися на неприйнятний контент"
 }

@@ -11,6 +11,7 @@ object Player {
     private val modUpdateNotified: MutableMap<UUID?, Boolean?> = HashMap<UUID?, Boolean?>()
     private val pluginUpdateNotified: MutableMap<UUID?, Boolean?> = HashMap<UUID?, Boolean?>()
     private val modRequiredNotified: MutableMap<UUID?, Boolean?> = HashMap<UUID?, Boolean?>()
+    private val displaysEnabled: MutableMap<UUID, Boolean> = HashMap<UUID, Boolean>()
 
     @JvmStatic
     fun setVersion(player: Player, version: Version?) {
@@ -22,6 +23,7 @@ object Player {
         modUpdateNotified.remove(player.uniqueId)
         pluginUpdateNotified.remove(player.uniqueId)
         modRequiredNotified.remove(player.uniqueId)
+        displaysEnabled.remove(player.uniqueId)
     }
 
     @JvmStatic
@@ -57,5 +59,15 @@ object Player {
     @JvmStatic
     fun setModRequiredNotified(player: Player, notified: Boolean) {
         modRequiredNotified[player.uniqueId] = notified
+    }
+
+    @JvmStatic
+    fun setDisplaysEnabled(player: Player, enabled: Boolean) {
+        displaysEnabled[player.uniqueId] = enabled
+    }
+
+    @JvmStatic
+    fun isDisplaysEnabled(player: Player): Boolean {
+        return displaysEnabled.getOrDefault(player.uniqueId, true)
     }
 }

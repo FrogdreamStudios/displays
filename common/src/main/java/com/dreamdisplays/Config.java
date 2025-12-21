@@ -25,6 +25,9 @@ public class Config extends AbstractConfig {
     @Path("default-default-display-volume")
     public double defaultDisplayVolume = 0.5;
 
+    @Path("displays-enabled")
+    public boolean displaysEnabled = true;
+
     public Config(File baseDir) {
         super(baseDir, "config.yml");
     }

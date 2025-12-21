@@ -4,11 +4,9 @@ import com.dreamdisplays.net.Packets.*;
 import com.dreamdisplays.render.ScreenRenderer;
 import com.dreamdisplays.screen.Manager;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.neoforged.api.distmarker.Dist;
@@ -17,7 +15,6 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
-import net.neoforged.neoforge.client.event.RegisterClientCommandsEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
@@ -57,6 +54,12 @@ public class DreamDisplaysMod implements com.dreamdisplays.Mod {
             Premium.PACKET_ID,
             Premium.PACKET_CODEC,
             (payload, ctx) -> Initializer.onPremiumPacket(payload)
+        );
+
+        registrar.playToClient(
+            DisplayEnabled.PACKET_ID,
+            DisplayEnabled.PACKET_CODEC,
+            (payload, ctx) -> Initializer.onDisplayEnabledPacket(payload)
         );
 
         registrar.playToServer(
@@ -107,41 +110,6 @@ public class DreamDisplaysMod implements com.dreamdisplays.Mod {
         PoseStack poseStack = event.getPoseStack();
         Camera camera = mc.gameRenderer.getMainCamera();
         ScreenRenderer.render(poseStack, camera);
-    }
-
-    @SubscribeEvent
-    public void registerCommands(RegisterClientCommandsEvent event) {
-        event
-            .getDispatcher()
-            .register(
-                LiteralArgumentBuilder.<CommandSourceStack>literal("display")
-                    .then(
-                        LiteralArgumentBuilder.<CommandSourceStack>literal(
-                            "off"
-                        ).executes(ctx -> {
-                            Initializer.displaysEnabled = false;
-                            LocalPlayer p = Minecraft.getInstance().player;
-                            if (p != null) p.displayClientMessage(
-                                Component.literal("§7D | §f").append(Component.translatable("dreamdisplays.display.disabled")),
-                                false
-                            );
-                            return 1;
-                        })
-                    )
-                    .then(
-                        LiteralArgumentBuilder.<CommandSourceStack>literal(
-                            "on"
-                        ).executes(ctx -> {
-                            Initializer.displaysEnabled = true;
-                            LocalPlayer p = Minecraft.getInstance().player;
-                            if (p != null) p.displayClientMessage(
-                                Component.literal("§7D | §f").append(Component.translatable("dreamdisplays.display.enabled")),
-                                false
-                            );
-                            return 1;
-                        })
-                    )
-            );
     }
 
     @SubscribeEvent

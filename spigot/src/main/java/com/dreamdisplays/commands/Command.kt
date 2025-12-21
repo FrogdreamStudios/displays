@@ -60,6 +60,8 @@ class Command : AbstractCommand(Main.getInstance().name, "display") {
             "delete" -> handleDelete(sender)
             "reload" -> handleReload(sender)
             "list" -> handleList(sender)
+            "on" -> handleOn(sender)
+            "off" -> handleOff(sender)
         }
     }
 
@@ -155,6 +157,28 @@ class Command : AbstractCommand(Main.getInstance().name, "display") {
                 Message.sendColoredMessage(sender, formatted)
             }
         }
+    }
+
+    private fun handleOn(sender: CommandSender) {
+        val player = sender as? Player ?: return
+        if (com.dreamdisplays.managers.Player.isDisplaysEnabled(player)) {
+            msg(player, "display.already-enabled")
+            return
+        }
+        com.dreamdisplays.managers.Player.setDisplaysEnabled(player, true)
+        com.dreamdisplays.utils.net.Utils.sendDisplayEnabledPacket(player, true)
+        msg(player, "display.enabled")
+    }
+
+    private fun handleOff(sender: CommandSender) {
+        val player = sender as? Player ?: return
+        if (!com.dreamdisplays.managers.Player.isDisplaysEnabled(player)) {
+            msg(player, "display.already-disabled")
+            return
+        }
+        com.dreamdisplays.managers.Player.setDisplaysEnabled(player, false)
+        com.dreamdisplays.utils.net.Utils.sendDisplayEnabledPacket(player, false)
+        msg(player, "display.disabled")
     }
 
     private fun msg(sender: CommandSender?, key: String) {

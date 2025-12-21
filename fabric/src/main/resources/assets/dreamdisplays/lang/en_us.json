@@ -38,7 +38,5 @@
   "dreamdisplays.button.delete.tooltip.2": "Permanently removes this display",
   "dreamdisplays.button.report": "Report",
   "dreamdisplays.button.report.tooltip.1": "Report display",
-  "dreamdisplays.button.report.tooltip.2": "Report inappropriate content",
-  "dreamdisplays.display.enabled": "Displays enabled",
-  "dreamdisplays.display.disabled": "Displays disabled"
+  "dreamdisplays.button.report.tooltip.2": "Report inappropriate content"
 }

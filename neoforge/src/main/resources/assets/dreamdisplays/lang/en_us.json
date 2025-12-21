@@ -12,8 +12,8 @@
   "dreamdisplays.button.render-distance.tooltip.2": "Determines the rendering distance at which",
   "dreamdisplays.button.render-distance.tooltip.3": "this display is activated",
   "dreamdisplays.button.render-distance.tooltip.4": "",
-  "dreamdisplays.button.render-distance.tooltip.5": "To completely disable all displays, use",
-  "dreamdisplays.button.render-distance.tooltip.6": "/display off",
+  "dreamdisplays.button.render-distance.tooltip.5": "To completely disable all displays,",
+  "dreamdisplays.button.render-distance.tooltip.6": "contact your server administrator",
   "dreamdisplays.button.render-distance.tooltip.7": "",
   "dreamdisplays.button.render-distance.tooltip.8": "Current: %d blocks",
   "dreamdisplays.button.quality": "Quality",
@@ -38,7 +38,5 @@
   "dreamdisplays.button.delete.tooltip.2": "Permanently removes this display",
   "dreamdisplays.button.report": "Report",
   "dreamdisplays.button.report.tooltip.1": "Report display",
-  "dreamdisplays.button.report.tooltip.2": "Report inappropriate content",
-  "dreamdisplays.display.enabled": "Displays enabled",
-  "dreamdisplays.display.disabled": "Displays disabled"
+  "dreamdisplays.button.report.tooltip.2": "Report inappropriate content"
 }

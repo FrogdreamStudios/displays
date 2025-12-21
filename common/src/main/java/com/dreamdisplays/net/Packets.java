@@ -34,6 +34,20 @@ public final class Packets {
         }
     }
 
+    public record DisplayEnabled(boolean enabled) implements CustomPacketPayload {
+        public static final Type<DisplayEnabled> PACKET_ID = createType("display_enabled");
+        public static final StreamCodec<FriendlyByteBuf, DisplayEnabled> PACKET_CODEC =
+            StreamCodec.of(
+                (buf, packet) -> buf.writeBoolean(packet.enabled),
+                buf -> new DisplayEnabled(buf.readBoolean())
+            );
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return PACKET_ID;
+        }
+    }
+
     public record Info(
         UUID uuid,
         UUID ownerUuid,

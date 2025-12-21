@@ -12,8 +12,8 @@
   "dreamdisplays.button.render-distance.tooltip.2": "Определяет расстояние рендеринга, на котором",
   "dreamdisplays.button.render-distance.tooltip.3": "этот дисплей активируется",
   "dreamdisplays.button.render-distance.tooltip.4": "",
-  "dreamdisplays.button.render-distance.tooltip.5": "Чтобы полностью отключить все дисплеи, пропишите",
-  "dreamdisplays.button.render-distance.tooltip.6": "/display off",
+  "dreamdisplays.button.render-distance.tooltip.5": "Чтобы полностью отключить все дисплеи,",
+  "dreamdisplays.button.render-distance.tooltip.6": "обратитесь к администратору сервера",
   "dreamdisplays.button.render-distance.tooltip.7": "",
   "dreamdisplays.button.render-distance.tooltip.8": "Сейчас: %d блоков",
   "dreamdisplays.button.quality": "Качество",
@@ -38,7 +38,5 @@
   "dreamdisplays.button.delete.tooltip.2": "Навсегда удаляет этот дисплей",
   "dreamdisplays.button.report": "Жалоба",
   "dreamdisplays.button.report.tooltip.1": "Пожаловаться на дисплей",
-  "dreamdisplays.button.report.tooltip.2": "Пожаловаться на неподобающий контент",
-  "dreamdisplays.display.enabled": "Дисплеи включены",
-  "dreamdisplays.display.disabled": "Дисплеи отключены"
+  "dreamdisplays.button.report.tooltip.2": "Пожаловаться на неподобающий контент"
 }

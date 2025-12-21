@@ -25,7 +25,7 @@ object State {
 
         if (data == null) return
 
-        if ((data.ownerId.toString() + "") != player.uniqueId.toString() + "") {
+        if (data.ownerId != player.uniqueId) {
             LoggingManager.warn("Player " + player.name + " sent sync packet while he not owner! ")
             return
         }

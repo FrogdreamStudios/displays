@@ -56,6 +56,10 @@ class Receiver(var plugin: Main?) : PluginMessageListener {
             "dreamdisplays:version" -> {
                 processVersionPacket(player, message)
             }
+
+            "dreamdisplays:display_enabled" -> {
+                processDisplayEnabledPacket(player, message)
+            }
         }
     }
 
@@ -148,6 +152,16 @@ class Receiver(var plugin: Main?) : PluginMessageListener {
             LoggingManager.error("Unable to decode RequestSyncPacket", e)
         }
         return null
+    }
+
+    private fun processDisplayEnabledPacket(player: Player, message: ByteArray) {
+        try {
+            val `in` = DataInputStream(ByteArrayInputStream(message))
+            val enabled = `in`.readBoolean()
+            com.dreamdisplays.managers.Player.setDisplaysEnabled(player, enabled)
+        } catch (e: IOException) {
+            LoggingManager.warn("Unable to decode DisplayEnabledPacket", e)
+        }
     }
 
     private fun sendAllDisplaysToPlayer(player: Player) {

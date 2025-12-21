@@ -10,9 +10,7 @@
   "structureWrongDepth": "&7D |&f Selection must be at least 1 block long",
   "wrongStructure": "&7D |&f Only black concrete blocks can be used for displays",
   "selectionClear": "&7D |&f Selection has been cleared!",
-  "displayCommandHelp": [
-    "&7D |&f You entered something wrong!"
-  ],
+  "displayCommandHelp": ["&7D |&f You entered something wrong!"],
   "successfulCreation": "&7D |&f Display has been created! Type /display video <youtube link> [language] to set a video",
   "noDisplay": "&7D |&f Display has not been found!",
   "settedURL": "&7D |&f Video has been loaded!",
@@ -35,5 +33,29 @@
   "noDisplaysFound": "&7D |&f No displays found",
   "displayListHeader": "&7D |&f Displays:",
   "displayListEntry": "&7D |&f {0}. Owner: {1}, Location: [{2}, {3}, {4}], URL: {5}",
-  "modRequired": "&7D |&f Dream Displays mod is required to see displays on the server. Please install it for a good experience!"
+  "modRequired": {
+    "text": "",
+    "extra": [
+      {"text": "D | ", "color": "#9D9D97"},
+      {"text": "This server uses in-game displays. ", "color": "#FFFFFF"},
+      {
+        "text": "Download Dream Displays",
+        "color": "#5555FF",
+        "underlined": true,
+        "clickEvent": {
+          "action": "open_url",
+          "value": "https://modrinth.com/plugin/dreamdisplays"
+        },
+        "hoverEvent": {
+          "action": "show_text",
+          "value": "Click to download Dream Displays"
+        }
+      },
+      {"text": " to see them!", "color": "#FFFFFF"}
+    ]
+  },
+  "display.enabled": "&7D |&f Displays enabled. Please wait for a moment...",
+  "display.disabled": "&7D |&f Displays disabled",
+  "display.already-disabled": "&7D |&f Displays are already disabled",
+  "display.already-enabled": "&7D |&f Displays are already enabled"
 }

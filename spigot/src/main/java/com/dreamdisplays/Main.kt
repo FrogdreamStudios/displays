@@ -75,7 +75,8 @@ class Main : AbstractPlugin<Main>() {
             "dreamdisplays:display_info",
             "dreamdisplays:sync",
             "dreamdisplays:delete",
-            "dreamdisplays:premium"
+            "dreamdisplays:premium",
+            "dreamdisplays:display_enabled"
         ).forEach { messenger.registerOutgoingPluginChannel(this, it) }
 
         listOf(
@@ -83,7 +84,8 @@ class Main : AbstractPlugin<Main>() {
             "dreamdisplays:req_sync",
             "dreamdisplays:delete",
             "dreamdisplays:report",
-            "dreamdisplays:version"
+            "dreamdisplays:version",
+            "dreamdisplays:display_enabled"
         ).forEach { messenger.registerIncomingPluginChannel(this, it, receiver) }
     }
 

@@ -120,6 +120,21 @@ object Utils {
         }
     }
 
+    fun sendDisplayEnabledPacket(player: Player, enabled: Boolean) {
+        try {
+            val byteStream = ByteArrayOutputStream()
+            val out = DataOutputStream(byteStream)
+
+            out.writeBoolean(enabled)
+
+            val arr = byteStream.toByteArray()
+
+            player.sendPluginMessage(Main.getInstance(), "dreamdisplays:display_enabled", arr)
+        } catch (exception: IOException) {
+            LoggingManager.warn("Unable to send packet", exception)
+        }
+    }
+
     @Throws(IOException::class)
     fun writeVarInt(out: DataOutputStream, value: Int) {
         var value = value

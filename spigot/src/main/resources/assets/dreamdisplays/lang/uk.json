@@ -35,5 +35,27 @@
   "noDisplaysFound": "&7D |&f Дисплеї не знайдені",
   "displayListHeader": "&7D |&f Дисплеї:",
     "displayListEntry": "&7D |&f {0}. Власник: {1}, Розташування: [{2}, {3}, {4}], URL: {5}",
-  "modRequired": "&7D |&f Мод Dream Displays необхідний для відображення дисплеїв на сервері. Будь ласка, встановіть його для приємної гри!"
+  "modRequired": {
+    "text": "",
+    "extra": [
+      {"text": "D | ", "color": "#9D9D97"},
+      {"text": "Мод Dream Displays необхідний для відображення дисплеїв на сервері. Будь ласка, ", "color": "#FFFFFF"},
+      {
+        "text": "завантажте Dream Displays",
+        "color": "#5555FF",
+        "underlined": true,
+        "clickEvent": {
+          "action": "open_url",
+          "value": "https://modrinth.com/plugin/dreamdisplays"
+        },
+        "hoverEvent": {
+          "action": "show_text",
+          "value": "Клікніть, щоб завантажити Dream Displays"
+        }
+      },
+      {"text": " для приємної гри!", "color": "#FFFFFF"}
+    ]
+  },
+  "display.enabled": "&7D |&f Дисплеї увімкнено",
+  "display.disabled": "&7D |&f Дисплеї вимкнено"
 }

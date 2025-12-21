@@ -12,8 +12,8 @@
   "dreamdisplays.button.render-distance.tooltip.2": "Bestimmt die Render-Distanz, bei der",
   "dreamdisplays.button.render-distance.tooltip.3": "dieses Anzeige aktiviert wird",
   "dreamdisplays.button.render-distance.tooltip.4": "",
-  "dreamdisplays.button.render-distance.tooltip.5": "Um alle Anzeigen vollständig zu deaktivieren, geben Sie ein",
-  "dreamdisplays.button.render-distance.tooltip.6": "/display off",
+  "dreamdisplays.button.render-distance.tooltip.5": "Um alle Anzeigen vollständig zu deaktivieren,",
+  "dreamdisplays.button.render-distance.tooltip.6": "kontaktieren Sie Ihren Serveradministrator",
   "dreamdisplays.button.render-distance.tooltip.7": "",
   "dreamdisplays.button.render-distance.tooltip.8": "Aktuell: %d Blöcke",
   "dreamdisplays.button.quality": "Qualität",
@@ -38,7 +38,5 @@
   "dreamdisplays.button.delete.tooltip.2": "Entfernt diese Anzeige dauerhaft",
   "dreamdisplays.button.report": "Bericht",
   "dreamdisplays.button.report.tooltip.1": "Anzeige melden",
-  "dreamdisplays.button.report.tooltip.2": "Inhalt melden, der unangemessen ist",
-  "dreamdisplays.display.enabled": "Displays aktiviert",
-  "dreamdisplays.display.disabled": "Displays deaktiviert"
+  "dreamdisplays.button.report.tooltip.2": "Inhalt melden, der unangemessen ist"
 }

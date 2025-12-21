@@ -20,7 +20,7 @@ class Player : Listener {
 
         Main.getInstance().server.scheduler.runTaskLater(Main.getInstance(), Runnable {
             if (Player.getVersion(player) == null && !hasBeenNotifiedAboutModRequired(player)) {
-                val message = Main.config.messages["modRequired"] as? String ?: "&7D |&f Dream Displays mod is required to see displays on the server. Please install it for a good experience!"
+                val message = Main.config.messages["modRequired"]
                 Message.sendColoredMessage(player, message)
                 setModRequiredNotified(player, true)
             }

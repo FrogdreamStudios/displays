@@ -9,6 +9,11 @@ import com.dreamdisplays.screen.Settings;
 import com.dreamdisplays.util.Facing;
 import com.dreamdisplays.util.RayCasting;
 import com.dreamdisplays.util.Utils;
+import java.io.File;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import me.inotsleep.utils.logging.LoggingManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -22,12 +27,6 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.util.Objects;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 
 @NullMarked
 public class Initializer {
@@ -105,6 +104,12 @@ public class Initializer {
         );
     }
 
+    public static void onDisplayEnabledPacket(DisplayEnabled packet) {
+        Initializer.displaysEnabled = packet.enabled();
+        config.displaysEnabled = packet.enabled();
+        config.save();
+    }
+
     public static void createScreen(
         UUID uuid,
         UUID ownerUuid,
@@ -128,7 +133,11 @@ public class Initializer {
             isSync
         );
         Player player = Minecraft.getInstance().player;
-        if (player != null && screen.getDistanceToScreen(player.blockPosition()) > Initializer.config.defaultDistance) return;
+        if (
+            player != null &&
+            screen.getDistanceToScreen(player.blockPosition()) >
+            Initializer.config.defaultDistance
+        ) return;
         Manager.registerScreen(screen);
         if (!Objects.equals(code, "")) screen.loadVideo(code, lang);
     }
@@ -188,9 +197,7 @@ public class Initializer {
 
             if (
                 displayRenderDistance <
-                    screen.getDistanceToScreen(
-                        player.blockPosition()
-                    ) ||
+                    screen.getDistanceToScreen(player.blockPosition()) ||
                 !Initializer.displaysEnabled
             ) {
                 Manager.saveScreenData(screen);
@@ -224,10 +231,7 @@ public class Initializer {
 
         wasPressed[0] = pressed;
 
-        if (
-            Initializer.focusMode &&
-            hoveredScreen != null
-        ) {
+        if (Initializer.focusMode && hoveredScreen != null) {
             player.addEffect(
                 new MobEffectInstance(
                     MobEffects.BLINDNESS,
@@ -240,10 +244,7 @@ public class Initializer {
             );
 
             wasFocused.set(true);
-        } else if (
-            !Initializer.focusMode &&
-            wasFocused.get()
-        ) {
+        } else if (!Initializer.focusMode && wasFocused.get()) {
             player.removeEffect(MobEffects.BLINDNESS);
             wasFocused.set(false);
         }

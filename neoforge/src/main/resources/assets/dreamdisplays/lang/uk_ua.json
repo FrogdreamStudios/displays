@@ -12,8 +12,8 @@
   "dreamdisplays.button.render-distance.tooltip.2": "Визначає дистанцію рендеру, на якій",
   "dreamdisplays.button.render-distance.tooltip.3": "цей дисплей активується",
   "dreamdisplays.button.render-distance.tooltip.4": "",
-  "dreamdisplays.button.render-distance.tooltip.5": "Щоб повністю вимкнути всі дисплеї, пропишіть",
-  "dreamdisplays.button.render-distance.tooltip.6": "/display off",
+  "dreamdisplays.button.render-distance.tooltip.5": "Щоб повністю вимкнути всі дисплеї,",
+  "dreamdisplays.button.render-distance.tooltip.6": "зверніться до адміністратора сервера",
   "dreamdisplays.button.render-distance.tooltip.7": "",
   "dreamdisplays.button.render-distance.tooltip.8": "Зараз: %d блоків",
   "dreamdisplays.button.quality": "Якість",
@@ -38,7 +38,5 @@
   "dreamdisplays.button.delete.tooltip.2": "Назавжди видаляє цей дисплей",
   "dreamdisplays.button.report": "Поскаржитися",
   "dreamdisplays.button.report.tooltip.1": "Поскаржитися на дисплей",
-  "dreamdisplays.button.report.tooltip.2": "Поскаржитися на неприйнятний контент",
-  "dreamdisplays.display.enabled": "Дисплеї увімкнено",
-  "dreamdisplays.display.disabled": "Дисплеї вимкнено"
+  "dreamdisplays.button.report.tooltip.2": "Поскаржитися на неприйнятний контент"
 }
