@@ -18,6 +18,7 @@
   "invalidURL": "&7D |&f Your URL is invalid! Please use a valid YouTube link",
   "reportTooQuickly": "&7D |&f You are sending reports too quickly! Please wait before sending another report",
   "reportSent": "&7D |&f Report has been sent!",
+  "reportFailed": "&7D |&f Failed to send report. Please try again later.",
   "displayDeleted": "&7D |&f Display has been deleted!",
   "displayReported": "&7D |&f Display has been reported!",
   "reportNotConfigured": "&7D |&f Report system is disabled on this server!",

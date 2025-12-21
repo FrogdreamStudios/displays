@@ -60,6 +60,7 @@ public class Initializer {
     public static boolean focusMode = false;
     public static boolean displaysEnabled = true;
     public static boolean isPremium = false;
+    public static boolean isReportingEnabled = true;
     private static @Nullable Screen hoveredScreen = null;
     private static Mod mod;
 
@@ -280,5 +281,9 @@ public class Initializer {
 
     public static void onPremiumPacket(Premium packet) {
         isPremium = packet.premium();
+    }
+
+    public static void onReportEnabledPacket(ReportEnabled packet) {
+        isReportingEnabled = packet.enabled();
     }
 }

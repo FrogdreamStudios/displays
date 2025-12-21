@@ -24,7 +24,7 @@ class Player : Listener {
                 Message.sendColoredMessage(player, message)
                 setModRequiredNotified(player, true)
             }
-        }, 200L)
+        }, 600L)
     }
 
     @EventHandler

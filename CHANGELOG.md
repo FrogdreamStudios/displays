@@ -14,8 +14,8 @@ Mod:
 - [x] Add missing messages for some commands
 - [x] Fix an issue when after re-enabling displays they don't load until relog
 - [x] Remove client command `/displays` and move its functionality to plugin's `/display` command
-- [ ] Fix reporting message not showing correctly
-- [ ] Show report button only if server has configured webhook URL
+- [x] Fix reporting message not showing correctly
+- [x] Show report button only if server has configured webhook URL
 
 Plugin:
 - [x] New languages: Belarusian, Czech, German and Hebrew for plugin messages

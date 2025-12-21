@@ -191,4 +191,18 @@ public final class Packets {
             return PACKET_ID;
         }
     }
+
+    public record ReportEnabled(boolean enabled) implements CustomPacketPayload {
+        public static final Type<ReportEnabled> PACKET_ID = createType("report_enabled");
+        public static final StreamCodec<FriendlyByteBuf, ReportEnabled> PACKET_CODEC =
+            StreamCodec.of(
+                (buf, packet) -> buf.writeBoolean(packet.enabled),
+                buf -> new ReportEnabled(buf.readBoolean())
+            );
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return PACKET_ID;
+        }
+    }
 }

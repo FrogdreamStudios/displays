@@ -67,17 +67,9 @@ class Main : AbstractPlugin<Main>() {
 
     fun registerCommands() = Command()
 
-    fun registerChannels() {
+    private fun registerChannels() {
         val messenger = server.messenger
         val receiver = com.dreamdisplays.utils.net.Receiver(this)
-
-        listOf(
-            "dreamdisplays:display_info",
-            "dreamdisplays:sync",
-            "dreamdisplays:delete",
-            "dreamdisplays:premium",
-            "dreamdisplays:display_enabled"
-        ).forEach { messenger.registerOutgoingPluginChannel(this, it) }
 
         listOf(
             "dreamdisplays:sync",
@@ -87,6 +79,14 @@ class Main : AbstractPlugin<Main>() {
             "dreamdisplays:version",
             "dreamdisplays:display_enabled"
         ).forEach { messenger.registerIncomingPluginChannel(this, it, receiver) }
+
+        listOf(
+            "dreamdisplays:premium",
+            "dreamdisplays:display_info",
+            "dreamdisplays:sync",
+            "dreamdisplays:delete",
+            "dreamdisplays:report_enabled"
+        ).forEach { messenger.registerOutgoingPluginChannel(this, it) }
     }
 
     companion object {

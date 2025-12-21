@@ -380,6 +380,10 @@ public class Configuration extends Screen {
             }
         };
 
+        if (!Initializer.isReportingEnabled) {
+            reportButton = null;
+        }
+
         WidgetSprites sprites = new WidgetSprites(
             Identifier.fromNamespaceAndPath(
                 Initializer.MOD_ID,
@@ -396,7 +400,9 @@ public class Configuration extends Screen {
         );
 
         deleteButton.setSprites(sprites);
-        reportButton.setSprites(sprites);
+        if (reportButton != null) {
+            reportButton.setSprites(sprites);
+        }
 
         if (volume != null) addRenderableWidget(volume);
         addRenderableWidget(backButton);
@@ -410,7 +416,7 @@ public class Configuration extends Screen {
         addRenderableWidget(sync);
         addRenderableWidget(syncReset);
         addRenderableWidget(deleteButton);
-        addRenderableWidget(reportButton);
+        if (reportButton != null) addRenderableWidget(reportButton);
     }
 
     private void renderTooltipIfHovered(

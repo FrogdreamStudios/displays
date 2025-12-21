@@ -62,11 +62,19 @@ public class DreamDisplaysMod implements com.dreamdisplays.Mod {
             (payload, ctx) -> Initializer.onDisplayEnabledPacket(payload)
         );
 
-        registrar.playToServer(
+        registrar.playToClient(
+            ReportEnabled.PACKET_ID,
+            ReportEnabled.PACKET_CODEC,
+            (payload, ctx) -> Initializer.onReportEnabledPacket(payload)
+        );
+
+        registrar.playBidirectional(
             Sync.PACKET_ID,
             Sync.PACKET_CODEC,
-            (p, c) -> {}
+            (serverPayload, ctx) -> {},
+            (clientPayload, ctx) -> Initializer.onSyncPacket(clientPayload)
         );
+
         registrar.playToServer(
             RequestSync.PACKET_ID,
             RequestSync.PACKET_CODEC,

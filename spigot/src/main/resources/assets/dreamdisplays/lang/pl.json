@@ -16,6 +16,7 @@
   "invalidURL": "&7D |&f Twój link jest nieprawidłowy! Proszę użyć prawidłowego linku YouTube",
   "reportTooQuickly": "&7D |&f Wysyłasz raporty zbyt szybko! Poczekaj przed wysłaniem innego raportu",
   "reportSent": "&7D |&f Raport wysłany!",
+  "reportFailed": "&7D |&f Nie udało się wysłać zgłoszenia. Spróbuj ponownie później.",
   "displayDeleted": "&7D |&f Wyświetlacz został usunięty!",
   "displayReported": "&7D |&f Wyświetlacz został zgłoszony!",
   "reportNotConfigured": "&7D |&f System raportowania jest wyłączony na tym serwerze!",

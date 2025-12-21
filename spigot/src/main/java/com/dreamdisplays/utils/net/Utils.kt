@@ -135,6 +135,13 @@ object Utils {
         }
     }
 
+    fun sendReportEnabledPacket(player: Player, enabled: Boolean) {
+        val out = ByteArrayOutputStream()
+        val data = DataOutputStream(out)
+        data.writeBoolean(enabled)
+        player.sendPluginMessage(Main.getInstance(), "dreamdisplays:report_enabled", out.toByteArray())
+    }
+
     @Throws(IOException::class)
     fun writeVarInt(out: DataOutputStream, value: Int) {
         var value = value

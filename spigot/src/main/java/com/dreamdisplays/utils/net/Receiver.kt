@@ -53,7 +53,6 @@ class Receiver(var plugin: Main?) : PluginMessageListener {
 
                     "report" -> {
                         report(id, player)
-                        Message.sendMessage(player, "displayReported")
                     }
                 }
             }
@@ -83,16 +82,17 @@ class Receiver(var plugin: Main?) : PluginMessageListener {
                 player.hasPermission(Main.config.permissions.premium)
             )
 
+            // Send report enabled status
+            Net.sendReportEnabledPacket(player, Main.config.settings.webhookUrl.isNotEmpty())
+
             // Send all existing displays to the player
             sendAllDisplaysToPlayer(player)
 
+            // Store user version
             val version = Utils.sanitize(String(data, 0, len))
 
-            LoggingManager.log(
-                player.name + " has Dream Displays with version: " + version + ". Premium: " + player.hasPermission(
-                    Main.config.permissions.premium
-                )
-            )
+            // Logging player version info
+            LoggingManager.log(player.name + " joined with Dream Displays " + version)
 
             val userVersion = Version.parse(version)
 
@@ -132,19 +132,6 @@ class Receiver(var plugin: Main?) : PluginMessageListener {
                         setPluginUpdateNotified(player, true)
                     }
                 }
-            }
-
-            // Check for mod detection and notify players without the mod
-            if (Main.config.settings.modDetectionEnabled && !hasBeenNotifiedAboutModRequired(player)) {
-                val modRequiredMessage = Main.config.getMessageForPlayer(player, "modRequired")
-                // Schedule the message to be sent after 30 seconds
-                val p = plugin
-                p?.server?.scheduler?.runTaskLater(p, Runnable {
-                    if (player.isOnline && !hasBeenNotifiedAboutModRequired(player)) {
-                        Message.sendColoredMessage(player, modRequiredMessage)
-                        setModRequiredNotified(player, true)
-                    }
-                }, 30 * 20L) // 30 seconds * 20 ticks per second
             }
         } catch (e: IOException) {
             LoggingManager.warn("Unable to decode VersionPacket", e)
@@ -192,8 +179,6 @@ class Receiver(var plugin: Main?) : PluginMessageListener {
     private fun sendAllDisplaysToPlayer(player: Player) {
         val displays = Display.getDisplays()
         val playerList = mutableListOf<Player?>(player)
-
-        LoggingManager.info("Sending ${displays.size} displays to ${player.name}")
 
         for (display in displays) {
             // Only send displays from the same world as the player

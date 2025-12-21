@@ -18,6 +18,7 @@
   "invalidURL": "&7D |&f Deine URL ist ungültig! Bitte verwende einen gültigen YouTube-Link",
   "reportTooQuickly": "&7D |&f Du sendest Berichte zu schnell! Warte bitte, bevor du einen weiteren sendest",
   "reportSent": "&7D |&f Bericht wurde gesendet!",
+  "reportFailed": "&7D |&f Fehler beim Senden des Berichts. Bitte versuchen Sie es später erneut.",
   "displayDeleted": "&7D |&f Display wurde gelöscht!",
   "displayReported": "&7D |&f Display wurde gemeldet!",
   "reportNotConfigured": "&7D |&f Das Berichtssystem ist auf diesem Server deaktiviert!",
@@ -86,4 +87,3 @@
   "displayHelpOff": "– /display off: Deaktiviere Displays",
   "displayHelpHelp": "– /display help: Zeige diese Hilfe"
 }
-

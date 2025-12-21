@@ -86,7 +86,6 @@ object Display {
         Scheduler.runAsync {
             try {
                 if (Main.config.settings.webhookUrl.isEmpty()) {
-                    Message.sendMessage(player, "reportNotConfigured")
                     return@runAsync
                 }
                 Reporter.sendReport(
@@ -97,9 +96,10 @@ object Display {
                     Main.config.settings.webhookUrl,
                     Bukkit.getOfflinePlayer(displayData.ownerId).name
                 )
-                Message.sendMessage(player, "reportSent")
+                Scheduler.runSync { Message.sendMessage(player, "reportSent") }
             } catch (e: Exception) {
                 Main.getInstance().logger.severe("Unable to send webhook message: ${e.message}")
+                Scheduler.runSync { Message.sendMessage(player, "reportFailed") }
             }
         }
     }

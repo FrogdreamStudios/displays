@@ -18,6 +18,7 @@
   "invalidURL": "&7D |&f הקישור שלך לא תקין! אנא השתמש בקישור YouTube תקין",
   "reportTooQuickly": "&7D |&f אתה שולח דיווחים מהר מדי! אנא המתן לפני שליחת דיווח נוסף",
   "reportSent": "&7D |&f הדיווח נשלח!",
+  "reportFailed": "&7D |&f נכשל בשליחת הדיווח. אנא נסה שוב מאוחר יותר.",
   "displayDeleted": "&7D |&f התצוגה נמחקה!",
   "displayReported": "&7D |&f התצוגה דווחה!",
   "reportNotConfigured": "&7D |&f מערכת הדיווחים מושבתת בשרת זה!",
@@ -86,4 +87,3 @@
   "displayHelpOff": "– /display off: השבת תצוגות",
   "displayHelpHelp": "– /display help: הצג עזרה זו"
 }
-

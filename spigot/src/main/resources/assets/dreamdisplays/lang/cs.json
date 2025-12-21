@@ -18,6 +18,7 @@
   "invalidURL": "&7D |&f Váš odkaz je neplatný! Použijte prosím platný YouTube odkaz",
   "reportTooQuickly": "&7D |&f Odesíláte zprávy příliš rychle! Počkejte prosím před odesláním další",
   "reportSent": "&7D |&f Zpráva byla odeslána!",
+  "reportFailed": "&7D |&f Nepodařilo se odeslat zprávu. Zkuste to prosím později.",
   "displayDeleted": "&7D |&f Displej byl smazán!",
   "displayReported": "&7D |&f Displej byl nahlášen!",
   "reportNotConfigured": "&7D |&f Systém hlášení je na tomto serveru zakázán!",
