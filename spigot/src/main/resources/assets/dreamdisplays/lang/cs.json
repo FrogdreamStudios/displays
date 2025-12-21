@@ -25,8 +25,14 @@
   "newVersion": {
     "text": "",
     "extra": [
-      {"text": "D | ", "color": "#9D9D97"},
-      {"text": "Nová verze %s Dream Displays je k dispozici! Prosím ", "color": "#FFFFFF"},
+      {
+        "text": "D | ",
+        "color": "#9D9D97"
+      },
+      {
+        "text": "Nová verze %s Dream Displays je k dispozici! Prosím ",
+        "color": "#FFFFFF"
+      },
       {
         "text": "aktualizujte svůj mod",
         "color": "#023EB6",
@@ -40,7 +46,10 @@
           "value": "Klikněte pro stažení nové verze"
         }
       },
-      {"text": "", "color": "#FFFFFF"}
+      {
+        "text": "",
+        "color": "#FFFFFF"
+      }
     ]
   },
   "newPluginVersion": "&7D |&f Nová verze pluginu Dream Displays (%s) je k dispozici! Aktualizujte prosím plugin na serveru!",
@@ -51,8 +60,14 @@
   "modRequired": {
     "text": "",
     "extra": [
-      {"text": "D | ", "color": "#9D9D97"},
-      {"text": "Mod Dream Displays je vyžadován pro zobrazení displejů na serveru. Prosím ", "color": "#FFFFFF"},
+      {
+        "text": "D | ",
+        "color": "#9D9D97"
+      },
+      {
+        "text": "Mod Dream Displays je vyžadován pro zobrazení displejů na serveru. Prosím ",
+        "color": "#FFFFFF"
+      },
       {
         "text": "stáhněte Dream Displays",
         "color": "#5555FF",
@@ -66,7 +81,10 @@
           "value": "Klikněte pro stažení Dream Displays"
         }
       },
-      {"text": " pro příjemnou hru!", "color": "#FFFFFF"}
+      {
+        "text": " pro příjemnou hru!",
+        "color": "#FFFFFF"
+      }
     ]
   },
   "display.enabled": "&7D |&f Displeje povoleny",

@@ -25,8 +25,14 @@
   "newVersion": {
     "text": "",
     "extra": [
-      {"text": "D | ", "color": "#9D9D97"},
-      {"text": "גרסה חדשה %s של Dream Displays זמינה! אנא ", "color": "#FFFFFF"},
+      {
+        "text": "D | ",
+        "color": "#9D9D97"
+      },
+      {
+        "text": "גרסה חדשה %s של Dream Displays זמינה! אנא ",
+        "color": "#FFFFFF"
+      },
       {
         "text": "עדכן את המוד שלך",
         "color": "#023EB6",
@@ -40,7 +46,10 @@
           "value": "לחץ להורדת הגרסה החדשה"
         }
       },
-      {"text": "", "color": "#FFFFFF"}
+      {
+        "text": "",
+        "color": "#FFFFFF"
+      }
     ]
   },
   "newPluginVersion": "&7D |&f גרסה חדשה של תוסף Dream Displays (%s) זמינה! אנא עדכן את התוסף בשרת!",
@@ -51,8 +60,14 @@
   "modRequired": {
     "text": "",
     "extra": [
-      {"text": "D | ", "color": "#9D9D97"},
-      {"text": "המוד Dream Displays נדרש כדי לראות תצוגות בשרת. אנא ", "color": "#FFFFFF"},
+      {
+        "text": "D | ",
+        "color": "#9D9D97"
+      },
+      {
+        "text": "המוד Dream Displays נדרש כדי לראות תצוגות בשרת. אנא ",
+        "color": "#FFFFFF"
+      },
       {
         "text": "הורד Dream Displays",
         "color": "#5555FF",
@@ -66,7 +81,10 @@
           "value": "לחץ להורדת Dream Displays"
         }
       },
-      {"text": " למשחק מהנה!", "color": "#FFFFFF"}
+      {
+        "text": " למשחק מהנה!",
+        "color": "#FFFFFF"
+      }
     ]
   },
   "display.enabled": "&7D |&f תצוגות מופעלות",

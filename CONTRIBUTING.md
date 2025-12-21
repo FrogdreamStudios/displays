@@ -1,6 +1,7 @@
 ## Contributing
 
-We welcome contributions to Dream Displays! Whether it's fixing bugs, adding new features, or improving other things, your help makes the project better for everyone.
+We welcome contributions to Dream Displays! Whether it's fixing bugs, adding new features, or improving other things,
+your help makes the project better for everyone.
 
 ### How to contribute
 
@@ -12,7 +13,8 @@ We welcome contributions to Dream Displays! Whether it's fixing bugs, adding new
 ### Tips
 
 - Keep commits focused
-- Ensure your code compiles and runs correctly in **both client (Forge, NeoForge, etc.)** and **all forks (Bukkit, Folia, etc.)**
+- Ensure your code compiles and runs correctly in **both client (Forge, NeoForge, etc.)** and **all forks (Bukkit,
+  Folia, etc.)**
 - Update documentation if your changes introduce new features
 - Respect the project's license
 - Respect our guidelines

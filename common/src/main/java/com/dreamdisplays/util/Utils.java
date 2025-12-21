@@ -24,7 +24,7 @@ public class Utils {
         } else if (os.contains("mac")) {
             return "macos";
         } else if (
-            os.contains("nux") || os.contains("nix") || os.contains("aix")
+                os.contains("nux") || os.contains("nix") || os.contains("aix")
         ) {
             return "linux";
         }
@@ -80,7 +80,8 @@ public class Utils {
                     }
                 }
             }
-        } catch (URISyntaxException ignored) {}
+        } catch (URISyntaxException ignored) {
+        }
 
         // Additional pattern for direct video IDs (11 character alphanumeric)
         String directIdRegex = "[a-zA-Z0-9_-]{11}";
@@ -96,11 +97,11 @@ public class Utils {
         try (InputStream in = Utils.class.getResourceAsStream(resourcePath)) {
             if (in == null) {
                 throw new IOException(
-                    "Can't find the resource: " + resourcePath
+                        "Can't find the resource: " + resourcePath
                 );
             }
             BufferedReader reader = new BufferedReader(
-                new InputStreamReader(in)
+                    new InputStreamReader(in)
             );
             StringBuilder sb = new StringBuilder();
             String line;
@@ -117,13 +118,14 @@ public class Utils {
         try {
             String fabricJson = readResource("/fabric.mod.json");
             Pattern pattern = Pattern.compile(
-                "\"version\"\\s*:\\s*\"([^\"]+)\""
+                    "\"version\"\\s*:\\s*\"([^\"]+)\""
             );
             Matcher matcher = pattern.matcher(fabricJson);
             if (matcher.find()) {
                 return matcher.group(1).trim();
             }
-        } catch (IOException ignored) {}
+        } catch (IOException ignored) {
+        }
 
         // NeoForge/Forge
         try {
@@ -133,7 +135,8 @@ public class Utils {
             if (matcher.find()) {
                 return matcher.group(1).trim();
             }
-        } catch (IOException ignored) {}
+        } catch (IOException ignored) {
+        }
 
         return "unknown";
     }

@@ -23,8 +23,14 @@
   "newVersion": {
     "text": "",
     "extra": [
-      {"text": "D | ", "color": "#9D9D97"},
-      {"text": "Нова версія %s Dream Displays! Будь ласка, ", "color": "#FFFFFF"},
+      {
+        "text": "D | ",
+        "color": "#9D9D97"
+      },
+      {
+        "text": "Нова версія %s Dream Displays! Будь ласка, ",
+        "color": "#FFFFFF"
+      },
       {
         "text": "оновіть ваш мод",
         "color": "#023EB6",
@@ -38,19 +44,28 @@
           "value": "Клікніть, щоб завантажити нову версію"
         }
       },
-      {"text": "", "color": "#FFFFFF"}
+      {
+        "text": "",
+        "color": "#FFFFFF"
+      }
     ]
   },
   "newPluginVersion": "&7D |&f Доступна нова версія плагіна Dream Displays (%s)! Будь ласка, оновіть плагін на сервері!",
   "configReloaded": "&7D | &fDream Displays перезавантажено!",
   "noDisplaysFound": "&7D |&f Дисплеї не знайдені",
   "displayListHeader": "&7D |&f Дисплеї:",
-    "displayListEntry": "&7D |&f {0}. Власник: {1}, Розташування: [{2}, {3}, {4}], URL: {5}",
+  "displayListEntry": "&7D |&f {0}. Власник: {1}, Розташування: [{2}, {3}, {4}], URL: {5}",
   "modRequired": {
     "text": "",
     "extra": [
-      {"text": "D | ", "color": "#9D9D97"},
-      {"text": "Мод Dream Displays необхідний для відображення дисплеїв на сервері. Будь ласка, ", "color": "#FFFFFF"},
+      {
+        "text": "D | ",
+        "color": "#9D9D97"
+      },
+      {
+        "text": "Мод Dream Displays необхідний для відображення дисплеїв на сервері. Будь ласка, ",
+        "color": "#FFFFFF"
+      },
       {
         "text": "завантажте Dream Displays",
         "color": "#5555FF",
@@ -64,7 +79,10 @@
           "value": "Клікніть, щоб завантажити Dream Displays"
         }
       },
-      {"text": " для приємної гри!", "color": "#FFFFFF"}
+      {
+        "text": " для приємної гри!",
+        "color": "#FFFFFF"
+      }
     ]
   },
   "display.enabled": "&7D |&f Дисплеї увімкнено",

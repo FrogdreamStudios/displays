@@ -29,7 +29,8 @@ object Message {
             if (audiences != null) {
                 audiences.sender(player).sendMessage(component)
             } else {
-                val plain = LegacyComponentSerializer.legacyAmpersand().serialize(component).replace(Regex("&[0-9a-fk-or]"), "") + " (https://modrinth.com/plugin/dreamdisplays)"
+                val plain = LegacyComponentSerializer.legacyAmpersand().serialize(component)
+                    .replace(Regex("&[0-9a-fk-or]"), "") + " (https://modrinth.com/plugin/dreamdisplays)"
                 player.sendMessage(plain)
             }
         }

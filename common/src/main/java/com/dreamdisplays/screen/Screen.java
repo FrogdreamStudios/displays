@@ -56,15 +56,15 @@ public class Screen {
 
     // Constructor for the Screen class
     public Screen(
-        UUID uuid,
-        UUID ownerUuid,
-        int x,
-        int y,
-        int z,
-        String facing,
-        int width,
-        int height,
-        boolean isSync
+            UUID uuid,
+            UUID ownerUuid,
+            int x,
+            int y,
+            int z,
+            String facing,
+            int width,
+            int height,
+            boolean isSync
     ) {
         this.uuid = uuid;
         this.ownerUuid = ownerUuid;
@@ -75,10 +75,10 @@ public class Screen {
         this.width = width;
         this.height = height;
         owner =
-            Minecraft.getInstance().player != null &&
-            (ownerUuid + "").equals(
-                Minecraft.getInstance().player.getUUID() + ""
-            );
+                Minecraft.getInstance().player != null &&
+                        (ownerUuid + "").equals(
+                                Minecraft.getInstance().player.getUUID() + ""
+                        );
 
         // Load saved settings for this display
         Settings.DisplaySettings savedSettings = Settings.getSettings(uuid);
@@ -94,13 +94,13 @@ public class Screen {
     // Creates a custom RenderType for rendering the screen texture
     private static RenderType createRenderType(Identifier id) {
         return RenderType.create(
-            "dream-displays",
-            RenderSetup.builder(RenderPipelines.SOLID_BLOCK)
-                .withTexture("Sampler0", id)
-                .bufferSize(RenderType.BIG_BUFFER_SIZE)
-                .affectsCrumbling()
-                .useLightmap()
-                .createRenderSetup()
+                "dream-displays",
+                RenderSetup.builder(RenderPipelines.SOLID_BLOCK)
+                        .withTexture("Sampler0", id)
+                        .bufferSize(RenderType.BIG_BUFFER_SIZE)
+                        .affectsCrumbling()
+                        .useLightmap()
+                        .createRenderSetup()
         );
     }
 
@@ -138,14 +138,14 @@ public class Screen {
         this.isSync = packet.isSync();
 
         owner =
-            Minecraft.getInstance().player != null &&
-            (packet.ownerUuid() + "").equals(
-                Minecraft.getInstance().player.getUUID() + ""
-            );
+                Minecraft.getInstance().player != null &&
+                        (packet.ownerUuid() + "").equals(
+                                Minecraft.getInstance().player.getUUID() + ""
+                        );
 
         if (
-            !Objects.equals(videoUrl, packet.url()) ||
-            !Objects.equals(lang, packet.lang())
+                !Objects.equals(videoUrl, packet.url()) ||
+                        !Objects.equals(lang, packet.lang())
         ) {
             loadVideo(packet.url(), packet.lang());
             if (isSync) {
@@ -204,12 +204,12 @@ public class Screen {
         }
 
         return (
-            x <= pos.getX() &&
-            maxX >= pos.getX() &&
-            y <= pos.getY() &&
-            maxY >= pos.getY() &&
-            z <= pos.getZ() &&
-            maxZ >= pos.getZ()
+                x <= pos.getX() &&
+                        maxX >= pos.getX() &&
+                        y <= pos.getY() &&
+                        maxY >= pos.getY() &&
+                        z <= pos.getZ() &&
+                        maxZ >= pos.getZ()
         );
     }
 
@@ -380,7 +380,8 @@ public class Screen {
                 if (textureId != null) {
                     try {
                         manager.release(textureId);
-                    } catch (Exception ignored) {}
+                    } catch (Exception ignored) {
+                    }
                 }
             });
         }
@@ -419,36 +420,36 @@ public class Screen {
         if (texture != null) {
             texture.close();
             if (textureId != null) Minecraft.getInstance()
-                .getTextureManager()
-                .release(textureId);
+                    .getTextureManager()
+                    .release(textureId);
         }
         texture = new DynamicTexture(
-            UUID.randomUUID().toString(),
-            textureWidth,
-            textureHeight,
-            true
+                UUID.randomUUID().toString(),
+                textureWidth,
+                textureHeight,
+                true
         );
         textureId = Identifier.fromNamespaceAndPath(
-            Initializer.MOD_ID,
-            "screen-main-texture-" + uuid + "-" + UUID.randomUUID()
+                Initializer.MOD_ID,
+                "screen-main-texture-" + uuid + "-" + UUID.randomUUID()
         );
 
         Minecraft.getInstance()
-            .getTextureManager()
-            .register(textureId, texture);
+                .getTextureManager()
+                .register(textureId, texture);
         renderType = createRenderType(textureId);
     }
 
     public void sendSync() {
         if (mediaPlayer != null) {
             Initializer.sendPacket(
-                new Sync(
-                        uuid,
-                    isSync,
-                    paused,
-                    mediaPlayer.getCurrentTime(),
-                    mediaPlayer.getDuration()
-                )
+                    new Sync(
+                            uuid,
+                            isSync,
+                            paused,
+                            mediaPlayer.getCurrentTime(),
+                            mediaPlayer.getDuration()
+                    )
             );
         }
     }
@@ -476,9 +477,9 @@ public class Screen {
     // Restore the saved video playback time
     public void restoreSavedTime() {
         if (
-            savedTimeNanos > 0 &&
-            mediaPlayer != null &&
-            mediaPlayer.isInitialized()
+                savedTimeNanos > 0 &&
+                        mediaPlayer != null &&
+                        mediaPlayer.isInitialized()
         ) {
             mediaPlayer.seekTo(savedTimeNanos, false);
         }
@@ -495,7 +496,7 @@ public class Screen {
             }
             action.run();
         })
-            .start();
+                .start();
     }
 
     public @Nullable String getVideoUrl() {
@@ -512,8 +513,8 @@ public class Screen {
 
     public void tick(BlockPos pos) {
         if (mediaPlayer != null) mediaPlayer.tick(
-            pos,
-            Initializer.config.defaultDistance
+                pos,
+                Initializer.config.defaultDistance
         );
     }
 

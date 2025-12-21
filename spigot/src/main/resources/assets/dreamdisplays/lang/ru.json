@@ -23,8 +23,14 @@
   "newVersion": {
     "text": "",
     "extra": [
-      {"text": "D | ", "color": "#9D9D97"},
-      {"text": "Доступна новая версия %s Dream Displays! Пожалуйста, ", "color": "#FFFFFF"},
+      {
+        "text": "D | ",
+        "color": "#9D9D97"
+      },
+      {
+        "text": "Доступна новая версия %s Dream Displays! Пожалуйста, ",
+        "color": "#FFFFFF"
+      },
       {
         "text": "обновите ваш мод",
         "color": "#023EB6",
@@ -38,7 +44,10 @@
           "value": "Кликните, чтобы скачать новую версию"
         }
       },
-      {"text": "", "color": "#FFFFFF"}
+      {
+        "text": "",
+        "color": "#FFFFFF"
+      }
     ]
   },
   "newPluginVersion": "&7D |&f Доступна новая версия плагина Dream Displays (%s)! Пожалуйста, обновите плагин на сервере!",
@@ -49,8 +58,14 @@
   "modRequired": {
     "text": "",
     "extra": [
-      {"text": "D | ", "color": "#9D9D97"},
-      {"text": "Мод Dream Displays необходим для отображения дисплеев на сервере. Пожалуйста, ", "color": "#FFFFFF"},
+      {
+        "text": "D | ",
+        "color": "#9D9D97"
+      },
+      {
+        "text": "Мод Dream Displays необходим для отображения дисплеев на сервере. Пожалуйста, ",
+        "color": "#FFFFFF"
+      },
       {
         "text": "скачайте Dream Displays",
         "color": "#5555FF",
@@ -64,7 +79,10 @@
           "value": "Кликните, чтобы скачать Dream Displays"
         }
       },
-      {"text": " для приятной игры!", "color": "#FFFFFF"}
+      {
+        "text": " для приятной игры!",
+        "color": "#FFFFFF"
+      }
     ]
   },
   "display.enabled": "&7D |&f Дисплеи включены",

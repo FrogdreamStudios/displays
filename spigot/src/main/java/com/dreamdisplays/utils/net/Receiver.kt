@@ -5,10 +5,8 @@ import com.dreamdisplays.datatypes.Sync
 import com.dreamdisplays.managers.Display
 import com.dreamdisplays.managers.Display.delete
 import com.dreamdisplays.managers.Display.report
-import com.dreamdisplays.managers.Player.hasBeenNotifiedAboutModRequired
 import com.dreamdisplays.managers.Player.hasBeenNotifiedAboutModUpdate
 import com.dreamdisplays.managers.Player.hasBeenNotifiedAboutPluginUpdate
-import com.dreamdisplays.managers.Player.setModRequiredNotified
 import com.dreamdisplays.managers.Player.setModUpdateNotified
 import com.dreamdisplays.managers.Player.setPluginUpdateNotified
 import com.dreamdisplays.managers.Player.setVersion
@@ -17,10 +15,10 @@ import com.dreamdisplays.managers.State.sendSyncPacket
 import com.dreamdisplays.utils.Message
 import com.dreamdisplays.utils.Utils
 import com.github.zafarkhaja.semver.Version
-import net.kyori.adventure.text.TextReplacementConfig
-import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 import com.google.gson.Gson
 import me.inotsleep.utils.logging.LoggingManager
+import net.kyori.adventure.text.TextReplacementConfig
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 import org.bukkit.entity.Player
 import org.bukkit.plugin.messaging.PluginMessageListener
 import org.jspecify.annotations.NullMarked
@@ -108,7 +106,10 @@ class Receiver(var plugin: Main?) : PluginMessageListener {
                     val gson = Gson()
                     val jsonStr = gson.toJson(rawMessage)
                     val component = GsonComponentSerializer.gson().deserialize(jsonStr)
-                    component.replaceText(TextReplacementConfig.builder().matchLiteral("%s").replacement(Main.modVersion.toString()).build())
+                    component.replaceText(
+                        TextReplacementConfig.builder().matchLiteral("%s").replacement(Main.modVersion.toString())
+                            .build()
+                    )
                 }
                 Message.sendColoredMessage(player, processedMessage)
                 setModUpdateNotified(player, true)

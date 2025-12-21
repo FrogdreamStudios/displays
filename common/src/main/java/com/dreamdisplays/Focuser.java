@@ -24,7 +24,7 @@ public class Focuser extends Thread {
             boolean focused = client.isWindowActive();
 
             if (
-                Initializer.getConfig().muteOnAltTab
+                    Initializer.getConfig().muteOnAltTab
             ) for (Screen screen : Manager.getScreens()) {
                 screen.mute(!focused);
             }

@@ -35,22 +35,22 @@ public class MediaPlayer {
     private static final String USER_AGENT_V = "ANDROID_VR";
     private static final String USER_AGENT_A = "ANDROID_TESTSUITE";
     private static final ExecutorService INIT_EXECUTOR =
-        Executors.newSingleThreadExecutor(r ->
-            new Thread(r, "MediaPlayer-init")
-        );
+            Executors.newSingleThreadExecutor(r ->
+                    new Thread(r, "MediaPlayer-init")
+            );
     public static boolean captureSamples = true;
     private final String lang;
     // === PUBLIC API FIELDS ===============================================================
     private final String youtubeUrl;
     // === EXECUTORS & CONCURRENCY =========================================================
     private final ExecutorService gstExecutor =
-        Executors.newSingleThreadExecutor(r ->
-            new Thread(r, "MediaPlayer-gst")
-        );
+            Executors.newSingleThreadExecutor(r ->
+                    new Thread(r, "MediaPlayer-gst")
+            );
     private final ExecutorService frameExecutor =
-        Executors.newSingleThreadExecutor(r ->
-            new Thread(r, "MediaPlayer-frame")
-        );
+            Executors.newSingleThreadExecutor(r ->
+                    new Thread(r, "MediaPlayer-frame")
+            );
     private final AtomicBoolean terminated = new AtomicBoolean(false);
     private final Screen screen;
     private volatile double currentVolume;
@@ -67,15 +67,15 @@ public class MediaPlayer {
     private volatile int currentFrameHeight = 0;
     private volatile @Nullable ByteBuffer preparedBuffer;
     private volatile int lastTexW = 0,
-        lastTexH = 0;
+            lastTexH = 0;
     private volatile int preparedW = 0,
-        preparedH = 0;
+            preparedH = 0;
     private volatile double userVolume =
-        (Initializer.config.defaultDisplayVolume);
+            (Initializer.config.defaultDisplayVolume);
     private volatile double lastAttenuation = 1.0;
     private volatile boolean frameReady = false;
     private volatile int cachedScreenW = -1,
-        cachedScreenH = -1; // Cache screen dimensions
+            cachedScreenH = -1; // Cache screen dimensions
 
     // === CONSTRUCTOR =====================================================================
     public MediaPlayer(String youtubeUrl, String lang, Screen screen) {
@@ -94,7 +94,7 @@ public class MediaPlayer {
         // If buffer is already in native order, use it directly
         if (bb.order() == ByteOrder.nativeOrder()) {
             ByteBuffer result = ByteBuffer.allocateDirect(bb.remaining()).order(
-                ByteOrder.nativeOrder()
+                    ByteOrder.nativeOrder()
             );
             result.put(bb);
             result.flip();
@@ -104,7 +104,7 @@ public class MediaPlayer {
 
         // Otherwise convert to native order
         ByteBuffer result = ByteBuffer.allocateDirect(bb.remaining()).order(
-            ByteOrder.nativeOrder()
+                ByteOrder.nativeOrder()
         );
         bb.rewind();
         for (int i = 0; i < bb.remaining(); i++) {
@@ -116,13 +116,13 @@ public class MediaPlayer {
     }
 
     private static ByteBuffer convertToRGBA(
-        ByteBuffer srcBuffer,
-        int width,
-        int height
+            ByteBuffer srcBuffer,
+            int width,
+            int height
     ) {
         int size = width * height * 4;
         ByteBuffer result = ByteBuffer.allocateDirect(size).order(
-            ByteOrder.nativeOrder()
+                ByteOrder.nativeOrder()
         );
 
         srcBuffer.rewind();
@@ -144,10 +144,12 @@ public class MediaPlayer {
         if (e == null) return;
         try {
             e.setState(State.NULL);
-        } catch (Exception ignore) {}
+        } catch (Exception ignore) {
+        }
         try {
             e.dispose();
-        } catch (Exception ignore) {}
+        } catch (Exception ignore) {
+        }
     }
 
     // === PUBLIC API ======================================================================
@@ -169,8 +171,8 @@ public class MediaPlayer {
             long cur = audioPipeline.queryPosition(Format.TIME);
             long tgt = Math.max(0, cur + (long) (s * 1e9));
             long dur = Math.max(
-                0,
-                audioPipeline.queryDuration(Format.TIME) - 1
+                    0,
+                    audioPipeline.queryDuration(Format.TIME) - 1
             );
             doSeek(Math.min(tgt, dur), true);
         });
@@ -212,11 +214,11 @@ public class MediaPlayer {
         if (!frameReady || preparedBuffer == null) return;
 
         int w = screen.textureWidth,
-            h = screen.textureHeight;
+                h = screen.textureHeight;
         if (w != preparedW || h != preparedH) return;
 
         CommandEncoder encoder =
-            RenderSystem.getDevice().createCommandEncoder();
+                RenderSystem.getDevice().createCommandEncoder();
 
         // Rewind buffer to beginning.
         // Position was set to end of data after prepareBuffer()
@@ -226,11 +228,11 @@ public class MediaPlayer {
         int expectedSize = w * h * 4; // RGBA = 4 bytes per pixel
         if (preparedBuffer.remaining() < expectedSize) {
             LoggingManager.error(
-                "Buffer underrun: expected " +
-                    expectedSize +
-                    " bytes, but only " +
-                    preparedBuffer.remaining() +
-                    " remaining"
+                    "Buffer underrun: expected " +
+                            expectedSize +
+                            " bytes, but only " +
+                            preparedBuffer.remaining() +
+                            " remaining"
             );
             return;
         }
@@ -242,15 +244,15 @@ public class MediaPlayer {
 
         if (!texture.isClosed()) {
             encoder.writeToTexture(
-                texture,
-                preparedBuffer,
-                NativeImage.Format.RGBA,
-                0,
-                0,
-                0,
-                0,
-                texture.getWidth(0),
-                texture.getHeight(0)
+                    texture,
+                    preparedBuffer,
+                    NativeImage.Format.RGBA,
+                    0,
+                    0,
+                    0,
+                    0,
+                    texture.getWidth(0),
+                    texture.getHeight(0)
             );
         }
 
@@ -260,17 +262,17 @@ public class MediaPlayer {
 
     public java.util.List<Integer> getAvailableQualities() {
         if (
-            !initialized || availableVideoStreams == null
+                !initialized || availableVideoStreams == null
         ) return Collections.emptyList();
         return availableVideoStreams
-            .stream()
-            .map(Stream::getResolution)
-            .filter(Objects::nonNull)
-            .map(r -> Integer.parseInt(r.replaceAll("\\D+", "")))
-            .distinct()
-            .filter(r -> r <= (Initializer.isPremium ? 2160 : 1080))
-            .sorted()
-            .collect(Collectors.toList());
+                .stream()
+                .map(Stream::getResolution)
+                .filter(Objects::nonNull)
+                .map(r -> Integer.parseInt(r.replaceAll("\\D+", "")))
+                .distinct()
+                .filter(r -> r <= (Initializer.isPremium ? 2160 : 1080))
+                .sorted()
+                .collect(Collectors.toList());
     }
 
     public void setQuality(String quality) {
@@ -282,11 +284,11 @@ public class MediaPlayer {
         try {
             // Extract video ID from URL to handle URLs with parameters like ?t=10&list=PLxxx
             String videoId = com.dreamdisplays.util.Utils.extractVideoId(
-                youtubeUrl
+                    youtubeUrl
             );
             if (videoId == null || videoId.isEmpty()) {
                 LoggingManager.error(
-                    "Could not extract video ID from URL: " + youtubeUrl
+                        "Could not extract video ID from URL: " + youtubeUrl
                 );
                 return;
             }
@@ -301,30 +303,30 @@ public class MediaPlayer {
             java.util.List<Stream> audioS = ytA.streams().getAll();
 
             availableVideoStreams = all
-                .stream()
-                .filter(s -> MIME_VIDEO.equals(s.getMimeType()))
-                .toList();
+                    .stream()
+                    .filter(s -> MIME_VIDEO.equals(s.getMimeType()))
+                    .toList();
 
             Optional<Stream> videoOpt = pickVideo(
-                Integer.parseInt(screen.getQuality().replace("p", ""))
+                    Integer.parseInt(screen.getQuality().replace("p", ""))
             ).or(() -> availableVideoStreams.stream().findFirst());
             Optional<Stream> audioOpt = audioS
-                .stream()
-                .filter(s -> MIME_AUDIO.equals(s.getMimeType()))
-                .filter(
-                    s ->
-                        (s.getAudioTrackId() != null &&
-                            s.getAudioTrackId().contains(lang)) ||
-                        (s.getAudioTrackName() != null &&
-                            s.getAudioTrackName().contains(lang))
-                )
-                .reduce((f, n) -> n);
+                    .stream()
+                    .filter(s -> MIME_AUDIO.equals(s.getMimeType()))
+                    .filter(
+                            s ->
+                                    (s.getAudioTrackId() != null &&
+                                            s.getAudioTrackId().contains(lang)) ||
+                                            (s.getAudioTrackName() != null &&
+                                                    s.getAudioTrackName().contains(lang))
+                    )
+                    .reduce((f, n) -> n);
 
             if (audioOpt.isEmpty()) {
                 audioOpt = all
-                    .stream()
-                    .filter(s -> MIME_AUDIO.equals(s.getMimeType()))
-                    .reduce((f, n) -> n);
+                        .stream()
+                        .filter(s -> MIME_AUDIO.equals(s.getMimeType()))
+                        .reduce((f, n) -> n);
             }
             if (videoOpt.isEmpty() || audioOpt.isEmpty()) {
                 LoggingManager.error("No streams available");
@@ -347,11 +349,11 @@ public class MediaPlayer {
 
     private Pipeline buildVideoPipeline(String uri) {
         String desc = String.join(
-            " ",
-            "souphttpsrc location=\"" + uri + "\"",
-            "user-agent=\"" + USER_AGENT_V + "\"",
-            "extra-headers=\"origin:https://www.youtube.com\\nreferer:https://www.youtube.com\\n\"",
-            "! matroskademux ! decodebin ! videoconvert ! video/x-raw,format=RGBA ! appsink name=videosink"
+                " ",
+                "souphttpsrc location=\"" + uri + "\"",
+                "user-agent=\"" + USER_AGENT_V + "\"",
+                "extra-headers=\"origin:https://www.youtube.com\\nreferer:https://www.youtube.com\\n\"",
+                "! matroskademux ! decodebin ! videoconvert ! video/x-raw,format=RGBA ! appsink name=videosink"
         );
         Pipeline p = (Pipeline) Gst.parseLaunch(desc);
         configureVideoSink((AppSink) p.getElementByName("videosink"));
@@ -361,7 +363,7 @@ public class MediaPlayer {
         final AtomicReference<Bus.ERROR> errRef = new AtomicReference<>();
         errRef.set((source, code, message) -> {
             LoggingManager.error(
-                "[MediaPlayer V] [ERROR] GStreamer: " + message
+                    "[MediaPlayer V] [ERROR] GStreamer: " + message
             );
             bus.disconnect(errRef.get());
             screen.errored = true;
@@ -373,46 +375,46 @@ public class MediaPlayer {
 
     private Pipeline buildAudioPipeline(String uri) {
         String desc =
-            "souphttpsrc location=\"" +
-            uri +
-            "\" ! decodebin ! audioconvert ! audioresample " +
-            "! volume name=volumeElement volume=" +
-            currentVolume +
-            " ! autoaudiosink";
+                "souphttpsrc location=\"" +
+                        uri +
+                        "\" ! decodebin ! audioconvert ! audioresample " +
+                        "! volume name=volumeElement volume=" +
+                        currentVolume +
+                        " ! autoaudiosink";
         Pipeline p = (Pipeline) Gst.parseLaunch(desc);
         p
-            .getBus()
-            .connect(
-                (Bus.ERROR) (source, code, message) ->
-                    LoggingManager.error(
-                        "[MediaPlayer A] [ERROR] GStreamer: " + message
-                    )
-            );
+                .getBus()
+                .connect(
+                        (Bus.ERROR) (source, code, message) ->
+                                LoggingManager.error(
+                                        "[MediaPlayer A] [ERROR] GStreamer: " + message
+                                )
+                );
 
         p
-            .getBus()
-            .connect(
-                (Bus.EOS) source -> {
-                    safeExecute(() -> {
-                        audioPipeline.seekSimple(
-                            Format.TIME,
-                            EnumSet.of(SeekFlags.FLUSH, SeekFlags.ACCURATE),
-                            0L
-                        );
-                        audioPipeline.play();
+                .getBus()
+                .connect(
+                        (Bus.EOS) source -> {
+                            safeExecute(() -> {
+                                audioPipeline.seekSimple(
+                                        Format.TIME,
+                                        EnumSet.of(SeekFlags.FLUSH, SeekFlags.ACCURATE),
+                                        0L
+                                );
+                                audioPipeline.play();
 
-                        // If a video pipeline exists, seek it too
-                        if (videoPipeline != null) {
-                            videoPipeline.seekSimple(
-                                Format.TIME,
-                                EnumSet.of(SeekFlags.FLUSH, SeekFlags.ACCURATE),
-                                0L
-                            );
-                            videoPipeline.play();
+                                // If a video pipeline exists, seek it too
+                                if (videoPipeline != null) {
+                                    videoPipeline.seekSimple(
+                                            Format.TIME,
+                                            EnumSet.of(SeekFlags.FLUSH, SeekFlags.ACCURATE),
+                                            0L
+                                    );
+                                    videoPipeline.play();
+                                }
+                            });
                         }
-                    });
-                }
-            );
+                );
 
         return p;
     }
@@ -423,27 +425,27 @@ public class MediaPlayer {
         sink.set("max-buffers", 1); // Drop old frames to stay in sync
         sink.set("drop", true); // Drop frames when queue is full
         sink.connect(
-            (AppSink.NEW_SAMPLE) elem -> {
-                Sample s = elem.pullSample();
-                if (s == null || !captureSamples) return FlowReturn.OK;
-                try {
-                    Structure st = s.getCaps().getStructure(0);
-                    currentFrameWidth = st.getInteger("width");
-                    currentFrameHeight = st.getInteger("height");
-                    currentFrameBuffer = sampleToBuffer(s);
-                    prepareBufferAsync();
-                } finally {
-                    s.dispose();
+                (AppSink.NEW_SAMPLE) elem -> {
+                    Sample s = elem.pullSample();
+                    if (s == null || !captureSamples) return FlowReturn.OK;
+                    try {
+                        Structure st = s.getCaps().getStructure(0);
+                        currentFrameWidth = st.getInteger("width");
+                        currentFrameHeight = st.getInteger("height");
+                        currentFrameBuffer = sampleToBuffer(s);
+                        prepareBufferAsync();
+                    } finally {
+                        s.dispose();
+                    }
+                    return FlowReturn.OK;
                 }
-                return FlowReturn.OK;
-            }
         );
     }
 
     private void prepareBufferAsync() {
         if (currentFrameBuffer == null) return;
         int w = screen.textureWidth,
-            h = screen.textureHeight;
+                h = screen.textureHeight;
 
         // Skip if screen dimensions are zero
         if (w == 0 || h == 0) return;
@@ -456,19 +458,20 @@ public class MediaPlayer {
 
         try {
             frameExecutor.submit(this::prepareBuffer);
-        } catch (RejectedExecutionException ignored) {}
+        } catch (RejectedExecutionException ignored) {
+        }
     }
 
     private void prepareBuffer() {
         int targetW = screen.textureWidth,
-            targetH = screen.textureHeight;
+                targetH = screen.textureHeight;
         if (targetW == 0 || targetH == 0 || currentFrameBuffer == null) return;
 
         // Convert the frame buffer to RGBA
         ByteBuffer converted = convertToRGBA(
-            currentFrameBuffer,
-            currentFrameWidth,
-            currentFrameHeight
+                currentFrameBuffer,
+                currentFrameWidth,
+                currentFrameHeight
         );
 
         // If dimensions match, use directly
@@ -484,15 +487,15 @@ public class MediaPlayer {
 
         // Scale the buffer to target dimensions
         ByteBuffer scaled = ByteBuffer.allocateDirect(
-            targetW * targetH * 4
+                targetW * targetH * 4
         ).order(ByteOrder.nativeOrder());
         Converter.scaleRGBA(
-            converted,
-            currentFrameWidth,
-            currentFrameHeight,
-            scaled,
-            targetW,
-            targetH
+                converted,
+                currentFrameWidth,
+                currentFrameHeight,
+                scaled,
+                targetW,
+                targetH
         );
 
         preparedBuffer = scaled;
@@ -556,15 +559,15 @@ public class MediaPlayer {
     private void doSeek(long nanos, boolean b) {
         if (!initialized) return;
         EnumSet<SeekFlags> flags = EnumSet.of(
-            SeekFlags.FLUSH,
-            SeekFlags.ACCURATE
+                SeekFlags.FLUSH,
+                SeekFlags.ACCURATE
         );
         audioPipeline.pause();
         if (videoPipeline != null) videoPipeline.pause();
         if (videoPipeline != null) videoPipeline.seekSimple(
-            Format.TIME,
-            flags,
-            nanos
+                Format.TIME,
+                flags,
+                nanos
         );
         audioPipeline.seekSimple(Format.TIME, flags, nanos);
         if (videoPipeline != null) videoPipeline.getState(); // Waiting for pre-roll
@@ -583,11 +586,11 @@ public class MediaPlayer {
     // === QUALITY HELPERS =================================================================
     private Optional<Stream> pickVideo(int target) {
         return availableVideoStreams
-            .stream()
-            .filter(s -> s.getResolution() != null)
-            .min(
-                Comparator.comparingInt(s -> Math.abs(parseQuality(s) - target))
-            );
+                .stream()
+                .filter(s -> s.getResolution() != null)
+                .min(
+                        Comparator.comparingInt(s -> Math.abs(parseQuality(s) - target))
+                );
     }
 
     private void changeQuality(String desired) {
@@ -625,8 +628,8 @@ public class MediaPlayer {
         newVid.getState();
 
         EnumSet<SeekFlags> flags = EnumSet.of(
-            SeekFlags.FLUSH,
-            SeekFlags.ACCURATE
+                SeekFlags.FLUSH,
+                SeekFlags.ACCURATE
         );
         audioPipeline.seekSimple(Format.TIME, flags, pos);
         newVid.seekSimple(Format.TIME, flags, pos);
@@ -656,7 +659,8 @@ public class MediaPlayer {
         if (!gstExecutor.isShutdown()) {
             try {
                 gstExecutor.submit(action);
-            } catch (RejectedExecutionException ignored) {}
+            } catch (RejectedExecutionException ignored) {
+            }
         }
     }
 }

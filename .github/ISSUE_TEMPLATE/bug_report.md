@@ -20,6 +20,7 @@ A clear and concise description of what you expected to happen.
 If applicable, add screenshots to help explain your problem.
 
 **Other information**
+
 - OS (Windows, macOS, Linux?) and its version
 - Version of Minecraft
 - Type of client (Fabric, NeoForge, etc.)

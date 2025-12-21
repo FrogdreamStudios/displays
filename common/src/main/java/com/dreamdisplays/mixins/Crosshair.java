@@ -17,9 +17,9 @@ public class Crosshair {
 
     @Inject(method = "renderCrosshair", at = @At("HEAD"), cancellable = true)
     public void renderCrosshair(
-        GuiGraphics guiGraphics,
-        DeltaTracker deltaTracker,
-        CallbackInfo ci
+            GuiGraphics guiGraphics,
+            DeltaTracker deltaTracker,
+            CallbackInfo ci
     ) {
         if (Initializer.isOnScreen) {
             ci.cancel();

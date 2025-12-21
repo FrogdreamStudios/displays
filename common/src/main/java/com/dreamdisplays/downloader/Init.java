@@ -17,13 +17,13 @@ public class Init {
 
     // Pattern to match Linux/Unix shared object files
     private static final Pattern SO_PATTERN = Pattern.compile(
-        ".*\\.so(\\.\\d+)*$",
-        Pattern.CASE_INSENSITIVE
+            ".*\\.so(\\.\\d+)*$",
+            Pattern.CASE_INSENSITIVE
     );
     // Pattern to match macOS dynamic libraries
     private static final Pattern DYLIB_PATTERN = Pattern.compile(
-        ".*\\.(dylib|jnilib)$",
-        Pattern.CASE_INSENSITIVE
+            ".*\\.(dylib|jnilib)$",
+            Pattern.CASE_INSENSITIVE
     );
 
     // Sets up the library path for GStreamer and loads the libraries
@@ -31,9 +31,9 @@ public class Init {
         final File gStreamerLibrariesDir = new File("./libs/gstreamer");
 
         List<File> files = List.of(
-            Objects.requireNonNull(
-                new File(gStreamerLibrariesDir, "bin").listFiles()
-            )
+                Objects.requireNonNull(
+                        new File(gStreamerLibrariesDir, "bin").listFiles()
+                )
         );
 
         Listener.INSTANCE.setProgress(0f);
@@ -41,19 +41,19 @@ public class Init {
         loadLibraries(recursiveLoadLibs(files));
 
         System.setProperty(
-            "jna.library.path",
-            String.join(
-                File.pathSeparator,
-                new File(gStreamerLibrariesDir, "bin").getCanonicalPath(),
-                new File(gStreamerLibrariesDir, "lib").getCanonicalPath()
-            )
+                "jna.library.path",
+                String.join(
+                        File.pathSeparator,
+                        new File(gStreamerLibrariesDir, "bin").getCanonicalPath(),
+                        new File(gStreamerLibrariesDir, "lib").getCanonicalPath()
+                )
         );
         try {
             Gst.init("MediaPlayer");
         } catch (Throwable e) {
             LoggingManager.error(
-                "Failed to initialize GStreamer after loading libraries",
-                e
+                    "Failed to initialize GStreamer after loading libraries",
+                    e
             );
             Listener.INSTANCE.setFailed(true);
             throw new RuntimeException(e);
@@ -67,11 +67,11 @@ public class Init {
         int loadedCount = 0;
 
         Listener.INSTANCE.setTask(
-            String.format(
-                "Loading libraries for Dream Displays %d/%d",
-                loadedCount,
-                total
-            )
+                String.format(
+                        "Loading libraries for Dream Displays %d/%d",
+                        loadedCount,
+                        total
+                )
         );
         while (!toLoad.isEmpty()) {
             int passSize = toLoad.size();
@@ -87,17 +87,17 @@ public class Init {
 
                     // Update progress and task message
                     Listener.INSTANCE.setProgress(
-                        ((float) loadedCount) / total
+                            ((float) loadedCount) / total
                     );
 
                     Listener.INSTANCE.setTask(
-                        String.format(
-                            "Loading libraries for Dream Displays %d/%d (%d/%d)",
-                            loadedCount,
-                            total,
-                            loadedThisPass,
-                            passSize
-                        )
+                            String.format(
+                                    "Loading libraries for Dream Displays %d/%d (%d/%d)",
+                                    loadedCount,
+                                    total,
+                                    loadedThisPass,
+                                    passSize
+                            )
                     );
                 } catch (LinkageError e) {
                     toLoad.addLast(path);
@@ -106,7 +106,7 @@ public class Init {
 
             if (loadedThisPass == 0) {
                 LoggingManager.error(
-                    "Dream Displays can't load some libraries:"
+                        "Dream Displays can't load some libraries:"
                 );
                 toLoad.forEach(p -> LoggingManager.error("  " + p));
 
@@ -140,9 +140,9 @@ public class Init {
         for (File file : files) {
             if (isLib(file.getName())) libs.add(file.getAbsolutePath());
             else if (file.isDirectory()) libs.addAll(
-                recursiveLoadLibs(
-                    List.of(Objects.requireNonNull(file.listFiles()))
-                )
+                    recursiveLoadLibs(
+                            List.of(Objects.requireNonNull(file.listFiles()))
+                    )
             );
         }
 
@@ -159,7 +159,7 @@ public class Init {
 
         final File gStreamerLibrariesDir = new File("./libs/gstreamer");
         if (
-            !gStreamerLibrariesDir.exists() && gStreamerLibrariesDir.mkdirs()
+                !gStreamerLibrariesDir.exists() && gStreamerLibrariesDir.mkdirs()
         ) LoggingManager.error("Unable to mk directory");
 
         Thread downloadThread = new Thread(() -> {
@@ -170,8 +170,8 @@ public class Init {
                 downloadGStreamer = !downloader.downloadGstreamerChecksum();
             } catch (IOException e) {
                 LoggingManager.error(
-                    "Failed to download GStreamer checksum.",
-                    e
+                        "Failed to download GStreamer checksum.",
+                        e
                 );
                 Listener.INSTANCE.setFailed(true);
                 return;

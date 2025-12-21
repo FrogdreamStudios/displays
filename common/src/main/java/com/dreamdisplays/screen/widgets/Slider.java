@@ -18,24 +18,24 @@ import org.jspecify.annotations.NullMarked;
 public abstract class Slider extends AbstractWidget {
 
     private static final Identifier TEXTURE_ID = Identifier.withDefaultNamespace(
-        "widget/slider"
+            "widget/slider"
     );
     private static final Identifier HIGHLIGHTED_TEXTURE_ID =
-        Identifier.withDefaultNamespace("widget/slider_highlighted");
+            Identifier.withDefaultNamespace("widget/slider_highlighted");
     private static final Identifier HANDLE_TEXTURE_ID =
-        Identifier.withDefaultNamespace("widget/slider_handle");
+            Identifier.withDefaultNamespace("widget/slider_handle");
     private static final Identifier HANDLE_HIGHLIGHTED_TEXTURE_ID =
-        Identifier.withDefaultNamespace("widget/slider_handle_highlighted");
+            Identifier.withDefaultNamespace("widget/slider_handle_highlighted");
     public double value;
     private boolean sliderFocused;
 
     public Slider(
-        int x,
-        int y,
-        int width,
-        int height,
-        Component message,
-        double value
+            int x,
+            int y,
+            int width,
+            int height,
+            Component message,
+            double value
     ) {
         super(x, y, width, height, message);
         this.value = value;
@@ -43,14 +43,14 @@ public abstract class Slider extends AbstractWidget {
 
     private Identifier getTexture() {
         return this.isFocused() && !this.sliderFocused
-            ? HIGHLIGHTED_TEXTURE_ID
-            : TEXTURE_ID;
+                ? HIGHLIGHTED_TEXTURE_ID
+                : TEXTURE_ID;
     }
 
     private Identifier getHandleTexture() {
         return !this.isHovered && !this.sliderFocused
-            ? HANDLE_TEXTURE_ID
-            : HANDLE_HIGHLIGHTED_TEXTURE_ID;
+                ? HANDLE_TEXTURE_ID
+                : HANDLE_HIGHLIGHTED_TEXTURE_ID;
     }
 
     protected MutableComponent createNarrationMessage() {
@@ -62,13 +62,13 @@ public abstract class Slider extends AbstractWidget {
         if (this.active) {
             if (this.isFocused()) {
                 builder.add(
-                    NarratedElementType.USAGE,
-                    Component.translatable("narration.slider.usage.focused")
+                        NarratedElementType.USAGE,
+                        Component.translatable("narration.slider.usage.focused")
                 );
             } else {
                 builder.add(
-                    NarratedElementType.USAGE,
-                    Component.translatable("narration.slider.usage.hovered")
+                        NarratedElementType.USAGE,
+                        Component.translatable("narration.slider.usage.hovered")
                 );
             }
         }
@@ -76,38 +76,38 @@ public abstract class Slider extends AbstractWidget {
 
     // from ExtendedSlider.class
     public void renderWidget(
-        GuiGraphics graphics,
-        int mouseX,
-        int mouseY,
-        float partialTick
+            GuiGraphics graphics,
+            int mouseX,
+            int mouseY,
+            float partialTick
     ) {
         graphics.blitSprite(
-            RenderPipelines.GUI_TEXTURED,
-            this.getTexture(),
-            this.getX(),
-            this.getY(),
-            this.getWidth(),
-            this.getHeight()
+                RenderPipelines.GUI_TEXTURED,
+                this.getTexture(),
+                this.getX(),
+                this.getY(),
+                this.getWidth(),
+                this.getHeight()
         );
         graphics.blitSprite(
-            RenderPipelines.GUI_TEXTURED,
-            this.getHandleTexture(),
-            this.getX() + (int) (this.value * (double) (this.width - 8)),
-            this.getY(),
-            8,
-            this.getHeight()
+                RenderPipelines.GUI_TEXTURED,
+                this.getHandleTexture(),
+                this.getX() + (int) (this.value * (double) (this.width - 8)),
+                this.getY(),
+                8,
+                this.getHeight()
         );
         int i = this.active ? 16777215 : 10526880;
         MutableComponent message = this.getMessage()
-            .copy()
-            .withStyle(style -> style.withColor(i));
+                .copy()
+                .withStyle(style -> style.withColor(i));
         this.renderScrollingStringOverContents(
-            graphics.textRendererForWidget(
-                this,
-                GuiGraphics.HoveredTextEffects.TOOLTIP_AND_CURSOR
-            ),
-            message,
-            2
+                graphics.textRendererForWidget(
+                        this,
+                        GuiGraphics.HoveredTextEffects.TOOLTIP_AND_CURSOR
+                ),
+                message,
+                2
         ); // , i | Mth.ceil(this.alpha * 255.0F) << 24
     }
 
@@ -129,10 +129,10 @@ public abstract class Slider extends AbstractWidget {
             this.sliderFocused = false;
         } else {
             InputType guiNavigationType =
-                Minecraft.getInstance().getLastInputType();
+                    Minecraft.getInstance().getLastInputType();
             if (
-                guiNavigationType == InputType.MOUSE ||
-                guiNavigationType == InputType.KEYBOARD_TAB
+                    guiNavigationType == InputType.MOUSE ||
+                            guiNavigationType == InputType.KEYBOARD_TAB
             ) {
                 this.sliderFocused = true;
             }
@@ -141,7 +141,7 @@ public abstract class Slider extends AbstractWidget {
 
     private void setValueFromMouse(double mouseX) {
         this.setFractionalValue(
-            (mouseX - (double) (this.getX() + 4)) / (double) (this.width - 8)
+                (mouseX - (double) (this.getX() + 4)) / (double) (this.width - 8)
         );
     }
 

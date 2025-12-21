@@ -25,7 +25,7 @@ public abstract class GStreamer {
 
     @Unique
     private static final AtomicBoolean dreamdisplays$recursionDetector =
-        new AtomicBoolean(false);
+            new AtomicBoolean(false);
 
     @Unique
     private static boolean dreamdisplays$downloaded = false;
@@ -42,28 +42,28 @@ public abstract class GStreamer {
 
             if (!(screen instanceof Menu) && !(screen instanceof Error)) {
                 if (
-                    Listener.INSTANCE.isDone() && !Listener.INSTANCE.isFailed()
+                        Listener.INSTANCE.isDone() && !Listener.INSTANCE.isFailed()
                 ) {
                     dreamdisplays$downloaded = true;
                     try {
                         Gst.init("MediaPlayer");
                     } catch (Throwable e) {
                         LoggingManager.error(
-                            "Failed to initialize GStreamer",
-                            e
+                                "Failed to initialize GStreamer",
+                                e
                         );
                         setScreen(
-                            new Error(
-                                screen,
-                                "Dream Displays failed to initialize GStreamer."
-                            )
+                                new Error(
+                                        screen,
+                                        "Dream Displays failed to initialize GStreamer."
+                                )
                         );
                     }
                 } else if (
-                    !Listener.INSTANCE.isDone() && !Listener.INSTANCE.isFailed()
+                        !Listener.INSTANCE.isDone() && !Listener.INSTANCE.isFailed()
                 ) {
                     LoggingManager.warn(
-                        "GStreamer has not finished loading, displaying loading screen"
+                            "GStreamer has not finished loading, displaying loading screen"
                     );
                     setScreen(new Menu(screen));
                     ci.cancel();
@@ -71,27 +71,27 @@ public abstract class GStreamer {
                     dreamdisplays$downloaded = true;
                     if (Utils.detectPlatform().equals("windows")) {
                         LoggingManager.error(
-                            "GStreamer failed to initialize on Windows"
+                                "GStreamer failed to initialize on Windows"
                         );
                         setScreen(
-                            new Error(
-                                screen,
-                                "Dream Displays failed to download libraries"
-                            )
+                                new Error(
+                                        screen,
+                                        "Dream Displays failed to download libraries"
+                                )
                         );
                     } else {
                         try {
                             Gst.init("MediaPlayer");
                         } catch (Throwable e) {
                             LoggingManager.error(
-                                "Failed to initialize system GStreamer",
-                                e
+                                    "Failed to initialize system GStreamer",
+                                    e
                             );
                             setScreen(
-                                new Error(
-                                    screen,
-                                    "Dream Displays failed to initialize GStreamer. Please install GStreamer via your package manager."
-                                )
+                                    new Error(
+                                            screen,
+                                            "Dream Displays failed to initialize GStreamer. Please install GStreamer via your package manager."
+                                    )
                             );
                         }
                     }

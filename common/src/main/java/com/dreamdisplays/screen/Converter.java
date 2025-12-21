@@ -8,22 +8,22 @@ public class Converter {
 
     // Java implementation for image scaling with aspect ratio preservation (cover mode)
     private static void scaleRGBAImageJava(
-        ByteBuffer srcBuffer,
-        int srcW,
-        int srcH,
-        ByteBuffer dstBuffer,
-        int dstW,
-        int dstH
+            ByteBuffer srcBuffer,
+            int srcW,
+            int srcH,
+            ByteBuffer dstBuffer,
+            int dstW,
+            int dstH
     ) {
         if (srcBuffer == null || dstBuffer == null) {
             throw new IllegalArgumentException(
-                "Source and destination buffers cannot be null"
+                    "Source and destination buffers cannot be null"
             );
         }
 
         if (srcW <= 0 || srcH <= 0 || dstW <= 0 || dstH <= 0) {
             throw new IllegalArgumentException(
-                "Image dimensions must be positive"
+                    "Image dimensions must be positive"
             );
         }
 
@@ -66,12 +66,12 @@ public class Converter {
 
     // Scale RGBA image using nearest neighbor scaling - pure Java implementation
     public static void scaleRGBA(
-        ByteBuffer srcBuffer,
-        int srcW,
-        int srcH,
-        ByteBuffer dstBuffer,
-        int dstW,
-        int dstH
+            ByteBuffer srcBuffer,
+            int srcW,
+            int srcH,
+            ByteBuffer dstBuffer,
+            int dstW,
+            int dstH
     ) {
         scaleRGBAImageJava(srcBuffer, srcW, srcH, dstBuffer, dstW, dstH);
     }

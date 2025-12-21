@@ -25,8 +25,14 @@
   "newVersion": {
     "text": "",
     "extra": [
-      {"text": "D | ", "color": "#9D9D97"},
-      {"text": "Новая версія %s Dream Displays даступная! Калі ласка, ", "color": "#FFFFFF"},
+      {
+        "text": "D | ",
+        "color": "#9D9D97"
+      },
+      {
+        "text": "Новая версія %s Dream Displays даступная! Калі ласка, ",
+        "color": "#FFFFFF"
+      },
       {
         "text": "абнавіце свой мод",
         "color": "#023EB6",
@@ -40,7 +46,10 @@
           "value": "Націсніце, каб спампаваць новую версію"
         }
       },
-      {"text": "", "color": "#FFFFFF"}
+      {
+        "text": "",
+        "color": "#FFFFFF"
+      }
     ]
   },
   "newPluginVersion": "&7D |&f Новая версія плагіна Dream Displays (%s) даступная! Калі ласка, абнавіце плагін на серверы!",
@@ -51,8 +60,14 @@
   "modRequired": {
     "text": "",
     "extra": [
-      {"text": "D | ", "color": "#9D9D97"},
-      {"text": "Мод Dream Displays патрабуецца для прагляду дысплеяў на серверы. Калі ласка, ", "color": "#FFFFFF"},
+      {
+        "text": "D | ",
+        "color": "#9D9D97"
+      },
+      {
+        "text": "Мод Dream Displays патрабуецца для прагляду дысплеяў на серверы. Калі ласка, ",
+        "color": "#FFFFFF"
+      },
       {
         "text": "спампуйце Dream Displays",
         "color": "#5555FF",
@@ -66,7 +81,10 @@
           "value": "Націсніце, каб спампаваць Dream Displays"
         }
       },
-      {"text": " для прыемнай гульні!", "color": "#FFFFFF"}
+      {
+        "text": " для прыемнай гульні!",
+        "color": "#FFFFFF"
+      }
     ]
   },
   "display.enabled": "&7D |&f Дысплеі ўключаны",

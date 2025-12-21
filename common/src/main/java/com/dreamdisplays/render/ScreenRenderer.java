@@ -39,9 +39,9 @@ public class ScreenRenderer {
 
     // Renders the texture of a single screen
     private static void renderScreenTexture(
-        Screen screen,
-        PoseStack stack,
-        Tesselator tessellator
+            Screen screen,
+            PoseStack stack,
+            Tesselator tessellator
     ) {
         stack.pushPose();
         moveForward(stack, screen.getFacing(), 0.008f);
@@ -67,9 +67,9 @@ public class ScreenRenderer {
 
         // Render the screen texture or black square
         if (
-            screen.isVideoStarted() &&
-            screen.texture != null &&
-            screen.renderType != null
+                screen.isVideoStarted() &&
+                        screen.texture != null &&
+                        screen.renderType != null
         ) {
             renderGpuTexture(stack, tessellator, screen.renderType);
         } else if (screen.renderType != null) {
@@ -85,19 +85,19 @@ public class ScreenRenderer {
         switch (facing) {
             case "NORTH":
                 rotation = new Quaternionf().rotationY(
-                    (float) Math.toRadians(180)
+                        (float) Math.toRadians(180)
                 );
                 stack.translate(0, 0, 1);
                 break;
             case "WEST":
                 rotation = new Quaternionf().rotationY(
-                    (float) Math.toRadians(-90.0)
+                        (float) Math.toRadians(-90.0)
                 );
                 stack.translate(0, 0, 0);
                 break;
             case "EAST":
                 rotation = new Quaternionf().rotationY(
-                    (float) Math.toRadians(90.0)
+                        (float) Math.toRadians(90.0)
                 );
                 stack.translate(-1, 0, 1);
                 break;
@@ -111,9 +111,9 @@ public class ScreenRenderer {
 
     // Moves the matrix stack forward based on the facing direction
     private static void moveForward(
-        PoseStack stack,
-        String facing,
-        float amount
+            PoseStack stack,
+            String facing,
+            float amount
     ) {
         switch (facing) {
             case "NORTH":
@@ -133,9 +133,9 @@ public class ScreenRenderer {
 
     // Moves the matrix stack horizontally based on the facing direction
     private static void moveHorizontal(
-        PoseStack stack,
-        String facing,
-        float amount
+            PoseStack stack,
+            String facing,
+            float amount
     ) {
         switch (facing) {
             case "NORTH":
@@ -155,44 +155,44 @@ public class ScreenRenderer {
 
     // Renders a GPU texture onto a quad using the provided matrix stack and tessellator
     private static void renderGpuTexture(
-        PoseStack stack,
-        Tesselator tesselator,
-        RenderType type
+            PoseStack stack,
+            Tesselator tesselator,
+            RenderType type
     ) {
         Matrix4f pose = stack.last().pose();
 
         BufferBuilder builder = tesselator.begin(
-            VertexFormat.Mode.QUADS,
-            DefaultVertexFormat.BLOCK
+                VertexFormat.Mode.QUADS,
+                DefaultVertexFormat.BLOCK
         );
 
         builder
-            .addVertex(pose, 0f, 0f, 0f)
-            .setColor(255, 255, 255, 255)
-            .setUv(0f, 1f)
-            .setLight(0xF000F0)
-            .setNormal(0f, 0f, 1f);
+                .addVertex(pose, 0f, 0f, 0f)
+                .setColor(255, 255, 255, 255)
+                .setUv(0f, 1f)
+                .setLight(0xF000F0)
+                .setNormal(0f, 0f, 1f);
 
         builder
-            .addVertex(pose, 1f, 0f, 0f)
-            .setColor(255, 255, 255, 255)
-            .setUv(1f, 1f)
-            .setLight(0xF000F0)
-            .setNormal(0f, 0f, 1f);
+                .addVertex(pose, 1f, 0f, 0f)
+                .setColor(255, 255, 255, 255)
+                .setUv(1f, 1f)
+                .setLight(0xF000F0)
+                .setNormal(0f, 0f, 1f);
 
         builder
-            .addVertex(pose, 1f, 1f, 0f)
-            .setColor(255, 255, 255, 255)
-            .setUv(1f, 0f)
-            .setLight(0xF000F0)
-            .setNormal(0f, 0f, 1f);
+                .addVertex(pose, 1f, 1f, 0f)
+                .setColor(255, 255, 255, 255)
+                .setUv(1f, 0f)
+                .setLight(0xF000F0)
+                .setNormal(0f, 0f, 1f);
 
         builder
-            .addVertex(pose, 0f, 1f, 0f)
-            .setColor(255, 255, 255, 255)
-            .setUv(0f, 0f)
-            .setLight(0xF000F0)
-            .setNormal(0f, 0f, 1f);
+                .addVertex(pose, 0f, 1f, 0f)
+                .setColor(255, 255, 255, 255)
+                .setUv(0f, 0f)
+                .setLight(0xF000F0)
+                .setNormal(0f, 0f, 1f);
 
         MeshData built = builder.buildOrThrow();
         type.draw(built);
@@ -200,44 +200,44 @@ public class ScreenRenderer {
 
     // Renders a solid color square with the specified RGB values
     private static void renderColor(
-        PoseStack stack,
-        Tesselator tesselator,
-        RenderType type
+            PoseStack stack,
+            Tesselator tesselator,
+            RenderType type
     ) {
         Matrix4f pose = stack.last().pose();
 
         BufferBuilder builder = tesselator.begin(
-            VertexFormat.Mode.QUADS,
-            DefaultVertexFormat.BLOCK
+                VertexFormat.Mode.QUADS,
+                DefaultVertexFormat.BLOCK
         );
 
         builder
-            .addVertex(pose, 0f, 0f, 0f)
-            .setColor(0, 0, 0, 255)
-            .setUv(0f, 1f)
-            .setLight(0xF000F0)
-            .setNormal(0f, 0f, 1f);
+                .addVertex(pose, 0f, 0f, 0f)
+                .setColor(0, 0, 0, 255)
+                .setUv(0f, 1f)
+                .setLight(0xF000F0)
+                .setNormal(0f, 0f, 1f);
 
         builder
-            .addVertex(pose, 1f, 0f, 0f)
-            .setColor(0, 0, 0, 255)
-            .setUv(1f, 1f)
-            .setLight(0xF000F0)
-            .setNormal(0f, 0f, 1f);
+                .addVertex(pose, 1f, 0f, 0f)
+                .setColor(0, 0, 0, 255)
+                .setUv(1f, 1f)
+                .setLight(0xF000F0)
+                .setNormal(0f, 0f, 1f);
 
         builder
-            .addVertex(pose, 1f, 1f, 0f)
-            .setColor(0, 0, 0, 255)
-            .setUv(1f, 0f)
-            .setLight(0xF000F0)
-            .setNormal(0f, 0f, 1f);
+                .addVertex(pose, 1f, 1f, 0f)
+                .setColor(0, 0, 0, 255)
+                .setUv(1f, 0f)
+                .setLight(0xF000F0)
+                .setNormal(0f, 0f, 1f);
 
         builder
-            .addVertex(pose, 0f, 1f, 0f)
-            .setColor(0, 0, 0, 255)
-            .setUv(0f, 0f)
-            .setLight(0xF000F0)
-            .setNormal(0f, 0f, 1f);
+                .addVertex(pose, 0f, 1f, 0f)
+                .setColor(0, 0, 0, 255)
+                .setUv(0f, 0f)
+                .setLight(0xF000F0)
+                .setNormal(0f, 0f, 1f);
 
         MeshData built = builder.buildOrThrow();
         type.draw(built);

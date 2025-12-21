@@ -7,7 +7,8 @@ Download from [Modrinth](https://modrinth.com/plugin/dreamdisplays)!
 
 ## Available for Fabric, NeoForge and popular server forks
 
-Create interactive in-game displays that stream YouTube videos in real time, with smooth playback, configurable resolution and even with synchronization mode for all players on the server.
+Create interactive in-game displays that stream YouTube videos in real time, with smooth playback, configurable
+resolution and even with synchronization mode for all players on the server.
 
 For this mod to work, players install the client mod, while server admins only need to install the server plugin.
 

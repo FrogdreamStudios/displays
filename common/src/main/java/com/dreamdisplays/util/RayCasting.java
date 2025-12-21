@@ -24,13 +24,13 @@ public class RayCasting {
         Vec3 end = start.add(direction.scale(maxDistance));
 
         BlockHitResult hitResult = minecraft.level.clip(
-            new net.minecraft.world.level.ClipContext(
-                start,
-                end,
-                net.minecraft.world.level.ClipContext.Block.OUTLINE,
-                net.minecraft.world.level.ClipContext.Fluid.NONE,
-                player
-            )
+                new net.minecraft.world.level.ClipContext(
+                        start,
+                        end,
+                        net.minecraft.world.level.ClipContext.Block.OUTLINE,
+                        net.minecraft.world.level.ClipContext.Fluid.NONE,
+                        player
+                )
         );
 
         if (hitResult.getType() == HitResult.Type.BLOCK) {

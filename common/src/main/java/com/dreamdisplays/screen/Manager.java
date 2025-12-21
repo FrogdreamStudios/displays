@@ -11,9 +11,10 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Manager {
 
     public static final ConcurrentHashMap<UUID, Screen> screens =
-        new ConcurrentHashMap<>();
+            new ConcurrentHashMap<>();
 
-    public Manager() {}
+    public Manager() {
+    }
 
     public static Collection<Screen> getScreens() {
         return screens.values();
@@ -26,14 +27,14 @@ public class Manager {
         }
 
         Settings.DisplaySettings clientSettings = Settings.getSettings(
-            screen.getUUID()
+                screen.getUUID()
         );
         screen.setVolume(clientSettings.volume);
         screen.setQuality(clientSettings.quality);
         screen.muted = clientSettings.muted;
 
         Settings.FullDisplayData savedData = Settings.getDisplayData(
-            screen.getUUID()
+                screen.getUUID()
         );
         if (savedData != null) {
             screen.setRenderDistance(savedData.renderDistance);
@@ -62,22 +63,22 @@ public class Manager {
     // Save screen data to persistent storage
     public static void saveScreenData(Screen screen) {
         Settings.FullDisplayData data = new Settings.FullDisplayData(
-            screen.getUUID(),
-            screen.getPos().getX(),
-            screen.getPos().getY(),
-            screen.getPos().getZ(),
-            screen.getFacing(),
-            (int) screen.getWidth(),
-            (int) screen.getHeight(),
-            screen.getVideoUrl(),
-            screen.getLang(),
-            (float) screen.getVolume(),
-            screen.getQuality(),
-            screen.muted,
-            screen.isSync,
-            screen.getOwnerUuid(),
-            screen.getRenderDistance(),
-            screen.getCurrentTimeNanos()
+                screen.getUUID(),
+                screen.getPos().getX(),
+                screen.getPos().getY(),
+                screen.getPos().getZ(),
+                screen.getFacing(),
+                (int) screen.getWidth(),
+                (int) screen.getHeight(),
+                screen.getVideoUrl(),
+                screen.getLang(),
+                (float) screen.getVolume(),
+                screen.getQuality(),
+                screen.muted,
+                screen.isSync,
+                screen.getOwnerUuid(),
+                screen.getRenderDistance(),
+                screen.getCurrentTimeNanos()
         );
 
         Settings.saveDisplayData(screen.getUUID(), data);
@@ -89,7 +90,7 @@ public class Manager {
     public static void loadScreensForServer(String serverId) {
         Settings.loadServerDisplays(serverId);
         LoggingManager.info(
-            "Initialized display settings storage for server: " + serverId
+                "Initialized display settings storage for server: " + serverId
         );
         // Displays will be received from server via Info packets
     }

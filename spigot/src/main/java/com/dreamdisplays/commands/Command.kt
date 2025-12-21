@@ -150,7 +150,10 @@ class Command : AbstractCommand(Main.getInstance().name, "display") {
                 val y = d.pos1.blockY
                 val z = d.pos1.blockZ
                 val component = Component.text("${index + 1}. Owner: $owner. Location: ")
-                    .append(Component.text("[$x, $y, $z]").color(NamedTextColor.GOLD).clickEvent(ClickEvent.runCommand("/tp $x $y $z")))
+                    .append(
+                        Component.text("[$x, $y, $z]").color(NamedTextColor.GOLD)
+                            .clickEvent(ClickEvent.runCommand("/tp $x $y $z"))
+                    )
                     .append(Component.text(", URL: ").color(NamedTextColor.WHITE))
                     .append(Component.text("[YouTube]").color(NamedTextColor.RED).clickEvent(ClickEvent.openUrl(d.url)))
                 Message.sendComponent(sender, component)

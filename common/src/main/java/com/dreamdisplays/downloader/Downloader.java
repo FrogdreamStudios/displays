@@ -16,14 +16,15 @@ public class Downloader {
 
     // URLs for downloading GStreamer builds and checksums
     private static final String GSTREAMER_DOWNLOAD_URL =
-        "https://github.com/arsmotorin/dreamdisplays/releases/download/gstreamer/gstreamer-${platform}.zip";
+            "https://github.com/arsmotorin/dreamdisplays/releases/download/gstreamer/gstreamer-${platform}.zip";
     private static final String GSTREAMER_CHECKSUM_DOWNLOAD_URL =
-        GSTREAMER_DOWNLOAD_URL + ".sha256";
+            GSTREAMER_DOWNLOAD_URL + ".sha256";
 
-    public Downloader() {}
+    public Downloader() {
+    }
 
     private static void downloadFile(String urlString, File outputFile)
-        throws IOException {
+            throws IOException {
         LoggingManager.info(urlString + " -> " + outputFile.getCanonicalPath());
 
         HttpURLConnection conn = null;
@@ -35,8 +36,8 @@ public class Downloader {
             conn = (HttpURLConnection) url.openConnection();
             conn.setInstanceFollowRedirects(true);
             conn.setRequestProperty(
-                "User-Agent",
-                "Java/" + System.getProperty("java.version")
+                    "User-Agent",
+                    "Java/" + System.getProperty("java.version")
             );
             conn.setRequestProperty("Accept", "application/octet-stream");
 
@@ -45,18 +46,18 @@ public class Downloader {
                 String redirectUrl = conn.getHeaderField("Location");
                 conn.disconnect();
                 conn = (HttpURLConnection) new URI(redirectUrl)
-                    .toURL()
-                    .openConnection();
+                        .toURL()
+                        .openConnection();
                 conn.setRequestProperty(
-                    "User-Agent",
-                    "Java/" + System.getProperty("java.version")
+                        "User-Agent",
+                        "Java/" + System.getProperty("java.version")
                 );
                 status = conn.getResponseCode();
             }
 
             if (status != HttpURLConnection.HTTP_OK) {
                 throw new IOException(
-                    "Server returned HTTP " + status + " for " + urlString
+                        "Server returned HTTP " + status + " for " + urlString
                 );
             }
 
@@ -80,10 +81,12 @@ public class Downloader {
         } finally {
             if (in != null) try {
                 in.close();
-            } catch (IOException ignored) {}
+            } catch (IOException ignored) {
+            }
             if (out != null) try {
                 out.close();
-            } catch (IOException ignored) {}
+            } catch (IOException ignored) {
+            }
             if (conn != null) conn.disconnect();
         }
     }
@@ -92,8 +95,8 @@ public class Downloader {
     private static void extractZip(File zipFile, File outputDirectory) {
         Listener.INSTANCE.setTask("Extracting");
         if (
-            !outputDirectory.getParentFile().exists() &&
-            !outputDirectory.getParentFile().mkdirs()
+                !outputDirectory.getParentFile().exists() &&
+                        !outputDirectory.getParentFile().mkdirs()
         ) LoggingManager.warn("Unable to mk directory");
 
         long fileSize = zipFile.length();
@@ -106,8 +109,8 @@ public class Downloader {
                 File outputFile = new File(outputDirectory, entry.getName());
 
                 if (
-                    !outputFile.getParentFile().exists() &&
-                    !outputFile.getParentFile().mkdirs()
+                        !outputFile.getParentFile().exists() &&
+                                !outputFile.getParentFile().mkdirs()
                 ) LoggingManager.warn("Unable to mk directory");
 
                 if (entry.isDirectory()) {
@@ -115,8 +118,8 @@ public class Downloader {
                 }
 
                 try (
-                    InputStream inputStream = zip.getInputStream(entry);
-                    OutputStream outputStream = new FileOutputStream(outputFile)
+                        InputStream inputStream = zip.getInputStream(entry);
+                        OutputStream outputStream = new FileOutputStream(outputFile)
                 ) {
                     byte[] buffer = new byte[4096];
                     int bytesRead;
@@ -125,15 +128,15 @@ public class Downloader {
                         totalBytesRead += bytesRead;
 
                         float percentComplete =
-                            (float) totalBytesRead / fileSize;
+                                (float) totalBytesRead / fileSize;
                         Listener.INSTANCE.setProgress(percentComplete);
                     }
                 }
             }
         } catch (IOException e) {
             LoggingManager.error(
-                "Failed to extract zip file to " + outputDirectory,
-                e
+                    "Failed to extract zip file to " + outputDirectory,
+                    e
             );
         }
 
@@ -156,20 +159,20 @@ public class Downloader {
         File gStreamerLibrariesPath = new File("./libs/gstreamer");
         Listener.INSTANCE.setTask("Downloading GStreamer");
         downloadFile(
-            getGStreamerDownloadUrl(),
-            new File(gStreamerLibrariesPath, "gstreamer.zip")
+                getGStreamerDownloadUrl(),
+                new File(gStreamerLibrariesPath, "gstreamer.zip")
         );
     }
 
     public boolean downloadGstreamerChecksum() throws IOException {
         File gStreamerLibrariesPath = new File("./libs/gstreamer");
         File gStreamerHashFileTemp = new File(
-            gStreamerLibrariesPath,
-            "gstreamer.zip.sha256.temp"
+                gStreamerLibrariesPath,
+                "gstreamer.zip.sha256.temp"
         );
         File gStreamerHashFile = new File(
-            gStreamerLibrariesPath,
-            "gstreamer.zip.sha256"
+                gStreamerLibrariesPath,
+                "gstreamer.zip.sha256"
         );
 
         Listener.INSTANCE.setTask("Downloading Checksum");
@@ -177,12 +180,12 @@ public class Downloader {
 
         if (gStreamerHashFile.exists()) {
             boolean sameContent = FileUtils.contentEquals(
-                gStreamerHashFile,
-                gStreamerHashFileTemp
+                    gStreamerHashFile,
+                    gStreamerHashFileTemp
             );
             if (sameContent) {
                 if (!gStreamerHashFileTemp.delete()) LoggingManager.warn(
-                    "Unable to delete directory"
+                        "Unable to delete directory"
                 );
                 return true;
             } else {
@@ -193,7 +196,7 @@ public class Downloader {
         }
 
         if (
-            !gStreamerHashFileTemp.renameTo(gStreamerHashFile)
+                !gStreamerHashFileTemp.renameTo(gStreamerHashFile)
         ) LoggingManager.warn("Unable to rename directory");
 
         return false;
@@ -206,7 +209,7 @@ public class Downloader {
         if (delete) {
             if (tarGzArchive.exists()) {
                 if (!tarGzArchive.delete()) LoggingManager.warn(
-                    "Unable to delete file"
+                        "Unable to delete file"
                 );
             }
         }

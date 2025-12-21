@@ -16,25 +16,25 @@ import org.jspecify.annotations.NullMarked;
 public abstract class Toggle extends AbstractWidget {
 
     private static final Identifier TEXTURE_ID = Identifier.withDefaultNamespace(
-        "widget/slider"
+            "widget/slider"
     );
     private static final Identifier HIGHLIGHTED_TEXTURE_ID =
-        Identifier.withDefaultNamespace("widget/slider_highlighted");
+            Identifier.withDefaultNamespace("widget/slider_highlighted");
     private static final Identifier HANDLE_TEXTURE_ID =
-        Identifier.withDefaultNamespace("widget/slider_handle");
+            Identifier.withDefaultNamespace("widget/slider_handle");
     private static final Identifier HANDLE_HIGHLIGHTED_TEXTURE_ID =
-        Identifier.withDefaultNamespace("widget/slider_handle_highlighted");
+            Identifier.withDefaultNamespace("widget/slider_handle_highlighted");
     public boolean value;
     private double dValue;
     private boolean sliderFocused;
 
     public Toggle(
-        int x,
-        int y,
-        int width,
-        int height,
-        Component message,
-        boolean value
+            int x,
+            int y,
+            int width,
+            int height,
+            Component message,
+            boolean value
     ) {
         super(x, y, width, height, message);
         this.dValue = value ? 1 : 0;
@@ -43,14 +43,14 @@ public abstract class Toggle extends AbstractWidget {
 
     private Identifier getTexture() {
         return this.isFocused() && !this.sliderFocused
-            ? HIGHLIGHTED_TEXTURE_ID
-            : TEXTURE_ID;
+                ? HIGHLIGHTED_TEXTURE_ID
+                : TEXTURE_ID;
     }
 
     private Identifier getHandleTexture() {
         return !this.isHovered && !this.sliderFocused
-            ? HANDLE_TEXTURE_ID
-            : HANDLE_HIGHLIGHTED_TEXTURE_ID;
+                ? HANDLE_TEXTURE_ID
+                : HANDLE_HIGHLIGHTED_TEXTURE_ID;
     }
 
     @Override
@@ -59,42 +59,43 @@ public abstract class Toggle extends AbstractWidget {
     }
 
     @Override
-    public void updateWidgetNarration(NarrationElementOutput output) {}
+    public void updateWidgetNarration(NarrationElementOutput output) {
+    }
 
     @Override
     public void renderWidget(
-        GuiGraphics guiGraphics,
-        int mouseX,
-        int mouseY,
-        float partialTick
+            GuiGraphics guiGraphics,
+            int mouseX,
+            int mouseY,
+            float partialTick
     ) {
         guiGraphics.blitSprite(
-            RenderPipelines.GUI_TEXTURED,
-            this.getTexture(),
-            this.getX(),
-            this.getY(),
-            this.getWidth(),
-            this.getHeight()
+                RenderPipelines.GUI_TEXTURED,
+                this.getTexture(),
+                this.getX(),
+                this.getY(),
+                this.getWidth(),
+                this.getHeight()
         );
         guiGraphics.blitSprite(
-            RenderPipelines.GUI_TEXTURED,
-            this.getHandleTexture(),
-            this.getX() + (int) (this.dValue * (double) (this.width - 8)),
-            this.getY(),
-            8,
-            this.getHeight()
+                RenderPipelines.GUI_TEXTURED,
+                this.getHandleTexture(),
+                this.getX() + (int) (this.dValue * (double) (this.width - 8)),
+                this.getY(),
+                8,
+                this.getHeight()
         );
         int i = this.active ? 16777215 : 10526880;
         MutableComponent message = this.getMessage()
-            .copy()
-            .withStyle(style -> style.withColor(i));
+                .copy()
+                .withStyle(style -> style.withColor(i));
         this.renderScrollingStringOverContents(
-            guiGraphics.textRendererForWidget(
-                this,
-                GuiGraphics.HoveredTextEffects.TOOLTIP_AND_CURSOR
-            ),
-            message,
-            2
+                guiGraphics.textRendererForWidget(
+                        this,
+                        GuiGraphics.HoveredTextEffects.TOOLTIP_AND_CURSOR
+                ),
+                message,
+                2
         ); // , i | Mth.ceil(this.alpha * 255.0F) << 24
     }
 
@@ -105,10 +106,10 @@ public abstract class Toggle extends AbstractWidget {
             this.sliderFocused = false;
         } else {
             InputType guiNavigationType =
-                Minecraft.getInstance().getLastInputType();
+                    Minecraft.getInstance().getLastInputType();
             if (
-                guiNavigationType == InputType.MOUSE ||
-                guiNavigationType == InputType.KEYBOARD_TAB
+                    guiNavigationType == InputType.MOUSE ||
+                            guiNavigationType == InputType.KEYBOARD_TAB
             ) {
                 this.sliderFocused = true;
             }

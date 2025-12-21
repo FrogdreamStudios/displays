@@ -14,7 +14,7 @@ public enum Facing {
 
     public static Facing fromPacket(byte data) {
         if (
-            data < 0 || data >= values().length
+                data < 0 || data >= values().length
         ) throw new IllegalArgumentException("Invalid facing ID: " + data);
         return values()[data];
     }

@@ -9,11 +9,6 @@ import com.dreamdisplays.screen.Settings;
 import com.dreamdisplays.util.Facing;
 import com.dreamdisplays.util.RayCasting;
 import com.dreamdisplays.util.Utils;
-import java.io.File;
-import java.util.Objects;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 import me.inotsleep.utils.logging.LoggingManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -28,16 +23,22 @@ import org.jspecify.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+
 @NullMarked
 public class Initializer {
 
     public static final String MOD_ID = "dreamdisplays";
-    private static final boolean[] wasPressed = { false };
+    private static final boolean[] wasPressed = {false};
     private static final AtomicBoolean wasInMultiplayer = new AtomicBoolean(
-        false
+            false
     );
     private static final AtomicReference<@Nullable ClientLevel> lastLevel =
-        new AtomicReference<>(null);
+            new AtomicReference<>(null);
     private static final AtomicBoolean wasFocused = new AtomicBoolean(false);
     public static Config config = new Config(new File("./config/" + MOD_ID));
     public static Thread timerThread = new Thread(() -> {
@@ -93,15 +94,15 @@ public class Initializer {
         }
 
         createScreen(
-            packet.uuid(),
-            packet.ownerUuid(),
-            packet.pos(),
-            packet.facing(),
-            packet.width(),
-            packet.height(),
-            packet.url(),
-            packet.lang(),
-            packet.isSync()
+                packet.uuid(),
+                packet.ownerUuid(),
+                packet.pos(),
+                packet.facing(),
+                packet.width(),
+                packet.height(),
+                packet.url(),
+                packet.lang(),
+                packet.isSync()
         );
     }
 
@@ -112,32 +113,32 @@ public class Initializer {
     }
 
     public static void createScreen(
-        UUID uuid,
-        UUID ownerUuid,
-        Vector3i pos,
-        Facing facing,
-        int width,
-        int height,
-        String code,
-        String lang,
-        boolean isSync
+            UUID uuid,
+            UUID ownerUuid,
+            Vector3i pos,
+            Facing facing,
+            int width,
+            int height,
+            String code,
+            String lang,
+            boolean isSync
     ) {
         Screen screen = new Screen(
-            uuid,
-            ownerUuid,
-            pos.x(),
-            pos.y(),
-            pos.z(),
-            facing.toString(),
-            width,
-            height,
-            isSync
+                uuid,
+                ownerUuid,
+                pos.x(),
+                pos.y(),
+                pos.z(),
+                facing.toString(),
+                width,
+                height,
+                isSync
         );
         Player player = Minecraft.getInstance().player;
         if (
-            player != null &&
-            screen.getDistanceToScreen(player.blockPosition()) >
-            Initializer.config.defaultDistance
+                player != null &&
+                        screen.getDistanceToScreen(player.blockPosition()) >
+                                Initializer.config.defaultDistance
         ) return;
         Manager.registerScreen(screen);
         if (!Objects.equals(code, "")) screen.loadVideo(code, lang);
@@ -197,9 +198,9 @@ public class Initializer {
             double displayRenderDistance = screen.getRenderDistance();
 
             if (
-                displayRenderDistance <
-                    screen.getDistanceToScreen(player.blockPosition()) ||
-                !Initializer.displaysEnabled
+                    displayRenderDistance <
+                            screen.getDistanceToScreen(player.blockPosition()) ||
+                            !Initializer.displaysEnabled
             ) {
                 Manager.saveScreenData(screen);
                 Manager.unregisterScreen(screen);
@@ -209,7 +210,7 @@ public class Initializer {
                 }
             } else {
                 if (result != null) if (
-                    screen.isInScreen(result.getBlockPos())
+                        screen.isInScreen(result.getBlockPos())
                 ) {
                     hoveredScreen = screen;
                     Initializer.isOnScreen = true;
@@ -221,8 +222,8 @@ public class Initializer {
 
         long window = minecraft.getWindow().handle();
         boolean pressed =
-            GLFW.glfwGetMouseButton(window, GLFW.GLFW_MOUSE_BUTTON_RIGHT) ==
-            GLFW.GLFW_PRESS;
+                GLFW.glfwGetMouseButton(window, GLFW.GLFW_MOUSE_BUTTON_RIGHT) ==
+                        GLFW.GLFW_PRESS;
 
         if (pressed && !wasPressed[0]) {
             if (player.isShiftKeyDown()) {
@@ -234,14 +235,14 @@ public class Initializer {
 
         if (Initializer.focusMode && hoveredScreen != null) {
             player.addEffect(
-                new MobEffectInstance(
-                    MobEffects.BLINDNESS,
-                    20 * 2,
-                    1,
-                    false,
-                    false,
-                    false
-                )
+                    new MobEffectInstance(
+                            MobEffects.BLINDNESS,
+                            20 * 2,
+                            1,
+                            false,
+                            false,
+                            false
+                    )
             );
 
             wasFocused.set(true);
@@ -268,7 +269,7 @@ public class Initializer {
 
         Settings.removeDisplay(packet.uuid());
         LoggingManager.info(
-            "Display deleted and removed from saved data: " + packet.uuid()
+                "Display deleted and removed from saved data: " + packet.uuid()
         );
     }
 

@@ -17,9 +17,9 @@ import org.jspecify.annotations.Nullable;
 public abstract class Button extends AbstractWidget {
 
     private static final WidgetSprites SPRITES = new WidgetSprites(
-        Identifier.withDefaultNamespace("widget/button"),
-        Identifier.withDefaultNamespace("widget/button_disabled"),
-        Identifier.withDefaultNamespace("widget/button_highlighted")
+            Identifier.withDefaultNamespace("widget/button"),
+            Identifier.withDefaultNamespace("widget/button_disabled"),
+            Identifier.withDefaultNamespace("widget/button_highlighted")
     );
     private final int iconWidth;
     private final int iconHeight;
@@ -28,14 +28,14 @@ public abstract class Button extends AbstractWidget {
     private @Nullable WidgetSprites setSprites = null;
 
     public Button(
-        int x,
-        int y,
-        int width,
-        int height,
-        int iconWidth,
-        int iconHeight,
-        Identifier iconTextureId,
-        int margin
+            int x,
+            int y,
+            int width,
+            int height,
+            int iconWidth,
+            int iconHeight,
+            Identifier iconTextureId,
+            int margin
     ) {
         super(x, y, width, height, Component.empty());
         this.iconWidth = iconWidth;
@@ -61,25 +61,26 @@ public abstract class Button extends AbstractWidget {
     }
 
     @Override
-    protected void updateWidgetNarration(NarrationElementOutput builder) {}
+    protected void updateWidgetNarration(NarrationElementOutput builder) {
+    }
 
     @Override
     protected void renderWidget(
-        GuiGraphics guiGraphics,
-        int mouseX,
-        int mouseY,
-        float partialTick
+            GuiGraphics guiGraphics,
+            int mouseX,
+            int mouseY,
+            float partialTick
     ) {
         guiGraphics.blitSprite(
-            RenderPipelines.GUI_TEXTURED,
-            setSprites != null
-                ? setSprites.get(this.active, this.isHoveredOrFocused())
-                : SPRITES.get(this.active, this.isHoveredOrFocused()),
-            this.getX(),
-            this.getY(),
-            this.getWidth(),
-            this.getHeight(),
-            ARGB.white(this.alpha)
+                RenderPipelines.GUI_TEXTURED,
+                setSprites != null
+                        ? setSprites.get(this.active, this.isHoveredOrFocused())
+                        : SPRITES.get(this.active, this.isHoveredOrFocused()),
+                this.getX(),
+                this.getY(),
+                this.getWidth(),
+                this.getHeight(),
+                ARGB.white(this.alpha)
         );
 
         int dW = getWidth() - 2 * margin;
@@ -87,8 +88,8 @@ public abstract class Button extends AbstractWidget {
 
         int iconW = dW;
         int iconH = (int) Math.max(
-            (((double) iconHeight) / iconWidth) * iconW,
-            dH
+                (((double) iconHeight) / iconWidth) * iconW,
+                dH
         );
         iconW = (int) ((((double) iconWidth) / iconHeight) * iconH);
 
@@ -96,13 +97,13 @@ public abstract class Button extends AbstractWidget {
         int dy = getY() + getHeight() / 2 - iconH / 2;
 
         guiGraphics.blitSprite(
-            RenderPipelines.GUI_TEXTURED,
+                RenderPipelines.GUI_TEXTURED,
                 iconTextureId,
-            dx,
-            dy,
-            iconW,
-            iconH,
-            ARGB.white(this.alpha)
+                dx,
+                dy,
+                iconW,
+                iconH,
+                ARGB.white(this.alpha)
         );
     }
 }

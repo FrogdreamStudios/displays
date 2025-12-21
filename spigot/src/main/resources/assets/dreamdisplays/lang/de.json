@@ -25,8 +25,14 @@
   "newVersion": {
     "text": "",
     "extra": [
-      {"text": "D | ", "color": "#9D9D97"},
-      {"text": "Eine neue Version %s von Dream Displays ist verfügbar! Bitte ", "color": "#FFFFFF"},
+      {
+        "text": "D | ",
+        "color": "#9D9D97"
+      },
+      {
+        "text": "Eine neue Version %s von Dream Displays ist verfügbar! Bitte ",
+        "color": "#FFFFFF"
+      },
       {
         "text": "aktualisiere dein Mod",
         "color": "#023EB6",
@@ -40,7 +46,10 @@
           "value": "Klicke, um die neue Version herunterzuladen"
         }
       },
-      {"text": "", "color": "#FFFFFF"}
+      {
+        "text": "",
+        "color": "#FFFFFF"
+      }
     ]
   },
   "newPluginVersion": "&7D |&f Eine neue Version des Dream Displays Plugins (%s) ist verfügbar! Bitte aktualisiere das Server-Plugin!",
@@ -51,8 +60,14 @@
   "modRequired": {
     "text": "",
     "extra": [
-      {"text": "D | ", "color": "#9D9D97"},
-      {"text": "Das Dream Displays Mod ist erforderlich, um Displays auf dem Server zu sehen. Bitte ", "color": "#FFFFFF"},
+      {
+        "text": "D | ",
+        "color": "#9D9D97"
+      },
+      {
+        "text": "Das Dream Displays Mod ist erforderlich, um Displays auf dem Server zu sehen. Bitte ",
+        "color": "#FFFFFF"
+      },
       {
         "text": "lade Dream Displays herunter",
         "color": "#5555FF",
@@ -66,7 +81,10 @@
           "value": "Klicke, um Dream Displays herunterzuladen"
         }
       },
-      {"text": " für ein angenehmes Spiel!", "color": "#FFFFFF"}
+      {
+        "text": " für ein angenehmes Spiel!",
+        "color": "#FFFFFF"
+      }
     ]
   },
   "display.enabled": "&7D |&f Displays aktiviert",

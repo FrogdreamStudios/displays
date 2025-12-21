@@ -19,16 +19,16 @@ public class Settings {
     // Store settings per server
     private static final File SETTINGS_DIR = new File("./config/dreamdisplays");
     private static final Gson GSON = new GsonBuilder()
-        .setPrettyPrinting()
-        .create();
+            .setPrettyPrinting()
+            .create();
     // displayUuid -> DisplaySettings
     private static final Map<UUID, DisplaySettings> displaySettings =
-        new HashMap<>();
+            new HashMap<>();
     // serverId -> (displayUuid -> FullDisplayData)
     private static final Map<
-        String,
-        Map<UUID, FullDisplayData>
-    > serverDisplays = new HashMap<>();
+            String,
+            Map<UUID, FullDisplayData>
+            > serverDisplays = new HashMap<>();
     private static @Nullable String currentServerId = null;
 
     // Load settings from disk
@@ -41,31 +41,32 @@ public class Settings {
 
         // Load client display settings (volume, quality, muted)
         File clientSettingsFile = new File(
-            SETTINGS_DIR,
-            "client-display-settings.json"
+                SETTINGS_DIR,
+                "client-display-settings.json"
         );
         try (Reader reader = new FileReader(clientSettingsFile)) {
             Type type = new TypeToken<
-                Map<String, DisplaySettings>
-            >() {}.getType();
+                    Map<String, DisplaySettings>
+                    >() {
+            }.getType();
             Map<String, DisplaySettings> loadedSettings = GSON.fromJson(
-                reader,
-                type
+                    reader,
+                    type
             );
 
             if (loadedSettings != null) {
                 displaySettings.clear();
                 for (Map.Entry<
-                    String,
-                    DisplaySettings
-                > entry : loadedSettings.entrySet()) {
+                        String,
+                        DisplaySettings
+                        > entry : loadedSettings.entrySet()) {
                     try {
                         UUID uuid = UUID.fromString(entry.getKey());
                         displaySettings.put(uuid, entry.getValue());
                     } catch (IllegalArgumentException e) {
                         LoggingManager.error(
-                            "Invalid UUID in client display settings: " +
-                                entry.getKey()
+                                "Invalid UUID in client display settings: " +
+                                        entry.getKey()
                         );
                     }
                 }
@@ -81,48 +82,49 @@ public class Settings {
     public static void loadServerDisplays(String serverId) {
         currentServerId = serverId;
         File serverFile = new File(
-            SETTINGS_DIR,
-            "server-" + serverId + "-displays.json"
+                SETTINGS_DIR,
+                "server-" + serverId + "-displays.json"
         );
 
         try (Reader reader = new FileReader(serverFile)) {
             Type type = new TypeToken<
-                Map<String, FullDisplayData>
-            >() {}.getType();
+                    Map<String, FullDisplayData>
+                    >() {
+            }.getType();
             Map<String, FullDisplayData> loadedDisplays = GSON.fromJson(
-                reader,
-                type
+                    reader,
+                    type
             );
 
             Map<UUID, FullDisplayData> displays = new HashMap<>();
             if (loadedDisplays != null) {
                 for (Map.Entry<
-                    String,
-                    FullDisplayData
-                > entry : loadedDisplays.entrySet()) {
+                        String,
+                        FullDisplayData
+                        > entry : loadedDisplays.entrySet()) {
                     try {
                         UUID uuid = UUID.fromString(entry.getKey());
                         displays.put(uuid, entry.getValue());
                     } catch (IllegalArgumentException e) {
                         LoggingManager.error(
-                            "Invalid UUID in server displays: " + entry.getKey()
+                                "Invalid UUID in server displays: " + entry.getKey()
                         );
                     }
                 }
             }
             serverDisplays.put(serverId, displays);
             LoggingManager.info(
-                "Loaded " +
-                    displays.size() +
-                    " displays for server: " +
-                    serverId
+                    "Loaded " +
+                            displays.size() +
+                            " displays for server: " +
+                            serverId
             );
         } catch (FileNotFoundException ignored) {
             serverDisplays.put(serverId, new HashMap<>());
         } catch (IOException e) {
             LoggingManager.error(
-                "Failed to load server displays for " + serverId,
-                e
+                    "Failed to load server displays for " + serverId,
+                    e
             );
             serverDisplays.put(serverId, new HashMap<>());
         }
@@ -138,15 +140,15 @@ public class Settings {
 
             Map<String, DisplaySettings> toSave = new HashMap<>();
             for (Map.Entry<
-                UUID,
-                DisplaySettings
-            > entry : displaySettings.entrySet()) {
+                    UUID,
+                    DisplaySettings
+                    > entry : displaySettings.entrySet()) {
                 toSave.put(entry.getKey().toString(), entry.getValue());
             }
 
             File clientSettingsFile = new File(
-                SETTINGS_DIR,
-                "client-display-settings.json"
+                    SETTINGS_DIR,
+                    "client-display-settings.json"
             );
             try (Writer writer = new FileWriter(clientSettingsFile)) {
                 GSON.toJson(toSave, writer);
@@ -165,8 +167,8 @@ public class Settings {
             }
 
             Map<UUID, FullDisplayData> displays = serverDisplays.getOrDefault(
-                serverId,
-                new HashMap<>()
+                    serverId,
+                    new HashMap<>()
             );
             Map<String, FullDisplayData> toSave = new HashMap<>();
             for (Map.Entry<UUID, FullDisplayData> entry : displays.entrySet()) {
@@ -174,19 +176,19 @@ public class Settings {
             }
 
             File serverFile = new File(
-                SETTINGS_DIR,
-                "server-" + serverId + "-displays.json"
+                    SETTINGS_DIR,
+                    "server-" + serverId + "-displays.json"
             );
             try (Writer writer = new FileWriter(serverFile)) {
                 GSON.toJson(toSave, writer);
             }
             LoggingManager.info(
-                "Saved " + toSave.size() + " displays for server: " + serverId
+                    "Saved " + toSave.size() + " displays for server: " + serverId
             );
         } catch (IOException e) {
             LoggingManager.error(
-                "Failed to save server displays for " + serverId,
-                e
+                    "Failed to save server displays for " + serverId,
+                    e
             );
         }
     }
@@ -194,16 +196,16 @@ public class Settings {
     // Get client display settings
     public static DisplaySettings getSettings(UUID displayUuid) {
         return displaySettings.computeIfAbsent(displayUuid, k ->
-            new DisplaySettings()
+                new DisplaySettings()
         );
     }
 
     // Update client display settings
     public static void updateSettings(
-        UUID displayUuid,
-        float volume,
-        String quality,
-        boolean muted
+            UUID displayUuid,
+            float volume,
+            String quality,
+            boolean muted
     ) {
         DisplaySettings settings = getSettings(displayUuid);
         settings.volume = volume;
@@ -216,8 +218,8 @@ public class Settings {
     public static @Nullable FullDisplayData getDisplayData(UUID displayUuid) {
         if (currentServerId == null) return null;
         return serverDisplays
-            .getOrDefault(currentServerId, new HashMap<>())
-            .get(displayUuid);
+                .getOrDefault(currentServerId, new HashMap<>())
+                .get(displayUuid);
     }
 
     // Save full display data
@@ -225,8 +227,8 @@ public class Settings {
         if (currentServerId == null) return;
 
         serverDisplays
-            .computeIfAbsent(currentServerId, k -> new HashMap<>())
-            .put(displayUuid, data);
+                .computeIfAbsent(currentServerId, k -> new HashMap<>())
+                .put(displayUuid, data);
         saveServerDisplays(currentServerId);
     }
 
@@ -237,9 +239,9 @@ public class Settings {
             if (displays.remove(displayUuid) != null) {
                 String serverId = null;
                 for (Map.Entry<
-                    String,
-                    Map<UUID, FullDisplayData>
-                > entry : serverDisplays.entrySet()) {
+                        String,
+                        Map<UUID, FullDisplayData>
+                        > entry : serverDisplays.entrySet()) {
                     if (entry.getValue() == displays) {
                         serverId = entry.getKey();
                         break;
@@ -256,7 +258,7 @@ public class Settings {
         save();
 
         LoggingManager.info(
-            "Removed display from all saved data: " + displayUuid
+                "Removed display from all saved data: " + displayUuid
         );
     }
 
@@ -267,7 +269,8 @@ public class Settings {
         public String quality = "720";
         public boolean muted = false;
 
-        public DisplaySettings() {}
+        public DisplaySettings() {
+        }
     }
 
     // Full display data (stored per server)
@@ -291,20 +294,20 @@ public class Settings {
         public long currentTimeNanos = 0;
 
         public FullDisplayData(
-            UUID uuid,
-            int x,
-            int y,
-            int z,
-            String facing,
-            int width,
-            int height,
-            String videoUrl,
-            String lang,
-            float volume,
-            String quality,
-            boolean muted,
-            boolean isSync,
-            UUID ownerUuid
+                UUID uuid,
+                int x,
+                int y,
+                int z,
+                String facing,
+                int width,
+                int height,
+                String videoUrl,
+                String lang,
+                float volume,
+                String quality,
+                boolean muted,
+                boolean isSync,
+                UUID ownerUuid
         ) {
             this.uuid = uuid;
             this.x = x;
@@ -323,36 +326,36 @@ public class Settings {
         }
 
         public FullDisplayData(
-            UUID uuid,
-            int x,
-            int y,
-            int z,
-            String facing,
-            int width,
-            int height,
-            String videoUrl,
-            String lang,
-            float volume,
-            String quality,
-            boolean muted,
-            boolean isSync,
-            UUID ownerUuid,
-            int renderDistance,
-            long currentTimeNanos
+                UUID uuid,
+                int x,
+                int y,
+                int z,
+                String facing,
+                int width,
+                int height,
+                String videoUrl,
+                String lang,
+                float volume,
+                String quality,
+                boolean muted,
+                boolean isSync,
+                UUID ownerUuid,
+                int renderDistance,
+                long currentTimeNanos
         ) {
             this(uuid,
-                x,
-                y,
-                z,
-                facing,
-                width,
-                height,
-                videoUrl,
-                lang,
-                volume,
-                quality,
-                muted,
-                isSync, ownerUuid);
+                    x,
+                    y,
+                    z,
+                    facing,
+                    width,
+                    height,
+                    videoUrl,
+                    lang,
+                    volume,
+                    quality,
+                    muted,
+                    isSync, ownerUuid);
             this.renderDistance = renderDistance;
             this.currentTimeNanos = currentTimeNanos;
         }

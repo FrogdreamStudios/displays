@@ -25,8 +25,14 @@
   "newVersion": {
     "text": "",
     "extra": [
-      {"text": "D | ", "color": "#9D9D97"},
-      {"text": "New version %s of Dream Displays is available! Please ", "color": "#FFFFFF"},
+      {
+        "text": "D | ",
+        "color": "#9D9D97"
+      },
+      {
+        "text": "New version %s of Dream Displays is available! Please ",
+        "color": "#FFFFFF"
+      },
       {
         "text": "update your mod",
         "color": "#023EB6",
@@ -40,7 +46,10 @@
           "value": "Click to download new version"
         }
       },
-      {"text": "", "color": "#FFFFFF"}
+      {
+        "text": "",
+        "color": "#FFFFFF"
+      }
     ]
   },
   "newPluginVersion": "&7D |&f New version of Dream Displays plugin (%s) is available! Please update the server plugin!",
@@ -51,8 +60,14 @@
   "modRequired": {
     "text": "",
     "extra": [
-      {"text": "D | ", "color": "#9D9D97"},
-      {"text": "This server uses in-game displays. ", "color": "#FFFFFF"},
+      {
+        "text": "D | ",
+        "color": "#9D9D97"
+      },
+      {
+        "text": "This server uses in-game displays. ",
+        "color": "#FFFFFF"
+      },
       {
         "text": "Download Dream Displays",
         "color": "#5555FF",
@@ -66,7 +81,10 @@
           "value": "Click to download Dream Displays"
         }
       },
-      {"text": " to see them!", "color": "#FFFFFF"}
+      {
+        "text": " to see them!",
+        "color": "#FFFFFF"
+      }
     ]
   },
   "display.enabled": "&7D |&f Displays enabled. Please wait for a moment...",
