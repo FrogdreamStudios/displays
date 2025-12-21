@@ -1,0 +1,88 @@
+{
+  "noDisplayTerritories": "&7D |&f Ještě jste nevybral žádné území displeje! Vyberte prosím dva body diamantovou sekerou",
+  "createDisplayCommand": "&7D |&f Nyní zadejte /display create pro vytvoření displeje",
+  "secondPointNotSelected": "&7D |&f Ještě jste nevybral druhý bod!",
+  "displayOverlap": "&7D |&f V této oblasti už je displej!",
+  "structureTooLarge": "&7D |&f Nemůžete vytvořit displej větší než 32x24 bloků",
+  "structureTooSmall": "&7D |&f Nemůžete vytvořit displej menší než 1x1 bloků",
+  "firstPointSelected": "&7D |&f První bod vybrán! Nyní vyberte druhý bod",
+  "secondPointSelected": "&7D |&f Druhý bod vybrán!",
+  "structureWrongDepth": "&7D |&f Výběr musí být alespoň 1 blok dlouhý",
+  "wrongStructure": "&7D |&f Pro displeje lze použít pouze černé betonové bloky",
+  "selectionClear": "&7D |&f Výběr byl vymazán!",
+  "displayWrongCommand": "&7D |&f Zadali jste něco špatného!",
+  "displayCommandMissingPermission": "&7D |&f Nemáte oprávnění k použití tohoto příkazu!",
+  "successfulCreation": "&7D |&f Displej byl vytvořen! Zadejte /display video <YouTube odkaz> [jazyk] pro nastavení videa",
+  "noDisplay": "&7D |&f Displej nebyl nalezen!",
+  "settedURL": "&7D |&f Video bylo načteno!",
+  "invalidURL": "&7D |&f Váš odkaz je neplatný! Použijte prosím platný YouTube odkaz",
+  "reportTooQuickly": "&7D |&f Odesíláte zprávy příliš rychle! Počkejte prosím před odesláním další",
+  "reportSent": "&7D |&f Zpráva byla odeslána!",
+  "displayDeleted": "&7D |&f Displej byl smazán!",
+  "displayReported": "&7D |&f Displej byl nahlášen!",
+  "reportNotConfigured": "&7D |&f Systém hlášení je na tomto serveru zakázán!",
+  "newVersion": {
+    "text": "",
+    "extra": [
+      {"text": "D | ", "color": "#9D9D97"},
+      {"text": "Nová verze %s Dream Displays je k dispozici! Prosím ", "color": "#FFFFFF"},
+      {
+        "text": "aktualizujte svůj mod",
+        "color": "#023EB6",
+        "underlined": true,
+        "clickEvent": {
+          "action": "open_url",
+          "value": "https://modrinth.com/plugin/dreamdisplays/versions"
+        },
+        "hoverEvent": {
+          "action": "show_text",
+          "value": "Klikněte pro stažení nové verze"
+        }
+      },
+      {"text": "", "color": "#FFFFFF"}
+    ]
+  },
+  "newPluginVersion": "&7D |&f Nová verze pluginu Dream Displays (%s) je k dispozici! Aktualizujte prosím plugin na serveru!",
+  "configReloaded": "&7D | &fDream Displays byl znovu načten!",
+  "noDisplaysFound": "&7D |&f Žádné displeje nenalezeny",
+  "displayListHeader": "&7D |&f Displeje:",
+  "displayListEntry": "&7D |&f {0}. Vlastník: {1}, Umístění: [{2}, {3}, {4}], URL: {5}",
+  "modRequired": {
+    "text": "",
+    "extra": [
+      {"text": "D | ", "color": "#9D9D97"},
+      {"text": "Mod Dream Displays je vyžadován pro zobrazení displejů na serveru. Prosím ", "color": "#FFFFFF"},
+      {
+        "text": "stáhněte Dream Displays",
+        "color": "#5555FF",
+        "underlined": true,
+        "clickEvent": {
+          "action": "open_url",
+          "value": "https://modrinth.com/plugin/dreamdisplays"
+        },
+        "hoverEvent": {
+          "action": "show_text",
+          "value": "Klikněte pro stažení Dream Displays"
+        }
+      },
+      {"text": " pro příjemnou hru!", "color": "#FFFFFF"}
+    ]
+  },
+  "display.enabled": "&7D |&f Displeje povoleny",
+  "display.disabled": "&7D |&f Displeje zakázány",
+  "display.already-disabled": "&7D |&f Displeje jsou již zakázány",
+  "display.already-enabled": "&7D |&f Displeje jsou již povoleny",
+  "displayStatsHeader": "&7D |&f Statistiky používání modu:",
+  "displayStatsEntry": "&7D |&f Verze %s: %d hráčů",
+  "displayStatsTotal": "&7D |&f Celkem hráčů s modem: %d",
+  "displayHelpHeader": "Dostupné příkazy:",
+  "displayHelpCreate": "– /display create: Vytvořte nový displej",
+  "displayHelpVideo": "– /display video <url>: Nastavte video pro váš displej",
+  "displayHelpDelete": "– /display delete: Smažte displej, na který se díváte",
+  "displayHelpList": "– /display list: Seznam všech displejů",
+  "displayHelpStats": "– /display stats: Zobrazte statistiky používání modu",
+  "displayHelpReload": "– /display reload: Znovu načtěte konfiguraci",
+  "displayHelpOn": "– /display on: Povolte displeje",
+  "displayHelpOff": "– /display off: Zakažte displeje",
+  "displayHelpHelp": "– /display help: Zobrazte tuto nápovědu"
+}

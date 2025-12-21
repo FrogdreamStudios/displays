@@ -18,7 +18,7 @@ Mod:
 - [ ] Show report button only if server has configured webhook URL
 
 Plugin:
-- [ ] New languages: Belarusian, Czech, German and Hebrew for plugin messages
+- [x] New languages: Belarusian, Czech, German and Hebrew for plugin messages
 - [ ] Add config migrator from old versions of the plugin
 - [x] Improve permissions handling for `/display create` and `/display video`
 - [x] Add permission message when player lacks permission

@@ -243,12 +243,16 @@ class Config(private val plugin: Main) {
             "ru_ru" -> "ru"
             "uk_ua" -> "uk"
             "pl_pl" -> "pl"
+            "de_de" -> "de"
+            "cs_cz" -> "cs"
+            "be_by" -> "be"
+            "he_il" -> "he"
             else -> "en"
         }
     }
 
     companion object {
         private val GSON = Gson()
-        private val LANGUAGE_FILES = listOf("en.json", "pl.json", "ru.json", "uk.json")
+        private val LANGUAGE_FILES = listOf("en.json", "pl.json", "ru.json", "uk.json", "de.json", "cs.json", "be.json", "he.json")
     }
 }
