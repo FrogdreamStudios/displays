@@ -3,7 +3,6 @@
 - [ ] Add toggle button for window focus
 - [ ] Add toggle button for video repeating
 
-
 Plugin:
 - [ ] No changes
 
@@ -19,9 +18,11 @@ Plugin:
 
 # Version 1.2.0
 Mod:
+- [x] New, refreshed logo
 - [x] All messages from plugin are in client's language now
 - [x] Add missing messages for some commands
 - [x] Remove client command `/displays` and move its functionality to plugin's `/display` command
+- [x] Improve README and wiki
 - [x] Show report button only if server has configured webhook URL
 - [x] Fix an issue when after re-enabling displays they don't load until relog
 
