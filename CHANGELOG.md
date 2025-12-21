@@ -1,4 +1,4 @@
-# Version 1.2.0
+# Version 1.3.0
 - [ ] Add spacial audio support
 - [ ] Add action bar messages when player looks at display
 - [ ] Add toggle button for window focus
@@ -8,16 +8,20 @@
 Plugin:
 - [ ] No changes
 
-# Version 1.1.4
+# Version 1.2.0
 Mod:
-- [x] Change /displays command to /display
-- [x] Add missing message for /display on/off
-- [ ] Fix an issue when after re-enabling displays they don't load until relog
+- [ ] Support single-player mode
+- [x] Add missing messages for some commands
+- [x] Fix an issue when after re-enabling displays they don't load until relog
+- [x] Unify client command /displays with server command /display
+- [ ] Fix reporting message not showing correctly
+- [ ] Show report button only if server has configured webhook URL
 
 Plugin:
 - [x] Improve permissions handling for `/display create` and `/display video`
 - [x] Improve /display list command output
 - [ ] Add /display help command
+- [ ] Add permission message when player lacks permission
 
 # Version 1.1.3
 Mod:
