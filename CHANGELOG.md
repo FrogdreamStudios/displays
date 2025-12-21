@@ -1,29 +1,38 @@
-# Version 1.3.0
+# Version 1.4.0
 - [ ] Add spacial audio support
-- [ ] Add action bar messages when player looks at display
 - [ ] Add toggle button for window focus
 - [ ] Add toggle button for video repeating
-- [ ] Support natives
+
 
 Plugin:
 - [ ] No changes
 
-# Version 1.2.0
+# Version 1.3.0
 Mod:
 - [ ] Support single-player mode
+- [ ] Add action bar messages when player looks at display
+- [ ] Fix desynchronization after player relog
+- [ ] Support natives
+
+Plugin:
+- [ ] Add config migrator from old versions of the plugin
+
+# Version 1.2.0
+Mod:
+- [x] All messages from plugin are in client's language now
 - [x] Add missing messages for some commands
-- [x] Fix an issue when after re-enabling displays they don't load until relog
 - [x] Remove client command `/displays` and move its functionality to plugin's `/display` command
-- [x] Fix reporting message not showing correctly
 - [x] Show report button only if server has configured webhook URL
+- [x] Fix an issue when after re-enabling displays they don't load until relog
 
 Plugin:
 - [x] New languages: Belarusian, Czech, German and Hebrew for plugin messages
-- [ ] Add config migrator from old versions of the plugin
 - [x] Improve permissions handling for `/display create` and `/display video`
 - [x] Add permission message when player lacks permission
 - [x] Improve `/display list` command output
 - [x] Add `/display help` and `/display stats` commands
+- [x] Add links to some messages
+- [x] Fix reporting message not showing correctly
 - [x] Fix wrong command usage message logic
 
 # Version 1.1.3
