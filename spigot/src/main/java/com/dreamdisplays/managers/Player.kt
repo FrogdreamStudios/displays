@@ -70,4 +70,9 @@ object Player {
     fun isDisplaysEnabled(player: Player): Boolean {
         return displaysEnabled.getOrDefault(player.uniqueId, true)
     }
+
+    @JvmStatic
+    fun getVersions(): Map<UUID?, Version?> {
+        return versions
+    }
 }

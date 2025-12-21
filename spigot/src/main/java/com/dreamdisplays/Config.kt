@@ -6,6 +6,7 @@ import com.moandjiezana.toml.Toml
 import me.inotsleep.utils.logging.LoggingManager
 import me.inotsleep.utils.storage.StorageSettings
 import org.bukkit.Material
+import org.bukkit.entity.Player
 import org.jspecify.annotations.NullMarked
 import java.io.File
 import java.nio.file.Files
@@ -25,6 +26,7 @@ class Config(private val plugin: Main) {
     lateinit var permissions: PermissionsSection
         private set
     val messages = mutableMapOf<String, Any>()
+    val languages = mutableMapOf<String, Map<String, Any>>()
 
     init {
         createDefaultConfig()
@@ -88,33 +90,32 @@ class Config(private val plugin: Main) {
 
     // Load messages from language file
     private fun loadMessages() {
-        val langFile = File(plugin.dataFolder, "lang/${language.messageLanguage}.json").takeIf { it.exists() }
-            ?: File(plugin.dataFolder, "lang/en.json").also {
-                LoggingManager.warn("Language file not found, using en.json")
+        languages.clear()
+        LANGUAGE_FILES.forEach { fileName ->
+            val langCode = fileName.removeSuffix(".json")
+            val langFile = File(plugin.dataFolder, "lang/$fileName")
+            if (langFile.exists()) {
+                runCatching {
+                    val msgs = GSON.fromJson<Map<String, Any>>(
+                        langFile.readText(),
+                        object : TypeToken<Map<String, Any>>() {}.type
+                    )
+                    languages[langCode] = msgs
+                }.onFailure {
+                    LoggingManager.error("Error loading language file: $fileName", it)
+                }
             }
-
-        if (!langFile.exists()) {
-            LoggingManager.error("Could not load any language file")
-            return
         }
-
-        runCatching {
-            val msgs = GSON.fromJson<Map<String, Any>>(
-                langFile.readText(),
-                object : TypeToken<Map<String, Any>>() {}.type
-            )
-            messages.clear()
-            messages.putAll(msgs)
-        }.onFailure {
-            LoggingManager.error("Error loading language file: ${language.messageLanguage}", it)
-        }
+        // Set default messages to en
+        messages.clear()
+        messages.putAll(languages["en"] ?: emptyMap())
     }
 
     // Configuration sections
     data class LanguageSection(
-        val message_language: String = "en"
+        val default_language: String = "en"
     ) {
-        val messageLanguage get() = message_language
+        val defaultLanguage get() = default_language
     }
 
     data class SettingsSection(
@@ -215,6 +216,8 @@ class Config(private val plugin: Main) {
         val list get() = permissions.list
         val reload get() = permissions.reload
         val updates get() = permissions.updates
+        val help get() = permissions.help
+        val stats get() = permissions.stats
 
         data class PermissionsConfig(
             val create: String = "dreamdisplays.create",
@@ -223,8 +226,25 @@ class Config(private val plugin: Main) {
             val delete: String = "dreamdisplays.delete",
             val list: String = "dreamdisplays.list",
             val reload: String = "dreamdisplays.reload",
-            val updates: String = "dreamdisplays.updates"
+            val updates: String = "dreamdisplays.updates",
+            val help: String = "dreamdisplays.help",
+            val stats: String = "dreamdisplays.stats"
         )
+    }
+
+    fun getMessageForPlayer(player: Player?, key: String): Any? {
+        val locale = player?.locale ?: "en_us"
+        val langCode = mapLocaleToLang(locale)
+        return languages[langCode]?.get(key) ?: messages[key]
+    }
+
+    private fun mapLocaleToLang(locale: String): String {
+        return when (locale.lowercase()) {
+            "ru_ru" -> "ru"
+            "uk_ua" -> "uk"
+            "pl_pl" -> "pl"
+            else -> "en"
+        }
     }
 
     companion object {

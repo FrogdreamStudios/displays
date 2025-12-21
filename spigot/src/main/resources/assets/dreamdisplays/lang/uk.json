@@ -10,9 +10,6 @@
   "structureWrongDepth": "&7D |&f Вибір повинен бути хоча б 1 блок у довжину",
   "wrongStructure": "&7D |&f Для дисплеїв можна використовувати тільки блоки чорного бетону",
   "selectionClear": "&7D |&f Вибір очищено!",
-  "displayCommandHelp": [
-    "&7D |&f Ви ввели щось неправильно!"
-  ],
   "successfulCreation": "&7D |&f Дисплей створено! Введіть /display video <посилання на youtube> [мова] щоб встановити відео",
   "noDisplay": "&7D |&f Дисплей не знайдено!",
   "settedURL": "&7D |&f Відео завантажено!",
@@ -22,15 +19,28 @@
   "displayDeleted": "&7D |&f Дисплей видалено!",
   "displayReported": "&7D |&f Дисплей було звіртено!",
   "reportNotConfigured": "&7D |&f Системи звітів немає на цьому сервері!",
-  "newVersion": "&7D |&f Нова версія Dream Displays (%s)! Будь ласка, оновіть!",
+  "newVersion": {
+    "text": "",
+    "extra": [
+      {"text": "D | ", "color": "#9D9D97"},
+      {"text": "Нова версія %s Dream Displays! Будь ласка, ", "color": "#FFFFFF"},
+      {
+        "text": "оновіть ваш мод",
+        "color": "#023EB6",
+        "underlined": true,
+        "clickEvent": {
+          "action": "open_url",
+          "value": "https://modrinth.com/plugin/dreamdisplays/versions"
+        },
+        "hoverEvent": {
+          "action": "show_text",
+          "value": "Клікніть, щоб завантажити нову версію"
+        }
+      },
+      {"text": "", "color": "#FFFFFF"}
+    ]
+  },
   "newPluginVersion": "&7D |&f Доступна нова версія плагіна Dream Displays (%s)! Будь ласка, оновіть плагін на сервері!",
-  "usageHeader": [
-    "&a-== Dream Displays ==-",
-    "&aВстановлено: &f{0}&7/&f{1}",
-    "&a-== Версії ==-"
-  ],
-  "usageVersionEntry": " &7- &f{0}&a: &f{1}",
-  "usageFooter": "&a-====== ======-",
   "configReloaded": "&7D | &fDream Displays перезавантажено!",
   "noDisplaysFound": "&7D |&f Дисплеї не знайдені",
   "displayListHeader": "&7D |&f Дисплеї:",
@@ -57,5 +67,22 @@
     ]
   },
   "display.enabled": "&7D |&f Дисплеї увімкнено",
-  "display.disabled": "&7D |&f Дисплеї вимкнено"
+  "display.disabled": "&7D |&f Дисплеї вимкнено",
+  "display.already-disabled": "&7D |&f Дисплеї вже вимкнено",
+  "display.already-enabled": "&7D |&f Дисплеї вже увімкнено",
+  "displayWrongCommand": "&7D |&f Ви ввели щось неправильно!",
+  "displayCommandMissingPermission": "&7D |&f У вас немає дозволу на використання цієї команди!",
+  "displayStatsHeader": "&7D |&f Статистика використання моду:",
+  "displayStatsEntry": "&7D |&f Версія %s: %d гравців",
+  "displayStatsTotal": "&7D |&f Загалом гравців з модом: %d",
+  "displayHelpHeader": "Доступні команди:",
+  "displayHelpCreate": "– /display create: створити новий дисплей",
+  "displayHelpVideo": "– /display video <url>: встановити відео для вашого дисплея",
+  "displayHelpDelete": "– /display delete: видалити дисплей, на який ви дивитеся",
+  "displayHelpList": "– /display list: список всіх дисплеїв",
+  "displayHelpStats": "– /display stats: показати статистику використання моду",
+  "displayHelpReload": "– /display reload: перезавантажити конфігурацію",
+  "displayHelpOn": "– /display on: увімкнути дисплеї",
+  "displayHelpOff": "– /display off: вимкнути дисплеї",
+  "displayHelpHelp": "– /display help: показати цю довідку"
 }

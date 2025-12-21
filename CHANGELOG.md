@@ -13,15 +13,18 @@ Mod:
 - [ ] Support single-player mode
 - [x] Add missing messages for some commands
 - [x] Fix an issue when after re-enabling displays they don't load until relog
-- [x] Unify client command /displays with server command /display
+- [x] Remove client command `/displays` and move its functionality to plugin's `/display` command
 - [ ] Fix reporting message not showing correctly
 - [ ] Show report button only if server has configured webhook URL
 
 Plugin:
+- [ ] New languages: Belarusian, Czech, German and Hebrew for plugin messages
+- [ ] Add config migrator from old versions of the plugin
 - [x] Improve permissions handling for `/display create` and `/display video`
-- [x] Improve /display list command output
-- [ ] Add /display help command
-- [ ] Add permission message when player lacks permission
+- [x] Add permission message when player lacks permission
+- [x] Improve `/display list` command output
+- [x] Add `/display help` and `/display stats` commands
+- [x] Fix wrong command usage message logic
 
 # Version 1.1.3
 Mod:

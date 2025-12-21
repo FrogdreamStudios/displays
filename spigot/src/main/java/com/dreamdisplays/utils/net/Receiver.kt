@@ -5,8 +5,10 @@ import com.dreamdisplays.datatypes.Sync
 import com.dreamdisplays.managers.Display
 import com.dreamdisplays.managers.Display.delete
 import com.dreamdisplays.managers.Display.report
+import com.dreamdisplays.managers.Player.hasBeenNotifiedAboutModRequired
 import com.dreamdisplays.managers.Player.hasBeenNotifiedAboutModUpdate
 import com.dreamdisplays.managers.Player.hasBeenNotifiedAboutPluginUpdate
+import com.dreamdisplays.managers.Player.setModRequiredNotified
 import com.dreamdisplays.managers.Player.setModUpdateNotified
 import com.dreamdisplays.managers.Player.setPluginUpdateNotified
 import com.dreamdisplays.managers.Player.setVersion
@@ -15,6 +17,9 @@ import com.dreamdisplays.managers.State.sendSyncPacket
 import com.dreamdisplays.utils.Message
 import com.dreamdisplays.utils.Utils
 import com.github.zafarkhaja.semver.Version
+import net.kyori.adventure.text.TextReplacementConfig
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
+import com.google.gson.Gson
 import me.inotsleep.utils.logging.LoggingManager
 import org.bukkit.entity.Player
 import org.bukkit.plugin.messaging.PluginMessageListener
@@ -96,9 +101,16 @@ class Receiver(var plugin: Main?) : PluginMessageListener {
             // Check for mod updates and notify all users with the mod
             val result = userVersion.compareTo(Main.modVersion)
             if (result < 0 && !hasBeenNotifiedAboutModUpdate(player)) {
-                val message = Main.config.messages["newVersion"] as? String
-                    ?: "&7D |&f New version of Dream Displays (%s) is available! Please update your mod!"
-                Message.sendColoredMessage(player, String.format(message, Main.modVersion.toString()))
+                val rawMessage = Main.config.messages["newVersion"]
+                val processedMessage = if (rawMessage is String) {
+                    String.format(rawMessage, Main.modVersion.toString())
+                } else {
+                    val gson = Gson()
+                    val jsonStr = gson.toJson(rawMessage)
+                    val component = GsonComponentSerializer.gson().deserialize(jsonStr)
+                    component.replaceText(TextReplacementConfig.builder().matchLiteral("%s").replacement(Main.modVersion.toString()).build())
+                }
+                Message.sendColoredMessage(player, processedMessage)
                 setModUpdateNotified(player, true)
             }
 
@@ -120,6 +132,19 @@ class Receiver(var plugin: Main?) : PluginMessageListener {
                         setPluginUpdateNotified(player, true)
                     }
                 }
+            }
+
+            // Check for mod detection and notify players without the mod
+            if (Main.config.settings.modDetectionEnabled && !hasBeenNotifiedAboutModRequired(player)) {
+                val modRequiredMessage = Main.config.getMessageForPlayer(player, "modRequired")
+                // Schedule the message to be sent after 30 seconds
+                val p = plugin
+                p?.server?.scheduler?.runTaskLater(p, Runnable {
+                    if (player.isOnline && !hasBeenNotifiedAboutModRequired(player)) {
+                        Message.sendColoredMessage(player, modRequiredMessage)
+                        setModRequiredNotified(player, true)
+                    }
+                }, 30 * 20L) // 30 seconds * 20 ticks per second
             }
         } catch (e: IOException) {
             LoggingManager.warn("Unable to decode VersionPacket", e)

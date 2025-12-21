@@ -2,8 +2,8 @@
 # Support: @arsmotorin (Telegram/Discord)
 
 [language]
-# Language code for messages
-message_language = "en"
+# Default language if no translation is available
+default_language = "en"
 
 [display]
 # Selection tool and base material
@@ -52,7 +52,9 @@ table_prefix = ""
 # Permission nodes
 create = "dreamdisplays.create"      # Default: everyone
 video = "dreamdisplays.video"        # Default: everyone
+help = "dreamdisplays.help"          # Default: everyone
 list = "dreamdisplays.list"          # Default: op
+stats = "dreamdisplays.stats"        # Default: op
 premium = "dreamdisplays.premium"    # Default: op
 delete = "dreamdisplays.delete"      # Default: op
 reload = "dreamdisplays.reload"      # Default: op

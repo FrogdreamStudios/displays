@@ -6,6 +6,7 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import org.bukkit.command.CommandSender
+import org.bukkit.entity.Player
 import org.jspecify.annotations.NullMarked
 
 @NullMarked
@@ -49,12 +50,7 @@ object Message {
     }
 
     fun sendMessage(player: CommandSender?, messageKey: String) {
-        val message = Main.config.messages[messageKey] as? String
+        val message = Main.config.getMessageForPlayer(player as? Player, messageKey)
         sendColoredMessage(player, message)
-    }
-
-    fun getMessages(messageKey: String): List<String>? {
-        @Suppress("UNCHECKED_CAST")
-        return Main.config.messages[messageKey] as? List<String>
     }
 }

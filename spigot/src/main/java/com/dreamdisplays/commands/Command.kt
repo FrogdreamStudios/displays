@@ -7,6 +7,8 @@ import com.dreamdisplays.utils.Message
 import com.dreamdisplays.utils.Utils
 import me.inotsleep.utils.AbstractCommand
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.event.ClickEvent
+import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
@@ -60,14 +62,20 @@ class Command : AbstractCommand(Main.getInstance().name, "display") {
             "delete" -> handleDelete(sender)
             "reload" -> handleReload(sender)
             "list" -> handleList(sender)
+            "stats" -> handleStats(sender)
+            "help" -> handleHelp(sender)
             "on" -> handleOn(sender)
             "off" -> handleOff(sender)
+            else -> msg(sender, "displayWrongCommand")
         }
     }
 
     private fun handleCreate(sender: CommandSender) {
         val player = sender as? Player ?: return
-        if (!player.hasPermission(Main.config.permissions.create)) return
+        if (!player.hasPermission(Main.config.permissions.create)) {
+            msg(player, "displayCommandMissingPermission")
+            return
+        }
 
         val sel = Selection.selectionPoints[player.uniqueId]
             ?: return msg(player, "noDisplayTerritories")
@@ -92,7 +100,10 @@ class Command : AbstractCommand(Main.getInstance().name, "display") {
 
     private fun handleDelete(sender: CommandSender) {
         val player = sender as? Player ?: return
-        if (!player.hasPermission(Main.config.permissions.delete)) return
+        if (!player.hasPermission(Main.config.permissions.delete)) {
+            msg(player, "displayCommandMissingPermission")
+            return
+        }
 
         val block = player.getTargetBlock(null, 32)
         if (block.type != Main.config.settings.baseMaterial) {
@@ -109,7 +120,7 @@ class Command : AbstractCommand(Main.getInstance().name, "display") {
 
     private fun handleReload(sender: CommandSender) {
         if (!sender.hasPermission(Main.config.permissions.reload)) {
-            sendHelp(sender)
+            msg(sender, "displayCommandMissingPermission")
             return
         }
 
@@ -118,8 +129,8 @@ class Command : AbstractCommand(Main.getInstance().name, "display") {
     }
 
     private fun handleList(sender: CommandSender) {
-        if (!sender.isOp) {
-            sendHelp(sender)
+        if (!sender.hasPermission(Main.config.permissions.list)) {
+            msg(sender, "displayCommandMissingPermission")
             return
         }
 
@@ -135,10 +146,13 @@ class Command : AbstractCommand(Main.getInstance().name, "display") {
         if (audiences != null) {
             displays.forEachIndexed { index, d ->
                 val owner = Bukkit.getOfflinePlayer(d.ownerId).name ?: "Unknown"
-                val locationText = "[${d.pos1.blockX}, ${d.pos1.blockY}, ${d.pos1.blockZ}]"
-                val component = Component.text("${index + 1}. Owner: $owner, Location: ")
-                    .append(Component.text(locationText))
-                    .append(Component.text(", URL: ${d.url}"))
+                val x = d.pos1.blockX
+                val y = d.pos1.blockY
+                val z = d.pos1.blockZ
+                val component = Component.text("${index + 1}. Owner: $owner. Location: ")
+                    .append(Component.text("[$x, $y, $z]").color(NamedTextColor.GOLD).clickEvent(ClickEvent.runCommand("/tp $x $y $z")))
+                    .append(Component.text(", URL: ").color(NamedTextColor.WHITE))
+                    .append(Component.text("[YouTube]").color(NamedTextColor.RED).clickEvent(ClickEvent.openUrl(d.url)))
                 Message.sendComponent(sender, component)
             }
         } else {
@@ -181,12 +195,71 @@ class Command : AbstractCommand(Main.getInstance().name, "display") {
         msg(player, "display.disabled")
     }
 
+    private fun handleStats(sender: CommandSender) {
+        if (!sender.hasPermission(Main.config.permissions.stats)) {
+            msg(sender, "displayCommandMissingPermission")
+            return
+        }
+
+        val versions = com.dreamdisplays.managers.Player.getVersions()
+        val total = versions.size
+        val versionCounts = versions.values.filterNotNull().groupingBy { it.toString() }.eachCount()
+
+        msg(sender, "displayStatsHeader")
+        for ((version, count) in versionCounts) {
+            val entry = Main.config.getMessageForPlayer(sender as? Player, "displayStatsEntry") as String
+            Message.sendColoredMessage(sender, String.format(entry, version, count))
+        }
+        val totalMsg = Main.config.getMessageForPlayer(sender as? Player, "displayStatsTotal") as String
+        Message.sendColoredMessage(sender, String.format(totalMsg, total))
+    }
+
+    private fun handleHelp(sender: CommandSender) {
+        if (!sender.hasPermission(Main.config.permissions.help)) {
+            msg(sender, "displayCommandMissingPermission")
+            return
+        }
+
+        val header = Main.config.getMessageForPlayer(sender as? Player, "displayHelpHeader")
+        Message.sendColoredMessage(sender, "&7D |&f $header")
+        if (sender.hasPermission(Main.config.permissions.create)) {
+            val create = Main.config.getMessageForPlayer(sender as? Player, "displayHelpCreate")
+            Message.sendColoredMessage(sender, "&f $create")
+        }
+        if (sender.hasPermission(Main.config.permissions.video)) {
+            val video = Main.config.getMessageForPlayer(sender as? Player, "displayHelpVideo")
+            Message.sendColoredMessage(sender, "&f $video")
+        }
+        if (sender.hasPermission(Main.config.permissions.delete)) {
+            val delete = Main.config.getMessageForPlayer(sender as? Player, "displayHelpDelete")
+            Message.sendColoredMessage(sender, "&f $delete")
+        }
+        if (sender.hasPermission(Main.config.permissions.list)) {
+            val list = Main.config.getMessageForPlayer(sender as? Player, "displayHelpList")
+            Message.sendColoredMessage(sender, "&f $list")
+        }
+        if (sender.hasPermission(Main.config.permissions.stats)) {
+            val stats = Main.config.getMessageForPlayer(sender as? Player, "displayHelpStats")
+            Message.sendColoredMessage(sender, "&f $stats")
+        }
+        if (sender.hasPermission(Main.config.permissions.reload)) {
+            val reload = Main.config.getMessageForPlayer(sender as? Player, "displayHelpReload")
+            Message.sendColoredMessage(sender, "&f $reload")
+        }
+        val on = Main.config.getMessageForPlayer(sender as? Player, "displayHelpOn")
+        Message.sendColoredMessage(sender, "&f $on")
+        val off = Main.config.getMessageForPlayer(sender as? Player, "displayHelpOff")
+        Message.sendColoredMessage(sender, "&f $off")
+        val help = Main.config.getMessageForPlayer(sender as? Player, "displayHelpHelp")
+        Message.sendColoredMessage(sender, "&f $help")
+    }
+
     private fun msg(sender: CommandSender?, key: String) {
         Message.sendMessage(sender, key)
     }
 
     private fun sendHelp(sender: CommandSender?) {
-        Message.sendColoredMessages(sender, Message.getMessages("displayCommandHelp"))
+        msg(sender, "displayWrongCommand")
     }
 
     override fun complete(sender: CommandSender, args: Array<String?>): MutableList<String?> {
@@ -195,13 +268,15 @@ class Command : AbstractCommand(Main.getInstance().name, "display") {
         val list = mutableListOf<String?>()
         val perms = Main.config.permissions
 
-        if (sender.hasPermission(perms.create)) list += "create"
-        if (sender.hasPermission(perms.video)) list += "video"
-        if (sender.hasPermission(perms.delete)) list += "delete"
-        if (sender.hasPermission(perms.list)) list += "list"
-        if (sender.hasPermission(perms.reload)) list += "reload"
-        list += "on"
-        list += "off"
+        if (sender.hasPermission(perms.create)) list += "create"    // Default: everyone
+        if (sender.hasPermission(perms.video)) list += "video"      // Default: everyone
+        if (sender.hasPermission(perms.delete)) list += "delete"    // Default: op
+        if (sender.hasPermission(perms.list)) list += "list"        // Default: op
+        if (sender.hasPermission(perms.reload)) list += "reload"    // Default: op
+        list += "on"    // Default: everyone, can't be restricted
+        list += "off"   // Default: everyone, can't be restricted
+        if (sender.hasPermission(perms.stats)) list += "stats"      // Default: op
+        if (sender.hasPermission(perms.help)) list += "help"        // Default: everyone
 
         return list
     }

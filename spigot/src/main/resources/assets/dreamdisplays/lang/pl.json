@@ -10,9 +10,6 @@
   "structureWrongDepth": "&7D |&f Wybór musi mieć co najmniej 1 blok długości",
   "wrongStructure": "&7D |&f Dla wyświetlaczy można używać tylko bloków czarnego betonu",
   "selectionClear": "&7D |&f Wybór wyczyszczony!",
-  "displayCommandHelp": [
-    "&7D |&f Wprowadziłeś coś nieprawidłowego!"
-  ],
   "successfulCreation": "&7D |&f Wyświetlacz utworzony! Wpisz /display video <link do youtube> [język] aby ustawić wideo",
   "noDisplay": "&7D |&f Wyświetlacz nie został znaleziony!",
   "settedURL": "&7D |&f Wideo załadowane!",
@@ -22,15 +19,28 @@
   "displayDeleted": "&7D |&f Wyświetlacz został usunięty!",
   "displayReported": "&7D |&f Wyświetlacz został zgłoszony!",
   "reportNotConfigured": "&7D |&f System raportowania jest wyłączony na tym serwerze!",
-  "newVersion": "&7D |&f Nowa wersja Dream Displays (%s)! Proszę zaktualizować!",
+  "newVersion": {
+    "text": "",
+    "extra": [
+      {"text": "D | ", "color": "#9D9D97"},
+      {"text": "Dostępna nowa wersja %s Dream Displays! Proszę ", "color": "#FFFFFF"},
+      {
+        "text": "zaktualizować swój mod",
+        "color": "#023EB6",
+        "underlined": true,
+        "clickEvent": {
+          "action": "open_url",
+          "value": "https://modrinth.com/plugin/dreamdisplays/versions"
+        },
+        "hoverEvent": {
+          "action": "show_text",
+          "value": "Kliknij, aby pobrać nową wersję"
+        }
+      },
+      {"text": "", "color": "#FFFFFF"}
+    ]
+  },
   "newPluginVersion": "&7D |&f Nowa wersja pluginu Dream Displays (%s)! Proszę zaktualizować go na serwerze!",
-  "usageHeader": [
-    "&a-== Dream Displays ==-",
-    "&aZainstalowane: &f{0}&7/&f{1}",
-    "&a-== Wersje ==-"
-  ],
-  "usageVersionEntry": " &7- &f{0}&a: &f{1}",
-  "usageFooter": "&a-====== ======-",
   "configReloaded": "&7D | &fDream Displays został przeładowany!",
   "noDisplaysFound": "&7D |&f Nie znaleziono wyświetlaczy",
   "displayListHeader": "&7D |&f Wyświetlacze:",
@@ -57,5 +67,22 @@
     ]
   },
   "display.enabled": "&7D |&f Wyświetlacze włączone",
-  "display.disabled": "&7D |&f Wyświetlacze wyłączone"
+  "display.disabled": "&7D |&f Wyświetlacze wyłączone",
+  "display.already-disabled": "&7D |&f Wyświetlacze są już wyłączone",
+  "display.already-enabled": "&7D |&f Wyświetlacze są już włączone",
+  "displayWrongCommand": "&7D |&f Wprowadziłeś coś nieprawidłowego!",
+  "displayCommandMissingPermission": "&7D |&f Nie masz uprawnień do użycia tego polecenia!",
+  "displayStatsHeader": "&7D |&f Statystyki użycia modu:",
+  "displayStatsEntry": "&7D |&f Wersja %s: %d graczy",
+  "displayStatsTotal": "&7D |&f Łącznie graczy z modem: %d",
+  "displayHelpHeader": "Dostępne polecenia:",
+  "displayHelpCreate": "– /display create: utwórz nowy wyświetlacz",
+  "displayHelpVideo": "– /display video <url>: ustaw wideo dla swojego wyświetlacza",
+  "displayHelpDelete": "– /display delete: usuń wyświetlacz, na który patrzysz",
+  "displayHelpList": "– /display list: lista wszystkich wyświetlaczy",
+  "displayHelpStats": "– /display stats: pokaż statystyki użycia modu",
+  "displayHelpReload": "– /display reload: przeładuj konfigurację",
+  "displayHelpOn": "– /display on: włącz wyświetlacze",
+  "displayHelpOff": "– /display off: wyłącz wyświetlacze",
+  "displayHelpHelp": "– /display help: pokaż tę pomoc"
 }
