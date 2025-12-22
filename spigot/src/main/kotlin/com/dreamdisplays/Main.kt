@@ -1,6 +1,6 @@
 package com.dreamdisplays
 
-import com.dreamdisplays.commands.CommandManager
+import com.dreamdisplays.commands.DisplayCommand
 import com.dreamdisplays.listeners.Player
 import com.dreamdisplays.listeners.Selection
 import com.dreamdisplays.managers.DisplayManager
@@ -65,7 +65,11 @@ class Main : AbstractPlugin<Main>() {
         storage.onDisable()
     }
 
-    fun registerCommands() = CommandManager()
+    fun registerCommands() {
+        val displayCommand = DisplayCommand()
+        getCommand("display")?.setExecutor(displayCommand)
+        getCommand("display")?.tabCompleter = displayCommand
+    }
 
     private fun registerChannels() {
         val messenger = server.messenger
