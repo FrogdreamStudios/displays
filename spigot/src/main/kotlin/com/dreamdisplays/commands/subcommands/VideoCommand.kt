@@ -1,7 +1,9 @@
 package com.dreamdisplays.commands.subcommands
 
 import com.dreamdisplays.Main
+import com.dreamdisplays.managers.DisplayManager.getReceivers
 import com.dreamdisplays.managers.DisplayManager.isContains
+import com.dreamdisplays.managers.DisplayManager.sendUpdate
 import com.dreamdisplays.utils.Message
 import com.dreamdisplays.utils.Utils
 import org.bukkit.command.CommandSender
@@ -38,8 +40,9 @@ class VideoCommand : SubCommand {
             url = "https://youtube.com/watch?v=$code"
             lang = args.getOrNull(2).orEmpty()
             isSync = false
-            sendUpdatePacket(receivers)
         }
+
+        sendUpdate(data, getReceivers(data))
 
         Message.sendMessage(player, "settedURL")
     }

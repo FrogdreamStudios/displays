@@ -128,7 +128,7 @@ class StorageManager(var plugin: Main) {
                     data.pos2.blockZ
                 ),
                 pack(data.width, data.height),
-                data.facing?.ordinal?.toByte() ?: 0,
+                data.facing.ordinal.toByte(),
                 data.isSync,
                 data.duration,
                 data.lang

@@ -16,6 +16,8 @@ Mod:
 - [ ] Add action bar messages when player looks at display
 - [ ] Fix desynchronization after player relog
 - [ ] Support natives
+- [ ] Store paused state of display
+- [ ] Fix playing videos after changing quality
 
 Plugin:
 

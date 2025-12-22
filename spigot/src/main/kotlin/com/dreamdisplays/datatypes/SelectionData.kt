@@ -11,32 +11,23 @@ import java.util.*
 
 @NullMarked
 class SelectionData(player: Player) {
-    @JvmField
     var pos1: Location? = null
-
-    @JvmField
     var pos2: Location? = null
+    var isReady: Boolean = false
+
     private var face: BlockFace? = null
     private val playerId: UUID = player.uniqueId
 
-    @JvmField
-    var isReady: Boolean = false
-
-    fun setFace(blockFace: BlockFace) {
-        this.face = blockFace
+    fun setFace(face: BlockFace) {
+        this.face = face
     }
 
-    fun getFace(): BlockFace {
-        return face ?: throw IllegalStateException("Face is not set")
-    }
+    fun getFace(): BlockFace = face ?: BlockFace.NORTH
 
     fun drawBox() {
         val p1 = pos1 ?: return
         val p2 = pos2 ?: return
-
         val player = Bukkit.getPlayer(playerId) ?: return
-
-        // Show full 3D outline of the display
         Outliner.showOutline(player, p1, p2)
     }
 

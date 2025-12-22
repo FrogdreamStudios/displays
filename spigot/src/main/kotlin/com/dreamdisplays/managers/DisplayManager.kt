@@ -26,9 +26,41 @@ object DisplayManager {
 
     fun getDisplays(): List<DisplayData> = displays.values.toList()
 
-    fun register(displayData: DisplayData) {
-        displays[displayData.id] = displayData
-        displayData.sendUpdatePacket(displayData.receivers)
+    fun isContains(location: Location): DisplayData? {
+        return displays.values.firstOrNull { display ->
+            display.pos1.world == location.world && display.box.contains(location.toVector())
+        }
+    }
+
+    fun isOverlaps(data: SelectionData): Boolean {
+        val pos1 = data.pos1 ?: return false
+        val pos2 = data.pos2 ?: return false
+        val selWorld = pos1.world
+
+        val region = Region.calculateRegion(pos1, pos2)
+        val box = BoundingBox(
+            region.minX.toDouble(),
+            region.minY.toDouble(),
+            region.minZ.toDouble(),
+            (region.maxX + 1).toDouble(),
+            (region.maxY + 1).toDouble(),
+            (region.maxZ + 1).toDouble()
+        )
+
+        return displays.values.any { display ->
+            display.pos1.world == selWorld && box.overlaps(display.box)
+        }
+    }
+
+    fun register(data: DisplayData) {
+        displays[data.id] = data
+        sendUpdate(data, getReceivers(data))
+    }
+
+    fun register(list: List<DisplayData>) {
+        list.forEach { display ->
+            displays[display.id] = display
+        }
     }
 
     fun updateAllDisplays() {
@@ -42,11 +74,43 @@ object DisplayManager {
             val worldPlayers = playersByWorld[world] ?: mutableListOf()
 
             val receivers = worldPlayers.filter { player ->
-                display.isInRange(player.location)
+                player.location.isInRange(display)
             }.toMutableList()
 
-            display.sendUpdatePacket(receivers)
+            sendUpdate(display, receivers)
         }
+    }
+
+    fun getReceivers(display: DisplayData): List<Player> =
+        display.pos1.world?.players
+            ?.filter { it.location.isInRange(display) }
+            ?: emptyList()
+
+    private fun Location.isInRange(display: DisplayData): Boolean {
+        val maxRender = Main.config.settings.maxRenderDistance
+        val clampedX = blockX.coerceIn(display.box.minX.toInt(), display.box.maxX.toInt())
+        val clampedY = blockY.coerceIn(display.box.minY.toInt(), display.box.maxY.toInt())
+        val clampedZ = blockZ.coerceIn(display.box.minZ.toInt(), display.box.maxZ.toInt())
+        val dx = blockX - clampedX
+        val dy = blockY - clampedY
+        val dz = blockZ - clampedZ
+        return dx * dx + dy * dy + dz * dz <= maxRender * maxRender
+    }
+
+    fun sendUpdate(display: DisplayData, players: List<Player>) {
+        @Suppress("UNCHECKED_CAST")
+        Utils.sendDisplayInfoPacket(
+            players as MutableList<Player?>,
+            display.id,
+            display.ownerId,
+            display.box.min,
+            display.width,
+            display.height,
+            display.url,
+            display.lang,
+            display.facing,
+            display.isSync
+        )
     }
 
     fun delete(displayData: DisplayData) {
@@ -55,7 +119,7 @@ object DisplayManager {
         }
 
         @Suppress("UNCHECKED_CAST")
-        Utils.sendDeletePacket(displayData.receivers as MutableList<Player?>, displayData.id)
+        Utils.sendDeletePacket(getReceivers(displayData) as MutableList<Player?>, displayData.id)
         displays.remove(displayData.id)
     }
 
@@ -85,9 +149,7 @@ object DisplayManager {
 
         Scheduler.runAsync {
             try {
-                if (Main.config.settings.webhookUrl.isEmpty()) {
-                    return@runAsync
-                }
+                if (Main.config.settings.webhookUrl.isEmpty()) return@runAsync
                 Reporter.sendReport(
                     displayData.pos1,
                     displayData.url,
@@ -101,38 +163,6 @@ object DisplayManager {
                 Main.getInstance().logger.severe("Unable to send webhook message: ${e.message}")
                 Scheduler.runSync { Message.sendMessage(player, "reportFailed") }
             }
-        }
-    }
-
-    fun isOverlaps(data: SelectionData): Boolean {
-        val pos1 = data.pos1 ?: return false
-        val pos2 = data.pos2 ?: return false
-        val selWorld = pos1.world
-
-        val region = Region.calculateRegion(pos1, pos2)
-        val box = BoundingBox(
-            region.minX.toDouble(),
-            region.minY.toDouble(),
-            region.minZ.toDouble(),
-            (region.maxX + 1).toDouble(),
-            (region.maxY + 1).toDouble(),
-            (region.maxZ + 1).toDouble()
-        )
-
-        return displays.values.any { display ->
-            display.pos1.world == selWorld && box.overlaps(display.box)
-        }
-    }
-
-    fun isContains(location: Location): DisplayData? {
-        return displays.values.firstOrNull { display ->
-            display.pos1.world == location.world && display.box.contains(location.toVector())
-        }
-    }
-
-    fun register(list: List<DisplayData>) {
-        list.forEach { display ->
-            displays[display.id] = display
         }
     }
 

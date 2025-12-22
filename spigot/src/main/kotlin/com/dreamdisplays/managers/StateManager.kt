@@ -3,6 +3,7 @@ package com.dreamdisplays.managers
 import com.dreamdisplays.datatypes.StateData
 import com.dreamdisplays.datatypes.SyncData
 import com.dreamdisplays.managers.DisplayManager.getDisplayData
+import com.dreamdisplays.managers.DisplayManager.getReceivers
 import com.dreamdisplays.utils.net.Utils
 import me.inotsleep.utils.logging.LoggingManager
 import org.bukkit.entity.Player
@@ -33,7 +34,8 @@ object StateManager {
         val state = playStates.computeIfAbsent(packet.id) { id: UUID? -> StateData(id) }
         state.update(packet)
         data.duration = packet.limitTime
-        val receivers = data.receivers
+
+        val receivers = getReceivers(data)
 
         Utils.sendSyncPacket(receivers.filter { it.uniqueId != player.uniqueId }.toMutableList(), packet)
     }

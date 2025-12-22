@@ -6,9 +6,9 @@ import java.util.*
 @NullMarked
 @JvmRecord
 data class SyncData(
-    @JvmField val id: UUID?,
-    @JvmField val isSync: Boolean,
-    @JvmField val currentState: Boolean,
-    @JvmField val currentTime: Long,
-    @JvmField val limitTime: Long
+    val id: UUID?,
+    val isSync: Boolean,
+    val currentState: Boolean,
+    val currentTime: Long,
+    val limitTime: Long
 )

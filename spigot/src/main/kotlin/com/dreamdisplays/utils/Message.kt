@@ -12,6 +12,7 @@ import org.jspecify.annotations.NullMarked
 @NullMarked
 object Message {
     fun sendColoredMessage(player: CommandSender?, message: Any?) {
+        // Universal realization
         if (player == null || message == null) return
         if (message is Component) {
             val audiences = Main.getInstance().audiences
@@ -23,6 +24,7 @@ object Message {
                 player.sendMessage(plain)
             }
         } else if (message is String) {
+            // Legacy realization
             val component = LegacyComponentSerializer.legacyAmpersand().deserialize(message)
             val audiences = Main.getInstance().audiences
             if (audiences != null) {
@@ -31,6 +33,7 @@ object Message {
                 player.sendMessage(message)
             }
         } else {
+            // Bukkit realization
             val gson = Gson()
             val jsonStr = gson.toJson(message)
             val component = GsonComponentSerializer.gson().deserialize(jsonStr)
