@@ -13,7 +13,16 @@ import org.jspecify.annotations.NullMarked
 object Message {
     fun sendColoredMessage(player: CommandSender?, message: Any?) {
         if (player == null || message == null) return
-        if (message is String) {
+        if (message is Component) {
+            val audiences = Main.getInstance().audiences
+            if (audiences != null) {
+                audiences.sender(player).sendMessage(message)
+            } else {
+                val plain = LegacyComponentSerializer.legacyAmpersand().serialize(message)
+                    .replace(Regex("&[0-9a-fk-or]"), "") + " (https://modrinth.com/plugin/dreamdisplays)"
+                player.sendMessage(plain)
+            }
+        } else if (message is String) {
             val component = LegacyComponentSerializer.legacyAmpersand().deserialize(message)
             val audiences = Main.getInstance().audiences
             if (audiences != null) {
@@ -32,15 +41,6 @@ object Message {
                 val plain = LegacyComponentSerializer.legacyAmpersand().serialize(component)
                     .replace(Regex("&[0-9a-fk-or]"), "") + " (https://modrinth.com/plugin/dreamdisplays)"
                 player.sendMessage(plain)
-            }
-        }
-    }
-
-    fun sendColoredMessages(player: CommandSender?, messages: List<String?>?) {
-        if (player == null || messages == null) return
-        messages.forEach { message ->
-            if (message != null) {
-                sendColoredMessage(player, message)
             }
         }
     }
