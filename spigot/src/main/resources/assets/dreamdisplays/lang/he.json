@@ -12,7 +12,7 @@
   "selectionClear": "&7D |&f הבחירה נמחקה!",
   "displayWrongCommand": "&7D |&f הקלדת משהו לא נכון!",
   "displayCommandMissingPermission": "&7D |&f אין לך הרשאה להשתמש בפקודה זו!",
-  "successfulCreation": "&7D |&f התצוגה נוצרה! הקלד /display video <קישור YouTube> [שפה] כדי להגדיר וידאו",
+  "successfulCreation": "&7D |&f התצוגה נוצרה! כעת התרכז בה והקלד /display video <youtube_url> [lang] כדי להגדיר וידאו",
   "noDisplay": "&7D |&f התצוגה לא נמצאה!",
   "settedURL": "&7D |&f הוידאו נטען!",
   "invalidURL": "&7D |&f הקישור שלך לא תקין! אנא השתמש בקישור YouTube תקין",

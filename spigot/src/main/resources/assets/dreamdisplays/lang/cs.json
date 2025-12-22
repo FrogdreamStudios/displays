@@ -12,7 +12,7 @@
   "selectionClear": "&7D |&f Výběr byl vymazán!",
   "displayWrongCommand": "&7D |&f Zadali jste něco špatného!",
   "displayCommandMissingPermission": "&7D |&f Nemáte oprávnění k použití tohoto příkazu!",
-  "successfulCreation": "&7D |&f Displej byl vytvořen! Zadejte /display video <YouTube odkaz> [jazyk] pro nastavení videa",
+  "successfulCreation": "&7D |&f Displej byl vytvořen! Nyní se na něj zaměřte a zadejte /display video <youtube_url> [lang] pro nastavení videa",
   "noDisplay": "&7D |&f Displej nebyl nalezen!",
   "settedURL": "&7D |&f Video bylo načteno!",
   "invalidURL": "&7D |&f Váš odkaz je neplatný! Použijte prosím platný YouTube odkaz",

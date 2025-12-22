@@ -12,7 +12,7 @@
   "selectionClear": "&7D |&f Выбар быў ачышчаны!",
   "displayWrongCommand": "&7D |&f Вы ўвялі нешта няправільнае!",
   "displayCommandMissingPermission": "&7D |&f У вас няма дазволу на выкарыстанне гэтай каманды!",
-  "successfulCreation": "&7D |&f Дысплей быў створаны! Увядзіце /display video <YouTube спасылка> [мова] для ўстаноўкі відэа",
+  "successfulCreation": "&7D |&f Дысплей быў створаны! Цяпер сфакусуйцеся на ім і ўвядзіце /display video <youtube_url> [lang], каб усталяваць відэа",
   "noDisplay": "&7D |&f Дысплей не знойдзены!",
   "settedURL": "&7D |&f Відэа было загружана!",
   "invalidURL": "&7D |&f Ваша спасылка несапраўдная! Калі ласка, выкарыстоўвайце сапраўдную YouTube спасылку",

@@ -10,7 +10,7 @@
   "structureWrongDepth": "&7D |&f Wybór musi mieć co najmniej 1 blok długości",
   "wrongStructure": "&7D |&f Dla wyświetlaczy można używać tylko bloków czarnego betonu",
   "selectionClear": "&7D |&f Wybór wyczyszczony!",
-  "successfulCreation": "&7D |&f Wyświetlacz utworzony! Wpisz /display video <link do youtube> [język] aby ustawić wideo",
+  "successfulCreation": "&7D |&f Wyświetlacz utworzony! Teraz skup się na nim i wpisz /display video <youtube_url> [lang], aby ustawić wideo",
   "noDisplay": "&7D |&f Wyświetlacz nie został znaleziony!",
   "settedURL": "&7D |&f Wideo załadowane!",
   "invalidURL": "&7D |&f Twój link jest nieprawidłowy! Proszę użyć prawidłowego linku YouTube",
