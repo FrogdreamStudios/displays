@@ -1,10 +1,12 @@
 package com.dreamdisplays.listeners
 
-import com.dreamdisplays.Main
-import com.dreamdisplays.managers.Player
-import com.dreamdisplays.managers.Player.hasBeenNotifiedAboutModRequired
-import com.dreamdisplays.managers.Player.setModRequiredNotified
-import com.dreamdisplays.utils.Message
+import com.dreamdisplays.Main.Companion.config
+import com.dreamdisplays.Main.Companion.getInstance
+import com.dreamdisplays.managers.PlayerManager
+import com.dreamdisplays.managers.PlayerManager.hasBeenNotifiedAboutModRequired
+import com.dreamdisplays.managers.PlayerManager.setModRequiredNotified
+import com.dreamdisplays.managers.DisplayManager.getDisplays
+import com.dreamdisplays.utils.Message.sendColoredMessage
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
@@ -16,12 +18,13 @@ class Player : Listener {
     @EventHandler
     fun onPlayerJoin(event: PlayerJoinEvent) {
         val player = event.player
-        if (!Main.config.settings.modDetectionEnabled) return
+        if (!config.settings.modDetectionEnabled) return
+        if (getDisplays().isEmpty()) return
 
-        Main.getInstance().server.scheduler.runTaskLater(Main.getInstance(), Runnable {
-            if (Player.getVersion(player) == null && !hasBeenNotifiedAboutModRequired(player)) {
-                val message = Main.config.messages["modRequired"]
-                Message.sendColoredMessage(player, message)
+        getInstance().server.scheduler.runTaskLater(getInstance(), Runnable {
+            if (PlayerManager.getVersion(player) == null && !hasBeenNotifiedAboutModRequired(player)) {
+                val message = config.messages["modRequired"]
+                sendColoredMessage(player, message)
                 setModRequiredNotified(player, true)
             }
         }, 600L)
@@ -29,6 +32,6 @@ class Player : Listener {
 
     @EventHandler
     fun onPlayerLeave(event: PlayerQuitEvent) {
-        Player.removeVersion(event.getPlayer())
+        PlayerManager.removeVersion(event.getPlayer())
     }
 }

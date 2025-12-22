@@ -5,7 +5,7 @@ import org.jspecify.annotations.NullMarked
 import java.lang.reflect.Proxy
 
 @NullMarked
-object Folia : Adapter {
+object FoliaScheduler : AdapterScheduler {
 
     private val asyncScheduler = Class.forName("org.bukkit.Bukkit")
         .getMethod("getAsyncScheduler").invoke(null)

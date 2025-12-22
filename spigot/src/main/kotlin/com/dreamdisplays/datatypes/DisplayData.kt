@@ -13,7 +13,7 @@ import kotlin.math.min
 import com.dreamdisplays.utils.net.Utils as Net
 
 @NullMarked
-class Display(
+class DisplayData(
     val id: UUID,
     val ownerId: UUID,
     val pos1: Location,

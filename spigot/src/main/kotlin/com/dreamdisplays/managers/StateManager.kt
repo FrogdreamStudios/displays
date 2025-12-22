@@ -1,8 +1,8 @@
 package com.dreamdisplays.managers
 
-import com.dreamdisplays.datatypes.State
-import com.dreamdisplays.datatypes.Sync
-import com.dreamdisplays.managers.Display.getDisplayData
+import com.dreamdisplays.datatypes.StateData
+import com.dreamdisplays.datatypes.SyncData
+import com.dreamdisplays.managers.DisplayManager.getDisplayData
 import com.dreamdisplays.utils.net.Utils
 import me.inotsleep.utils.logging.LoggingManager
 import org.bukkit.entity.Player
@@ -10,11 +10,11 @@ import org.jspecify.annotations.NullMarked
 import java.util.*
 
 @NullMarked
-object State {
-    private val playStates: MutableMap<UUID?, State> = HashMap<UUID?, State>()
+object StateManager {
+    private val playStates: MutableMap<UUID?, StateData> = HashMap<UUID?, StateData>()
 
     @JvmStatic
-    fun processSyncPacket(packet: Sync, player: Player) {
+    fun processSyncPacket(packet: SyncData, player: Player) {
         val data = getDisplayData(packet.id)
         if (data != null) data.isSync = packet.isSync
 
@@ -30,7 +30,7 @@ object State {
             return
         }
 
-        val state = playStates.computeIfAbsent(packet.id) { id: UUID? -> State(id) }
+        val state = playStates.computeIfAbsent(packet.id) { id: UUID? -> StateData(id) }
         state.update(packet)
         data.duration = packet.limitTime
         val receivers = data.receivers

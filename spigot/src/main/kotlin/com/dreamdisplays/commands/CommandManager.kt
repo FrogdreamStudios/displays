@@ -2,7 +2,7 @@ package com.dreamdisplays.commands
 
 import com.dreamdisplays.Main
 import com.dreamdisplays.listeners.Selection
-import com.dreamdisplays.managers.Display
+import com.dreamdisplays.managers.DisplayManager
 import com.dreamdisplays.utils.Message
 import com.dreamdisplays.utils.Utils
 import me.inotsleep.utils.AbstractCommand
@@ -15,7 +15,7 @@ import org.bukkit.entity.Player
 import org.jspecify.annotations.NullMarked
 
 @NullMarked
-class Command : AbstractCommand(Main.getInstance().name, "display") {
+class CommandManager : AbstractCommand(Main.getInstance().name, "display") {
 
     override fun toExecute(sender: CommandSender, s: String?, args: Array<String?>) {
         when (args.size) {
@@ -36,7 +36,7 @@ class Command : AbstractCommand(Main.getInstance().name, "display") {
             return
         }
 
-        val data = Display.isContains(block.location)
+        val data = DisplayManager.isContains(block.location)
         if (data == null || data.ownerId != player.uniqueId) {
             msg(player, "noDisplay")
             return
@@ -86,7 +86,7 @@ class Command : AbstractCommand(Main.getInstance().name, "display") {
             return
         }
 
-        if (Display.isOverlaps(sel)) {
+        if (DisplayManager.isOverlaps(sel)) {
             msg(player, "displayOverlap")
             return
         }
@@ -94,7 +94,7 @@ class Command : AbstractCommand(Main.getInstance().name, "display") {
         val displayData = sel.generateDisplayData()
         Selection.selectionPoints.remove(player.uniqueId)
 
-        Display.register(displayData)
+        DisplayManager.register(displayData)
         msg(player, "successfulCreation")
     }
 
@@ -111,10 +111,10 @@ class Command : AbstractCommand(Main.getInstance().name, "display") {
             return
         }
 
-        val data = Display.isContains(block.location)
+        val data = DisplayManager.isContains(block.location)
             ?: return msg(player, "noDisplay")
 
-        Display.delete(data)
+        DisplayManager.delete(data)
         msg(player, "displayDeleted")
     }
 
@@ -134,7 +134,7 @@ class Command : AbstractCommand(Main.getInstance().name, "display") {
             return
         }
 
-        val displays = Display.getDisplays()
+        val displays = DisplayManager.getDisplays()
         if (displays.isEmpty()) {
             msg(sender, "noDisplaysFound")
             return
@@ -178,22 +178,22 @@ class Command : AbstractCommand(Main.getInstance().name, "display") {
 
     private fun handleOn(sender: CommandSender) {
         val player = sender as? Player ?: return
-        if (com.dreamdisplays.managers.Player.isDisplaysEnabled(player)) {
+        if (com.dreamdisplays.managers.PlayerManager.isDisplaysEnabled(player)) {
             msg(player, "display.already-enabled")
             return
         }
-        com.dreamdisplays.managers.Player.setDisplaysEnabled(player, true)
+        com.dreamdisplays.managers.PlayerManager.setDisplaysEnabled(player, true)
         com.dreamdisplays.utils.net.Utils.sendDisplayEnabledPacket(player, true)
         msg(player, "display.enabled")
     }
 
     private fun handleOff(sender: CommandSender) {
         val player = sender as? Player ?: return
-        if (!com.dreamdisplays.managers.Player.isDisplaysEnabled(player)) {
+        if (!com.dreamdisplays.managers.PlayerManager.isDisplaysEnabled(player)) {
             msg(player, "display.already-disabled")
             return
         }
-        com.dreamdisplays.managers.Player.setDisplaysEnabled(player, false)
+        com.dreamdisplays.managers.PlayerManager.setDisplaysEnabled(player, false)
         com.dreamdisplays.utils.net.Utils.sendDisplayEnabledPacket(player, false)
         msg(player, "display.disabled")
     }
@@ -204,7 +204,7 @@ class Command : AbstractCommand(Main.getInstance().name, "display") {
             return
         }
 
-        val versions = com.dreamdisplays.managers.Player.getVersions()
+        val versions = com.dreamdisplays.managers.PlayerManager.getVersions()
         val total = versions.size
         val versionCounts = versions.values.filterNotNull().groupingBy { it.toString() }.eachCount()
 

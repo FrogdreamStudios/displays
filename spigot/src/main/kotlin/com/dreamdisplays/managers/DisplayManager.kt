@@ -17,7 +17,7 @@ import java.util.*
 import java.util.function.Consumer
 
 @NullMarked
-object Display {
+object DisplayManager {
     private val displays: MutableMap<UUID, DisplayData> = mutableMapOf()
     private val reportTime: MutableMap<UUID, Long> = mutableMapOf()
 

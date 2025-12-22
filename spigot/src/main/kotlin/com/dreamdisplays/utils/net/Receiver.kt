@@ -1,17 +1,17 @@
 package com.dreamdisplays.utils.net
 
 import com.dreamdisplays.Main
-import com.dreamdisplays.datatypes.Sync
-import com.dreamdisplays.managers.Display
-import com.dreamdisplays.managers.Display.delete
-import com.dreamdisplays.managers.Display.report
-import com.dreamdisplays.managers.Player.hasBeenNotifiedAboutModUpdate
-import com.dreamdisplays.managers.Player.hasBeenNotifiedAboutPluginUpdate
-import com.dreamdisplays.managers.Player.setModUpdateNotified
-import com.dreamdisplays.managers.Player.setPluginUpdateNotified
-import com.dreamdisplays.managers.Player.setVersion
-import com.dreamdisplays.managers.State.processSyncPacket
-import com.dreamdisplays.managers.State.sendSyncPacket
+import com.dreamdisplays.datatypes.SyncData
+import com.dreamdisplays.managers.DisplayManager
+import com.dreamdisplays.managers.DisplayManager.delete
+import com.dreamdisplays.managers.DisplayManager.report
+import com.dreamdisplays.managers.PlayerManager.hasBeenNotifiedAboutModUpdate
+import com.dreamdisplays.managers.PlayerManager.hasBeenNotifiedAboutPluginUpdate
+import com.dreamdisplays.managers.PlayerManager.setModUpdateNotified
+import com.dreamdisplays.managers.PlayerManager.setPluginUpdateNotified
+import com.dreamdisplays.managers.PlayerManager.setVersion
+import com.dreamdisplays.managers.StateManager.processSyncPacket
+import com.dreamdisplays.managers.StateManager.sendSyncPacket
 import com.dreamdisplays.utils.Message
 import com.dreamdisplays.utils.Utils
 import com.github.zafarkhaja.semver.Version
@@ -150,7 +150,7 @@ class Receiver(var plugin: Main?) : PluginMessageListener {
             val currentTime = Net.readVarLong(`in`)
             val limitTime = Net.readVarLong(`in`)
 
-            val packet = Sync(id, isSync, currentState, currentTime, limitTime)
+            val packet = SyncData(id, isSync, currentState, currentTime, limitTime)
             processSyncPacket(packet, player)
         } catch (e: IOException) {
             LoggingManager.warn("Unable to decode SyncPacket", e)
@@ -171,14 +171,14 @@ class Receiver(var plugin: Main?) : PluginMessageListener {
         try {
             val `in` = DataInputStream(ByteArrayInputStream(message))
             val enabled = `in`.readBoolean()
-            com.dreamdisplays.managers.Player.setDisplaysEnabled(player, enabled)
+            com.dreamdisplays.managers.PlayerManager.setDisplaysEnabled(player, enabled)
         } catch (e: IOException) {
             LoggingManager.warn("Unable to decode DisplayEnabledPacket", e)
         }
     }
 
     private fun sendAllDisplaysToPlayer(player: Player) {
-        val displays = Display.getDisplays()
+        val displays = DisplayManager.getDisplays()
         val playerList = mutableListOf<Player?>(player)
 
         for (display in displays) {

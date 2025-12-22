@@ -10,7 +10,7 @@ import org.jspecify.annotations.NullMarked
 import java.util.*
 
 @NullMarked
-class Selection(player: Player) {
+class SelectionData(player: Player) {
     @JvmField
     var pos1: Location? = null
 
@@ -40,7 +40,7 @@ class Selection(player: Player) {
         Outliner.showOutline(player, p1, p2)
     }
 
-    fun generateDisplayData(): Display {
+    fun generateDisplayData(): DisplayData {
         val p1 = pos1 ?: throw IllegalStateException("pos1 is not set")
         val p2 = pos2 ?: throw IllegalStateException("pos2 is not set")
         val f = face ?: throw IllegalStateException("face is not set")
@@ -49,6 +49,6 @@ class Selection(player: Player) {
         val dPos1 = region.getMinLocation(p1.world)
         val dPos2 = region.getMaxLocation(p1.world)
 
-        return Display(UUID.randomUUID(), playerId, dPos1, dPos2, region.width, region.height, f)
+        return DisplayData(UUID.randomUUID(), playerId, dPos1, dPos2, region.width, region.height, f)
     }
 }

@@ -5,7 +5,7 @@ import java.util.*
 
 @NullMarked
 @JvmRecord
-data class Sync(
+data class SyncData(
     @JvmField val id: UUID?,
     @JvmField val isSync: Boolean,
     @JvmField val currentState: Boolean,

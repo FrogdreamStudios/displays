@@ -4,6 +4,6 @@ import org.bukkit.plugin.Plugin
 import org.jspecify.annotations.NullMarked
 
 @NullMarked
-interface Adapter {
+interface AdapterScheduler {
     fun runRepeatingAsync(plugin: Plugin, delayTicks: Long, intervalTicks: Long, task: Runnable)
 }

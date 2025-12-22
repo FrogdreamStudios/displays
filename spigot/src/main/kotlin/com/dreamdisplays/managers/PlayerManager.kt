@@ -6,7 +6,7 @@ import org.jspecify.annotations.NullMarked
 import java.util.*
 
 @NullMarked
-object Player {
+object PlayerManager {
     private val versions: MutableMap<UUID?, Version?> = HashMap<UUID?, Version?>()
     private val modUpdateNotified: MutableMap<UUID?, Boolean?> = HashMap<UUID?, Boolean?>()
     private val pluginUpdateNotified: MutableMap<UUID?, Boolean?> = HashMap<UUID?, Boolean?>()

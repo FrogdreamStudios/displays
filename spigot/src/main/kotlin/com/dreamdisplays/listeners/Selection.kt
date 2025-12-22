@@ -1,8 +1,8 @@
 package com.dreamdisplays.listeners
 
 import com.dreamdisplays.Main
-import com.dreamdisplays.datatypes.Selection
-import com.dreamdisplays.managers.Display
+import com.dreamdisplays.datatypes.SelectionData
+import com.dreamdisplays.managers.DisplayManager
 import com.dreamdisplays.utils.Message
 import com.dreamdisplays.utils.Region
 import org.bukkit.Location
@@ -85,7 +85,7 @@ class Selection(plugin: Main) : Listener {
 
         if (event.action == Action.LEFT_CLICK_BLOCK) {
             // Get or create selection
-            val selection = selectionPoints.getOrPut(player.uniqueId) { Selection(player) }
+            val selection = selectionPoints.getOrPut(player.uniqueId) { SelectionData(player) }
 
             // Reset if world changed
             if (selection.pos1?.world != location.world || selection.pos2?.world != location.world) {
@@ -184,7 +184,7 @@ class Selection(plugin: Main) : Listener {
 
     // Check if a location is protected by existing displays or selections
     private fun isLocationProtected(loc: Location): Boolean {
-        if (Display.isContains(loc) != null) return true
+        if (DisplayManager.isContains(loc) != null) return true
 
         return selectionPoints.values
             .filter { it.isReady }
@@ -205,7 +205,7 @@ class Selection(plugin: Main) : Listener {
 
     // Object for managing selections
     companion object {
-        val selectionPoints = mutableMapOf<UUID, Selection>()
+        val selectionPoints = mutableMapOf<UUID, SelectionData>()
 
         private const val VALID_DISPLAY = 6
 
@@ -223,7 +223,7 @@ class Selection(plugin: Main) : Listener {
         }
 
         // Validate the selection for display creation
-        fun isValidDisplay(data: Selection): Int {
+        fun isValidDisplay(data: SelectionData): Int {
             val pos1 = data.pos1 ?: return 0
             val pos2 = data.pos2 ?: return 0
             if (pos1.world != pos2.world) return 1

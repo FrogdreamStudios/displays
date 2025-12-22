@@ -1,7 +1,7 @@
 package com.dreamdisplays.utils.net
 
 import com.dreamdisplays.Main
-import com.dreamdisplays.datatypes.Sync
+import com.dreamdisplays.datatypes.SyncData
 import me.inotsleep.utils.logging.LoggingManager
 import org.bukkit.block.BlockFace
 import org.bukkit.entity.Player
@@ -61,7 +61,7 @@ object Utils {
         }
     }
 
-    fun sendSyncPacket(players: MutableList<Player?>, packet: Sync) {
+    fun sendSyncPacket(players: MutableList<Player?>, packet: SyncData) {
         val id = packet.id ?: return
 
         try {

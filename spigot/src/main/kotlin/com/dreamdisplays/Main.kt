@@ -1,11 +1,11 @@
 package com.dreamdisplays
 
-import com.dreamdisplays.commands.Command
+import com.dreamdisplays.commands.CommandManager
 import com.dreamdisplays.listeners.Player
 import com.dreamdisplays.listeners.Selection
-import com.dreamdisplays.managers.Display
-import com.dreamdisplays.scheduler.Provider
-import com.dreamdisplays.storage.Storage
+import com.dreamdisplays.managers.DisplayManager
+import com.dreamdisplays.scheduler.ProviderScheduler
+import com.dreamdisplays.managers.StorageManager
 import com.dreamdisplays.utils.Updater
 import com.github.zafarkhaja.semver.Version
 import me.inotsleep.utils.AbstractPlugin
@@ -17,7 +17,7 @@ import org.jspecify.annotations.NullMarked
 @NullMarked
 class Main : AbstractPlugin<Main>() {
 
-    lateinit var storage: Storage
+    lateinit var storage: StorageManager
     var audiences: BukkitAudiences? = null
 
     override fun onEnable() = try {
@@ -36,7 +36,7 @@ class Main : AbstractPlugin<Main>() {
         }
 
         Companion.config = Config(this)
-        storage = Storage(this)
+        storage = StorageManager(this)
 
         registerChannels()
         registerCommands()
@@ -48,13 +48,13 @@ class Main : AbstractPlugin<Main>() {
         Metrics(this, 26488)
 
         // Updating displays
-        Provider.adapter.runRepeatingAsync(
+        ProviderScheduler.adapter.runRepeatingAsync(
             this, 50L, 1000L
-        ) { Display.updateAllDisplays() }
+        ) { DisplayManager.updateAllDisplays() }
 
         // GitHub update checks
         if (Companion.config.settings.updatesEnabled) {
-            Provider.adapter.runRepeatingAsync(
+            ProviderScheduler.adapter.runRepeatingAsync(
                 this, 20L, 20L * 3600L
             ) { Updater.checkForUpdates() }
         }
@@ -65,7 +65,7 @@ class Main : AbstractPlugin<Main>() {
         storage.onDisable()
     }
 
-    fun registerCommands() = Command()
+    fun registerCommands() = CommandManager()
 
     private fun registerChannels() {
         val messenger = server.messenger

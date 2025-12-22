@@ -5,7 +5,7 @@ import org.bukkit.scheduler.BukkitRunnable
 import org.jspecify.annotations.NullMarked
 
 @NullMarked
-object Bukkit : Adapter {
+object BukkitScheduler : AdapterScheduler {
     override fun runRepeatingAsync(
         plugin: Plugin,
         delayTicks: Long,

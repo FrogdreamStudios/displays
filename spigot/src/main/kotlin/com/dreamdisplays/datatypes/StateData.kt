@@ -1,26 +1,26 @@
 package com.dreamdisplays.datatypes
 
-import com.dreamdisplays.managers.Display
+import com.dreamdisplays.managers.DisplayManager
 import org.jspecify.annotations.NullMarked
 import java.util.*
 
 @NullMarked
-class State(private val id: UUID?) {
+class StateData(private val id: UUID?) {
     private var paused = false
     private var lastReportedTime: Long = 0
     private var lastReportedTimeTimestamp: Long = 0
     private var limitTime: Long = 0
-    var displayData: com.dreamdisplays.datatypes.Display =
-        Display.getDisplayData(id) ?: throw IllegalStateException("Display data not found for id: $id")
+    var displayData: com.dreamdisplays.datatypes.DisplayData =
+        DisplayManager.getDisplayData(id) ?: throw IllegalStateException("Display data not found for id: $id")
 
-    fun update(packet: Sync) {
+    fun update(packet: SyncData) {
         this.paused = packet.currentState
         this.lastReportedTime = packet.currentTime
         this.lastReportedTimeTimestamp = System.nanoTime()
         limitTime = packet.limitTime
     }
 
-    fun createPacket(): Sync {
+    fun createPacket(): SyncData {
         val nanos = System.nanoTime()
         var currentTime: Long
 
@@ -39,6 +39,6 @@ class State(private val id: UUID?) {
             currentTime %= limitTime
         }
 
-        return Sync(id, true, paused, currentTime, limitTime)
+        return SyncData(id, true, paused, currentTime, limitTime)
     }
 }
