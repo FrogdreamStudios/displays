@@ -1,8 +1,8 @@
 package com.dreamdisplays.managers
 
 import com.dreamdisplays.Main
-import com.dreamdisplays.datatypes.Display
-import com.dreamdisplays.datatypes.Selection
+import com.dreamdisplays.datatypes.DisplayData
+import com.dreamdisplays.datatypes.SelectionData
 import com.dreamdisplays.utils.Message
 import com.dreamdisplays.utils.Region
 import com.dreamdisplays.utils.Reporter
@@ -18,15 +18,15 @@ import java.util.function.Consumer
 
 @NullMarked
 object Display {
-    private val displays: MutableMap<UUID, Display> = mutableMapOf()
+    private val displays: MutableMap<UUID, DisplayData> = mutableMapOf()
     private val reportTime: MutableMap<UUID, Long> = mutableMapOf()
 
     @JvmStatic
-    fun getDisplayData(id: UUID?): Display? = displays[id]
+    fun getDisplayData(id: UUID?): DisplayData? = displays[id]
 
-    fun getDisplays(): List<Display> = displays.values.toList()
+    fun getDisplays(): List<DisplayData> = displays.values.toList()
 
-    fun register(displayData: Display) {
+    fun register(displayData: DisplayData) {
         displays[displayData.id] = displayData
         displayData.sendUpdatePacket(displayData.receivers)
     }
@@ -49,7 +49,7 @@ object Display {
         }
     }
 
-    fun delete(displayData: Display) {
+    fun delete(displayData: DisplayData) {
         Scheduler.runAsync {
             Main.getInstance().storage.deleteDisplay(displayData)
         }
@@ -104,7 +104,7 @@ object Display {
         }
     }
 
-    fun isOverlaps(data: Selection): Boolean {
+    fun isOverlaps(data: SelectionData): Boolean {
         val pos1 = data.pos1 ?: return false
         val pos2 = data.pos2 ?: return false
         val selWorld = pos1.world
@@ -124,19 +124,19 @@ object Display {
         }
     }
 
-    fun isContains(location: Location): Display? {
+    fun isContains(location: Location): DisplayData? {
         return displays.values.firstOrNull { display ->
             display.pos1.world == location.world && display.box.contains(location.toVector())
         }
     }
 
-    fun register(list: List<Display>) {
+    fun register(list: List<DisplayData>) {
         list.forEach { display ->
             displays[display.id] = display
         }
     }
 
-    fun save(saveDisplay: Consumer<Display>) {
+    fun save(saveDisplay: Consumer<DisplayData>) {
         displays.values.forEach(saveDisplay)
     }
 }
