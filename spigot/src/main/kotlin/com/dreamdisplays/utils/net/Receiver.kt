@@ -194,7 +194,7 @@ class Receiver(var plugin: Main?) : PluginMessageListener {
                 display.height,
                 display.url,
                 display.lang,
-                display.facing ?: org.bukkit.block.BlockFace.NORTH,
+                display.facing,
                 display.isSync
             )
         }

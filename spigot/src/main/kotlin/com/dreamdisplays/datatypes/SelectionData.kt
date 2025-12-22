@@ -1,13 +1,15 @@
 package com.dreamdisplays.datatypes
 
-import com.dreamdisplays.utils.Outliner
-import com.dreamdisplays.utils.Region
-import org.bukkit.Bukkit
+import com.dreamdisplays.utils.Outliner.showOutline
+import com.dreamdisplays.utils.Region.calculateRegion
+import org.bukkit.Bukkit.getPlayer
 import org.bukkit.Location
 import org.bukkit.block.BlockFace
+import org.bukkit.block.BlockFace.*
 import org.bukkit.entity.Player
 import org.jspecify.annotations.NullMarked
 import java.util.*
+import java.util.UUID.randomUUID
 
 /**
  * Player's current selection for a feature display.
@@ -33,24 +35,28 @@ class SelectionData(player: Player) {
         this.face = face
     }
 
-    fun getFace(): BlockFace = face ?: BlockFace.NORTH
+    fun getFace(): BlockFace = face ?: NORTH
 
     fun drawBox() {
         val p1 = pos1 ?: return
         val p2 = pos2 ?: return
-        val player = Bukkit.getPlayer(playerId) ?: return
-        Outliner.showOutline(player, p1, p2)
+        val player = getPlayer(playerId) ?: return
+        showOutline(player, p1, p2)
     }
 
     fun generateDisplayData(): DisplayData {
-        val p1 = pos1 ?: throw IllegalStateException("pos1 is not set")
-        val p2 = pos2 ?: throw IllegalStateException("pos2 is not set")
-        val f = face ?: throw IllegalStateException("face is not set")
+        check(pos1 != null) { "Position 1 is null" }
+        check(pos2 != null) { "Position 2 is null" }
+        check(face != null) { "Face is null" }
 
-        val region = Region.calculateRegion(p1, p2)
+        val p1 = pos1!!
+        val p2 = pos2!!
+        val f = face!!
+
+        val region = calculateRegion(p1, p2)
         val dPos1 = region.getMinLocation(p1.world)
         val dPos2 = region.getMaxLocation(p1.world)
 
-        return DisplayData(UUID.randomUUID(), playerId, dPos1, dPos2, region.width, region.height, f)
+        return DisplayData(randomUUID(), playerId, dPos1, dPos2, region.width, region.height, f)
     }
 }

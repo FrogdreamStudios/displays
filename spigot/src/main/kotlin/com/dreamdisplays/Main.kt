@@ -1,8 +1,9 @@
 package com.dreamdisplays
 
 import com.dreamdisplays.commands.DisplayCommand
-import com.dreamdisplays.listeners.Player
-import com.dreamdisplays.listeners.Selection
+import com.dreamdisplays.listeners.PlayerListener
+import com.dreamdisplays.listeners.ProtectionListener
+import com.dreamdisplays.listeners.SelectionListener
 import com.dreamdisplays.managers.DisplayManager
 import com.dreamdisplays.scheduler.ProviderScheduler
 import com.dreamdisplays.managers.StorageManager
@@ -41,8 +42,9 @@ class Main : AbstractPlugin<Main>() {
         registerChannels()
         registerCommands()
 
-        Bukkit.getPluginManager().registerEvents(Selection(this), this)
-        Bukkit.getPluginManager().registerEvents(Player(), this)
+        Bukkit.getPluginManager().registerEvents(SelectionListener(this), this)
+        Bukkit.getPluginManager().registerEvents(ProtectionListener(), this)
+        Bukkit.getPluginManager().registerEvents(PlayerListener(), this)
 
         // Initialize bStats metrics
         Metrics(this, 26488)

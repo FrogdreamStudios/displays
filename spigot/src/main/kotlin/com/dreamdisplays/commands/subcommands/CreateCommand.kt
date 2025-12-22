@@ -1,11 +1,11 @@
 package com.dreamdisplays.commands.subcommands
 
 import com.dreamdisplays.Main.Companion.config
-import com.dreamdisplays.listeners.Selection.Companion.isValidDisplay
-import com.dreamdisplays.listeners.Selection.Companion.selectionPoints
-import com.dreamdisplays.listeners.Selection.Companion.sendErrorMessage
 import com.dreamdisplays.managers.DisplayManager
 import com.dreamdisplays.managers.DisplayManager.register
+import com.dreamdisplays.managers.DisplayValidator.isValidDisplay
+import com.dreamdisplays.managers.DisplayValidator.sendErrorMessage
+import com.dreamdisplays.managers.SelectionManager.selectionPoints
 import com.dreamdisplays.utils.Message.sendMessage
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player

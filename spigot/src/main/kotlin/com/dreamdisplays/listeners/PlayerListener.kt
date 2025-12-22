@@ -13,8 +13,16 @@ import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.jspecify.annotations.NullMarked
 
+/**
+ * Listener for player join and quit events to manage mod detection notifications.
+ *
+ * When a player joins, if mod detection is enabled and the player does not have the mod,
+ * they will be notified after a delay. When a player leaves, their version information is removed
+ * from the `PlayerManager`.
+ *
+ */
 @NullMarked
-class Player : Listener {
+class PlayerListener : Listener {
     @EventHandler
     fun onPlayerJoin(event: PlayerJoinEvent) {
         val player = event.player

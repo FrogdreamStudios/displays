@@ -1,6 +1,6 @@
 package com.dreamdisplays.datatypes
 
-import com.dreamdisplays.managers.DisplayManager
+import com.dreamdisplays.managers.DisplayManager.getDisplayData
 import org.jspecify.annotations.NullMarked
 import java.util.*
 
@@ -21,8 +21,10 @@ import java.util.*
  */
 @NullMarked
 class StateData(private val id: UUID?) {
-    var displayData: DisplayData =
-        DisplayManager.getDisplayData(id) ?: throw IllegalStateException("Display data not found for id: $id")
+    // TODO: handle null id gracefully in the future
+    // check(id != null) { "ID cannot be null" }
+    // check(getDisplayData(id) != null) { "Display data not found for id: $id" }
+    var displayData: DisplayData = getDisplayData(id)!!
 
     private var paused = false
     private var lastReportedTime: Long = 0

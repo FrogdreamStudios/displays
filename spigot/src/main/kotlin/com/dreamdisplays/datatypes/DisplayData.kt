@@ -38,14 +38,12 @@ class DisplayData(
     var isSync: Boolean = false
     var duration: Long? = null
 
-    val box: BoundingBox by lazy {
-        BoundingBox(
-            minOf(pos1.blockX, pos2.blockX).toDouble(),
-            minOf(pos1.blockY, pos2.blockY).toDouble(),
-            minOf(pos1.blockZ, pos2.blockZ).toDouble(),
-            (maxOf(pos1.blockX, pos2.blockX) + 1).toDouble(),
-            (maxOf(pos1.blockY, pos2.blockY) + 1).toDouble(),
-            (maxOf(pos1.blockZ, pos2.blockZ) + 1).toDouble()
-        )
-    }
+    val box: BoundingBox = BoundingBox(
+        minOf(pos1.blockX, pos2.blockX).toDouble(),
+        minOf(pos1.blockY, pos2.blockY).toDouble(),
+        minOf(pos1.blockZ, pos2.blockZ).toDouble(),
+        (maxOf(pos1.blockX, pos2.blockX) + 1).toDouble(),
+        (maxOf(pos1.blockY, pos2.blockY) + 1).toDouble(),
+        (maxOf(pos1.blockZ, pos2.blockZ) + 1).toDouble()
+    )
 }
