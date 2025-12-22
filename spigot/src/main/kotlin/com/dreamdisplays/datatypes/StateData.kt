@@ -4,6 +4,21 @@ import com.dreamdisplays.managers.DisplayManager
 import org.jspecify.annotations.NullMarked
 import java.util.*
 
+/**
+ * Class to manage the state data of a display.
+ *
+ * @property id The unique identifier of the display.
+ * @property displayData The display data.
+ * @property paused Boolean indicating if the display is paused.
+ * @property lastReportedTime The last reported time of the display.
+ * @property lastReportedTimestamp The timestamp of the last report.
+ * @property limitTime The limit time for the display.
+ *
+ * @param id The unique identifier of the display.
+ *
+ * @throws IllegalStateException if the display data is not found for the given ID.
+ *
+ */
 @NullMarked
 class StateData(private val id: UUID?) {
     var displayData: DisplayData =

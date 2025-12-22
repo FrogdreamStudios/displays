@@ -9,6 +9,17 @@ import org.bukkit.entity.Player
 import org.jspecify.annotations.NullMarked
 import java.util.*
 
+/**
+ * Player's current selection for a feature display.
+ * @param player The player making the selection.
+ *
+ * @property pos1 One corner of the selected area.
+ * @property pos2 Opposite corner of the selected area.
+ * @property isReady Boolean indicating if the selection is complete.
+ * @property face The direction the selection is facing.
+ * @property playerId Unique identifier for the player.
+ *
+ */
 @NullMarked
 class SelectionData(player: Player) {
     var pos1: Location? = null
