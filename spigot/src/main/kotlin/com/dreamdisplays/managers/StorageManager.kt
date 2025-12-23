@@ -1,9 +1,13 @@
 package com.dreamdisplays.managers
 
 import com.dreamdisplays.Main
+import com.dreamdisplays.Main.Companion.config
+import com.dreamdisplays.Main.Companion.disablePlugin
 import com.dreamdisplays.datatypes.DisplayData
+import com.dreamdisplays.managers.DisplayManager.register
+import com.dreamdisplays.managers.DisplayManager.save
 import com.dreamdisplays.utils.Scheduler
-import me.inotsleep.utils.logging.LoggingManager
+import me.inotsleep.utils.logging.LoggingManager.error
 import me.inotsleep.utils.storage.connection.BaseConnection
 import org.bukkit.Bukkit
 import org.bukkit.Location
@@ -11,8 +15,7 @@ import org.bukkit.block.BlockFace
 import org.jspecify.annotations.NullMarked
 import java.nio.ByteBuffer
 import java.sql.SQLException
-import java.util.ArrayList
-import java.util.UUID
+import java.util.*
 
 @NullMarked
 class StorageManager(var plugin: Main) {
@@ -21,18 +24,18 @@ class StorageManager(var plugin: Main) {
 
     init {
         val connectTask = Runnable {
-            tablePrefix = Main.Companion.config.storage.tablePrefix
+            tablePrefix = config.storage.tablePrefix
             try {
-                connection = BaseConnection.createConnection(Main.Companion.config.storage, plugin.dataFolder)
+                connection = BaseConnection.createConnection(config.storage, plugin.dataFolder)
                 connection?.connect() ?: run {
-                    LoggingManager.error("Failed to create database connection")
-                    Main.Companion.disablePlugin()
+                    error("Failed to create database connection")
+                    disablePlugin()
                     return@Runnable
                 }
                 onConnect()
             } catch (e: SQLException) {
-                LoggingManager.error("Could not connect to database", e)
-                Main.Companion.disablePlugin()
+                error("Could not connect to database", e)
+                disablePlugin()
             }
         }
 
@@ -67,17 +70,17 @@ class StorageManager(var plugin: Main) {
                 )
             }
         }
-        DisplayManager.register(this.allDisplays.filterNotNull())
+        register(this.allDisplays.filterNotNull())
     }
 
     fun onDisable() {
         val conn = connection ?: return
 
         try {
-            DisplayManager.save { data: DisplayData -> this.saveDisplay(data) }
+            save { data: DisplayData -> this.saveDisplay(data) }
             conn.disconnect()
         } catch (e: SQLException) {
-            LoggingManager.error("Unable to save data", e)
+            error("Unable to save data", e)
         }
     }
 
@@ -97,12 +100,12 @@ class StorageManager(var plugin: Main) {
 
     fun saveDisplay(data: DisplayData) {
         val conn = connection ?: run {
-            LoggingManager.error("Cannot save display: connection is null")
+            error("Cannot save display: connection is null")
             return
         }
 
         val world = data.pos1.world ?: run {
-            LoggingManager.error("Cannot save display: world is null for display ${data.id}")
+            error("Cannot save display: world is null for display ${data.id}")
             return
         }
 
@@ -134,8 +137,8 @@ class StorageManager(var plugin: Main) {
                 data.lang
             )
         } catch (e: SQLException) {
-            LoggingManager.error("Could not save display to database", e)
-            Main.Companion.disablePlugin()
+            error("Could not save display to database", e)
+            disablePlugin()
         }
     }
 
@@ -143,7 +146,7 @@ class StorageManager(var plugin: Main) {
         // Fetch all displays from the database
         get() {
             val conn = connection ?: run {
-                LoggingManager.error("Cannot fetch displays: connection is null")
+                error("Cannot fetch displays: connection is null")
                 return mutableListOf()
             }
 
@@ -193,8 +196,8 @@ class StorageManager(var plugin: Main) {
                     }
                 }
             } catch (e: SQLException) {
-                LoggingManager.error("Could not fetch from database", e)
-                Main.Companion.disablePlugin()
+                error("Could not fetch from database", e)
+                disablePlugin()
             }
 
             return list
@@ -202,7 +205,7 @@ class StorageManager(var plugin: Main) {
 
     fun deleteDisplay(data: DisplayData) {
         val conn = connection ?: run {
-            LoggingManager.error("Cannot delete display: connection is null")
+            error("Cannot delete display: connection is null")
             return
         }
 
@@ -210,8 +213,8 @@ class StorageManager(var plugin: Main) {
         try {
             conn.executeUpdate(sql, uuidToBytes(data.id))
         } catch (e: SQLException) {
-            LoggingManager.error("Could not delete display from database", e)
-            Main.Companion.disablePlugin()
+            error("Could not delete display from database", e)
+            disablePlugin()
         }
     }
 

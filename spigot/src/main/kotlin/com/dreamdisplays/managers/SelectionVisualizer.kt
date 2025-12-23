@@ -1,24 +1,26 @@
 package com.dreamdisplays.managers
 
 import com.dreamdisplays.Main
-import com.dreamdisplays.utils.Outliner
-import org.bukkit.Bukkit
+import com.dreamdisplays.Main.Companion.config
+import com.dreamdisplays.managers.SelectionManager.selectionPoints
+import com.dreamdisplays.utils.Outliner.showOutline
+import org.bukkit.Bukkit.getPlayer
 import org.bukkit.scheduler.BukkitRunnable
 
 object SelectionVisualizer {
     fun startParticleTask(plugin: Main) {
-        if (!Main.config.settings.particlesEnabled) return
+        if (!config.settings.particlesEnabled) return
 
         object : BukkitRunnable() {
             override fun run() {
-                SelectionManager.selectionPoints.values.forEach { it.drawBox() }
-                SelectionManager.selectionPoints.forEach { (playerId, sel) ->
-                    Bukkit.getPlayer(playerId)?.let { player ->
+                selectionPoints.values.forEach { it.drawBox() }
+                selectionPoints.forEach { (playerId, sel) ->
+                    getPlayer(playerId)?.let { player ->
                         if (sel.isReady && sel.pos1 != null && sel.pos2 != null)
-                            Outliner.showOutline(player, sel.pos1!!, sel.pos2!!)
+                            showOutline(player, sel.pos1!!, sel.pos2!!)
                     }
                 }
             }
-        }.runTaskTimer(plugin, 0L, Main.config.settings.particleRenderDelay.toLong())
+        }.runTaskTimer(plugin, 0L, config.settings.particleRenderDelay.toLong())
     }
 }

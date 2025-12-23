@@ -1,7 +1,8 @@
 package com.dreamdisplays.managers
 
 import com.dreamdisplays.datatypes.SelectionData
-import com.dreamdisplays.utils.Message
+import com.dreamdisplays.utils.Message.sendMessage
+import com.dreamdisplays.utils.Region.isInBoundaries
 import org.bukkit.Location
 import org.bukkit.block.BlockFace
 import org.bukkit.entity.Player
@@ -16,19 +17,19 @@ object SelectionManager {
         sel.pos1 = loc.clone()
         sel.setFace(face as BlockFace)
         sel.isReady = false
-        Message.sendMessage(player, "firstPointSelected")
+        sendMessage(player, "firstPointSelected")
     }
 
     fun setSecondPoint(player: Player, loc: Location) {
         val sel = selectionPoints[player.uniqueId] ?: return
         if (sel.pos1 == null || sel.pos1?.world != loc.world) {
             sel.reset()
-            Message.sendMessage(player, "noDisplayTerritories")
+            sendMessage(player, "noDisplayTerritories")
             return
         }
         sel.pos2 = loc.clone()
         sel.isReady = false
-        Message.sendMessage(player, "secondPointSelected")
+        sendMessage(player, "secondPointSelected")
     }
 
     fun isLocationSelected(loc: Location): Boolean =
@@ -41,7 +42,7 @@ object SelectionManager {
     private fun SelectionData.contains(loc: Location): Boolean {
         val p1 = pos1 ?: return false
         val p2 = pos2 ?: return false
-        return com.dreamdisplays.utils.Region.isInBoundaries(p1, p2, loc)
+        return isInBoundaries(p1, p2, loc)
     }
 
     private fun SelectionData.reset() {

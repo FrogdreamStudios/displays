@@ -5,14 +5,13 @@ import com.dreamdisplays.datatypes.SyncData
 import com.dreamdisplays.managers.DisplayManager.getDisplayData
 import com.dreamdisplays.managers.DisplayManager.getReceivers
 import com.dreamdisplays.utils.net.Utils
-import me.inotsleep.utils.logging.LoggingManager
 import org.bukkit.entity.Player
 import org.jspecify.annotations.NullMarked
 import java.util.*
 
 @NullMarked
 object StateManager {
-    private val playStates: MutableMap<UUID?, StateData> = HashMap<UUID?, StateData>()
+    private val playStates: MutableMap<UUID?, StateData> = HashMap()
 
     @JvmStatic
     fun processSyncPacket(packet: SyncData, player: Player) {
@@ -27,7 +26,6 @@ object StateManager {
         if (data == null) return
 
         if (data.ownerId != player.uniqueId) {
-            LoggingManager.warn("Player " + player.name + " sent sync packet while he not owner! ")
             return
         }
 

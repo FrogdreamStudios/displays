@@ -1,9 +1,9 @@
 package com.dreamdisplays.managers
 
-import com.dreamdisplays.Main
+import com.dreamdisplays.Main.Companion.config
 import com.dreamdisplays.datatypes.SelectionData
+import com.dreamdisplays.utils.Message.sendColoredMessage
 import org.bukkit.entity.Player
-import com.dreamdisplays.utils.Message
 
 object DisplayValidator {
     private const val VALID_DISPLAY = 6
@@ -26,10 +26,10 @@ object DisplayValidator {
         val width = maxOf(deltaX, deltaZ)
         val height = maxY - minY + 1
 
-        if (height < Main.config.settings.minHeight || width < Main.config.settings.minWidth) return 3
-        if (height > Main.config.settings.maxHeight || width > Main.config.settings.maxWidth) return 4
+        if (height < config.settings.minHeight || width < config.settings.minWidth) return 3
+        if (height > config.settings.maxHeight || width > config.settings.maxWidth) return 4
 
-        val required = Main.config.settings.baseMaterial
+        val required = config.settings.baseMaterial
         val world = pos1.world ?: return 1
         for (x in minX..maxX) for (y in minY..maxY) for (z in minZ..maxZ)
             if (world.getBlockAt(x, y, z).type != required) return 5
@@ -47,6 +47,6 @@ object DisplayValidator {
             5 -> "wrongStructure"
             else -> return
         }
-        Message.sendColoredMessage(player, Main.config.messages[key] as String?)
+        sendColoredMessage(player, config.messages[key] as String?)
     }
 }

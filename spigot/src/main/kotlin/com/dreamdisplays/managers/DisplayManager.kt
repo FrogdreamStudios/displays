@@ -1,18 +1,22 @@
 package com.dreamdisplays.managers
 
-import com.dreamdisplays.Main
+import com.dreamdisplays.Main.Companion.config
+import com.dreamdisplays.Main.Companion.getInstance
 import com.dreamdisplays.datatypes.DisplayData
 import com.dreamdisplays.datatypes.SelectionData
-import com.dreamdisplays.utils.Message
-import com.dreamdisplays.utils.Region
-import com.dreamdisplays.utils.Reporter
-import com.dreamdisplays.utils.Scheduler
+import com.dreamdisplays.utils.Message.sendMessage
+import com.dreamdisplays.utils.Region.calculateRegion
+import com.dreamdisplays.utils.Reporter.sendReport
+import com.dreamdisplays.utils.Scheduler.runAsync
+import com.dreamdisplays.utils.Scheduler.runSync
 import com.dreamdisplays.utils.net.Utils
-import org.bukkit.Bukkit
+import com.dreamdisplays.utils.net.Utils.sendDeletePacket
+import org.bukkit.Bukkit.getOfflinePlayer
 import org.bukkit.Location
 import org.bukkit.entity.Player
 import org.bukkit.util.BoundingBox
 import org.jspecify.annotations.NullMarked
+import java.lang.System.currentTimeMillis
 import java.util.*
 import java.util.function.Consumer
 
@@ -37,7 +41,7 @@ object DisplayManager {
         val pos2 = data.pos2 ?: return false
         val selWorld = pos1.world
 
-        val region = Region.calculateRegion(pos1, pos2)
+        val region = calculateRegion(pos1, pos2)
         val box = BoundingBox(
             region.minX.toDouble(),
             region.minY.toDouble(),
@@ -87,7 +91,7 @@ object DisplayManager {
             ?: emptyList()
 
     private fun Location.isInRange(display: DisplayData): Boolean {
-        val maxRender = Main.config.settings.maxRenderDistance
+        val maxRender = config.settings.maxRenderDistance
         val clampedX = blockX.coerceIn(display.box.minX.toInt(), display.box.maxX.toInt())
         val clampedY = blockY.coerceIn(display.box.minY.toInt(), display.box.maxY.toInt())
         val clampedZ = blockZ.coerceIn(display.box.minZ.toInt(), display.box.maxZ.toInt())
@@ -114,12 +118,12 @@ object DisplayManager {
     }
 
     fun delete(displayData: DisplayData) {
-        Scheduler.runAsync {
-            Main.getInstance().storage.deleteDisplay(displayData)
+        runAsync {
+            getInstance().storage.deleteDisplay(displayData)
         }
 
         @Suppress("UNCHECKED_CAST")
-        Utils.sendDeletePacket(getReceivers(displayData) as MutableList<Player?>, displayData.id)
+        (sendDeletePacket(getReceivers(displayData) as MutableList<Player?>, displayData.id))
         displays.remove(displayData.id)
     }
 
@@ -128,7 +132,7 @@ object DisplayManager {
         val displayData = displays[id] ?: return
 
         if (displayData.ownerId != player.uniqueId) {
-            Main.getInstance().logger.warning("Player ${player.name} sent delete packet while not owner!")
+            getInstance().logger.warning("Player ${player.name} sent delete packet while not owner!")
             return
         }
 
@@ -140,28 +144,28 @@ object DisplayManager {
         val displayData = displays[id] ?: return
         val lastReport = reportTime.getOrPut(id) { 0L }
 
-        if (System.currentTimeMillis() - lastReport < Main.config.settings.reportCooldown) {
-            Message.sendMessage(player, "reportTooQuickly")
+        if (currentTimeMillis() - lastReport < config.settings.reportCooldown) {
+            sendMessage(player, "reportTooQuickly")
             return
         }
 
-        reportTime[id] = System.currentTimeMillis()
+        reportTime[id] = currentTimeMillis()
 
-        Scheduler.runAsync {
+        runAsync {
             try {
-                if (Main.config.settings.webhookUrl.isEmpty()) return@runAsync
-                Reporter.sendReport(
+                if (config.settings.webhookUrl.isEmpty()) return@runAsync
+                sendReport(
                     displayData.pos1,
                     displayData.url,
                     displayData.id,
                     player,
-                    Main.config.settings.webhookUrl,
-                    Bukkit.getOfflinePlayer(displayData.ownerId).name
+                    config.settings.webhookUrl,
+                    getOfflinePlayer(displayData.ownerId).name
                 )
-                Scheduler.runSync { Message.sendMessage(player, "reportSent") }
+                runSync { sendMessage(player, "reportSent") }
             } catch (e: Exception) {
-                Main.getInstance().logger.severe("Unable to send webhook message: ${e.message}")
-                Scheduler.runSync { Message.sendMessage(player, "reportFailed") }
+                getInstance().logger.warning("Exception while sending report: ${e.message}")
+                runSync { sendMessage(player, "reportFailed") }
             }
         }
     }

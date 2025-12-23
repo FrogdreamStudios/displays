@@ -7,11 +7,11 @@ import java.util.*
 
 @NullMarked
 object PlayerManager {
-    private val versions: MutableMap<UUID?, Version?> = HashMap<UUID?, Version?>()
-    private val modUpdateNotified: MutableMap<UUID?, Boolean?> = HashMap<UUID?, Boolean?>()
-    private val pluginUpdateNotified: MutableMap<UUID?, Boolean?> = HashMap<UUID?, Boolean?>()
-    private val modRequiredNotified: MutableMap<UUID?, Boolean?> = HashMap<UUID?, Boolean?>()
-    private val displaysEnabled: MutableMap<UUID, Boolean> = HashMap<UUID, Boolean>()
+    private val versions: MutableMap<UUID?, Version?> = HashMap()
+    private val modUpdateNotified: MutableMap<UUID?, Boolean?> = HashMap()
+    private val pluginUpdateNotified: MutableMap<UUID?, Boolean?> = HashMap()
+    private val modRequiredNotified: MutableMap<UUID?, Boolean?> = HashMap()
+    private val displaysEnabled: MutableMap<UUID, Boolean> = HashMap()
 
     @JvmStatic
     fun setVersion(player: Player, version: Version?) {
