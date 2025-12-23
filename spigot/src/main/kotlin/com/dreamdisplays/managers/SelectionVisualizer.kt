@@ -7,6 +7,9 @@ import com.dreamdisplays.utils.Outliner.showOutline
 import org.bukkit.Bukkit.getPlayer
 import org.bukkit.scheduler.BukkitRunnable
 
+/**
+ * Manages the visualization of selection areas using particles. Currently not available for Folia.
+ */
 object SelectionVisualizer {
     fun startParticleTask(plugin: Main) {
         if (!config.settings.particlesEnabled) return

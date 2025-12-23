@@ -17,6 +17,9 @@ import java.nio.ByteBuffer
 import java.sql.SQLException
 import java.util.*
 
+/**
+ * Manages storage and retrieval of display data from the database.
+ */
 @NullMarked
 class StorageManager(var plugin: Main) {
     var connection: BaseConnection? = null

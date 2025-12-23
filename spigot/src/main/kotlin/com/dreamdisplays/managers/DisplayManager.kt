@@ -20,6 +20,9 @@ import java.lang.System.currentTimeMillis
 import java.util.*
 import java.util.function.Consumer
 
+/**
+ * Manages all displays in the server.
+ */
 @NullMarked
 object DisplayManager {
     private val displays: MutableMap<UUID, DisplayData> = mutableMapOf()

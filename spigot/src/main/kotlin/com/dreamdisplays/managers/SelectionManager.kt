@@ -8,6 +8,9 @@ import org.bukkit.block.BlockFace
 import org.bukkit.entity.Player
 import java.util.*
 
+/**
+ * Manages player selections for display creation.
+ */
 object SelectionManager {
     val selectionPoints = mutableMapOf<UUID, SelectionData>()
 

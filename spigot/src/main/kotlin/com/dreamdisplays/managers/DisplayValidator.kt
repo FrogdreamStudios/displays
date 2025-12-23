@@ -5,6 +5,11 @@ import com.dreamdisplays.datatypes.SelectionData
 import com.dreamdisplays.utils.Message.sendColoredMessage
 import org.bukkit.entity.Player
 
+/**
+ * Validates display structures based on selection data.
+ * Returns specific error codes for different validation failures.
+ *
+ */
 object DisplayValidator {
     private const val VALID_DISPLAY = 6
 

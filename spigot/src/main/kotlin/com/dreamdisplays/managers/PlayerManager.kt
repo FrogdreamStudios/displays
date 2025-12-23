@@ -5,6 +5,9 @@ import org.bukkit.entity.Player
 import org.jspecify.annotations.NullMarked
 import java.util.*
 
+/**
+ * Manages player-specific data such as versions and notification states.
+ */
 @NullMarked
 object PlayerManager {
     private val versions: MutableMap<UUID?, Version?> = HashMap()

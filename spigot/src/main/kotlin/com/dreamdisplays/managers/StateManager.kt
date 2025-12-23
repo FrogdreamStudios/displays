@@ -9,6 +9,9 @@ import org.bukkit.entity.Player
 import org.jspecify.annotations.NullMarked
 import java.util.*
 
+/**
+ * Manages the state of displays being played by players.
+ */
 @NullMarked
 object StateManager {
     private val playStates: MutableMap<UUID?, StateData> = HashMap()
