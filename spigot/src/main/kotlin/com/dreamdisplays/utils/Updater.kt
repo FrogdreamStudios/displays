@@ -1,33 +1,34 @@
 package com.dreamdisplays.utils
 
-import com.dreamdisplays.Main
+import com.dreamdisplays.Main.Companion.config
+import com.dreamdisplays.Main.Companion.modVersion
+import com.dreamdisplays.Main.Companion.pluginLatestVersion
 import com.github.zafarkhaja.semver.Version
-import me.inotsleep.utils.logging.LoggingManager
+import me.inotsleep.utils.logging.LoggingManager.warn
 import org.jspecify.annotations.NullMarked
 import java.util.regex.Pattern
 
 @NullMarked
 object Updater {
-
     private val tailPattern = Pattern.compile("\\d[\\s\\S]*")
 
     fun checkForUpdates() {
         try {
-            val settings = Main.config.settings
+            val settings = config.settings
 
-            val releases = Fetcher.fetchReleases(
+            val releases = GitHubFetcher.fetchReleases(
                 settings.repoOwner,
                 settings.repoName
             )
 
             if (releases.isEmpty()) return
 
-            Main.modVersion = releases
+            modVersion = releases
                 .mapNotNull { parseVersion(it.tagName) }
                 .filter { !it.toString().contains("-SNAPSHOT") }
                 .maxOrNull()
 
-            Main.pluginLatestVersion = releases
+            pluginLatestVersion = releases
                 .filter {
                     it.tagName.contains("spigot", ignoreCase = true) || it.tagName.contains(
                         "plugin",
@@ -36,10 +37,10 @@ object Updater {
                 }
                 .mapNotNull { parseVersion(it.tagName)?.toString() }
                 .filter { !it.contains("-SNAPSHOT") }
-                .maxOrNull() ?: Main.modVersion?.toString()
+                .maxOrNull() ?: modVersion?.toString()
 
         } catch (e: Exception) {
-            LoggingManager.warn("Unable to load versions from GitHub", e)
+            warn("Unable to load versions from GitHub", e)
         }
     }
 

@@ -75,7 +75,7 @@ class Main : AbstractPlugin<Main>() {
 
     private fun registerChannels() {
         val messenger = server.messenger
-        val receiver = com.dreamdisplays.utils.net.Receiver(this)
+        val receiver = com.dreamdisplays.utils.net.PacketReceiver(this)
 
         listOf(
             "dreamdisplays:sync",

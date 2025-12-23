@@ -6,6 +6,9 @@ import org.bukkit.util.BoundingBox
 import org.jspecify.annotations.NullMarked
 import java.util.*
 
+/**
+ * Utility object for outlining areas with particles.
+ */
 @NullMarked
 object Outliner {
 
@@ -32,11 +35,6 @@ object Outliner {
 
         // Draw the outline using particles
         drawOutlineBox(player, box, world)
-    }
-
-    // Hide outline for a player
-    fun hideOutline(player: Player) {
-        activeOutlines.remove(player.uniqueId)
     }
 
     // Draw the outline box using particles

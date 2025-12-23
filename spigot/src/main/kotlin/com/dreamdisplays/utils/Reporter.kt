@@ -14,64 +14,98 @@ import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 
+/**
+ * Utility object for sending reports to a Discord webhook.
+ */
+// TODO: add rate limiting to prevent spam
+// TODO: customize embed further (add more fields, etc.)
 @NullMarked
 object Reporter {
-    private val client: HttpClient = HttpClient.newHttpClient()
+    private val httpClient: HttpClient by lazy { HttpClient.newHttpClient() }
+    private const val EMBED_COLOR = 0x2F3136
+    private const val EMBED_TITLE = "# 🛡️ New report"
 
-    @Throws(IOException::class, InterruptedException::class)
     fun sendReport(
-        loc: Location,
-        displayVideoLink: String?,
-        uuid: UUID,
+        location: Location,
+        videoLink: String?,
+        displayId: UUID,
         reporter: Player,
-        webhookURL: String,
+        webhookUrl: String,
         ownerName: String?
     ) {
-        val humanLoc = "${loc.world?.name} (x=${loc.blockX}, y=${loc.blockY}, z=${loc.blockZ})"
-
-        // Create the embed JSON object
-        val embed = JsonObject()
-        embed.addProperty("description", "# 🛎️ New report")
-        embed.addProperty("color", 0x2F3136)
-        embed.addProperty(
-            "timestamp", OffsetDateTime.now()
-                .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+        val payload = buildWebhookPayload(
+            location,
+            videoLink,
+            displayId,
+            reporter.name,
+            ownerName
         )
 
-        val fields = JsonArray()
-        fields.add(field("Location", humanLoc, false))
-        fields.add(field("Video", displayVideoLink, false))
-        fields.add(field("UUID", uuid.toString(), false))
-        fields.add(field("Player", reporter.name, false))
-        fields.add(field("Owner", ownerName, false))
-        embed.add("fields", fields)
+        sendWebhookRequest(webhookUrl, payload)
+    }
 
-        val payload = JsonObject()
+    private fun buildWebhookPayload(
+        location: Location,
+        videoLink: String?,
+        displayId: UUID,
+        reporterName: String,
+        ownerName: String?
+    ): String {
+        val embed = JsonObject().apply {
+            addProperty("description", EMBED_TITLE)
+            addProperty("color", EMBED_COLOR)
+            addProperty("timestamp", getCurrentTimestamp())
+            add("fields", buildFields(location, videoLink, displayId, reporterName, ownerName))
+        }
 
-        val arr = JsonArray()
-        arr.add(embed)
+        return JsonObject().apply {
+            add("embeds", JsonArray().apply { add(embed) })
+        }.toString()
+    }
 
-        payload.add("embeds", arr)
-
-        val json = payload.toString()
-
-        val req = HttpRequest.newBuilder()
-            .uri(URI.create(webhookURL))
-            .header("Content-Type", "application/json")
-            .POST(HttpRequest.BodyPublishers.ofString(json))
-            .build()
-
-        val resp = client.send(req, HttpResponse.BodyHandlers.ofString())
-        if (resp.statusCode() / 100 != 2) {
-            throw IOException("Discord webhook error ${resp.statusCode()}: ${resp.body()}")
+    private fun buildFields(
+        location: Location,
+        videoLink: String?,
+        displayId: UUID,
+        reporterName: String,
+        ownerName: String?
+    ): JsonArray {
+        return JsonArray().apply {
+            add(createField("Location", location.toReadableString(), inline = false))
+            add(createField("Video", videoLink, inline = false))
+            add(createField("UUID", displayId.toString(), inline = false))
+            add(createField("Reporter", reporterName, inline = false))
+            add(createField("Owner", ownerName, inline = false))
         }
     }
 
-    private fun field(name: String, value: String?, inline: Boolean): JsonObject {
-        val f = JsonObject()
-        f.addProperty("name", name)
-        f.addProperty("value", value ?: "N/A")
-        f.addProperty("inline", inline)
-        return f
+    private fun createField(name: String, value: String?, inline: Boolean): JsonObject {
+        return JsonObject().apply {
+            addProperty("name", name)
+            addProperty("value", value ?: "N/A")
+            addProperty("inline", inline)
+        }
+    }
+
+    private fun sendWebhookRequest(webhookUrl: String, payload: String) {
+        val request = HttpRequest.newBuilder()
+            .uri(URI.create(webhookUrl))
+            .header("Content-Type", "application/json")
+            .POST(HttpRequest.BodyPublishers.ofString(payload))
+            .build()
+
+        val response = httpClient.send(request, HttpResponse.BodyHandlers.ofString())
+
+        if (response.statusCode() / 100 != 2) {
+            throw IOException("Discord webhook failed: ${response.statusCode()} - ${response.body()}")
+        }
+    }
+
+    private fun getCurrentTimestamp(): String {
+        return OffsetDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+    }
+
+    private fun Location.toReadableString(): String {
+        return "${world?.name} (x=$blockX, y=$blockY, z=$blockZ)"
     }
 }

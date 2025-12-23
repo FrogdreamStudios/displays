@@ -4,29 +4,32 @@ import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
 import com.google.gson.reflect.TypeToken
 import me.inotsleep.utils.logging.LoggingManager
+import me.inotsleep.utils.logging.LoggingManager.error
 import org.jspecify.annotations.NullMarked
 import java.net.URI
 import java.net.http.HttpClient
+import java.net.http.HttpClient.newHttpClient
 import java.net.http.HttpRequest
-import java.net.http.HttpResponse
+import java.net.http.HttpRequest.newBuilder
+import java.net.http.HttpResponse.BodyHandlers.ofString
 
 @NullMarked
-object Fetcher {
+object GitHubFetcher {
     private val gson = Gson()
-    private val client: HttpClient = HttpClient.newHttpClient()
+    private val client: HttpClient = newHttpClient()
 
     @Throws(Exception::class)
     fun fetchReleases(owner: String, repo: String): List<Release> {
-        val request = HttpRequest.newBuilder()
+        val request = newBuilder()
             .uri(URI.create("https://api.github.com/repos/$owner/$repo/releases"))
             .header("Accept", "application/vnd.github.v3+json")
             .header("User-Agent", "Updater")
             .build()
 
-        val response = client.send(request, HttpResponse.BodyHandlers.ofString())
+        val response = client.send(request, ofString())
 
         if (response.statusCode() != 200) {
-            LoggingManager.error("GitHub API error ${response.statusCode()}: ${response.body()}")
+            error("GitHub API error ${response.statusCode()}: ${response.body()}")
             return emptyList()
         }
 

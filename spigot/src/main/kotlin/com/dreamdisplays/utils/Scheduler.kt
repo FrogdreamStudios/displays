@@ -5,77 +5,83 @@ import org.bukkit.scheduler.BukkitRunnable
 import org.jspecify.annotations.NullMarked
 import java.lang.reflect.Proxy
 
+/**
+ * Scheduler utility to run tasks synchronously or asynchronously,
+ * supporting both standard Bukkit and Folia server implementations.
+ */
 @NullMarked
 object Scheduler {
+    private val isFolia: Boolean by lazy { Main.getIsFolia() }
+    private val plugin: Main by lazy { Main.getInstance() }
 
-    // Runs a task asynchronously, compatible with both Bukkit and Folia
+    // Run async
     fun runAsync(task: Runnable) {
-        if (Main.getIsFolia()) {
+        if (isFolia) {
             runFoliaAsync(task)
         } else {
-            object : BukkitRunnable() {
-                override fun run() = task.run()
-            }.runTaskAsynchronously(Main.getInstance())
+            BukkitTask(task).runTaskAsynchronously(plugin)
         }
     }
 
-    // Runs a task asynchronously on Folia's async scheduler
-    private fun runFoliaAsync(task: Runnable) {
-        try {
-            val bukkitClass = Class.forName("org.bukkit.Bukkit")
-            val asyncScheduler = bukkitClass.getMethod("getAsyncScheduler").invoke(null)
-            val consumerClass = Class.forName("java.util.function.Consumer")
-
-            val consumerTask = Proxy.newProxyInstance(
-                consumerClass.classLoader,
-                arrayOf(consumerClass)
-            ) { _, _, _ ->
-                task.run()
-                null
-            }
-
-            asyncScheduler.javaClass
-                .getMethod("runNow", Any::class.java, consumerClass)
-                .invoke(asyncScheduler, Main.getInstance(), consumerTask)
-        } catch (_: Exception) {
-            // Fallback to direct execution if reflection fails
-            task.run()
-        }
-    }
-
-    // Runs a task synchronously
-    // Compatible with both Bukkit and Folia
+    // Run sync
     fun runSync(task: Runnable) {
-        if (Main.getIsFolia()) {
+        if (isFolia) {
             runFoliaSync(task)
         } else {
-            object : BukkitRunnable() {
-                override fun run() = task.run()
-            }.runTask(Main.getInstance())
+            BukkitTask(task).runTask(plugin)
         }
     }
 
-    // Runs a task synchronously on Folia's global region scheduler
-    private fun runFoliaSync(task: Runnable) {
-        try {
-            val bukkitClass = Class.forName("org.bukkit.Bukkit")
-            val globalRegionScheduler = bukkitClass.getMethod("getGlobalRegionScheduler").invoke(null)
-            val consumerClass = Class.forName("java.util.function.Consumer")
+    // Folia async
+    private fun runFoliaAsync(task: Runnable) {
+        runCatching {
+            val asyncScheduler = Class.forName("org.bukkit.Bukkit")
+                .getMethod("getAsyncScheduler")
+                .invoke(null)
 
-            val consumerTask = Proxy.newProxyInstance(
-                consumerClass.classLoader,
-                arrayOf(consumerClass)
-            ) { _, _, _ ->
-                task.run()
-                null
-            }
+            val consumerTask = createConsumerProxy(task)
 
-            globalRegionScheduler.javaClass
-                .getMethod("run", Any::class.java, consumerClass)
-                .invoke(globalRegionScheduler, Main.getInstance(), consumerTask)
-        } catch (_: Exception) {
-            // Fallback to direct execution if reflection fails
-            task.run()
+            asyncScheduler.javaClass
+                .getMethod("runNow", Any::class.java, Class.forName("java.util.function.Consumer"))
+                .invoke(asyncScheduler, plugin, consumerTask)
+        }.getOrElse {
+            task.run() // Fallback: run directly
         }
+    }
+
+    // Folia sync
+    private fun runFoliaSync(task: Runnable) {
+        runCatching {
+            val globalScheduler = Class.forName("org.bukkit.Bukkit")
+                .getMethod("getGlobalRegionScheduler")
+                .invoke(null)
+
+            val consumerTask = createConsumerProxy(task)
+
+            globalScheduler.javaClass
+                .getMethod("run", Any::class.java, Class.forName("java.util.function.Consumer"))
+                .invoke(globalScheduler, plugin, consumerTask)
+        }.getOrElse {
+            task.run() // Fallback: run directly
+        }
+    }
+
+    // Create Consumer proxy
+    // It's needed to pass Runnable to Folia scheduler
+    private fun createConsumerProxy(task: Runnable): Any {
+        val consumerClass = Class.forName("java.util.function.Consumer")
+
+        return Proxy.newProxyInstance(
+            consumerClass.classLoader,
+            arrayOf(consumerClass)
+        ) { _, _, _ ->
+            task.run()
+            null
+        }
+    }
+
+    // Bukkit task wrapper
+    private class BukkitTask(private val task: Runnable) : BukkitRunnable() {
+        override fun run() = task.run()
     }
 }

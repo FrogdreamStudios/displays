@@ -22,6 +22,7 @@ Mod:
 Plugin:
 
 - [ ] Add config migrator from old versions of the plugin
+- [x] Refactors and small improvements
 
 # Version 1.2.0
 
