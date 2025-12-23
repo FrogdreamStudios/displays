@@ -35,60 +35,65 @@ public class DreamDisplaysMod implements com.dreamdisplays.Mod {
 
     public void registerPayloads(RegisterPayloadHandlersEvent event) {
         PayloadRegistrar registrar = event
-            .registrar(MOD_ID)
-            .optional()
-            .versioned("1");
+                .registrar(MOD_ID)
+                .optional()
+                .versioned("1");
         registrar.playBidirectional(
-            Delete.PACKET_ID,
-            Delete.PACKET_CODEC,
-            (serverPayload, ctx) -> {},
-            (clientPayload, ctx) -> Initializer.onDeletePacket(clientPayload)
+                Delete.PACKET_ID,
+                Delete.PACKET_CODEC,
+                (serverPayload, ctx) -> {
+                },
+                (clientPayload, ctx) -> Initializer.onDeletePacket(clientPayload)
         );
         registrar.playToClient(
-            Info.PACKET_ID,
-            Info.PACKET_CODEC,
-            (payload, ctx) -> Initializer.onDisplayInfoPacket(payload)
-        );
-
-        registrar.playToClient(
-            Premium.PACKET_ID,
-            Premium.PACKET_CODEC,
-            (payload, ctx) -> Initializer.onPremiumPacket(payload)
+                Info.PACKET_ID,
+                Info.PACKET_CODEC,
+                (payload, ctx) -> Initializer.onDisplayInfoPacket(payload)
         );
 
         registrar.playToClient(
-            DisplayEnabled.PACKET_ID,
-            DisplayEnabled.PACKET_CODEC,
-            (payload, ctx) -> Initializer.onDisplayEnabledPacket(payload)
+                Premium.PACKET_ID,
+                Premium.PACKET_CODEC,
+                (payload, ctx) -> Initializer.onPremiumPacket(payload)
         );
 
         registrar.playToClient(
-            ReportEnabled.PACKET_ID,
-            ReportEnabled.PACKET_CODEC,
-            (payload, ctx) -> Initializer.onReportEnabledPacket(payload)
+                DisplayEnabled.PACKET_ID,
+                DisplayEnabled.PACKET_CODEC,
+                (payload, ctx) -> Initializer.onDisplayEnabledPacket(payload)
+        );
+
+        registrar.playToClient(
+                ReportEnabled.PACKET_ID,
+                ReportEnabled.PACKET_CODEC,
+                (payload, ctx) -> Initializer.onReportEnabledPacket(payload)
         );
 
         registrar.playBidirectional(
-            Sync.PACKET_ID,
-            Sync.PACKET_CODEC,
-            (serverPayload, ctx) -> {},
-            (clientPayload, ctx) -> Initializer.onSyncPacket(clientPayload)
+                Sync.PACKET_ID,
+                Sync.PACKET_CODEC,
+                (serverPayload, ctx) -> {
+                },
+                (clientPayload, ctx) -> Initializer.onSyncPacket(clientPayload)
         );
 
         registrar.playToServer(
-            RequestSync.PACKET_ID,
-            RequestSync.PACKET_CODEC,
-            (p, c) -> {}
+                RequestSync.PACKET_ID,
+                RequestSync.PACKET_CODEC,
+                (p, c) -> {
+                }
         );
         registrar.playToServer(
-            Report.PACKET_ID,
-            Report.PACKET_CODEC,
-            (p, c) -> {}
+                Report.PACKET_ID,
+                Report.PACKET_CODEC,
+                (p, c) -> {
+                }
         );
         registrar.playToServer(
-            Version.PACKET_ID,
-            Version.PACKET_CODEC,
-            (p, c) -> {}
+                Version.PACKET_ID,
+                Version.PACKET_CODEC,
+                (p, c) -> {
+                }
         );
     }
 
@@ -110,7 +115,7 @@ public class DreamDisplaysMod implements com.dreamdisplays.Mod {
 
     @SubscribeEvent
     public void onRenderLevelAfterEntities(
-        RenderLevelStageEvent.AfterEntities event
+            RenderLevelStageEvent.AfterEntities event
     ) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null || mc.player == null) return;
@@ -125,10 +130,10 @@ public class DreamDisplaysMod implements com.dreamdisplays.Mod {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level != null && mc.player != null) {
             String serverId = mc.hasSingleplayerServer()
-                ? "singleplayer"
-                : (mc.getCurrentServer() != null
-                      ? mc.getCurrentServer().ip
-                      : "unknown");
+                    ? "singleplayer"
+                    : (mc.getCurrentServer() != null
+                    ? mc.getCurrentServer().ip
+                    : "unknown");
             Manager.loadScreensForServer(serverId);
         }
     }

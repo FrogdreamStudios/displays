@@ -5,8 +5,8 @@ import com.dreamdisplays.registrar.ChannelRegistrar.registerChannels
 import com.dreamdisplays.registrar.CommandRegistrar.registerCommands
 import com.dreamdisplays.registrar.ListenerRegistrar.registerListeners
 import com.dreamdisplays.registrar.SchedulerRegistrar.runRepeatingTasks
-import me.inotsleep.utils.AbstractPlugin
 import com.github.zafarkhaja.semver.Version
+import me.inotsleep.utils.AbstractPlugin
 import me.inotsleep.utils.logging.LoggingManager.log
 import net.kyori.adventure.platform.bukkit.BukkitAudiences
 import org.bstats.bukkit.Metrics
@@ -55,7 +55,6 @@ class Main : AbstractPlugin<Main>() {
 
         fun getInstance(): Main =
             getInstanceByClazz(Main::class.java)
-
 
 
         fun disablePlugin() {

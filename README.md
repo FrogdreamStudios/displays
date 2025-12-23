@@ -66,4 +66,5 @@ Questions you can ask in the Issues, [here](https://github.com/arsmotorin/dreamd
 
 ## Donate us
 
-Dream Displays is developed with passion and dedication by me and my friends. If you enjoy our mod and want to support further development, consider making a [donation](https://www.paypal.com/paypalme/frogdream).
+Dream Displays is developed with passion and dedication by me and my friends. If you enjoy our mod and want to support
+further development, consider making a [donation](https://www.paypal.com/paypalme/frogdream).

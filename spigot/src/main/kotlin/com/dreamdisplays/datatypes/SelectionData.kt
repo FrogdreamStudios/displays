@@ -5,7 +5,7 @@ import com.dreamdisplays.utils.Region.calculateRegion
 import org.bukkit.Bukkit.getPlayer
 import org.bukkit.Location
 import org.bukkit.block.BlockFace
-import org.bukkit.block.BlockFace.*
+import org.bukkit.block.BlockFace.NORTH
 import org.bukkit.entity.Player
 import org.jspecify.annotations.NullMarked
 import java.util.*

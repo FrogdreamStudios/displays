@@ -2,10 +2,10 @@ package com.dreamdisplays.listeners
 
 import com.dreamdisplays.Main.Companion.config
 import com.dreamdisplays.Main.Companion.getInstance
+import com.dreamdisplays.managers.DisplayManager.getDisplays
 import com.dreamdisplays.managers.PlayerManager
 import com.dreamdisplays.managers.PlayerManager.hasBeenNotifiedAboutModRequired
 import com.dreamdisplays.managers.PlayerManager.setModRequiredNotified
-import com.dreamdisplays.managers.DisplayManager.getDisplays
 import com.dreamdisplays.utils.Message.sendColoredMessage
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener

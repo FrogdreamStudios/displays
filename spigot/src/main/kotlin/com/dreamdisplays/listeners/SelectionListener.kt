@@ -8,11 +8,11 @@ import com.dreamdisplays.managers.SelectionManager.setFirstPoint
 import com.dreamdisplays.managers.SelectionManager.setSecondPoint
 import com.dreamdisplays.managers.SelectionVisualizer.startParticleTask
 import com.dreamdisplays.utils.Message
-import org.bukkit.event.Listener
 import org.bukkit.event.EventHandler
-import org.bukkit.event.player.PlayerInteractEvent
+import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
 import org.bukkit.event.block.Action.*
+import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.inventory.EquipmentSlot.HAND
 
 /**

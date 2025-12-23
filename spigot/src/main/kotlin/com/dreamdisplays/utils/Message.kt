@@ -1,6 +1,5 @@
 package com.dreamdisplays.utils
 
-import com.dreamdisplays.Main
 import com.dreamdisplays.Main.Companion.config
 import com.dreamdisplays.Main.Companion.getInstance
 import com.google.gson.Gson

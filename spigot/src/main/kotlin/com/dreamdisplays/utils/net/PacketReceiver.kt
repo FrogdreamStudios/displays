@@ -24,9 +24,7 @@ import com.dreamdisplays.utils.net.PacketUtils.sendReportEnabled
 import com.github.zafarkhaja.semver.Version
 import com.github.zafarkhaja.semver.Version.parse
 import com.google.gson.Gson
-import me.inotsleep.utils.logging.LoggingManager.error
-import me.inotsleep.utils.logging.LoggingManager.log
-import me.inotsleep.utils.logging.LoggingManager.warn
+import me.inotsleep.utils.logging.LoggingManager.*
 import net.kyori.adventure.text.TextReplacementConfig
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 import org.bukkit.entity.Player
@@ -145,7 +143,8 @@ class PacketReceiver(private val plugin: Main) : PluginMessageListener {
 
         // Check for plugin updates
         if (config.settings.updatesEnabled &&
-            player.hasPermission(config.permissions.updates)) {
+            player.hasPermission(config.permissions.updates)
+        ) {
             checkPluginUpdate(player)
         }
     }

@@ -4,13 +4,13 @@ import com.dreamdisplays.managers.DisplayManager.isContains
 import com.dreamdisplays.managers.SelectionManager.isLocationSelected
 import org.bukkit.Location
 import org.bukkit.block.Block
-import org.bukkit.event.Listener
+import org.bukkit.event.Cancellable
 import org.bukkit.event.EventHandler
+import org.bukkit.event.Listener
 import org.bukkit.event.block.BlockBreakEvent
 import org.bukkit.event.block.BlockPistonExtendEvent
 import org.bukkit.event.block.BlockPistonRetractEvent
 import org.bukkit.event.entity.EntityExplodeEvent
-import org.bukkit.event.Cancellable
 
 /**
  * Listener for protecting display areas from modifications.

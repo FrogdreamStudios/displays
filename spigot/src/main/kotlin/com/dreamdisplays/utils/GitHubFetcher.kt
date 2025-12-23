@@ -3,13 +3,11 @@ package com.dreamdisplays.utils
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
 import com.google.gson.reflect.TypeToken
-import me.inotsleep.utils.logging.LoggingManager
 import me.inotsleep.utils.logging.LoggingManager.error
 import org.jspecify.annotations.NullMarked
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpClient.newHttpClient
-import java.net.http.HttpRequest
 import java.net.http.HttpRequest.newBuilder
 import java.net.http.HttpResponse.BodyHandlers.ofString
 
