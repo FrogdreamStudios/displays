@@ -12,6 +12,9 @@ import java.io.File
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 
+/**
+ * Manages the configuration of the plugin.
+ */
 @NullMarked
 class Config(private val plugin: Main) {
     private val configFile = File(plugin.dataFolder, "config.toml")
@@ -114,9 +117,7 @@ class Config(private val plugin: Main) {
     // Configuration sections
     data class LanguageSection(
         val default_language: String = "en"
-    ) {
-        val defaultLanguage get() = default_language
-    }
+    )
 
     data class SettingsSection(
         val reports: ReportsConfig = ReportsConfig(),

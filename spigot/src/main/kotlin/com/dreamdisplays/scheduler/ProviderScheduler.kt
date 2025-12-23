@@ -1,6 +1,6 @@
 package com.dreamdisplays.scheduler
 
-import com.dreamdisplays.Main
+import com.dreamdisplays.utils.PlatformUtils.isFolia
 import org.jspecify.annotations.NullMarked
 
 /**
@@ -9,6 +9,8 @@ import org.jspecify.annotations.NullMarked
  */
 @NullMarked
 object ProviderScheduler {
-    val adapter: AdapterScheduler =
-        if (Main.getIsFolia()) FoliaScheduler else BukkitScheduler
+
+    val adapter: AdapterScheduler by lazy {
+        if (isFolia) FoliaScheduler else BukkitScheduler
+    }
 }

@@ -1,6 +1,7 @@
 package com.dreamdisplays.utils
 
-import com.dreamdisplays.Main
+import com.dreamdisplays.utils.PlatformUtils.isFolia
+import org.bukkit.plugin.Plugin
 import org.bukkit.scheduler.BukkitRunnable
 import org.jspecify.annotations.NullMarked
 import java.lang.reflect.Proxy
@@ -11,8 +12,8 @@ import java.lang.reflect.Proxy
  */
 @NullMarked
 object Scheduler {
-    private val isFolia: Boolean by lazy { Main.getIsFolia() }
-    private val plugin: Main by lazy { Main.getInstance() }
+
+    private lateinit var plugin: Plugin
 
     // Run async
     fun runAsync(task: Runnable) {
@@ -35,50 +36,44 @@ object Scheduler {
     // Folia async
     private fun runFoliaAsync(task: Runnable) {
         runCatching {
-            val asyncScheduler = Class.forName("org.bukkit.Bukkit")
+            val scheduler = Class.forName("org.bukkit.Bukkit")
                 .getMethod("getAsyncScheduler")
                 .invoke(null)
 
-            val consumerTask = createConsumerProxy(task)
-
-            asyncScheduler.javaClass
-                .getMethod("runNow", Any::class.java, Class.forName("java.util.function.Consumer"))
-                .invoke(asyncScheduler, plugin, consumerTask)
+            scheduler.javaClass
+                .getMethod("runNow", Plugin::class.java, consumerClass)
+                .invoke(scheduler, plugin, consumer(task))
         }.getOrElse {
-            task.run() // Fallback: run directly
+            task.run()
         }
     }
 
     // Folia sync
     private fun runFoliaSync(task: Runnable) {
         runCatching {
-            val globalScheduler = Class.forName("org.bukkit.Bukkit")
+            val scheduler = Class.forName("org.bukkit.Bukkit")
                 .getMethod("getGlobalRegionScheduler")
                 .invoke(null)
 
-            val consumerTask = createConsumerProxy(task)
-
-            globalScheduler.javaClass
-                .getMethod("run", Any::class.java, Class.forName("java.util.function.Consumer"))
-                .invoke(globalScheduler, plugin, consumerTask)
+            scheduler.javaClass
+                .getMethod("run", Plugin::class.java, consumerClass)
+                .invoke(scheduler, plugin, consumer(task))
         }.getOrElse {
-            task.run() // Fallback: run directly
+            task.run()
         }
     }
 
-    // Create Consumer proxy
-    // It's needed to pass Runnable to Folia scheduler
-    private fun createConsumerProxy(task: Runnable): Any {
-        val consumerClass = Class.forName("java.util.function.Consumer")
+    // Create Consumer proxy (it's needed to pass Runnable to Folia scheduler)
+    private val consumerClass = Class.forName("java.util.function.Consumer")
 
-        return Proxy.newProxyInstance(
+    private fun consumer(task: Runnable): Any =
+        Proxy.newProxyInstance(
             consumerClass.classLoader,
             arrayOf(consumerClass)
         ) { _, _, _ ->
             task.run()
             null
         }
-    }
 
     // Bukkit task wrapper
     private class BukkitTask(private val task: Runnable) : BukkitRunnable() {
