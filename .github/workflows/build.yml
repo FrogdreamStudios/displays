@@ -146,12 +146,15 @@ jobs:
           modrinth-id: dreamdisplays
           modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
 
+          curseforge-id: ${{ secrets.CURSEFORGE_PROJECT_ID }}
+          curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
+
           loaders: fabric
           game-versions: |
             1.21.11
 
           dependencies: |
-            fabric-api(required){modrinth:P7dR8mSH}
+            fabric-api(required){modrinth:P7dR8mSH}{curseforge:306612}
 
       - name: Publish NeoForge
         uses: Kir-Antipov/mc-publish@v3.3
@@ -166,6 +169,9 @@ jobs:
 
           modrinth-id: dreamdisplays
           modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+
+          curseforge-id: ${{ secrets.CURSEFORGE_PROJECT_ID }}
+          curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
 
           loaders: neoforge
           game-versions: |

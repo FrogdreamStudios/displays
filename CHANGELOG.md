@@ -17,7 +17,9 @@ Mod:
 - [ ] Fix desynchronization after player relog
 - [ ] Support natives
 - [ ] Store paused state of display
+- [ ] Ability to change brightness of display
 - [ ] Fix playing videos after changing quality
+- [x] Support CurseForge releases
 
 Plugin:
 
