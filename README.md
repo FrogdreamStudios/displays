@@ -63,3 +63,7 @@ We welcome contributions! If you want to improve the mod, fix bugs, or add new f
 ## Any questions?
 
 Questions you can ask in the Issues, [here](https://github.com/arsmotorin/dreamdisplays/issues).
+
+## Donate us
+
+Dream Displays is developed with passion and dedication by me and my friends. If you enjoy our mod and want to support further development, consider making a [donation](https://www.paypal.com/paypalme/frogdream).
