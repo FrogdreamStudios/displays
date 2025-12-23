@@ -4,6 +4,9 @@ import org.bukkit.plugin.Plugin
 import org.jspecify.annotations.NullMarked
 import java.lang.reflect.Proxy
 
+/**
+ * A Folia implementation of the `AdapterScheduler` for scheduling asynchronous tasks.
+ */
 @NullMarked
 object FoliaScheduler : AdapterScheduler {
 

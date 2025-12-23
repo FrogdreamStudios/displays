@@ -4,6 +4,9 @@ import org.bukkit.plugin.Plugin
 import org.bukkit.scheduler.BukkitRunnable
 import org.jspecify.annotations.NullMarked
 
+/**
+ * A Bukkit implementation of the `AdapterScheduler` for scheduling asynchronous tasks.
+ */
 @NullMarked
 object BukkitScheduler : AdapterScheduler {
     override fun runRepeatingAsync(
