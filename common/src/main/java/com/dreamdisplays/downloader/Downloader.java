@@ -11,6 +11,9 @@ import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+/**
+ * Will be removed in 2.0.0 version and replaced with FFmpeg solution.
+ */
 @NullMarked
 public class Downloader {
 

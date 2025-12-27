@@ -11,6 +11,9 @@ import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.jspecify.annotations.NullMarked;
 
+/**
+ * Renders screens in the world.
+ */
 @NullMarked
 public class ScreenRenderer {
 

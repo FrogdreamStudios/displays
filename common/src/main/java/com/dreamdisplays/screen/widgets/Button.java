@@ -13,6 +13,9 @@ import net.minecraft.util.ARGB;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
+/**
+ * A button widget that we use in display configuration GUI.
+ */
 @NullMarked
 public abstract class Button extends AbstractWidget {
 

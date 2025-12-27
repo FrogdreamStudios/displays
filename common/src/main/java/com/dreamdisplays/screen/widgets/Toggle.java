@@ -12,6 +12,9 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
 import org.jspecify.annotations.NullMarked;
 
+/**
+ * A button widget that we use in display configuration GUI.
+ */
 @NullMarked
 public abstract class Toggle extends AbstractWidget {
 

@@ -7,6 +7,9 @@ import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Manager for all screen displays.
+ */
 @NullMarked
 public class Manager {
 

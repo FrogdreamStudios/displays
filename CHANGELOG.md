@@ -23,6 +23,7 @@ Mod:
 - [x] Change maximum of render distance to 128 blocks ([#59](https://github.com/arsmotorin/dreamdisplays/issues/59))
 - [x] Change maximum volume to 200% ([#60](https://github.com/arsmotorin/dreamdisplays/issues/60))
 - [x] Support CurseForge releases
+- [x] Documentation in codebase of the mod
 
 Plugin:
 

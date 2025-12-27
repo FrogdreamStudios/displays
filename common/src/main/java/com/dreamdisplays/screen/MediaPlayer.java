@@ -26,6 +26,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+/**
+ * Media player for streaming YouTube videos using GStreamer.
+ * Handles video and audio playback, quality selection, volume control, and frame processing.
+ *
+ * Integrates with Minecraft's rendering system to display video frames on in-game screens.
+ */
+// TODO: replace with FFmpeg solution in version 2.0.0
 @NullMarked
 public class MediaPlayer {
 

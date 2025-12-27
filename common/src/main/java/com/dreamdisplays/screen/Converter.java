@@ -2,8 +2,10 @@ package com.dreamdisplays.screen;
 
 import java.nio.ByteBuffer;
 
-// Native (temporary not) image format converter for high-performance pixel operations.
-// Converts RGBA/ABGR formats using native code (temporarily implemented in Java).
+/**
+ * Native (temporary not) image format converter for high-performance pixel operations.
+ * Converts RGBA/ABGR formats using native code (temporarily implemented in Java).
+ */
 public class Converter {
 
     // Java implementation for image scaling with aspect ratio preservation (cover mode)

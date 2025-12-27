@@ -12,6 +12,9 @@ import java.util.regex.Pattern;
 
 import static com.dreamdisplays.util.Utils.detectPlatform;
 
+/**
+ * Will be removed in 2.0.0 version and replaced with FFmpeg solution.
+ */
 @NullMarked
 public class Init {
 

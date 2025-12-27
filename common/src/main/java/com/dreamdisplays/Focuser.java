@@ -5,6 +5,9 @@ import com.dreamdisplays.screen.Screen;
 import net.minecraft.client.Minecraft;
 import org.jspecify.annotations.NullMarked;
 
+/**
+ * A background thread that mutes/unmutes screens based on window focus.
+ */
 @NullMarked
 public class Focuser extends Thread {
 
@@ -23,8 +26,7 @@ public class Focuser extends Thread {
 
             boolean focused = client.isWindowActive();
 
-            if (
-                    Initializer.getConfig().muteOnAltTab
+            if (Initializer.getConfig().muteOnAltTab
             ) for (Screen screen : Manager.getScreens()) {
                 screen.mute(!focused);
             }

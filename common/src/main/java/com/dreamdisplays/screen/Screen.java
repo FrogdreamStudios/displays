@@ -21,6 +21,9 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * Represents a video display screen in the game world.
+ */
 @NullMarked
 public class Screen {
 

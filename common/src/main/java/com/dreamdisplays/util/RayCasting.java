@@ -8,7 +8,9 @@ import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-// Utility class for ray-casting operations
+/**
+ * Utility class for ray casting operations.
+ */
 @NullMarked
 public class RayCasting {
 

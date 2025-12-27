@@ -19,6 +19,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+/**
+ * Will be removed in 2.0.0 version and replaced with FFmpeg solution.
+ */
 @NullMarked
 @Mixin(Minecraft.class)
 public abstract class GStreamer {

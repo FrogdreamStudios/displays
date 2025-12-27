@@ -3,6 +3,9 @@ package com.dreamdisplays.downloader;
 import org.jspecify.annotations.NullMarked;
 import org.spongepowered.asm.mixin.Unique;
 
+/**
+ * Will be removed in 2.0.0 version and replaced with FFmpeg solution.
+ */
 @NullMarked
 public class Listener {
 

@@ -14,6 +14,9 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import org.jspecify.annotations.NullMarked;
 
+/**
+ * A button widget that we use in display configuration GUI.
+ */
 @NullMarked
 public abstract class Slider extends AbstractWidget {
 

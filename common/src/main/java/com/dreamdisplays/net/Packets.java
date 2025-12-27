@@ -11,6 +11,9 @@ import org.jspecify.annotations.NullMarked;
 
 import java.util.UUID;
 
+/**
+ * Packet definitions for mod network communication.
+ */
 @NullMarked
 public final class Packets {
 

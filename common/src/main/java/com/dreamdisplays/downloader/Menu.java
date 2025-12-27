@@ -7,6 +7,9 @@ import net.minecraft.network.chat.Component;
 import org.joml.Matrix3x2fStack;
 import org.jspecify.annotations.NullMarked;
 
+/**
+ * Will be removed in 2.0.0 version and replaced with FFmpeg solution.
+ */
 @NullMarked
 public class Menu extends Screen {
 

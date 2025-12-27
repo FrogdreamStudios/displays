@@ -24,7 +24,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-// Configuration screen for Dream Displays with volume, render distance, quality, and sync settings
+/**
+ * Configuration of a display screen GUI.
+ */
+// TODO: rewrite this entire class
 @NullMarked
 public class Configuration extends Screen {
 

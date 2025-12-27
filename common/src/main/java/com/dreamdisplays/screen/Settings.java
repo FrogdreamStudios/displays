@@ -13,9 +13,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Manages loading and saving of display settings and data.
+ */
 @NullMarked
 public class Settings {
-
     // Store settings per server
     private static final File SETTINGS_DIR = new File("./config/dreamdisplays");
     private static final Gson GSON = new GsonBuilder()

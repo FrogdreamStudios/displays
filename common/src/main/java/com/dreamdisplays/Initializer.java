@@ -29,6 +29,9 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+/**
+ * Main initializer.
+ */
 @NullMarked
 public class Initializer {
 

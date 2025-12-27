@@ -6,6 +6,9 @@ import org.jspecify.annotations.NullMarked;
 
 import java.io.File;
 
+/**
+ * Client configuration settings.
+ */
 @NullMarked
 public class Config extends AbstractConfig {
 
