@@ -87,13 +87,13 @@ public class Configuration extends Screen {
                 0,
                 0,
                 0,
-                Component.literal((int) Math.floor(screen.getVolume() * 100) + "%"),
+                Component.literal((int) Math.floor(screen.getVolume() * 200) + "%"),
                 screen.getVolume()
         ) {
             @Override
             protected void updateMessage() {
                 setMessage(
-                        Component.literal((int) Math.floor(value * 100) + "%")
+                        Component.literal((int) Math.floor(value * 200) + "%")
                 );
             }
 
@@ -283,7 +283,7 @@ public class Configuration extends Screen {
             public void onPress() {
                 screen.setVolume(0.5f);
                 volume.value = 0.5;
-                volume.setMessage(Component.literal("50%"));
+                volume.setMessage(Component.literal("100%"));
             }
         };
 
@@ -688,7 +688,7 @@ public class Configuration extends Screen {
                 ).withStyle(style -> style.withColor(ChatFormatting.GRAY)),
                 Component.translatable(
                         "dreamdisplays.button.volume.tooltip.4",
-                        (int) (volume.value * 100)
+                        (int) (volume.value * 200)
                 ).withStyle(style -> style.withColor(ChatFormatting.GOLD))
         );
 

@@ -200,7 +200,7 @@ public class MediaPlayer {
     }
 
     public void setVolume(double volume) {
-        userVolume = Math.max(0, Math.min(1, volume));
+        userVolume = Math.max(0, Math.min(2, volume));
         currentVolume = userVolume * lastAttenuation;
         safeExecute(this::applyVolume);
     }
@@ -378,7 +378,7 @@ public class MediaPlayer {
                 "souphttpsrc location=\"" +
                         uri +
                         "\" ! decodebin ! audioconvert ! audioresample " +
-                        "! volume name=volumeElement volume=" +
+                        "! volume name=volumeElement volume=1 ! audioamplify name=ampElement amplification=" +
                         currentVolume +
                         " ! autoaudiosink";
         Pipeline p = (Pipeline) Gst.parseLaunch(desc);
@@ -580,7 +580,9 @@ public class MediaPlayer {
     private void applyVolume() {
         if (!initialized) return;
         Element v = audioPipeline.getElementByName("volumeElement");
-        if (v != null) v.set("volume", currentVolume);
+        if (v != null) v.set("volume", 1);
+        Element a = audioPipeline.getElementByName("ampElement");
+        if (a != null) a.set("amplification", currentVolume);
     }
 
     // === QUALITY HELPERS =================================================================

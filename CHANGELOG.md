@@ -19,12 +19,16 @@ Mod:
 - [ ] Store paused state of display
 - [ ] Ability to change brightness of display
 - [ ] Fix playing videos after changing quality
+- [ ] Move default render distance from client to server side
+- [ ] Change maximum of render distance to 128 blocks
+- [x] Change maximum volume to 200%
 - [x] Support CurseForge releases
 
 Plugin:
 
 - [ ] Add config migrator from old versions of the plugin
 - [x] Refactors and small improvements
+- [x] Documentation in codebase of the plugin
 
 # Version 1.2.0
 
