@@ -174,20 +174,20 @@ public class Configuration extends Screen {
                 0,
                 0,
                 Component.nullToEmpty(String.valueOf(screen.getRenderDistance())),
-                (screen.getRenderDistance() - 24) / (double) (96 - 24)
+                (screen.getRenderDistance() - 24) / (double) (128 - 24)
         ) {
             @Override
             protected void updateMessage() {
                 setMessage(
                         Component.nullToEmpty(
-                                String.valueOf((int) (value * (96 - 24)) + 24)
+                                String.valueOf((int) (value * (128 - 24)) + 24)
                         )
                 );
             }
 
             @Override
             protected void applyValue() {
-                int newDistance = (int) (value * (96 - 24) + 24);
+                int newDistance = (int) (value * (128 - 24) + 24);
                 screen.setRenderDistance(newDistance);
                 Manager.saveScreenData(screen);
             }
@@ -237,7 +237,7 @@ public class Configuration extends Screen {
                 screen.setRenderDistance(Initializer.config.defaultDistance);
                 renderD.value =
                         (Initializer.config.defaultDistance - 24) /
-                                (double) (96 - 24);
+                                (double) (128 - 24);
                 renderD.setMessage(
                         Component.nullToEmpty(
                                 String.valueOf(Initializer.config.defaultDistance)
@@ -741,7 +741,7 @@ public class Configuration extends Screen {
                 ),
                 Component.translatable(
                         "dreamdisplays.button.render-distance.tooltip.8",
-                        (int) (renderD.value * (96 - 24) + 24)
+                        (int) (renderD.value * (128 - 24) + 24)
                 ).withStyle(style -> style.withColor(ChatFormatting.GOLD))
         );
 

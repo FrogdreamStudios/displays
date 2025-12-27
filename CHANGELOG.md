@@ -12,16 +12,16 @@ Plugin:
 
 Mod:
 
-- [ ] Support single-player mode
+- [ ] Support single-player mode ([#31](https://github.com/arsmotorin/dreamdisplays/issues/59))
 - [ ] Add action bar messages when player looks at display
 - [ ] Fix desynchronization after player relog
 - [ ] Support natives
 - [ ] Store paused state of display
 - [ ] Ability to change brightness of display
 - [ ] Fix playing videos after changing quality
-- [ ] Move default render distance from client to server side
-- [ ] Change maximum of render distance to 128 blocks
-- [x] Change maximum volume to 200%
+- [ ] Move default render distance from client to server side ([#59](https://github.com/arsmotorin/dreamdisplays/issues/59))
+- [x] Change maximum of render distance to 128 blocks ([#59](https://github.com/arsmotorin/dreamdisplays/issues/59))
+- [x] Change maximum volume to 200% ([#60](https://github.com/arsmotorin/dreamdisplays/issues/60))
 - [x] Support CurseForge releases
 
 Plugin:
