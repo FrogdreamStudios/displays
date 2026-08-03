@@ -65,6 +65,10 @@ class SortDropdown(
         val height = ITEM_H * items.size
         rect = UiRect(anchorCenterX - WIDTH / 2, anchorY + 2, WIDTH, height)
 
+        //? if >=1.21.11 {
+        g.nextStratum()
+        //?}
+
         val scale = 0.85f + 0.15f * animProgress
         val matrices = g.pose()
         //? if >=1.21.11 {
