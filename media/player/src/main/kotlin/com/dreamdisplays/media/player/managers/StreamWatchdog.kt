@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory
  */
 internal class StreamWatchdog(
     private val debugLabel: String,
-    private val isActive: () -> Boolean,
+    private val isSessionActive: () -> Boolean,
     private val getLastFrameNanos: () -> Long,
     private val stallThresholdMs: Long = 45_000L,
     private val checkIntervalMs: Long = 1_000L,
@@ -29,7 +29,7 @@ internal class StreamWatchdog(
         stop()
         job = scope.launch {
             delay(checkIntervalMs)
-            while (isActive) {
+            while (isActive) { // CoroutineScope.isActive: loop until this job is cancelled
                 check()
                 delay(checkIntervalMs)
             }
@@ -45,7 +45,7 @@ internal class StreamWatchdog(
     /** Main checker for [stallThresholdMs]. */
     private fun check() {
         runCatching {
-            if (!isActive()) return
+            if (!isSessionActive()) return
             val silenceMs = (System.nanoTime() - getLastFrameNanos()) / 1_000_000L
             if (silenceMs >= stallThresholdMs) {
                 logger.warn("$debugLabel No frames for ${silenceMs} ms. Restarting...")

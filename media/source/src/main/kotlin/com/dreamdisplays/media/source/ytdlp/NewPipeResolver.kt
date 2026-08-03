@@ -56,6 +56,27 @@ object NewPipeResolver : MediaResolver {
     private val NEGATIVE_TTL_NANOS = 20_000_000_000L
     private const val MAX_CACHE_ENTRIES = 256
 
+    /** Kill switch for the overlapped fallback (see [shouldOverlapFallback]). */
+    private val OVERLAP_FALLBACK_ENABLED: Boolean =
+        System.getProperty("dreamdisplays.resolve.overlapFallback", "true").toBoolean()
+
+    /** Resolutions observed before the ladder rate is trusted enough to stop speculating. */
+    private const val MIN_LADDER_SAMPLES = 4
+
+    /** Walled share of recent resolutions at which the `yt-dlp` fallback is worth starting early. */
+    private const val OVERLAP_MISS_PERCENT = 34
+
+    /** Halve the counters past this many samples, so the rate tracks YouTube's current behaviour. */
+    private const val LADDER_DECAY_AT = 64
+
+    /**
+     * How often recent YouTube resolutions came back with a real adaptive ladder. YouTube's
+     * PO-token / SABR wall comes and goes, and which side of it a client is on decides whether the
+     * `yt-dlp` fallback is going to be needed at all — so it is measured rather than assumed.
+     */
+    private val ladderHits = atomic(0)
+    private val ladderMisses = atomic(0)
+
     /** Recently resolved videos, keyed by video id (falling back to the full URL). */
     private val cache: Cache<String, CacheEntry> = Caffeine.newBuilder()
         .maximumSize(MAX_CACHE_ENTRIES.toLong())
@@ -88,7 +109,7 @@ object NewPipeResolver : MediaResolver {
         check(initialized.value) { "NewPipeExtractor failed to initialize" }
         val url = source.toResolvableUrl()
             ?: throw UnsupportedOperationException("Twitch not supported by NewPipeResolver")
-        val resolved = resolveCached(url)
+        val resolved = resolveCached(url, overlapFallback = true)
             ?: throw IllegalStateException("NewPipe could not resolve $url; deferring to yt-dlp")
         // YouTube often exposes only the muxed 360p track to this client (adaptive tracks are
         // SABR / DASH-only); failing here lets the resolver chain fall through to yt-dlp, which
@@ -150,7 +171,54 @@ object NewPipeResolver : MediaResolver {
     fun fetch(videoUrl: String): List<YtStream> {
         ensureInitialized()
         if (!initialized.value) return emptyList()
+        // No overlap here: this is the call [YtDlp.fetchUncached] makes from inside the very race
+        // the overlap exists to start.
         return resolveCached(videoUrl)?.streams ?: emptyList()
+    }
+
+    /**
+     * Warms this resolver (and, when the wall is likely, the `yt-dlp` fallback alongside it) for
+     * [source]. Reports false for a walled or failed extraction, so the registry goes on to warm the
+     * fallback that is about to be needed.
+     */
+    override fun prefetch(source: MediaSource): Boolean {
+        if (!canResolve(source)) return false
+        ensureInitialized()
+        if (!initialized.value) return false
+        val url = source.toResolvableUrl() ?: return false
+        val resolved = runCatching { resolveCached(url, overlapFallback = true) }.getOrNull() ?: return false
+        return resolved.isLive || YtStreams.offersQualityLadder(resolved.streams)
+    }
+
+    /**
+     * Whether to start the `yt-dlp` fallback alongside this extraction instead of after it.
+     *
+     * The resolver chain runs strictly in priority order, so a video this extractor cannot ladder
+     * used to cost the extraction plus a full `yt-dlp` run — the two paths [YtDlp.fetchUncached]
+     * was built to overlap ending up serialized end to end, because by the time `YtDlpResolver` was
+     * reached the NewPipe half of its race was already cached and returned instantly.
+     *
+     * Starting the fallback up front removes that, at the price of a subprocess that gets killed
+     * moments later whenever this extractor does ladder. So it is spent only when the recent ladder
+     * rate says it is likely to pay off — or when there is no history yet, since first-play latency
+     * is what a viewer actually notices and one short-lived subprocess is cheap beside a second of
+     * extra waiting.
+     */
+    private fun shouldOverlapFallback(): Boolean {
+        if (!OVERLAP_FALLBACK_ENABLED) return false
+        val hits = ladderHits.value
+        val misses = ladderMisses.value
+        val samples = hits + misses
+        if (samples < MIN_LADDER_SAMPLES) return true
+        return misses * 100 >= samples * OVERLAP_MISS_PERCENT
+    }
+
+    /** Records whether a completed extraction produced a full ladder, decaying the older history. */
+    private fun recordLadderOutcome(laddered: Boolean) {
+        if (laddered) ladderHits.incrementAndGet() else ladderMisses.incrementAndGet()
+        if (ladderHits.value + ladderMisses.value < LADDER_DECAY_AT) return
+        ladderHits.value = ladderHits.value / 2
+        ladderMisses.value = ladderMisses.value / 2
     }
 
     /**
@@ -160,16 +228,22 @@ object NewPipeResolver : MediaResolver {
      * round. The TTL otherwise depends on what kind of result it is — see [POSITIVE_TTL_NANOS] and
      * [PARTIAL_TTL_NANOS].
      */
-    private fun resolveCached(url: String): Resolved? {
+    private fun resolveCached(url: String, overlapFallback: Boolean = false): Resolved? {
         val key = YouTubeUrls.extractVideoId(url) ?: url
+        cache.getIfPresent(key)?.let { return it.value }
+        if (overlapFallback && shouldOverlapFallback()) {
+            runCatching { YtDlp.prefetchFormats(url) }
+        }
         return cache.get(key) {
             val resolved = doExtract(url)
+            val laddered = resolved != null && YtStreams.offersQualityLadder(resolved.streams)
             val ttl = when {
                 resolved == null -> NEGATIVE_TTL_NANOS
                 resolved.isLive -> LIVE_TTL_NANOS
-                YtStreams.offersQualityLadder(resolved.streams) -> POSITIVE_TTL_NANOS
+                laddered -> POSITIVE_TTL_NANOS
                 else -> PARTIAL_TTL_NANOS
             }
+            if (resolved == null || !resolved.isLive) recordLadderOutcome(laddered)
             CacheEntry(value = resolved, ttlNanos = ttl)
         }.value
     }

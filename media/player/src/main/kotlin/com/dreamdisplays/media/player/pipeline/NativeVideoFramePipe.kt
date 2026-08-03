@@ -6,6 +6,7 @@ import com.dreamdisplays.api.media.player.GpuTextureRef
 import com.dreamdisplays.media.player.MediaPlayer
 import com.dreamdisplays.media.player.nativebridge.NativeMedia
 import com.dreamdisplays.media.player.process.HwAccelBackend
+import com.dreamdisplays.media.player.process.MediaProcess
 import com.dreamdisplays.media.player.util.daemon
 import com.dreamdisplays.media.runtime.OsInfo
 import org.slf4j.LoggerFactory
@@ -30,9 +31,6 @@ internal class NativeVideoFramePipe(
     private val logger = LoggerFactory.getLogger("DreamDisplays/NativeVideoFramePipe")
 
     companion object {
-        /** Default frame rate when the source doesn't report one or reports an invalid one. */
-        private const val DEFAULT_FPS = 30.0
-
         /** How long to wait for FFmpeg's exit code after EOF, mirroring the JVM pipe. */
         private const val EXIT_WAIT_MILLIS = 500
 
@@ -196,7 +194,8 @@ internal class NativeVideoFramePipe(
             return null
         }
         handle = hnd
-        val frameNs = (1_000_000_000.0 / (sourceFps.takeIf { it > 1.0 } ?: DEFAULT_FPS)).toLong()
+        // Must be the same rate FFmpeg was pinned to (`-r`), or synthesized timestamps drift.
+        val frameNs = (1_000_000_000.0 / MediaProcess.outputFps(sourceFps)).toLong()
         val prebuffer = FramePrebuffer.createIfEnabled(
             surface, frameNs, getAudioClock, onFirstFrame, terminated, stopFlag, debugLabel, presentPreview,
         ).also { activePrebuffer = it }
@@ -258,7 +257,8 @@ internal class NativeVideoFramePipe(
         }
         lavHandle = hnd
         enableLavCache(hnd)
-        val frameNs = (1_000_000_000.0 / (sourceFps.takeIf { it > 1.0 } ?: DEFAULT_FPS)).toLong()
+        // Must be the same rate FFmpeg was pinned to (`-r`), or synthesized timestamps drift.
+        val frameNs = (1_000_000_000.0 / MediaProcess.outputFps(sourceFps)).toLong()
         val prebuffer = FramePrebuffer.createIfEnabled(
             surface, frameNs, getAudioClock, onFirstFrame, terminated, stopFlag, debugLabel, presentPreview,
         ).also { activePrebuffer = it }
@@ -306,7 +306,7 @@ internal class NativeVideoFramePipe(
             return null
         }
         lavHandle = hnd
-        val frameNs = (1_000_000_000.0 / (sourceFps.takeIf { it > 1.0 } ?: DEFAULT_FPS)).toLong()
+        val frameNs = (1_000_000_000.0 / MediaProcess.outputFps(sourceFps)).toLong()
         val prebuffer = FramePrebuffer.createIfEnabled(
             surface, frameNs, getAudioClock, onFirstFrame, terminated, stopFlag, debugLabel,
         ).also { activePrebuffer = it }

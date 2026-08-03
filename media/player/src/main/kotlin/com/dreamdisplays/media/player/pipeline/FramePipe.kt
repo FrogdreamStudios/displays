@@ -2,8 +2,6 @@ package com.dreamdisplays.media.player.pipeline
 
 import com.dreamdisplays.api.media.FramePixelFormat
 import com.dreamdisplays.api.media.player.GpuTextureRef
-import com.dreamdisplays.media.player.pipeline.FramePacing.MAX_PACING_WAIT_NS
-import com.dreamdisplays.media.player.pipeline.FramePacing.STALE_TIMELINE_DIFF_NS
 import org.slf4j.LoggerFactory
 import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicLong
@@ -216,9 +214,14 @@ internal object FramePacing {
                     Thread.currentThread().interrupt()
                     break
                 }
-            } else {
+                continue
+            }
+            val deadline = System.nanoTime() + diff
+            while (System.nanoTime() < deadline) {
+                if (abort()) return true
                 Thread.onSpinWait()
             }
+            break
         }
         val latestClock = audioClock()
         val latestDiff = videoPts - if (latestClock >= 0) latestClock else videoPts

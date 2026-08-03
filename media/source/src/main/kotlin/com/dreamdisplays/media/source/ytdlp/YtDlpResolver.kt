@@ -22,9 +22,10 @@ object YtDlpResolver : MediaResolver {
     override fun canResolve(source: MediaSource): Boolean = true
 
     /** Pre-warms the yt-dlp format cache for [source] on a background thread. */
-    override fun prefetch(source: MediaSource) {
-        val url = source.toResolvableUrl() ?: return
+    override fun prefetch(source: MediaSource): Boolean {
+        val url = source.toResolvableUrl() ?: return false
         YtDlp.prefetchFormats(url)
+        return true
     }
 
     /**

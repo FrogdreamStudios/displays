@@ -66,9 +66,9 @@ object TwitchResolver : MediaResolver {
     override fun canResolve(source: MediaSource): Boolean = source is MediaSource.Twitch
 
     /** Warms the token + playlist cache in the background (the registry already runs this off-thread). */
-    override fun prefetch(source: MediaSource) {
-        val twitch = source as? MediaSource.Twitch ?: return
-        runCatching { resolveCached(twitch) }
+    override fun prefetch(source: MediaSource): Boolean {
+        val twitch = source as? MediaSource.Twitch ?: return false
+        return runCatching { resolveCached(twitch) }.isSuccess
     }
 
     /**

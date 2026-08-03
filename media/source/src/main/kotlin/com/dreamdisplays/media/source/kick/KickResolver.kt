@@ -44,8 +44,9 @@ object KickResolver : MediaResolver {
 
     override fun canResolve(source: MediaSource): Boolean = source is MediaSource.Kick
 
-    override fun prefetch(source: MediaSource) {
-        (source as? MediaSource.Kick)?.let { runCatching { resolveCached(it) } }
+    override fun prefetch(source: MediaSource): Boolean {
+        val kick = source as? MediaSource.Kick ?: return false
+        return runCatching { resolveCached(kick) }.isSuccess
     }
 
     override fun resolve(source: MediaSource): ResolvedMedia {

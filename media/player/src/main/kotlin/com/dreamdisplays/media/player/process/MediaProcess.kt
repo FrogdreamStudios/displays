@@ -17,6 +17,23 @@ object MediaProcess {
     /** Kill switch for GPU-side scaling (`-Ddreamdisplays.hwscale=false` falls back to software scale). */
     private val HW_SCALE_ENABLED = System.getProperty("dreamdisplays.hwscale", "true").toBoolean()
 
+    /** Frame rate assumed when the source reports none, or reports something implausible. */
+    const val DEFAULT_OUTPUT_FPS = 30.0
+
+    /**
+     * Sanitizes a source frame rate into the constant rate the pipeline runs at.
+     *
+     * The raw-pipe transports carry no timestamps, so a frame's presentation time is synthesized as
+     * `offset + frameIndex / fps`. That is only correct if `FFmpeg` really emits `fps` frames per
+     * second of content — otherwise the synthesized timeline runs at a different rate than the audio
+     * clock it is paced against, and lip sync drifts linearly: stream metadata rounding 30000/1001
+     * to "30" is a 0.1 % error, which is 3.6 s of drift per hour. So the same value returned here is
+     * both pinned into `FFmpeg`'s output rate ([videoArgs]) and used for the PTS arithmetic, which
+     * makes the two consistent by construction even when the metadata is wrong.
+     */
+    fun outputFps(sourceFps: Double?): Double =
+        sourceFps?.takeIf { it.isFinite() && it > 1.0 && it <= 240.0 } ?: DEFAULT_OUTPUT_FPS
+
     /** Wire format the video `FFmpeg` process writes to its stdout pipe. */
     enum class VideoTransport {
         /** PPM frames (header + RGB24), parsed by the JVM [VideoFramePipe]. */
@@ -42,16 +59,29 @@ object MediaProcess {
      * @throws IOException if the process fails to start. the caller is responsible for destroying the process when done.
      */
     @Throws(IOException::class)
-    fun buildVideo(ffmpeg: String, url: String, w: Int, h: Int, offsetNanos: Long, hwAccel: HwAccelBackend): Process =
-        ProcessBuilder(videoArgs(ffmpeg, url, w, h, offsetNanos, hwAccel, VideoTransport.PPM)).start()
+    fun buildVideo(
+        ffmpeg: String, url: String, w: Int, h: Int, offsetNanos: Long, hwAccel: HwAccelBackend, fps: Double,
+        alreadyResolved: Boolean = false,
+    ): Process =
+        ProcessBuilder(
+            videoArgs(ffmpeg, url, w, h, offsetNanos, hwAccel, VideoTransport.PPM, fps, alreadyResolved),
+        ).start()
 
     /**
      * Builds the full `FFmpeg` argv for a video session emitting [transport] on stdout.
      * Used directly by the native pipeline (which spawns the process itself) and by [buildVideo].
+     *
+     * [fps] must be the value the reader uses for its synthesized frame timestamps (see [outputFps]);
+     * it is pinned as the output frame rate so the emitted stream is constant-rate at exactly the
+     * cadence the reader assumes.
+     *
+     * [alreadyResolved] skips the redirect walk for callers that ran [url] through
+     * `MediaHostGuard.resolveSafeUrl` themselves — the in-process libav path needs the resolved URL
+     * before it ever reaches here, so without this the same chain was walked twice per launch.
      */
     fun videoArgs(
         ffmpeg: String, url: String, w: Int, h: Int, offsetNanos: Long, hwAccel: HwAccelBackend,
-        transport: VideoTransport,
+        transport: VideoTransport, fps: Double, alreadyResolved: Boolean = false,
     ): List<String> {
         val outFormat = if (transport == VideoTransport.RAW_NV12) "nv12" else "rgb24"
         val pad = "pad=w=$w:h=$h:x=(ow-iw)/2:y=(oh-ih)/2:color=black,setsar=1,format=$outFormat"
@@ -67,8 +97,9 @@ object MediaProcess {
             val fitSw = "min($w/iw\\,$h/ih)"
             "${swPrefix}scale=w=min($w\\,iw*$fitSw):h=min($h\\,ih*$fitSw):flags=bilinear$scaleExtra,$pad"
         }
-        return baseCommand(ffmpeg, url, offsetNanos, hwAccel).apply {
+        return baseCommand(ffmpeg, url, offsetNanos, hwAccel, alreadyResolved).apply {
             addAll(listOf("-an", "-vf", vf))
+            addAll(listOf("-r", String.format(Locale.US, "%.6f", outputFps(fps))))
             when (transport) {
                 VideoTransport.PPM -> addAll(listOf("-f", "image2pipe", "-c:v", "ppm", "-"))
                 VideoTransport.RAW_RGB24, VideoTransport.RAW_NV12 -> addAll(listOf("-f", "rawvideo", "-"))

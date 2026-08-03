@@ -16,7 +16,6 @@ import com.dreamdisplays.media.player.events.PlayerEvents
 import com.dreamdisplays.media.player.managers.PlaybackSessionManager
 import com.dreamdisplays.media.player.managers.StatsReporter
 import com.dreamdisplays.media.player.managers.StreamWatchdog
-import com.dreamdisplays.media.player.pipeline.AudioSink
 import com.dreamdisplays.media.player.pipeline.PlaybackClock
 import com.dreamdisplays.media.player.policy.RetryPolicy
 import com.dreamdisplays.media.player.preparation.MediaPreparationService
@@ -26,6 +25,7 @@ import com.dreamdisplays.media.player.stream.ActiveStreams
 import com.dreamdisplays.media.player.stream.MediaStreamSelector
 import com.dreamdisplays.media.player.util.MediaUtil
 import com.dreamdisplays.media.player.util.daemon
+import com.dreamdisplays.media.runtime.MediaHostGuard
 import org.slf4j.LoggerFactory
 import java.nio.ByteBuffer
 import java.util.concurrent.*
@@ -123,9 +123,13 @@ class MediaPlayer(
         /** Thread counter. */
         private val INIT_THREAD_COUNTER = AtomicInteger()
 
-        /** Executor. */
+        /**
+         * Resolve executor. Sized above the core count on purpose: this work is almost entirely
+         * spent blocked on the network and on `yt-dlp`, so a pool capped at 4 made the fifth display
+         * in a room wait out an earlier resolve before its own could even start.
+         */
         private val INIT_EXECUTOR: ExecutorService = Executors.newFixedThreadPool(
-            Runtime.getRuntime().availableProcessors().coerceIn(2, 4),
+            Runtime.getRuntime().availableProcessors().coerceIn(4, 8),
         ) { r -> daemon(r, "MediaPlayer-init-${INIT_THREAD_COUNTER.incrementAndGet()}") }
 
         /** Shared timer for retry back-off delays, so waiting never occupies an [INIT_EXECUTOR] thread. */
@@ -192,7 +196,7 @@ class MediaPlayer(
 
     private val watchdog = StreamWatchdog(
         debugLabel = debugLabel,
-        isActive = { sessionManager.isPlaying && !sessionManager.isParked() && !terminated.get() },
+        isSessionActive = { sessionManager.isPlaying && !sessionManager.isParked() && !terminated.get() },
         getLastFrameNanos = { sessionManager.lastFrameNanos.get() },
         onStall = { handleSessionStall("no frames") },
     )
@@ -335,7 +339,7 @@ class MediaPlayer(
     /** Current playback position in nanos. Falls back to the frozen / seek offset when paused or not started. */
     fun getCurrentTime(): Long {
         sessionManager.parkedPositionNanos()?.let { return it }
-        if (!isReady || !sessionManager.isPlaying) return clock.seekOffsetNanos
+        if (!isReady || !sessionManager.isPlaying) return clock.originNanos
         return clock.currentTime()
     }
 
@@ -525,7 +529,7 @@ class MediaPlayer(
             host.reloadTexture()
             safeExecute {
                 if (sessionManager.isPlaying && !sessionManager.isParked()) startStreams(ss, pos)
-                else clock.seekOffsetNanos = pos
+                else clock.moveTo(pos)
             }
         }
     }
@@ -792,7 +796,10 @@ class MediaPlayer(
     private fun scheduleRetry(invalidateCache: Boolean) {
         val delayMs = retryPolicy.nextDelay()
         logger.warn("$debugLabel ${if (invalidateCache) "Cache invalidated" else "Transient error"}. Retry ${retryPolicy.retries}/$MAX_FETCH_RETRIES in ${delayMs} ms.")
-        if (invalidateCache) env.cacheInvalidator.invalidate(youtubeUrl)
+        if (invalidateCache) {
+            env.cacheInvalidator.invalidate(youtubeUrl)
+            forgetResolvedStreamUrls()
+        }
         state.set(PlaybackState.RESTARTING)
         RETRY_SCHEDULER.schedule({ dispatchInitialize() }, delayMs, TimeUnit.MILLISECONDS)
     }
@@ -855,6 +862,7 @@ class MediaPlayer(
             val kind = if (liveStream) "Live stall" else "Repeated stall"
             logger.warn("$debugLabel $kind ($reason); invalidating cached URLs and re-resolving.")
             env.cacheInvalidator.invalidate(youtubeUrl)
+            forgetResolvedStreamUrls()
             primedStartPositionNanos.set(if (liveStream) 0L else clock.currentTime())
             state.set(PlaybackState.RESTARTING)
             dispatchInitialize()
@@ -867,6 +875,17 @@ class MediaPlayer(
                 if (!sessionManager.beginSeek(ss, pos, lastQuality, currentHwAccel())) startStreams(ss, pos)
             }
         }
+    }
+
+    /**
+     * Drops the SSRF guard's memo of where this session's stream URLs redirect to. Those
+     * destinations are signed and expiring, so once a session has failed badly enough to be
+     * re-resolved, the next launch must probe for real instead of re-serving a dead endpoint.
+     */
+    private fun forgetResolvedStreamUrls() {
+        val ss = streams ?: return
+        MediaHostGuard.invalidate(ss.currentVideo.url)
+        MediaHostGuard.invalidate(ss.currentAudio.url)
     }
 
     /** Starts `FFmpeg` from the current seek offset. No-op if already playing or not ready. */
@@ -888,7 +907,7 @@ class MediaPlayer(
             dispatchInitialize()
             return
         }
-        val offset = if (endedAtEnd.getAndSet(false)) 0L else clock.seekOffsetNanos
+        val offset = if (endedAtEnd.getAndSet(false)) 0L else clock.originNanos
         startStreams(ss, offset)
     }
 
@@ -906,12 +925,14 @@ class MediaPlayer(
                 return
             }
         }
-        val fp = sessionManager.audioFramePosition
-        clock.seekOffsetNanos = when {
-            liveStream -> 0L
-            fp >= 0 -> clock.audioClockNanos(fp, AudioSink.SAMPLE_RATE)
-            else -> clock.currentTime()
-        }
+        val heard = sessionManager.currentPacingNanos()
+        clock.reset(
+            when {
+                liveStream -> 0L
+                heard >= 0L -> heard
+                else -> clock.currentTime()
+            }
+        )
         state.set(PlaybackState.PAUSED)
         stopSession()
     }
@@ -938,7 +959,9 @@ class MediaPlayer(
         if (!isReady || !seekable) return
         endedAtEnd.set(false)
         if (isPausedWarm()) freezePausedWarmSession()
-        clock.seekOffsetNanos = nanos
+        // Park the clock at the target right away so the UI reads the seeked position, and so no
+        // pipe can pace one more frame against a half-updated timeline while the seek is set up.
+        clock.reset(nanos)
         val ss = streams ?: return
         if (sessionManager.isPlaying && !sessionManager.isParked()) {
             if (!sessionManager.beginSeek(ss, nanos, lastQuality, currentHwAccel())) {
@@ -991,7 +1014,7 @@ class MediaPlayer(
                 // directly — there's no async attempt in flight to roll back if this fails later.
                 pendingQualityRollback = null
                 host.reloadTexture()
-                safeExecute { clock.seekOffsetNanos = getCurrentTime() }
+                safeExecute { clock.moveTo(getCurrentTime()) }
             }
         }
     }

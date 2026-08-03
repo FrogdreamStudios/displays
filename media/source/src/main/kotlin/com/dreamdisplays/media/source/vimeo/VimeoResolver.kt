@@ -31,8 +31,9 @@ object VimeoResolver : MediaResolver {
 
     override fun canResolve(source: MediaSource): Boolean = source is MediaSource.Vimeo
 
-    override fun prefetch(source: MediaSource) {
-        (source as? MediaSource.Vimeo)?.let { runCatching { resolveCached(it) } }
+    override fun prefetch(source: MediaSource): Boolean {
+        val vimeo = source as? MediaSource.Vimeo ?: return false
+        return runCatching { resolveCached(vimeo) }.isSuccess
     }
 
     override fun resolve(source: MediaSource): ResolvedMedia {

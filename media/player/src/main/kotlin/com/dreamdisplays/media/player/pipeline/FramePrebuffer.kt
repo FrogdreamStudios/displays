@@ -188,6 +188,13 @@ internal class FramePrebuffer(
                     if (presentPreview && !previewPresented && !flushRequested) {
                         val tf = queue.poll()
                         if (tf != null) {
+                            // A frame that slipped in between requestFlush's drain and the generation
+                            // bump belongs to the pre-seek timeline: showing it as "the" preview would
+                            // flash the old position at the viewer right after a seek.
+                            if (tf.generation != generation.get()) {
+                                surface.recycleFrameBuffer(tf.buf)
+                                continue
+                            }
                             previewPresented = true
                             onPresent?.invoke(tf.buf)
                             surface.present(tf.buf)
@@ -213,16 +220,21 @@ internal class FramePrebuffer(
                 // wait out / resolve through pace()'s own watchdog instead of being dropped as
                 // "stale" on sight, which used to make every subsequent frame drop the same way
                 // until a seek reset the audio clock (the picture reads as frozen indefinitely).
-                if (FramePacing.pace(
-                        tf.pts,
-                        getAudioClock,
-                        { flushRequested || !alive() },
-                        dropStaleTimeline = false
-                    ) || flushRequested
-                ) {
+                val clockAtHead = getAudioClock()
+                val lateNs = if (clockAtHead >= 0L) clockAtHead - tf.pts else 0L
+                val dropped = FramePacing.pace(
+                    tf.pts,
+                    getAudioClock,
+                    { flushRequested || !alive() },
+                    dropStaleTimeline = false
+                )
+                if (dropped || flushRequested) {
                     surface.recycleFrameBuffer(tf.buf)
+                    // A drop caused by a flush or a teardown says nothing about A / V health
+                    if (dropped && !flushRequested && alive()) recordFrame(lateNs, presentedIt = false)
                     continue
                 }
+                recordFrame(lateNs, presentedIt = true)
                 onPresent?.invoke(tf.buf)
                 surface.present(tf.buf)
                 if (firstFramePresented.compareAndSet(false, true)) {
@@ -237,6 +249,44 @@ internal class FramePrebuffer(
         drainAndRecycle()
     }
 
+    /**
+     * Consumer-thread-only A / V health counters. Pacing guarantees a *presented* frame is within
+     * [FramePacing]'s drop threshold of the audio clock, so a lip-sync complaint never shows up as a
+     * bad offset here — it shows up as frames being dropped to stay there. A sustained drop rate is
+     * therefore the signal worth surfacing: it means decode / upload can't hold the source's cadence,
+     * and the picture is stuttering to keep step with the sound.
+     */
+    private var statPresented = 0L
+    private var statDroppedLate = 0L
+    private var statWorstLateNs = 0L
+    private var statWindowStartNs = System.nanoTime()
+
+    /** Accounts one paced frame and periodically reports if too many are being dropped. */
+    private fun recordFrame(lateNs: Long, presentedIt: Boolean) {
+        if (presentedIt) statPresented++ else statDroppedLate++
+        if (lateNs > statWorstLateNs) statWorstLateNs = lateNs
+        val now = System.nanoTime()
+        if (now - statWindowStartNs < HEALTH_WINDOW_NS) return
+        val total = statPresented + statDroppedLate
+        if (total > 0 && statDroppedLate * 100L >= total * DROP_WARN_PERCENT) {
+            logger.warn(
+                "$debugLabel A/V: dropped $statDroppedLate of $total frames in the last " +
+                        "${(now - statWindowStartNs) / 1_000_000_000L} s to stay with the audio clock " +
+                        "(worst lateness ${statWorstLateNs / 1_000_000} ms); decode or upload is not " +
+                        "keeping the source's cadence."
+            )
+        } else if (MediaPlayer.DEBUG && total > 0) {
+            logger.debug(
+                "$debugLabel A/V health: presented=$statPresented droppedLate=$statDroppedLate " +
+                        "worstLate=${statWorstLateNs / 1_000_000} ms queue=${queue.size}/$capacityFrames."
+            )
+        }
+        statPresented = 0
+        statDroppedLate = 0
+        statWorstLateNs = 0
+        statWindowStartNs = now
+    }
+
     private fun drainAndRecycle() {
         while (true) {
             val tf = queue.poll() ?: break
@@ -247,6 +297,12 @@ internal class FramePrebuffer(
     companion object {
         private const val POLL_MS = 50L
         private const val JOIN_MS = 500L
+
+        /** Reporting window for the A / V health counters. */
+        private const val HEALTH_WINDOW_NS = 10_000_000_000L
+
+        /** Share of frames dropped inside one window that is worth a warning. */
+        private const val DROP_WARN_PERCENT = 20L
 
         /** Default prebuffer cushion. Smooths cold start / seek / quality-switch; kept under the
          *  TimelineFollower's 1s catch-up tolerance so the added startup latency never reads as drift. */

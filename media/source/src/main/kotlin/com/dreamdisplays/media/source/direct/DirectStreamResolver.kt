@@ -66,10 +66,12 @@ object DirectStreamResolver : MediaResolver {
     override fun canResolve(source: MediaSource): Boolean =
         source is MediaSource.DirectStream || source is MediaSource.Remote
 
-    /** Warms the probe cache; the registry already calls this off the caller's thread. */
-    override fun prefetch(source: MediaSource) {
-        runCatching { resolve(source) }
-    }
+    /**
+     * Warms the probe cache; the registry already calls this off the caller's thread. Returns false
+     * for a speculative [MediaSource.Remote] the probe rejects — that URL belongs to an extractor,
+     * so the registry should carry on warming the resolver that will actually serve it.
+     */
+    override fun prefetch(source: MediaSource): Boolean = runCatching { resolve(source) }.isSuccess
 
     /**
      * Probes [source] and builds its streams.

@@ -1,13 +1,22 @@
 package com.dreamdisplays.media.runtime
 
 import com.dreamdisplays.util.net.DreamHttpClient
+import com.github.benmanes.caffeine.cache.Cache
+import com.github.benmanes.caffeine.cache.Caffeine
+import com.github.benmanes.caffeine.cache.Expiry
 import kotlinx.io.IOException
 import org.slf4j.LoggerFactory
 import java.net.InetAddress
 import java.net.URI
+import java.util.concurrent.TimeUnit
 
 /**
  * SSRF guard for client-supplied media URLs.
+ *
+ * Both entry points are memoized, because they sit on the playback launch path and are hit several
+ * times per start and again on every seek, quality switch and stall restart. Unmemoized, each call
+ * cost a blocking DNS lookup plus — for [resolveSafeUrl] — a full HTTPS round trip per redirect hop,
+ * all before `FFmpeg` was even spawned.
  */
 object MediaHostGuard {
     private val logger = LoggerFactory.getLogger("DreamDisplays/MediaHostGuard")
@@ -15,6 +24,52 @@ object MediaHostGuard {
     /** Escape hatch for operators who intentionally host media on a private network. */
     private val allowPrivate: Boolean =
         System.getProperty("dreamdisplays.allowPrivateUrls", "false").toBoolean()
+
+    /**
+     * How long a host's verdict is reused. Deliberately the same order as the JDK's own positive DNS
+     * cache (30 s by default), so memoizing here widens no rebinding window that resolving the host
+     * again would have closed anyway — the second lookup would have been served from that cache.
+     */
+    private const val HOST_VERDICT_TTL_SECONDS = 30L
+
+    /**
+     * How long a *redirecting* URL's final destination is reused. Short, because that destination is
+     * often a signed, expiring link; long enough to cover one launch's repeated calls and the seeks
+     * that follow it.
+     */
+    private const val REDIRECTED_TTL_NANOS = 60L * 1_000_000_000L
+
+    /**
+     * How long a URL known not to redirect is remembered. There is nothing to go stale — the
+     * mapping is the identity — so this only has to stay under the lifetime of the CDN URLs
+     * themselves, and it removes the probe from every restart within one viewing session.
+     */
+    private const val IDENTITY_TTL_NANOS = 5L * 60L * 1_000_000_000L
+
+    /** Per-host public / non-public verdict; also collapses concurrent lookups for the same host. */
+    private val hostVerdicts: Cache<String, Boolean> = Caffeine.newBuilder()
+        .maximumSize(512)
+        .expireAfterWrite(HOST_VERDICT_TTL_SECONDS, TimeUnit.SECONDS)
+        .build()
+
+    /** A walked redirect chain: the URL handed to the media stack, plus how long it may be reused. */
+    private class ResolvedUrl(@JvmField val url: String, @JvmField val ttlNanos: Long)
+
+    private val resolvedUrls: Cache<String, ResolvedUrl> = Caffeine.newBuilder()
+        .maximumSize(256)
+        .expireAfter(object : Expiry<String, ResolvedUrl> {
+            override fun expireAfterCreate(key: String, value: ResolvedUrl, currentTime: Long): Long =
+                value.ttlNanos
+
+            override fun expireAfterUpdate(
+                key: String, value: ResolvedUrl, currentTime: Long, currentDuration: Long,
+            ): Long = value.ttlNanos
+
+            override fun expireAfterRead(
+                key: String, value: ResolvedUrl, currentTime: Long, currentDuration: Long,
+            ): Long = currentDuration
+        })
+        .build()
 
     /**
      * Returns true when [url] is safe to fetch: the guard is disabled, or the URL's host resolves
@@ -27,6 +82,11 @@ object MediaHostGuard {
             logger.warn("Blocked media URL with no parseable host: ${url.take(120)}")
             return false
         }
+        return hostVerdicts.get(host, ::resolvesToPublicAddresses)
+    }
+
+    /** Uncached host check: resolves [host] and rejects it if any address is not public unicast. */
+    private fun resolvesToPublicAddresses(host: String): Boolean {
         val addresses = runCatching {
             InetAddress.getAllByName(host)
         }.onFailure { e ->
@@ -37,6 +97,12 @@ object MediaHostGuard {
             return false
         }
         return true
+    }
+
+    /** Forgets what is known about [url] and its host, so the next check probes for real. */
+    fun invalidate(url: String) {
+        resolvedUrls.invalidate(url)
+        hostOf(url)?.let { hostVerdicts.invalidate(it) }
     }
 
     /** Like [isAllowed] but throws [IOException] when blocked, so it slots into the playback launch paths. */
@@ -60,9 +126,22 @@ object MediaHostGuard {
         val scheme = runCatching { URI(url.trim()).scheme?.lowercase() }.getOrNull()
         if (scheme != "http" && scheme != "https") return url
 
+        resolvedUrls.getIfPresent(url)?.let { cached ->
+            requireAllowed(cached.url)
+            return cached.url
+        }
+
         var current = url
-        repeat(maxRedirects) {
-            val location = peekRedirectLocation(current) ?: return current
+        var hops = 0
+        while (hops < maxRedirects) {
+            val location = peekRedirectLocation(current)
+            if (location == null) {
+                resolvedUrls.put(
+                    url,
+                    ResolvedUrl(current, if (hops == 0) IDENTITY_TTL_NANOS else REDIRECTED_TTL_NANOS),
+                )
+                return current
+            }
             val next = runCatching {
                 URI(current.trim()).resolve(location.trim()).toString()
             }.getOrElse { e ->
@@ -70,6 +149,7 @@ object MediaHostGuard {
             }
             requireAllowed(next)
             current = next
+            hops++
         }
         throw IOException("Refusing to follow more than $maxRedirects media redirects.")
     }

@@ -10,6 +10,7 @@ import com.dreamdisplays.util.DreamCoroutines
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 
 /**
@@ -26,11 +27,20 @@ class DefaultMediaResolverRegistry : MediaResolverRegistry {
     private val backing = CopyOnWriteArrayList<MediaResolver>()
 
     /**
-     * Prefetch is a best-effort hint that opens with a blocking DNS lookup (the SSRF guard), so it
-     * must never run on the caller's thread - [prefetch] is invoked from the client / render thread on
-     * every URL change. A coroutine permit serializes the hints off that path.
+     * Prefetch is a best-effort hint that opens with a blocking DNS lookup (the SSRF guard) and then
+     * does real network work, so it must never run on the caller's thread - [prefetch] is invoked
+     * from the client / render thread on every URL change. Permits bound how much of it runs at once
+     * without serializing unrelated displays behind each other: a single permit meant the fourth
+     * screen to come into view waited out three full probes before its own even started.
      */
-    private val prefetchPermit = Semaphore(1)
+    private val prefetchPermit = Semaphore(PREFETCH_CONCURRENCY)
+
+    /**
+     * Sources with a hint already in flight. The client fires [prefetch] on every URL change and on
+     * every display load, so without this a wall of screens showing the same video queues one
+     * identical warm-up per screen.
+     */
+    private val inFlight = ConcurrentHashMap.newKeySet<String>()
 
     override val resolvers: List<MediaResolver>
         get() = backing.sortedByDescending { it.priority }
@@ -46,16 +56,29 @@ class DefaultMediaResolverRegistry : MediaResolverRegistry {
     }
 
     /**
-     * Calls [MediaResolver.prefetch] on every capable resolver for [source]. The SSRF host check and
-     * the dispatch run on [DreamCoroutines.clientIo] so the blocking DNS lookup never stalls the caller.
+     * Warms [source] through the capable resolvers in priority order, stopping at the first one that
+     * reports it warmed a usable result. The SSRF host check and the dispatch run on
+     * [DreamCoroutines.clientIo] so the blocking DNS lookup never stalls the caller.
+     *
+     * Stopping early matters: [MediaResolver.canResolve] is true for every source on the universal
+     * `yt-dlp` fallback, so warming the whole chain spawned a doomed subprocess for every Twitch,
+     * Vimeo, Kick and direct link — competing for CPU and bandwidth with the resolver that was
+     * actually about to serve the video.
      */
     override fun prefetch(source: MediaSource) {
+        val key = source.toResolvableUrl() ?: source.toString()
+        if (!inFlight.add(key)) return
         DreamCoroutines.clientIo.launch {
-            prefetchPermit.withPermit {
-                if (isBlockedHost(source)) return@withPermit
-                for (resolver in resolvers) {
-                    if (resolver.canResolve(source)) runCatching { resolver.prefetch(source) }
+            try {
+                prefetchPermit.withPermit {
+                    if (isBlockedHost(source)) return@withPermit
+                    for (resolver in resolvers) {
+                        if (!resolver.canResolve(source)) continue
+                        if (runCatching { resolver.prefetch(source) }.getOrDefault(false)) break
+                    }
                 }
+            } finally {
+                inFlight.remove(key)
             }
         }
     }
@@ -99,5 +122,13 @@ class DefaultMediaResolverRegistry : MediaResolverRegistry {
             else -> return false
         }
         return !MediaHostGuard.isAllowed(url)
+    }
+
+    private companion object {
+        /**
+         * Hints warmed at once. Enough to cover a room of screens, few enough not to flood the
+         * network (or the `yt-dlp` subprocess budget) with speculative work.
+         */
+        const val PREFETCH_CONCURRENCY = 3
     }
 }
