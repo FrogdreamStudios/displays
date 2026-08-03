@@ -73,8 +73,11 @@ internal object DisplayGeometry {
                 DisplayFacing.DOWN -> Triple(0.0, -1.0, 0.0)
             }
             val (ux, uy, uz) = when (facing) {
-                DisplayFacing.NORTH, DisplayFacing.SOUTH, DisplayFacing.UP, DisplayFacing.DOWN -> Triple(1.0, 0.0, 0.0)
-                DisplayFacing.EAST, DisplayFacing.WEST -> Triple(0.0, 0.0, 1.0)
+                DisplayFacing.NORTH -> Triple(-1.0, 0.0, 0.0)
+                DisplayFacing.SOUTH -> Triple(1.0, 0.0, 0.0)
+                DisplayFacing.EAST -> Triple(0.0, 0.0, -1.0)
+                DisplayFacing.WEST -> Triple(0.0, 0.0, 1.0)
+                DisplayFacing.UP, DisplayFacing.DOWN -> Triple(1.0, 0.0, 0.0)
             }
             val (vx, vy, vz) = when (facing) {
                 DisplayFacing.UP, DisplayFacing.DOWN -> Triple(0.0, 0.0, 1.0)
