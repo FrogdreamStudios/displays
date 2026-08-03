@@ -3,6 +3,7 @@ package com.dreamdisplays.media.player.process
 import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class MediaProcessTest {
@@ -22,6 +23,29 @@ class MediaProcessTest {
         assertEquals(MediaProcess.DEFAULT_OUTPUT_FPS, MediaProcess.outputFps(100_000.0))
         assertEquals(MediaProcess.DEFAULT_OUTPUT_FPS, MediaProcess.outputFps(Double.NaN))
         assertEquals(MediaProcess.DEFAULT_OUTPUT_FPS, MediaProcess.outputFps(Double.POSITIVE_INFINITY))
+    }
+
+    @Test
+    fun `a silent source is told apart from a broken one`() {
+        // Verbatim from FFmpeg 7.1 asked for audio out of a video-only mp4. Reading this as a dying
+        // session is what locked the player into an endless invalidate-and-re-resolve loop.
+        val silent = """
+            [out#0/s16le @ 0x140e155c0] Output file does not contain any stream
+            Error opening output file -.
+            Error opening output files: Invalid argument
+        """.trimIndent()
+        assertTrue(MediaProcess.indicatesNoAudioStream(silent))
+
+        // The same empty output, but because the input never opened: that one must still retry.
+        val unreachable = """
+            [https @ 0x600] Server returned 403 Forbidden (access denied)
+            [out#0/s16le @ 0x140] Output file does not contain any stream
+            Error opening output files: Invalid argument
+        """.trimIndent()
+        assertFalse(MediaProcess.indicatesNoAudioStream(unreachable))
+
+        assertFalse(MediaProcess.indicatesNoAudioStream(""))
+        assertFalse(MediaProcess.indicatesNoAudioStream("Connection to tcp://host failed: Broken pipe"))
     }
 
     @Test

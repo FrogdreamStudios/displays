@@ -115,14 +115,15 @@ object DirectStreamResolver : MediaResolver {
             throw DreamMediaException.NotFound("Not a direct media URL: $url.")
         }
 
+        val effectiveKind = effectiveKind(declaredKind, probe)
+
         // A refusal on a speculative Remote probe is a permanent fact about that URL, so record it
         // once: re-probing on every quality switch would tax every extractor video in the game.
-        runCatching { rejectNonVideo(probe, declaredKind) }.onFailure {
+        runCatching { rejectNonVideo(probe, declaredKind, effectiveKind) }.onFailure {
             if (!declaredKind.isDirect) notDirect.put(url, true)
             throw it
         }
 
-        val effectiveKind = effectiveKind(declaredKind, probe)
         val resolved = when (effectiveKind) {
             CustomMediaKind.HLS -> resolveHls(probe.finalUrl)
             else -> resolveFile(probe, url, effectiveKind)
@@ -140,19 +141,28 @@ object DirectStreamResolver : MediaResolver {
     /**
      * Refuses everything that is reachable but cannot become a picture on a display, with the
      * reason spelled out. Each of these is a mistake a player can act on, unlike a decode error.
+     *
+     * [declared] is what the URL looked like and [effective] what the server actually served; the
+     * two answer different questions. Whether this URL was a guess in the first place — and so may
+     * quietly fall through to the extractors — depends on the former, while what the response is
+     * depends on the latter.
      */
-    private fun rejectNonVideo(probe: DirectMediaProbe.Result, kind: CustomMediaKind) {
+    private fun rejectNonVideo(
+        probe: DirectMediaProbe.Result, declared: CustomMediaKind, effective: CustomMediaKind,
+    ) {
         if (probe.isHtml) {
             throw DreamMediaException.NotFound(
                 "This link opens a web page, not a video file. Use the link to the file itself.",
             )
         }
-        if (kind == CustomMediaKind.AUDIO_ONLY || probe.isAudioType) {
+        // audio/... means an audio file only when the response really is the media. A manifest is
+        // just a text index of renditions, and HLS's own legacy content type lives in that namespace.
+        if (declared == CustomMediaKind.AUDIO_ONLY || (probe.isAudioType && !effective.isManifest)) {
             throw DreamMediaException.NotFound(
                 "This link is an audio file. A display needs a video to show.",
             )
         }
-        if (!kind.isDirect && !probe.isMediaType) {
+        if (!declared.isDirect && !probe.isMediaType) {
             // Speculative Remote probe that came back as something else entirely: nothing
             // user-facing to say, just step aside for the extractor chain.
             throw DreamMediaException.NotFound("Not direct media.")
@@ -186,6 +196,10 @@ object DirectStreamResolver : MediaResolver {
         originalUrl: String,
         kind: CustomMediaKind,
     ): ResolvedMedia {
+        // The bundled FFmpeg is built without libxml2, so it has no DASH demuxer at all
+        if (kind == CustomMediaKind.DASH) {
+            throw DreamMediaException.NotFound("DASH manifests need the extractor chain, not the direct player.")
+        }
         val durationNanos = if (probe.acceptsRanges) {
             DirectMediaDuration.probe(probe.finalUrl, CustomMediaUrls.extensionOf(originalUrl), probe.contentLength)
         } else {
@@ -210,50 +224,118 @@ object DirectStreamResolver : MediaResolver {
      * media playlist resolves to itself, live unless it declares an end.
      */
     private fun resolveHls(playlistUrl: String): ResolvedMedia {
-        val text = runCatching {
-            DreamHttpClient.executeLimited(
-                playlistUrl,
-                maxBytes = MAX_PLAYLIST_BYTES,
-                options = DreamHttpClient.RequestOptions(readTimeoutMs = 10_000L, callTimeoutMs = 12_000L),
-            ).bodyString()
-        }.getOrElse {
-            throw DreamMediaException.Network("Could not read this playlist: ${it.message}", it)
-        }
+        val text = fetchPlaylist(playlistUrl)
+            ?: throw DreamMediaException.Network("Could not read this playlist.")
 
         if (!DirectHlsPlaylist.looksLikePlaylist(text)) {
             throw DreamMediaException.NotFound("This link is not a valid HLS playlist.")
         }
 
         val parsed = DirectHlsPlaylist.parse(text, playlistUrl)
-        val streams = if (parsed.isMaster) {
-            parsed.variants.map { variant ->
-                MediaStream(
-                    url = variant.url,
-                    type = MediaStreamType.VIDEO_AUDIO,
-                    codec = variant.codecs,
-                    width = variant.width,
-                    height = variant.height,
-                    fps = variant.fps,
-                    bitrate = variant.bandwidthBps,
-                    audioTrackName = null,
-                    audioTrackLang = null,
-                )
-            }
-        } else {
-            listOf(muxedStream(playlistUrl))
-        }
+        // A master says nothing about liveness or container on its own, so one of its renditions is
+        // read too. That answers both questions for the price of a few kilobytes, and both change
+        // what the player may do: whether a seek bar is offered at all, and whether a seek may be
+        // handed to the demuxer.
+        val rendition = if (parsed.isMaster) probeRendition(parsed) else parsed
+        val isLive = rendition?.isLive ?: parsed.isLive
+        val seekByDecoding = rendition?.hasInitSegment == true && !isLive
 
-        logger.debug("Direct HLS {}: {} renditions, live={}.", playlistUrl.take(120), streams.size, parsed.isLive)
+        val streams =
+            if (parsed.isMaster) masterStreams(parsed, seekByDecoding)
+            else listOf(muxedStream(playlistUrl, seekByDecoding))
+
+        // Summed from the rendition's own segment list. Without it the player has no timeline, and a
+        // VOD with no timeline has no seek bar — the stream plays, but it cannot be scrubbed at all.
+        val durationNanos = rendition?.totalDurationNanos?.takeIf { it > 0L && !isLive }
+
+        logger.debug(
+            "Direct HLS {}: {} stream(s), live={}, fragmentedMp4={}, duration={}ns.",
+            playlistUrl.take(120), streams.size, isLive, rendition?.hasInitSegment, durationNanos,
+        )
         return ResolvedMedia(
             streams = streams,
-            metadata = metadataFor(playlistUrl, null, fileName = null),
-            isLive = parsed.isLive,
-            isSeekable = !parsed.isLive,
+            metadata = metadataFor(playlistUrl, durationNanos, fileName = null),
+            isLive = isLive,
+            isSeekable = !isLive,
         )
     }
 
+    /**
+     * Reads one of [master]'s media playlists — the default audio rendition when the sound is
+     * separate, else the first variant. Null when it cannot be read, which is not fatal: the caller
+     * falls back to what the master alone implies, exactly as before this probe existed.
+     */
+    private fun probeRendition(master: DirectHlsPlaylist.Parsed): DirectHlsPlaylist.Parsed? {
+        val url = master.audioRenditions.firstOrNull()?.url
+            ?: master.variants.firstOrNull()?.url
+            ?: return null
+        val safeUrl = runCatching { MediaHostGuard.resolveSafeUrl(url) }.getOrNull() ?: return null
+        val text = fetchPlaylist(safeUrl)?.takeIf(DirectHlsPlaylist::looksLikePlaylist) ?: return null
+        return DirectHlsPlaylist.parse(text, safeUrl)
+    }
+
+    /** Fetches a playlist body, capped at [MAX_PLAYLIST_BYTES]; null when it could not be read. */
+    private fun fetchPlaylist(url: String): String? = runCatching {
+        DreamHttpClient.executeLimited(
+            url,
+            maxBytes = MAX_PLAYLIST_BYTES,
+            options = DreamHttpClient.RequestOptions(readTimeoutMs = 10_000L, callTimeoutMs = 12_000L),
+        ).bodyString()
+    }.getOrNull()
+
+    /**
+     * Turns a master playlist into the stream list the selector works on.
+     *
+     * The `AUDIO` attribute decides the shape. Without it the variants carry their own sound and
+     * each one is a single muxed stream, exactly as before. With it the variants are video only —
+     * their sound lives in the `#EXT-X-MEDIA` playlists — so the audio renditions become their own
+     * [MediaStreamType.AUDIO] streams and the variants are typed [MediaStreamType.VIDEO]. Getting
+     * this wrong is not a cosmetic mismatch: pointing the audio process at a video-only variant made
+     * `FFmpeg` exit with "Output file does not contain any stream" on every attempt, which the player
+     * read as a dying session and answered with an endless re-resolve loop.
+     */
+    private fun masterStreams(parsed: DirectHlsPlaylist.Parsed, seekByDecoding: Boolean): List<MediaStream> {
+        // Every rendition with its own playlist, not just the group of the variant that survived
+        // de-duplication — otherwise a master that lists its languages as separate groups would keep
+        // only the first one, and the rest would silently vanish from the audio-track picker.
+        val separateAudio = parsed.audioRenditions.distinctBy { it.url }
+        val videoOnly = separateAudio.isNotEmpty() && parsed.variants.any { it.audioGroupId != null }
+        val video = parsed.variants.map { variant ->
+            MediaStream(
+                url = variant.url,
+                type = if (videoOnly) MediaStreamType.VIDEO else MediaStreamType.VIDEO_AUDIO,
+                codec = variant.codecs,
+                width = variant.width,
+                height = variant.height,
+                fps = variant.fps,
+                bitrate = variant.bandwidthBps,
+                audioTrackName = null,
+                audioTrackLang = null,
+                seekByDecoding = seekByDecoding,
+            )
+        }
+        if (!videoOnly) return video
+        val audio = separateAudio.map { rendition ->
+            MediaStream(
+                url = rendition.url,
+                type = MediaStreamType.AUDIO,
+                codec = null,
+                width = null,
+                height = null,
+                fps = null,
+                bitrate = null,
+                audioTrackName = rendition.name,
+                audioTrackLang = rendition.language,
+                isDefault = rendition.isDefault,
+                seekByDecoding = seekByDecoding,
+            )
+        }
+        logger.debug("Direct HLS master carries {} separate audio rendition(s).", audio.size)
+        return video + audio
+    }
+
     /** One muxed stream for [url]; dimensions stay unknown until the decoder opens it. */
-    private fun muxedStream(url: String): MediaStream = MediaStream(
+    private fun muxedStream(url: String, seekByDecoding: Boolean = false): MediaStream = MediaStream(
         url = url,
         type = MediaStreamType.VIDEO_AUDIO,
         codec = null,
@@ -263,6 +345,7 @@ object DirectStreamResolver : MediaResolver {
         bitrate = null,
         audioTrackName = null,
         audioTrackLang = null,
+        seekByDecoding = seekByDecoding,
     )
 
     /**

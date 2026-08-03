@@ -282,7 +282,9 @@ class DisplayMenu private constructor(
                         val key = ds.videoUrl
                         val rawUrl = ds.scrubPreviewRawUrl
                         val dur = ds.mediaPlayerDurationNanos
-                        if (key != null && rawUrl != null) ScrubPreview.request(key, rawUrl, dur)
+                        if (key != null && rawUrl != null) {
+                            ScrubPreview.request(key, rawUrl, dur, ds.scrubPreviewSeeksByDecoding)
+                        }
                         key?.let { ScrubPreview.frameAt(it, nanos) }
                     }
                 },

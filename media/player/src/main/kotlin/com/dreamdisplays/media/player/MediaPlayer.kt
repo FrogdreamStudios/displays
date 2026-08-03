@@ -21,6 +21,7 @@ import com.dreamdisplays.media.player.policy.RetryPolicy
 import com.dreamdisplays.media.player.preparation.MediaPreparationService
 import com.dreamdisplays.media.player.preparation.PreparedMedia
 import com.dreamdisplays.media.player.process.HwAccelBackend
+import com.dreamdisplays.media.player.process.MediaProcess
 import com.dreamdisplays.media.player.stream.ActiveStreams
 import com.dreamdisplays.media.player.stream.MediaStreamSelector
 import com.dreamdisplays.media.player.util.MediaUtil
@@ -140,6 +141,14 @@ class MediaPlayer(
     private val debugLabel = "${host.uuid}/${Integer.toHexString(System.identityHashCode(this))}"
     private val terminated = AtomicBoolean(false)
     private val restartPending = AtomicBoolean(false)
+
+    /**
+     * Whether the viewer currently wants playback stopped. Tracked separately from [state] because
+     * [initialize] overwrites the state on its way through, and it can be in flight when the pause
+     * arrives — a live stall re-resolve takes a moment, and the resulting [startStreams] used to
+     * start the stream back up under a viewer who had just paused it.
+     */
+    private val pauseRequested = AtomicBoolean(false)
     private val endedAtEnd = AtomicBoolean(false)
 
     private val clock = PlaybackClock()
@@ -193,6 +202,9 @@ class MediaPlayer(
 
     /** Guards [dispatchInitialize] so at most one resolve is ever in flight for this player. */
     private val initializing = AtomicBoolean(false)
+
+    /** Set when a resolve was asked for while one was already running; runs exactly once afterwards. */
+    private val initQueued = AtomicBoolean(false)
 
     private val watchdog = StreamWatchdog(
         debugLabel = debugLabel,
@@ -557,6 +569,14 @@ class MediaPlayer(
     fun capturedStreamRawUrl(): String? = capturePreparedMedia()?.streamSet?.currentVideo?.url
 
     /**
+     * Whether the captured video stream needs the decode-forward seek path
+     * (`MediaStream.seekByDecoding`). Scrub previews seek too, and a demuxer jump this container
+     * cannot honor produces nothing at all — every sample then burns its whole timeout budget.
+     */
+    fun capturedStreamSeeksByDecoding(): Boolean =
+        capturePreparedMedia()?.streamSet?.currentVideo?.seekByDecoding == true
+
+    /**
      * Updates distance-based volume attenuation. Call every tick from the game thread.
      *
      * @param distance current distance from the player to the screen
@@ -570,14 +590,26 @@ class MediaPlayer(
     /**
      * Submits [initialize] to [INIT_EXECUTOR], guarded by [initializing] so at most one resolve is ever
      * in flight for this player.
+     *
+     * [coalesce] re-runs the resolve afterwards when this call arrived while one was already in
+     * flight. It is for viewer actions only — a resume or a quality change that lands mid-resolve
+     * would otherwise be dropped, leaving the display sitting still until the button is pressed a
+     * second time. Recovery paths must never set it: they fire repeatedly by nature, and a queued
+     * re-run would tear down each fresh attempt before it could deliver a frame, which is a restart
+     * storm that never converges.
      */
-    private fun dispatchInitialize() {
-        if (terminated.get() || !initializing.compareAndSet(false, true)) return
+    private fun dispatchInitialize(coalesce: Boolean = false) {
+        if (terminated.get()) return
+        if (!initializing.compareAndSet(false, true)) {
+            if (coalesce) initQueued.set(true)
+            return
+        }
         INIT_EXECUTOR.submit {
             try {
                 if (!terminated.get()) initialize()
             } finally {
                 initializing.set(false)
+                if (initQueued.compareAndSet(true, false)) dispatchInitialize()
             }
         }
     }
@@ -633,6 +665,12 @@ class MediaPlayer(
      */
     private fun startStreams(streamSet: ActiveStreams, offsetNanos: Long) {
         if (terminated.get()) return
+        if (pauseRequested.get()) {
+            // Paused while this was being resolved: honor that rather than starting under the viewer
+            logger.debug("$debugLabel Start skipped: playback was paused while the media was being prepared.")
+            state.set(PlaybackState.PAUSED)
+            return
+        }
         endedAtEnd.set(false)
         // Replay-only video may already be on screen (started at construction): attach the live source
         // and hand off by PTS instead of cold-starting, so the picture never blanks.
@@ -817,6 +855,16 @@ class MediaPlayer(
      * exhausted (or impossible) does this escalate to the full stall recovery.
      */
     private fun handleAudioFailure(stderr: String) {
+        // A source with no audio track at all is not a failure to recover from: restarting it only
+        // produces the same empty output, which is how a silent video used to lock the player into an
+        // endless invalidate-and-re-resolve loop. Play it silently and stop spawning audio for it.
+        if (MediaProcess.indicatesNoAudioStream(stderr)) {
+            val silentUrl = streams?.currentAudio?.url
+            if (silentUrl == null || sessionManager.markSourceSilent(silentUrl)) {
+                logger.info("$debugLabel This source carries no audio track; playing it silently.")
+            }
+            return
+        }
         if (!liveStream && durationHintNanos > 0L && durationHintNanos - clock.currentTime() <= AUDIO_EOS_NEAR_END_GUARD_NS) {
             logger.debug("$debugLabel Audio pipe ended near VOD end (pos=${clock.currentTime()}, dur=$durationHintNanos); deferring to video EOS.")
             return
@@ -872,7 +920,13 @@ class MediaPlayer(
                 val pos = if (liveStream) 0L else clock.currentTime()
                 // Restart in place when possible: the picture holds its last frame while the new
                 // session connects, instead of blanking through a blocking teardown.
-                if (!sessionManager.beginSeek(ss, pos, lastQuality, currentHwAccel())) startStreams(ss, pos)
+                if (sessionManager.beginSeek(ss, pos, lastQuality, currentHwAccel())) {
+                    // The watchdog stops itself when it reports a stall, and this path never goes
+                    // through startStreams, so nothing else would ever watch this session again.
+                    watchdog.start()
+                } else {
+                    startStreams(ss, pos)
+                }
             }
         }
     }
@@ -891,6 +945,7 @@ class MediaPlayer(
     /** Starts `FFmpeg` from the current seek offset. No-op if already playing or not ready. */
     private fun doPlay() {
         if (!isReady || terminated.get()) return
+        pauseRequested.set(false)
         if (isPausedWarm()) {
             sessionManager.resume()
             state.set(PlaybackState.PLAYING)
@@ -901,10 +956,17 @@ class MediaPlayer(
         val ss = streams ?: return
         if (liveStream) {
             logger.debug("$debugLabel Live resume from cold pause; re-resolving playlist URLs.")
+            // A live playlist captured before the pause points at segments the server has already
+            // rotated away, so re-initializing on the cached resolve just hands FFmpeg dead URLs: it
+            // then spends its reconnect budget failing, trips the stall path, and only *then* does
+            // the re-resolve this branch always claimed to do — turning a resume into a minute of
+            // black screen. Drop the memo first so the very first attempt is a live one.
+            env.cacheInvalidator.invalidate(youtubeUrl)
+            forgetResolvedStreamUrls()
             endedAtEnd.set(false)
             primedStartPositionNanos.set(0L)
             state.set(PlaybackState.RESTARTING)
-            dispatchInitialize()
+            dispatchInitialize(coalesce = true)
             return
         }
         val offset = if (endedAtEnd.getAndSet(false)) 0L else clock.originNanos
@@ -917,6 +979,7 @@ class MediaPlayer(
      * a transitional state (bridge / quality switch) fall back to the cold pause path.
      */
     private fun doPause() {
+        pauseRequested.set(true)
         if (!sessionManager.isPlaying) return
         if (!liveStream) {
             watchdog.stop()
@@ -990,7 +1053,7 @@ class MediaPlayer(
             logger.debug("$debugLabel Live quality switch to ${target}p; re-resolving and restarting.")
             primedStartPositionNanos.set(0L)
             state.set(PlaybackState.RESTARTING)
-            dispatchInitialize()
+            dispatchInitialize(coalesce = true)
             return
         }
         if (isPausedWarm()) freezePausedWarmSession()

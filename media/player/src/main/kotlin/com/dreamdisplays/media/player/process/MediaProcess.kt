@@ -34,6 +34,28 @@ object MediaProcess {
     fun outputFps(sourceFps: Double?): Double =
         sourceFps?.takeIf { it.isFinite() && it > 1.0 && it <= 240.0 } ?: DEFAULT_OUTPUT_FPS
 
+    /**
+     * True when [stderr] is `FFmpeg` reporting that the input simply has no audio track, rather than
+     * any kind of failure to reach or decode it.
+     *
+     * `-vn` on a video-only input leaves the output with nothing to write, and `FFmpeg` refuses to
+     * open it. This is the normal shape of a silent film, a screen recording, or an HLS variant whose
+     * sound lives in a separate rendition — not a dying session, so the caller must play on in
+     * silence instead of restarting. A transport failure is excluded explicitly: an input that never
+     * opened produces the same empty output, and that one *is* worth retrying.
+     */
+    fun indicatesNoAudioStream(stderr: String): Boolean {
+        if (!stderr.contains("does not contain any stream")) return false
+        return NO_AUDIO_DISQUALIFIERS.none { stderr.contains(it, ignoreCase = true) }
+    }
+
+    /** Markers that mean the empty output came from a failed input, not from a silent one. */
+    private val NO_AUDIO_DISQUALIFIERS = listOf(
+        "Server returned", "Connection refused", "Connection timed out", "Invalid data found",
+        "No such file or directory", "Protocol not found", "Immediate exit requested",
+        "Error opening input", "Unknown error", "I/O error", "HTTP error",
+    )
+
     /** Wire format the video `FFmpeg` process writes to its stdout pipe. */
     enum class VideoTransport {
         /** PPM frames (header + RGB24), parsed by the JVM [VideoFramePipe]. */
@@ -61,10 +83,12 @@ object MediaProcess {
     @Throws(IOException::class)
     fun buildVideo(
         ffmpeg: String, url: String, w: Int, h: Int, offsetNanos: Long, hwAccel: HwAccelBackend, fps: Double,
-        alreadyResolved: Boolean = false,
+        alreadyResolved: Boolean = false, seekByDecoding: Boolean = false,
     ): Process =
         ProcessBuilder(
-            videoArgs(ffmpeg, url, w, h, offsetNanos, hwAccel, VideoTransport.PPM, fps, alreadyResolved),
+            videoArgs(
+                ffmpeg, url, w, h, offsetNanos, hwAccel, VideoTransport.PPM, fps, alreadyResolved, seekByDecoding,
+            ),
         ).start()
 
     /**
@@ -82,6 +106,7 @@ object MediaProcess {
     fun videoArgs(
         ffmpeg: String, url: String, w: Int, h: Int, offsetNanos: Long, hwAccel: HwAccelBackend,
         transport: VideoTransport, fps: Double, alreadyResolved: Boolean = false,
+        seekByDecoding: Boolean = false,
     ): List<String> {
         val outFormat = if (transport == VideoTransport.RAW_NV12) "nv12" else "rgb24"
         val pad = "pad=w=$w:h=$h:x=(ow-iw)/2:y=(oh-ih)/2:color=black,setsar=1,format=$outFormat"
@@ -97,7 +122,7 @@ object MediaProcess {
             val fitSw = "min($w/iw\\,$h/ih)"
             "${swPrefix}scale=w=min($w\\,iw*$fitSw):h=min($h\\,ih*$fitSw):flags=bilinear$scaleExtra,$pad"
         }
-        return baseCommand(ffmpeg, url, offsetNanos, hwAccel, alreadyResolved).apply {
+        return baseCommand(ffmpeg, url, offsetNanos, hwAccel, alreadyResolved, seekByDecoding).apply {
             addAll(listOf("-an", "-vf", vf))
             addAll(listOf("-r", String.format(Locale.US, "%.6f", outputFps(fps))))
             when (transport) {
@@ -125,11 +150,16 @@ object MediaProcess {
      * @throws IOException if the process fails to start. The caller is responsible for destroying the process when done.
      */
     @Throws(IOException::class)
-    fun buildFrameExtract(ffmpeg: String, url: String, offsetNanos: Long, w: Int, h: Int): Process {
+    fun buildFrameExtract(
+        ffmpeg: String, url: String, offsetNanos: Long, w: Int, h: Int, seekByDecoding: Boolean = false,
+    ): Process {
         val fitSw = "min($w/iw\\,$h/ih)"
         val pad = "scale=w=min($w\\,iw*$fitSw):h=min($h\\,ih*$fitSw):flags=lanczos," +
                 "pad=w=$w:h=$h:x=(ow-iw)/2:y=(oh-ih)/2:color=black"
-        val cmd = baseCommand(ffmpeg, url, offsetNanos, HwAccelBackend.NONE, alreadyResolved = true).apply {
+        val cmd = baseCommand(
+            ffmpeg, url, offsetNanos, HwAccelBackend.NONE,
+            alreadyResolved = true, seekByDecoding = seekByDecoding,
+        ).apply {
             addAll(
                 listOf(
                     "-an", "-frames:v", "1",
@@ -147,8 +177,12 @@ object MediaProcess {
      * @throws IOException if the process fails to start. The caller is responsible for destroying the process when done.
      */
     @Throws(IOException::class)
-    fun buildAudio(ffmpeg: String, url: String, offsetNanos: Long, sampleRate: Int): Process {
-        val cmd = baseCommand(ffmpeg, url, offsetNanos, HwAccelBackend.NONE).apply {
+    fun buildAudio(
+        ffmpeg: String, url: String, offsetNanos: Long, sampleRate: Int, seekByDecoding: Boolean = false,
+    ): Process {
+        val cmd = baseCommand(
+            ffmpeg, url, offsetNanos, HwAccelBackend.NONE, seekByDecoding = seekByDecoding,
+        ).apply {
             addAll(listOf("-vn", "-f", "s16le", "-ar", sampleRate.toString(), "-ac", "2", "-"))
         }
         return ProcessBuilder(cmd).start()
@@ -203,8 +237,30 @@ object MediaProcess {
         offsetNanos: Long,
         hwAccel: HwAccelBackend,
         alreadyResolved: Boolean = false,
+        seekByDecoding: Boolean = false,
     ): MutableList<String> {
         val safeUrl = if (alreadyResolved) url else MediaHostGuard.resolveSafeUrl(url)
+        // This container's demuxer cannot be trusted with a jump, so the best available seek is a
+        // playlist that already starts at the target ([HlsSeekPlaylist]).
+        val trimmed =
+            if (seekByDecoding && offsetNanos > 0) HlsSeekPlaylist.trim(safeUrl, offsetNanos) else null
+        return inputCommand(ffmpeg, safeUrl, offsetNanos, hwAccel, seekByDecoding, trimmed)
+    }
+
+    /**
+     * The input half of an `FFmpeg` invocation, with the playlist trim already decided. Split out
+     * from [baseCommand] so the argument list can be asserted without a network fetch — the options
+     * an input accepts depend on which kind of input it is, and getting that wrong stops the process
+     * from starting at all.
+     */
+    internal fun inputCommand(
+        ffmpeg: String,
+        safeUrl: String,
+        offsetNanos: Long,
+        hwAccel: HwAccelBackend,
+        seekByDecoding: Boolean,
+        trimmed: HlsSeekPlaylist.Trimmed?,
+    ): MutableList<String> {
         return mutableListOf<String>().apply {
             add(ffmpeg)
             addAll(listOf("-hide_banner", "-loglevel", "error", "-nostats"))
@@ -213,18 +269,16 @@ object MediaProcess {
                 addAll(listOf("-hwaccel", hwAccel.ffmpegName))
             }
             hwAccel.hwOutputFormat?.let { addAll(listOf("-hwaccel_output_format", it)) }
-            addAll(listOf("-headers", "User-Agent: $USER_AGENT\r\nReferer: https://www.youtube.com/\r\n"))
-            addAll(
-                listOf(
-                    "-reconnect", "1",
-                    "-reconnect_streamed", "1",
-                    "-reconnect_delay_max", "10",
-                    "-reconnect_on_network_error", "1",
-                    "-reconnect_on_http_error", "5xx",
-                    // Pull googlevideo over one connection with range requests so it doesn't cut at ~10s
-                    "-multiple_requests", "1",
-                )
-            )
+            if (trimmed == null) {
+                addHttpOptions()
+            } else {
+                // Every option below belongs to the http protocol, and the input here is a data:
+                // URI, so none of them has a context to be applied to: FFmpeg reports the first one
+                // as "Option headers not found" and refuses to open the input at all. The HLS
+                // demuxer's own retry counters are protocol-independent and cover the same ground
+                // for the segment fetches, which are the requests that actually matter here.
+                addAll(listOf("-seg_max_retry", "3", "-max_reload", "3"))
+            }
             addAll(listOf("-rw_timeout", "15000000"))
             // The sources here are plain MP4 / WebM / M4A over HTTPS with stream info in their headers;
             // the default 5 MB / 5 s probe window only postpones the first frame, so keep it tight.
@@ -232,10 +286,45 @@ object MediaProcess {
             // in-place seek (see native/lav/src/session.rs, which dropped the same flag for the
             // same reason).
             addAll(listOf("-probesize", "1M", "-analyzeduration", "1000000"))
-            if (offsetNanos > 0) {
-                addAll(listOf("-ss", String.format(Locale.US, "%.6f", offsetNanos / 1e9)))
+            when {
+                trimmed != null -> {
+                    // Forcing the demuxer is required: FFmpeg will not probe a playlist out of a
+                    // data: URI ("Not detecting m3u8/hls with non standard extension").
+                    addAll(listOf("-f", "hls", "-i", trimmed.url))
+                    if (trimmed.residualNanos > 0) addAll(seekArgs(trimmed.residualNanos))
+                }
+                // -ss after -i makes FFmpeg decode from the start and discard: always correct,
+                // and slower the deeper the seek. Only reached when the playlist could not be read.
+                seekByDecoding -> {
+                    addAll(listOf("-i", safeUrl))
+                    if (offsetNanos > 0) addAll(seekArgs(offsetNanos))
+                }
+                // -ss before -i asks the demuxer to jump, which is what makes a seek instant
+                else -> {
+                    if (offsetNanos > 0) addAll(seekArgs(offsetNanos))
+                    addAll(listOf("-i", safeUrl))
+                }
             }
-            addAll(listOf("-i", safeUrl))
         }
     }
+
+    /** Connection options for an `http(s)` input; see [baseCommand] for why they are conditional. */
+    private fun MutableList<String>.addHttpOptions() {
+        addAll(listOf("-headers", "User-Agent: $USER_AGENT\r\nReferer: https://www.youtube.com/\r\n"))
+        addAll(
+            listOf(
+                "-reconnect", "1",
+                "-reconnect_streamed", "1",
+                "-reconnect_delay_max", "10",
+                "-reconnect_on_network_error", "1",
+                "-reconnect_on_http_error", "5xx",
+                // Pull googlevideo over one connection with range requests so it doesn't cut at ~10s
+                "-multiple_requests", "1",
+            )
+        )
+    }
+
+    /** `-ss` with [offsetNanos] rendered as seconds. */
+    private fun seekArgs(offsetNanos: Long): List<String> =
+        listOf("-ss", String.format(Locale.US, "%.6f", offsetNanos / 1e9))
 }

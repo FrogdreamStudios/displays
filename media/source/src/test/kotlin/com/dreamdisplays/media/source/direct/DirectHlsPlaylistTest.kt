@@ -108,6 +108,86 @@ class DirectHlsPlaylistTest {
     }
 
     @Test
+    fun separateAudioRenditionsArePairedWithTheirVariants() {
+        // Apple's reference master: the variants carry no sound at all, and are listed once per
+        // audio group. Pointing the audio decoder at one of them yields no stream whatsoever.
+        val playlist = """
+            #EXTM3U
+            #EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="aud1",NAME="English",LANGUAGE="en",DEFAULT=YES,URI="a1/prog.m3u8"
+            #EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="aud2",NAME="English AC-3",LANGUAGE="en",URI="a2/prog.m3u8"
+            #EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="sub1",NAME="English",URI="s1/prog.m3u8"
+            #EXT-X-STREAM-INF:BANDWIDTH=900000,RESOLUTION=640x360,AUDIO="aud1"
+            v1/prog.m3u8
+            #EXT-X-STREAM-INF:BANDWIDTH=1000000,RESOLUTION=640x360,AUDIO="aud2"
+            v1/prog.m3u8
+        """.trimIndent()
+
+        val parsed = DirectHlsPlaylist.parse(playlist, "https://cdn.example.com/vod/master.m3u8")
+
+        assertEquals(1, parsed.variants.size, "The same rendition listed per audio group is one quality.")
+        assertEquals("aud1", parsed.variants[0].audioGroupId)
+        assertEquals(2, parsed.audioRenditions.size, "Subtitle renditions are not audio.")
+
+        val paired = parsed.audioFor(parsed.variants[0])
+        assertEquals(1, paired.size)
+        assertEquals("https://cdn.example.com/vod/a1/prog.m3u8", paired[0].url)
+        assertEquals("en", paired[0].language)
+        assertTrue(paired[0].isDefault)
+    }
+
+    @Test
+    fun mediaTagsWithoutTheirOwnPlaylistAreIgnored() {
+        // TYPE=AUDIO with no URI describes sound that is already muxed into the variants, so the
+        // variants stay playable on their own and must not be re-typed as video-only.
+        val playlist = """
+            #EXTM3U
+            #EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="aud1",NAME="Main",DEFAULT=YES
+            #EXT-X-STREAM-INF:BANDWIDTH=900000,RESOLUTION=640x360,AUDIO="aud1"
+            v1/prog.m3u8
+        """.trimIndent()
+
+        val parsed = DirectHlsPlaylist.parse(playlist, "https://cdn.example.com/master.m3u8")
+
+        assertTrue(parsed.audioRenditions.isEmpty())
+        assertTrue(parsed.audioFor(parsed.variants[0]).isEmpty())
+    }
+
+    @Test
+    fun segmentDurationsAddUpToTheMediaLength() {
+        // The only place an HLS VOD's length is knowable without opening the stream. Missing it left
+        // the player with no timeline, which in the UI means no seek bar at all.
+        val playlist = """
+            #EXTM3U
+            #EXT-X-TARGETDURATION:6
+            #EXT-X-PLAYLIST-TYPE:VOD
+            #EXTINF:5.99467,
+            seg1.ts
+            #EXTINF:6.00000,
+            seg2.ts
+            #EXTINF:2.50000,
+            seg3.ts
+            #EXT-X-ENDLIST
+        """.trimIndent()
+
+        val parsed = DirectHlsPlaylist.parse(playlist, "https://cdn.example.com/vod.m3u8")
+
+        assertEquals(14_494_670_000L, parsed.totalDurationNanos)
+        assertFalse(parsed.isLive)
+    }
+
+    @Test
+    fun aMasterOnItsOwnReportsNoDuration() {
+        // Masters list renditions, not segments; the length comes from whichever one gets probed
+        val playlist = """
+            #EXTM3U
+            #EXT-X-STREAM-INF:BANDWIDTH=800000,RESOLUTION=640x360
+            360/index.m3u8
+        """.trimIndent()
+
+        assertEquals(0L, DirectHlsPlaylist.parse(playlist, "https://cdn.example.com/master.m3u8").totalDurationNanos)
+    }
+
+    @Test
     fun onlyRealPlaylistsAreRecognized() {
         assertTrue(DirectHlsPlaylist.looksLikePlaylist("#EXTM3U\n#EXT-X-ENDLIST"))
         assertFalse(DirectHlsPlaylist.looksLikePlaylist("<!doctype html><html>"))

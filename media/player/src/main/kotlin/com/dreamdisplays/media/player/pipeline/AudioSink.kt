@@ -14,6 +14,7 @@ import java.io.InputStream
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicLong
 import javax.sound.sampled.*
 
 /**
@@ -68,6 +69,13 @@ internal class AudioSink(private val debugLabel: String) {
 
         /** Max refine passes of the catch-up skip; each pass shrinks the residual by the decode-speed factor. */
         private const val CATCHUP_MAX_PASSES = 4
+
+        /**
+         * Ceiling on a single stall re-sync skip. A gap larger than this is not a stalled line, it is
+         * a session that has come apart; skipping minutes of sound to chase it would be worse than
+         * the drift, and the watchdog owns that case anyway.
+         */
+        private const val MAX_RESYNC_NANOS = 5_000_000_000L
 
         /** Converts a count of stereo 16-bit PCM frames into nanos of content. */
         fun framesToNanos(frames: Long): Long = frames * 1_000_000_000L / SAMPLE_RATE
@@ -215,6 +223,47 @@ internal class AudioSink(private val debugLabel: String) {
     }
 
     /**
+     * Nanos of sound the running pump must throw away to rejoin the picture, requested by
+     * [AudioMasterClock] after a line stall. Held as a target rather than a running total: several
+     * observers can notice the same stall, and they should not each add their own skip.
+     */
+    private val pendingResyncNanos = AtomicLong(0)
+
+    /**
+     * Asks the live pump to drop the next [nanos] of audio, because the line fell that far behind
+     * the picture while it was stalled. Dropping the sound is the only correction that restores lip
+     * sync without rewinding the video, which is not something a decoder can do smoothly.
+     */
+    fun requestResync(nanos: Long) {
+        if (nanos <= 0L) return
+        pendingResyncNanos.accumulateAndGet(nanos.coerceAtMost(MAX_RESYNC_NANOS), ::maxOf)
+    }
+
+    /**
+     * Consumes an outstanding [requestResync] for [session], discarding that much freshly decoded PCM
+     * and advancing the session's clock origin by exactly what was dropped, so the reported position
+     * keeps describing what is actually being heard.
+     */
+    private fun applyPendingResync(
+        session: LineSession, input: InputStream, terminated: AtomicBoolean, stopFlag: AtomicBoolean,
+    ) {
+        val target = pendingResyncNanos.getAndSet(0L)
+        if (target <= 0L || !owns(session)) return
+        val scratch = ByteArray(CHUNK_BYTES)
+        var toSkip = target * SAMPLE_RATE / 1_000_000_000L * BYTES_PER_FRAME
+        var skipped = 0L
+        while (toSkip > 0 && !terminated.get() && !stopFlag.get()) {
+            val n = MediaUtil.readFull(input, scratch, minOf(CHUNK_BYTES.toLong(), toSkip).toInt())
+            if (n <= 0) break // EOF mid-skip: the pump loop reports it on its next read
+            skipped += n
+            toSkip -= n
+        }
+        if (skipped <= 0L) return
+        session.contentStartNanos += bytesToNanos(skipped)
+        logger.debug("$debugLabel [audio] re-synced by skipping ${bytesToNanos(skipped) / 1_000_000} ms of PCM.")
+    }
+
+    /**
      * Opens a new clock session, superseding any previous one, and resets the per-session shared
      * state (ring, DSP) that belongs to whatever is now playing.
      */
@@ -222,6 +271,7 @@ internal class AudioSink(private val debugLabel: String) {
         val session = synchronized(sessionLock) {
             LineSession(++epochCounter, originKnown, preludeFrames, contentStartNanos).also { current = it }
         }
+        pendingResyncNanos.set(0L) // A skip owed by the previous line means nothing to a fresh one
         clearRing()
         dspStage?.reset()
         return session
@@ -790,6 +840,7 @@ internal class AudioSink(private val debugLabel: String) {
         paceCleanChunks = 0
         while (!terminated.get() && !stopFlag.get()) {
             if (parkIfRequested(ln, terminated, stopFlag)) break
+            if (!firstChunk) applyPendingResync(session, input, terminated, stopFlag)
             val n = MediaUtil.readFull(input, chunk, CHUNK_BYTES)
             if (n <= 0) {
                 // A deliberate teardown destroys the process mid-read; that EOF is expected and not

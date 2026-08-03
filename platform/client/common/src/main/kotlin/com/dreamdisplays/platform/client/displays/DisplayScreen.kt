@@ -398,6 +398,9 @@ class DisplayScreen(
      */
     val scrubPreviewRawUrl: String? get() = mediaPlayer?.capturedStreamRawUrl()
 
+    /** Whether scrub previews for this display must seek by decoding forward; see `MediaStream.seekByDecoding`. */
+    val scrubPreviewSeeksByDecoding: Boolean get() = mediaPlayer?.capturedStreamSeeksByDecoding() == true
+
     /** Pixel heights of the qualities available for the current video. */
     val qualityList: List<Int>
         get() = mediaPlayer?.getAvailableQualities() ?: emptyList()

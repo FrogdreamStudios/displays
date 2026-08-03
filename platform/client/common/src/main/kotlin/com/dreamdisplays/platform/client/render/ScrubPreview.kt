@@ -64,7 +64,15 @@ object ScrubPreview {
      * can take from the real-time audio pipeline: generation kicks off right as a video's duration
      * becomes known, i.e. right as its own audio session is starting up too.
      */
-    private const val EXTRACT_CONCURRENCY = 4
+    private const val EXTRACT_CONCURRENCY = 2
+
+    /**
+     * Budget for one sample. Each extraction is its own connection that must range-seek deep into a
+     * file whose index may sit at the far end, on a host that is simultaneously serving the video
+     * being watched — the previous 10 s was routinely short of that on ordinary archives, and a
+     * timeout costs the whole sample.
+     */
+    private val EXTRACT_TIMEOUT = 25.seconds
 
     private class Frame(val timestampNanos: Long, val texture: Identifier)
 
@@ -96,7 +104,7 @@ object ScrubPreview {
      * total duration; both must be valid (non-live, resolved) before calling. Redirect resolution and
      * host-safety checks run in the background, never on the calling (render) thread.
      */
-    fun request(key: String, rawUrl: String, durationNanos: Long) {
+    fun request(key: String, rawUrl: String, durationNanos: Long, seekByDecoding: Boolean = false) {
         if (durationNanos <= 0 || FRAMES.getIfPresent(key) != null) return
         if (IN_FLIGHT.asMap().putIfAbsent(key, true) != null) return
 
@@ -105,7 +113,7 @@ object ScrubPreview {
         DreamCoroutines.clientIo.launch {
             runCatching {
                 val safeUrl = MediaHostGuard.resolveSafeUrl(rawUrl)
-                generate(key, safeUrl, durationNanos)
+                generate(key, safeUrl, durationNanos, seekByDecoding)
             }.onFailure { e ->
                 if (e is CancellationException) throw e
 
@@ -136,7 +144,7 @@ object ScrubPreview {
      * the full sample set finishes (a full sequential pass across ~20 samples can take well over a
      * minute; a hovering user shouldn't wait for the very last one).
      */
-    private suspend fun generate(key: String, sourceUrl: String, durationNanos: Long) {
+    private suspend fun generate(key: String, sourceUrl: String, durationNanos: Long, seekByDecoding: Boolean) {
         val ffmpeg = FFmpegBinary.getPath()
         if (ffmpeg == null) {
             logger.warn("Scrub preview aborted for $key: no FFmpeg binary available")
@@ -154,7 +162,7 @@ object ScrubPreview {
             timestamps.map { ts ->
                 async {
                     semaphore.withPermit {
-                        val bytes = extractFrame(key, ffmpeg, sourceUrl, ts)
+                        val bytes = extractFrame(key, ffmpeg, sourceUrl, ts, seekByDecoding)
                         val id = bytes?.let { registerFrame(key, ts, it) }
                         if (id != null) {
                             collected.add(Frame(ts, id))
@@ -170,10 +178,14 @@ object ScrubPreview {
     }
 
     /** Runs a single-frame `FFmpeg` extraction at [offsetNanos] and returns the raw JPEG bytes. */
-    private suspend fun extractFrame(key: String, ffmpeg: String, sourceUrl: String, offsetNanos: Long): ByteArray? =
+    private suspend fun extractFrame(
+        key: String, ffmpeg: String, sourceUrl: String, offsetNanos: Long, seekByDecoding: Boolean,
+    ): ByteArray? =
         coroutineScope {
             val proc = runCatching {
-                MediaProcess.buildFrameExtract(ffmpeg, sourceUrl, offsetNanos, FRAME_WIDTH, FRAME_HEIGHT)
+                MediaProcess.buildFrameExtract(
+                    ffmpeg, sourceUrl, offsetNanos, FRAME_WIDTH, FRAME_HEIGHT, seekByDecoding,
+                )
             }.onFailure { e ->
                 logger.warn("Scrub frame process start failed for $key@$offsetNanos: ${e.message}")
             }.getOrNull() ?: return@coroutineScope null
@@ -184,7 +196,7 @@ object ScrubPreview {
                 async(Dispatchers.IO) { runCatching { proc.inputStream.use { it.readBytes() } }.getOrNull() }
 
             val result = runCatching {
-                val exited = withTimeoutOrNull(10.seconds) {
+                val exited = withTimeoutOrNull(EXTRACT_TIMEOUT) {
                     withContext(Dispatchers.IO) { proc.waitFor() }
                 }
 

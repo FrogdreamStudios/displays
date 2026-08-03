@@ -7,9 +7,17 @@ import org.slf4j.LoggerFactory
  * against.
  */
 internal class AudioMasterClock(
+    /** Debug label. */
     private val debugLabel: String,
+
     /** Monotonic time source; injectable so the stall / takeover behavior is testable without sleeping. */
     private val nowNanos: () -> Long = System::nanoTime,
+
+    /**
+     * Asks the audio side to discard this many nanos of pending sound so a line that stalled rejoins
+     * the picture instead of trailing it for the rest of the session (see [nanos]).
+     */
+    private val requestAudioResync: (gapNanos: Long) -> Unit = {},
 ) {
     private val logger = LoggerFactory.getLogger("DreamDisplays/AudioMasterClock")
 
@@ -34,6 +42,16 @@ internal class AudioMasterClock(
         /** Implausible exact-PTS bias bounds: different clocks, a PTS wrap, or a mid-session splice. */
         const val MIN_PLAUSIBLE_EXACT_BIAS_NANOS = -800_000_000L
         const val MAX_PLAUSIBLE_EXACT_BIAS_NANOS = 30_000_000_000L
+
+        /**
+         * Smallest recovery gap worth resynchronizing the audio for. Below this the clock simply
+         * plateaus for a few frames while the line catches up, which nobody can see; above it the
+         * sound would stay behind the picture for the rest of the session.
+         */
+        const val MIN_RESYNC_NANOS = 150_000_000L
+
+        /** How often a still-behind audio line may be asked to skip again while a takeover runs. */
+        const val RESYNC_REQUEST_INTERVAL_NANOS = 500_000_000L
     }
 
     private val lock = Any()
@@ -44,9 +62,8 @@ internal class AudioMasterClock(
     /** Offset added to the raw line clock to put it on the video timeline; 0 for a known origin. */
     private var bias = 0L
 
-    /** Last raw line position seen, and when (wall nanos) it last actually changed. */
+    /** Last raw line position seen. */
     private var lastRaw = 0L
-    private var lastAdvanceNanos = 0L
 
     /** True while the line clock is presumed dead and wall time is driving playback. */
     private var takeover = false
@@ -55,6 +72,16 @@ internal class AudioMasterClock(
 
     /** Highest value returned inside the current continuous run; guards against a backwards clock. */
     private var lastOut = Long.MIN_VALUE
+
+    /**
+     * When [lastOut] last actually moved. This — not the raw line position — is what a stall means to
+     * everything downstream: a clock held flat by the monotonic guard while the line crawls back up
+     * to it freezes the picture exactly as thoroughly as a dead line does.
+     */
+    private var lastOutAdvanceNanos = 0L
+
+    /** When the audio side was last asked to skip ahead, so a running takeover doesn't spam it. */
+    private var lastResyncRequestNanos = Long.MIN_VALUE / 2
 
     /**
      * Returns the master clock position in content nanos, or -1 when neither the audio line nor the
@@ -76,7 +103,7 @@ internal class AudioMasterClock(
         if (sample.nanos < 0L) {
             // No line clock at all (starting up, between sessions, bridge prelude): run on wall time
             // and don't let the gap accrue as stall time against whatever session comes back
-            synchronized(lock) { lastAdvanceNanos = nowNanos() }
+            synchronized(lock) { lastOutAdvanceNanos = nowNanos() }
             return wallNanos
         }
         synchronized(lock) {
@@ -85,31 +112,77 @@ internal class AudioMasterClock(
 
             if (sample.nanos != lastRaw) {
                 lastRaw = sample.nanos
-                lastAdvanceNanos = now
-                if (takeover) {
-                    takeover = false
-                    // Back to the truth
-                    lastOut = Long.MIN_VALUE
-                    logger.warn("$debugLabel Audio clock recovered; pacing is back on the audio line.")
-                }
-            } else if (suspended) {
-                lastAdvanceNanos = now
-            } else if (!takeover && wallNanos >= 0L && now - lastAdvanceNanos >= STALL_TAKEOVER_NANOS) {
-                takeover = true
-                takeoverAnchorWall = now
-                takeoverAnchorOut = if (lastOut == Long.MIN_VALUE) sample.nanos + bias else lastOut
-                logger.warn(
-                    "$debugLabel Audio clock stuck at ${sample.nanos / 1_000_000} ms for " +
-                            "${(now - lastAdvanceNanos) / 1_000_000} ms; pacing video on wall time until it recovers."
-                )
+                if (takeover) reconcileTakeover(sample, now)
             }
 
-            val out =
+            val candidate =
                 if (takeover) takeoverAnchorOut + (now - takeoverAnchorWall)
                 else sample.nanos + bias
-            if (out > lastOut) lastOut = out
+
+            when {
+                candidate > lastOut -> {
+                    lastOut = candidate
+                    lastOutAdvanceNanos = now
+                }
+                // A parked session is meant to stand still; that is not a stall to recover from
+                suspended -> lastOutAdvanceNanos = now
+
+                !takeover && wallNanos >= 0L && now - lastOutAdvanceNanos >= STALL_TAKEOVER_NANOS ->
+                    beginTakeover(sample, now)
+            }
             return lastOut
         }
+    }
+
+    /**
+     * Starts driving the clock from wall time because it has stopped moving on its own. Caller holds
+     * [lock].
+     *
+     * Two different faults land here and both freeze the picture the same way, so both are answered
+     * the same way: a line clock that has died outright, and one that is alive but sitting below the
+     * position the clock already reported (which the monotonic guard has to hold flat).
+     */
+    private fun beginTakeover(sample: AudioSink.ClockSample, now: Long) {
+        val stalledForMs = (now - lastOutAdvanceNanos) / 1_000_000
+        takeover = true
+        takeoverAnchorWall = now
+        takeoverAnchorOut = if (lastOut == Long.MIN_VALUE) sample.nanos + bias else lastOut
+        lastOutAdvanceNanos = now
+        logger.warn(
+            "$debugLabel Audio clock stuck at ${sample.nanos / 1_000_000} ms for $stalledForMs ms; " +
+                    "pacing video on wall time until it recovers."
+        )
+    }
+
+    /**
+     * Leaves the wall-time takeover now that the line clock is moving again. Caller holds [lock].
+     *
+     * The takeover ran the clock forward while the line stood still, so the line is now behind by
+     * however long the stall lasted. Snapping the clock back to it would rewind the master clock
+     * mid-session — every queued frame then sits "in the future", waits out the pacing budget and is
+     * dropped, which is a far worse symptom than the stall itself. Instead the clock holds where the
+     * takeover left it (the monotonic guard does that on its own) and the *audio* is asked to skip
+     * the gap, so the sound catches up to the picture rather than the picture waiting on the sound.
+     */
+    private fun reconcileTakeover(sample: AudioSink.ClockSample, now: Long) {
+        val ramp = takeoverAnchorOut + (now - takeoverAnchorWall)
+        val behind = ramp - (sample.nanos + bias)
+        if (behind <= MIN_RESYNC_NANOS) {
+            takeover = false
+            logger.debug("$debugLabel Audio clock caught up with the picture; pacing is back on the line.")
+            return
+        }
+        // Still behind. Handing back now would rewind the master clock by the whole gap, so wall
+        // time keeps driving and the sound is asked to close the distance instead. Re-asked
+        // periodically rather than once: each skip is measured against a gap that is still growing
+        // while it is being applied, so one request rarely lands exactly.
+        if (now - lastResyncRequestNanos < RESYNC_REQUEST_INTERVAL_NANOS) return
+        lastResyncRequestNanos = now
+        logger.warn(
+            "$debugLabel Audio is ${behind / 1_000_000} ms behind the picture after a stall; " +
+                    "skipping that much sound to re-sync."
+        )
+        requestAudioResync(behind)
     }
 
     /** Forgets all session state; call when the whole playback session is torn down. */
@@ -118,7 +191,8 @@ internal class AudioMasterClock(
             epoch = NO_EPOCH
             bias = 0L
             lastRaw = 0L
-            lastAdvanceNanos = 0L
+            lastOutAdvanceNanos = 0L
+            lastResyncRequestNanos = Long.MIN_VALUE / 2
             takeover = false
             lastOut = Long.MIN_VALUE
         }
@@ -134,7 +208,8 @@ internal class AudioMasterClock(
         epoch = sample.epoch
         takeover = false
         lastRaw = sample.nanos
-        lastAdvanceNanos = now
+        lastOutAdvanceNanos = now
+        lastResyncRequestNanos = Long.MIN_VALUE / 2
         lastOut = Long.MIN_VALUE
 
         if (sample.originKnown) {

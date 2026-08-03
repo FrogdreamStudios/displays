@@ -146,9 +146,22 @@ class DisplayTextureResource(private val uuid: UUID) {
      * render thread.
      */
     fun prepareDimensions(blockWidth: Int, blockHeight: Int, qualityHeight: Int) {
-        width = ((blockWidth / blockHeight.toDouble()) * qualityHeight).toInt()
-        height = qualityHeight
+        val (w, h) = textureDimensions(blockWidth, blockHeight, qualityHeight)
+        width = w
+        height = h
     }
+
+    /**
+     * Texture size for a [blockWidth] x [blockHeight] screen at [qualityHeight] pixels tall, with
+     * both axes forced even.
+     */
+    private fun textureDimensions(blockWidth: Int, blockHeight: Int, qualityHeight: Int): Pair<Int, Int> {
+        val width = ((blockWidth / blockHeight.toDouble()) * qualityHeight).toInt()
+        return width.toEvenDimension() to qualityHeight.toEvenDimension()
+    }
+
+    /** Rounds down to an even size, never below 2. */
+    private fun Int.toEvenDimension(): Int = (this and 1.inv()).coerceAtLeast(2)
 
     /**
      * Releases any existing textures (current and pending) and allocates fresh GPU textures and a
@@ -170,8 +183,8 @@ class DisplayTextureResource(private val uuid: UUID) {
      */
     fun allocatePending(blockWidth: Int, blockHeight: Int, qualityHeight: Int) {
         discardPending()
-        val w = ((blockWidth / blockHeight.toDouble()) * qualityHeight).toInt()
-        pending = build(w, qualityHeight)
+        val (w, h) = textureDimensions(blockWidth, blockHeight, qualityHeight)
+        pending = build(w, h)
     }
 
     /**

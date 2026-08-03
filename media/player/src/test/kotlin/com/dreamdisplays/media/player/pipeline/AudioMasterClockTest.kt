@@ -105,12 +105,69 @@ class AudioMasterClockTest {
         val advancing = clock.nanos(sample(10 * second), wall, suspended = false) { null }
         assertEquals(10 * second + 200 * ms, advancing, "The clock must keep advancing during takeover.")
 
-        // The line recovers: go straight back to the truth rather than carrying the gap as a
-        // permanent lip-sync error. Video re-syncs by holding or dropping
+        // The line comes back, but behind where the takeover carried the clock to. It must not be
+        // rewound to meet it: every already-decoded frame would then sit in the future, wait out the
+        // pacing budget and be dropped — a drop-storm far worse than the stall that caused it.
         fake.advance(50 * ms)
         wall += 50 * ms
         val recovered = clock.nanos(sample(10 * second + 40 * ms), wall, suspended = false) { null }
-        assertEquals(10 * second + 40 * ms, recovered)
+        assertEquals(10 * second + 250 * ms, recovered, "The master clock must never run backwards.")
+    }
+
+    @Test
+    fun `recovering behind the picture asks the audio to skip the gap`() {
+        val fake = FakeNanos()
+        val skips = ArrayList<Long>()
+        val clock = AudioMasterClock("test", fake::now, requestAudioResync = { skips.add(it) })
+
+        var wall = 10 * second
+        clock.nanos(sample(10 * second), wall, suspended = false) { null }
+
+        // Stall until the takeover engages, let wall time carry the clock a further 500 ms, then let
+        // the line come back where it left off. The sound is now half a second behind the picture,
+        // and only dropping that half second can put the two back together.
+        fake.advance(second)
+        wall += second
+        clock.nanos(sample(10 * second), wall, suspended = false) { null }
+        fake.advance(500 * ms)
+        wall += 500 * ms
+        clock.nanos(sample(10 * second + 10 * ms), wall, suspended = false) { null }
+
+        assertEquals(1, skips.size, "Exactly one re-sync should have been asked for.")
+        assertTrue(
+            skips[0] in (450 * ms)..(550 * ms),
+            "Expected the wall-time lead to be skipped, got ${skips[0] / 1_000_000} ms.",
+        )
+    }
+
+    @Test
+    fun `a line that is alive but lagging never freezes the picture`() {
+        val fake = FakeNanos()
+        val clock = AudioMasterClock("test", fake::now)
+
+        var wall = 10 * second
+        clock.nanos(sample(10 * second), wall, suspended = false) { null }
+        fake.advance(second)
+        wall += second
+        clock.nanos(sample(10 * second), wall, suspended = false) { null } // takeover engages here
+        fake.advance(second)
+        wall += second
+        assertEquals(11 * second, clock.nanos(sample(10 * second), wall, suspended = false) { null })
+
+        // The line starts ticking again, but a whole second behind. Handing the clock back to it
+        // here would rewind playback; holding the clock flat until it climbs back would freeze the
+        // picture for that same second. It does neither — wall time keeps it moving.
+        fake.advance(10 * ms)
+        wall += 10 * ms
+        val lagging = clock.nanos(sample(10 * second + ms), wall, suspended = false) { null }
+        assertEquals(11 * second + 10 * ms, lagging, "A lagging line must not stop the clock.")
+
+        // Once the skip has closed the gap the line takes over again, still without a step back
+        fake.advance(50 * ms)
+        wall += 50 * ms
+        val handedBack = clock.nanos(sample(11 * second + 50 * ms), wall, suspended = false) { null }
+        assertEquals(11 * second + 50 * ms, handedBack, "A caught-up line should drive the clock again.")
+        assertTrue(handedBack >= lagging, "The hand-back must not step backwards.")
     }
 
     @Test

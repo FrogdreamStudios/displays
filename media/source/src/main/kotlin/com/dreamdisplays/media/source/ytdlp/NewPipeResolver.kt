@@ -134,6 +134,19 @@ object NewPipeResolver : MediaResolver {
         )
     }
 
+    /**
+     * Drops [url]'s cached resolution so the next resolve goes back to YouTube.
+     *
+     * This is the fast path of the chain, so without it the player's stall recovery and its live
+     * resume both invalidated every other cache and then got served the same stale entry from
+     * here — which for a livestream is a playlist pointing into a window the server has already
+     * moved past. Nothing downstream could tell that apart from a network fault, so playback simply
+     * produced no frames until the watchdog gave up.
+     */
+    fun invalidate(url: String) {
+        cache.invalidate(YouTubeUrls.extractVideoId(url) ?: url)
+    }
+
     /** Initializes NewPipeExtractor with our HTTP downloader exactly once. Safe to call repeatedly. */
     fun ensureInitialized() {
         if (!initialized.compareAndSet(false, true)) return
