@@ -138,6 +138,7 @@ object NeoForgeV2Networking {
                 isReportingEnabled = VanillaServerState.config.settings.webhookUrl.isNotEmpty(),
                 allowedFeatures = ServerFeature.playbackFeatureWires,
                 defaultVolume = VanillaServerState.config.settings.defaultVolume,
+                maxDisplays = VanillaDisplayActions.maxDisplaysFor(player),
             ),
         )
         VanillaDisplayActions.recordVersionAndCheckUpdates(player, hello.modVersion)

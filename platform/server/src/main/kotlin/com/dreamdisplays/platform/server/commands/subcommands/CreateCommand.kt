@@ -8,6 +8,7 @@ import com.dreamdisplays.platform.server.managers.SelectionManager
 import com.dreamdisplays.platform.server.meta.ServerCoroutines
 import com.dreamdisplays.platform.server.utils.MessageUtil
 import com.dreamdisplays.platform.server.utils.RegionUtil
+import com.dreamdisplays.platform.server.utils.VanillaPermissions
 import com.dreamdisplays.platform.server.utils.net.VanillaPacketUtil
 import com.mojang.brigadier.context.CommandContext
 import io.github.arnodoelinger.platformweaver.PaperOnly
@@ -70,6 +71,14 @@ class CreateCommand : SubCommand {
 
         if (DisplayManager.isOverlaps(sel)) {
             MessageUtil.sendMessage(player, "displayOverlap")
+            return
+        }
+
+        val maxDisplays = PaperServer.config.settings.maxDisplaysPerPlayer
+        if (maxDisplays > 0 && !player.hasPermission(PaperServer.config.permissions.createBypass) &&
+            DisplayManager.countOwnedBy(player.uniqueId) >= maxDisplays
+        ) {
+            MessageUtil.sendMessage(player, "displayLimitReached", maxDisplays)
             return
         }
 
@@ -179,6 +188,15 @@ object VanillaCreateCommand {
 
         if (DisplayManager.isOverlaps(sel)) {
             MessageUtil.sendMessage(player, "displayOverlap")
+            return 0
+        }
+
+        val maxDisplays = VanillaServerState.config.settings.maxDisplaysPerPlayer
+        if (maxDisplays > 0 &&
+            !VanillaPermissions.has(player, VanillaServerState.config.permissions.createBypass, VanillaPermissions.Fallback.OP) &&
+            DisplayManager.countOwnedBy(player.uuid) >= maxDisplays
+        ) {
+            MessageUtil.sendMessage(player, "displayLimitReached", maxDisplays)
             return 0
         }
 

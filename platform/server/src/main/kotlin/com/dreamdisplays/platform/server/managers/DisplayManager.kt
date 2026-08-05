@@ -67,6 +67,9 @@ object DisplayManager {
     /** Returns a snapshot list of all currently registered displays. */
     fun getDisplays(): List<DisplayData> = displays.values.toList()
 
+    /** Number of displays currently owned by [ownerId], across every registered display. */
+    fun countOwnedBy(ownerId: UUID): Int = displays.values.count { it.ownerId == ownerId }
+
     /** Bulk-registers displays loaded from storage without sending any updates. */
     fun register(list: List<DisplayData>) {
         list.forEach { displays[it.id] = it }

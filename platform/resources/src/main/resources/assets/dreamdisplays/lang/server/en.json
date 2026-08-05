@@ -3,6 +3,7 @@
   "createDisplayCommand": "&7D |&f Now type /display create to create a display",
   "secondPointNotSelected": "&7D |&f You haven't selected the second point yet!",
   "displayOverlap": "&7D |&f There is already a display in this area!",
+  "displayLimitReached": "&7D |&f You've reached the limit of %d display(s) per player!",
   "structureTooLarge": "&7D |&f You can't create a display larger than %d × %d blocks",
   "structureTooSmall": "&7D |&f You can't create a display smaller than %d × %d blocks",
   "firstPointSelected": "&7D |&f First point selected! Now select the second point",

@@ -3,6 +3,7 @@
   "createDisplayCommand": "&7D |&f Тепер введіть /display create щоб створити дисплей",
   "secondPointNotSelected": "&7D |&f Ви ще не вибрали другу точку!",
   "displayOverlap": "&7D |&f У цій області вже є дисплей!",
+  "displayLimitReached": "&7D |&f Ви досягли ліміту в %d дисплей(їв) на гравця!",
   "structureTooLarge": "&7D |&f Ви не можете створити дисплей більше %d × %d блоків",
   "structureTooSmall": "&7D |&f Ви не можете створити дисплей менше %d × %d блоків",
   "firstPointSelected": "&7D |&f Перша точка вибрана! Тепер виберіть другу точку",

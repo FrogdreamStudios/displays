@@ -1,5 +1,6 @@
 package com.dreamdisplays.platform.server.commands.subcommands
 
+import com.dreamdisplays.api.media.VideoQuality
 import com.dreamdisplays.api.playback.FullscreenMode
 import com.dreamdisplays.platform.server.PaperServer
 import com.dreamdisplays.platform.server.VanillaServerState
@@ -54,6 +55,7 @@ object FullscreenCommand {
         radiusZ: Double?,
         defaultMode: FullscreenMode,
         allowForced: Boolean,
+        qualityCap: Int,
         senderWorld: String,
         senderX: Double,
         senderY: Double,
@@ -80,7 +82,7 @@ object FullscreenCommand {
             forced = forced,
             volume = volume ?: -1f,
             loop = loop,
-            quality = quality ?: "",
+            quality = clampQuality(quality, qualityCap),
             title = "",
             namedTargets = namedTargets,
             radius = radius,
@@ -88,6 +90,18 @@ object FullscreenCommand {
 
         val reach = FullscreenBroadcastManager.list().firstOrNull { it.sessionId == sessionId }?.reach ?: 0
         return FullscreenStartResult.Started(sessionId, reach)
+    }
+
+    /**
+     * Clamps [requested] to [qualityCap] (0 or less means no cap): `auto` becomes a fixed height at
+     * the cap, and a fixed height above the cap is lowered to it. `auto` must not be a way around a
+     * configured cap — the same hard-ceiling philosophy `Broadcast` mode already applies via
+     * [com.dreamdisplays.api.playback.PlaybackPermissions.BROADCAST_QUALITY_CAP].
+     */
+    private fun clampQuality(requested: String?, qualityCap: Int): String {
+        if (qualityCap <= 0) return requested ?: ""
+        val height = VideoQuality.parse(requested).targetHeight
+        return if (height == null || height > qualityCap) qualityCap.toString() else requested ?: ""
     }
 
     /** Stops a session by its own id, by the id of the real display it's hosted on, or every session for `all`. Returns how many were stopped. */
@@ -151,6 +165,7 @@ object PaperFullscreenCommand {
             radiusZ = radiusZ,
             defaultMode = config.fullscreenDefaultMode,
             allowForced = config.fullscreenAllowForced,
+            qualityCap = config.fullscreenQualityCap,
             senderWorld = player.world.name,
             senderX = player.location.x,
             senderY = player.location.y,
@@ -277,6 +292,7 @@ object VanillaFullscreenCommand {
             radiusZ = radiusZ,
             defaultMode = config.fullscreenDefaultMode,
             allowForced = config.fullscreenAllowForced,
+            qualityCap = config.fullscreenQualityCap,
             senderWorld = RegionUtil.getPlayerLevelKey(player),
             senderX = player.x,
             senderY = player.y,

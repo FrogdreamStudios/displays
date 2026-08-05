@@ -53,6 +53,9 @@ data class SettingsSection(
     val maxHeight get() = display.max_height
     val maxRenderDistance get() = display.max_render_distance
 
+    /** Max displays one player may own at once; `0` or less means no limit. Bypassed by [PermissionsSection.createBypass]. */
+    val maxDisplaysPerPlayer get() = display.max_displays_per_player
+
     /** Volume in [0, 1] ready for the wire; config stores 0-100 percent. */
     val defaultVolume get() = display.default_volume / 200f
 
@@ -99,6 +102,7 @@ data class SettingsSection(
         val max_height: Int = 24,
         val max_render_distance: Double = 96.0,
         val default_volume: Int = 50,
+        val max_displays_per_player: Int = 100,
     )
 
     /**
@@ -234,6 +238,7 @@ fun parseServerConfig(t: TomlTable?): ParsedServerConfig = ParsedServerConfig(
             max_height = t?.getLong("display.max_height")?.toInt() ?: 24,
             max_render_distance = t?.getDouble("display.max_render_distance") ?: 96.0,
             default_volume = t?.getLong("display.default_volume")?.toInt()?.coerceIn(0, 100) ?: 50,
+            max_displays_per_player = t?.getLong("display.max_displays_per_player")?.toInt() ?: 100,
         ),
         customMedia = SettingsSection.CustomMediaConfig(
             enabled = t?.getBoolean("custom_media.enabled") ?: true,

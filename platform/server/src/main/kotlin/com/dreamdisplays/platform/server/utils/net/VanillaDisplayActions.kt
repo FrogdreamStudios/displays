@@ -279,6 +279,15 @@ object VanillaDisplayActions {
     fun isPremium(player: ServerPlayer): Boolean =
         VanillaPermissions.has(player, VanillaServerState.config.permissions.premium, VanillaPermissions.Fallback.OP)
 
+    /** [ServerHello.maxDisplays] for [player]: `-1` (unlimited) when they hold `create_bypass` or no cap is configured. */
+    fun maxDisplaysFor(player: ServerPlayer): Int {
+        val cap = VanillaServerState.config.settings.maxDisplaysPerPlayer
+        val hasBypass = VanillaPermissions.has(
+            player, VanillaServerState.config.permissions.createBypass, VanillaPermissions.Fallback.OP,
+        )
+        return if (hasBypass || cap <= 0) -1 else cap
+    }
+
     /** Checks if [player] has operator level 2 permissions, the no-LuckPerms fallback for privileged actions. */
     fun isOpLevel2(player: ServerPlayer): Boolean {
         val server =

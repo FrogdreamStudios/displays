@@ -3,6 +3,7 @@
   "createDisplayCommand": "&7D |&f Tapez maintenant /display create pour créer un affichage",
   "secondPointNotSelected": "&7D |&f Vous n'avez pas encore sélectionné le deuxième point !",
   "displayOverlap": "&7D |&f Un affichage existe déjà dans cette zone !",
+  "displayLimitReached": "&7D |&f Vous avez atteint la limite de %d affichage(s) par joueur !",
   "structureTooLarge": "&7D |&f Vous ne pouvez pas créer un affichage supérieur à %d × %d blocs",
   "structureTooSmall": "&7D |&f Vous ne pouvez pas créer un affichage inférieur à %d × %d bloc",
   "firstPointSelected": "&7D |&f Premier point sélectionné ! Sélectionnez maintenant le deuxième point",

@@ -3,6 +3,7 @@
   "createDisplayCommand": "&7D |&f כעת הקלד /display create כדי ליצור תצוגה",
   "secondPointNotSelected": "&7D |&f עדיין לא בחרת את הנקודה השנייה!",
   "displayOverlap": "&7D |&f כבר יש תצוגה באזור זה!",
+  "displayLimitReached": "&7D |&f הגעת למגבלה של %d תצוגות לשחקן!",
   "structureTooLarge": "&7D |&f אינך יכול ליצור תצוגה גדולה מ-%d × %d בלוקים",
   "structureTooSmall": "&7D |&f אינך יכול ליצור תצוגה קטנה מ-%d × %d בלוקים",
   "firstPointSelected": "&7D |&f נקודה ראשונה נבחרה! כעת בחר את הנקודה השנייה",

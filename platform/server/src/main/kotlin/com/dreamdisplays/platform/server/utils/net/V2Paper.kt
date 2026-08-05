@@ -50,7 +50,14 @@ object PaperV2Networking : PluginMessageListener {
         isReportingEnabled = PaperServer.config.settings.webhookUrl.isNotEmpty(),
         allowedFeatures = ServerFeature.playbackFeatureWires,
         defaultVolume = PaperServer.config.settings.defaultVolume,
+        maxDisplays = maxDisplaysFor(player.hasPermission(PaperServer.config.permissions.createBypass)),
     )
+
+    /** [ServerHello.maxDisplays] for a player: `-1` (unlimited) when [hasBypass] or no cap is configured. */
+    private fun maxDisplaysFor(hasBypass: Boolean): Int {
+        val cap = PaperServer.config.settings.maxDisplaysPerPlayer
+        return if (hasBypass || cap <= 0) -1 else cap
+    }
 
     /** Decodes an envelope frame and dispatches the packet; unknown type ids are skipped. */
     override fun onPluginMessageReceived(channel: String, player: Player, message: ByteArray) {

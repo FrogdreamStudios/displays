@@ -3,6 +3,7 @@
   "createDisplayCommand": "&7D |&f Nyní zadejte /display create pro vytvoření displeje",
   "secondPointNotSelected": "&7D |&f Ještě jste nevybral druhý bod!",
   "displayOverlap": "&7D |&f V této oblasti už je displej!",
+  "displayLimitReached": "&7D |&f Dosáhli jste limitu %d displejů na hráče!",
   "structureTooLarge": "&7D |&f Nemůžete vytvořit displej větší než %d × %d bloků",
   "structureTooSmall": "&7D |&f Nemůžete vytvořit displej menší než %d × %d bloků",
   "firstPointSelected": "&7D |&f První bod vybrán! Nyní vyberte druhý bod",
