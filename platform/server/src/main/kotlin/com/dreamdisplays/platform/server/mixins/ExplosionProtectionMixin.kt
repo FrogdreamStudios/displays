@@ -1,41 +1,39 @@
 package com.dreamdisplays.platform.server.mixins
 
 //? if >=1.21.11 {
-/*import net.minecraft.world.level.ServerExplosion*/
+import net.minecraft.world.level.ServerExplosion
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable
 //?} else
-import net.minecraft.world.level.Explosion
+/*import net.minecraft.world.level.Explosion
+import net.minecraft.world.level.Level
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo*/
 import com.dreamdisplays.platform.server.managers.DisplayManager
 import com.dreamdisplays.platform.server.managers.SelectionManager
 import com.dreamdisplays.platform.server.utils.RegionUtil
 import net.minecraft.core.BlockPos
 import net.minecraft.server.level.ServerLevel
-import net.minecraft.world.level.Level
 import org.spongepowered.asm.mixin.Mixin
 import org.spongepowered.asm.mixin.Shadow
 import org.spongepowered.asm.mixin.injection.At
 import org.spongepowered.asm.mixin.injection.Inject
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
 
 @Suppress("UNUSED", "NonJavaMixin")
 //? if >=1.21.11 {
-/*@Mixin(ServerExplosion::class)
+@Mixin(ServerExplosion::class)
 open class ExplosionProtectionMixin {
     @Shadow
-    @JvmField
-    var level: ServerLevel? = null
+    open fun level(): ServerLevel = throw AssertionError()
 
-    // Filters the about-to-be-destroyed positions in place before vanilla acts on them.
-    @Inject(method = ["interactWithBlocks"], at = [At("HEAD")], require = 1)
-    open fun dd_filterExplodedBlocks(positions: MutableList<BlockPos>, ci: CallbackInfo) {
-        val serverLevel = level ?: return
-        val worldKey = RegionUtil.getLevelKey(serverLevel)
-        positions.removeIf { pos ->
+    @Inject(method = ["calculateExplodedPositions"], at = [At("RETURN")], require = 1)
+    open fun dd_filterExplodedBlocks(cir: CallbackInfoReturnable<MutableList<BlockPos>>) {
+        val worldKey = RegionUtil.getLevelKey(level())
+        cir.returnValue.removeIf { pos ->
             DisplayManager.isContains(worldKey, pos) != null || SelectionManager.isLocationSelected(pos, worldKey)
         }
     }
-}*/
+}
 //?} else
-@Mixin(Explosion::class)
+/*@Mixin(Explosion::class)
 open class ExplosionProtectionMixin {
     @Shadow
     @JvmField
@@ -52,4 +50,4 @@ open class ExplosionProtectionMixin {
             DisplayManager.isContains(worldKey, pos) != null || SelectionManager.isLocationSelected(pos, worldKey)
         }
     }
-}
+}*/
