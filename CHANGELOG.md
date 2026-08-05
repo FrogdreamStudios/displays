@@ -3,29 +3,53 @@
 ## Highlights
 
 - Custom videos: paste a direct link to any video and play it on a display
-- File-host share link support (Google Drive, Dropbox, imgur, etc.)
+- File-host share link support — Google Drive, Dropbox, imgur, etc.
 - Kick and Vimeo support
+- Filter button
+- Some fixes and improvements
 
 ## Client
 
 ### Features
 
-- Added custom video support, so you can paste a direct link to any video and play it on a display
-- Addded file-host share link support (Google Drive, Dropbox, imgur, etc.)
+- Added custom video support, so you can paste a direct link to any video and play it on a display (server must be
+  1.9.0 Preview 4 or higher)
+- Added file-host share link support — Google Drive, Dropbox, imgur, etc. (server must be
+  1.9.0 Preview 4 or higher)
 - Added Kick support
 - Added Vimeo support
 - Added filter button
-- Added Vietnamese translations
-- Added Swedish translations
+
+### Improvements
+
+- Repeat all videos for all platforms on every playback mode (server must be 1.9.0 Preview 4 or higher)
 
 ## Server
 
 ### Features
 
 - Added a `[custom_media]` config section and a `dreamdisplays.custom` permission to control whether
-  players may play their own links (Vimeo, Kick, and direct files), with optional per-host allow / block
-  lists
+  players may play their own links (Vimeo, Kick, and direct files), with optional per-host allow / blocklists
 - `/display video` now accepts any supported link, not only YouTube URLs
+- Added `max_displays_per_player` config limit and wired up the `create_bypass` permission and `fullscreen.quality_cap`
+  setting
+- Add explosion protection for `Fabric` and `NeoForge` servers
+
+### Improvements
+
+- Repeat all videos for all platforms on every playback mode
+
+### Fixes
+
+- Fixed the Picture-in-Picture pin packet being able to flood the server with disk writes
+- Fixed a reported video duration being trusted from any player anywhere on the server
+- Fixed some display commands being accepted from a player who isn't actually near the display
+- Fixed a forced-locked `Broadcast` display being switchable back to another mode
+- Fixed display areas not being protected from enderman pickup, wither / silverfish breaking blocks,
+  fire, and self-exploding blocks (beds, respawn anchors)
+- Fixed HTTP responses (media metadata, thumbnails, resolved segments) being buffered into memory
+  with no size limit
+- Fixed Velocity / proxy disconnect from unsynced fullscreen command argument type ([#138](https://github.com/arnodoelinger/dreamdisplays/issue/153))
 
 # 1.9.0 Preview 3
 
