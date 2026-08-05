@@ -7,6 +7,7 @@ import com.dreamdisplays.api.playback.WatchPartySessionState
 import com.dreamdisplays.api.playback.WatchPartySessionState.*
 import com.dreamdisplays.core.protocol.WatchPartyState
 import com.dreamdisplays.platform.server.datatypes.display.DisplayData
+import com.dreamdisplays.platform.server.managers.ActionThrottle
 import com.dreamdisplays.platform.server.managers.DisplayManager
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -23,6 +24,9 @@ object WatchPartyManager {
     private const val COUNTDOWN_MS = 3_000L
     private const val HOST_GRACE_MS = 30_000L
     private const val PERIODIC_BROADCAST_MS = 1_000L
+
+    private val controlThrottle = ActionThrottle()
+    private const val CONTROL_COOLDOWN_MS = 100L
 
     private lateinit var transport: PlaybackTransport
     private val sessions = ConcurrentHashMap<UUID, Session>()
@@ -87,6 +91,14 @@ object WatchPartyManager {
         val session = sessions[display.id] ?: return false
         val now = transport.nowMs()
 
+        if (action == WatchPartyAction.CLOSE) {
+            val ctx = PlaybackContexts.of(display, senderId, transport.isAdmin(senderId))
+            if (!PlaybackPermissions.canCloseWatchParty(ctx)) return false
+            close(display)
+            return true
+        }
+        if (!controlThrottle.tryAcquire(senderId, CONTROL_COOLDOWN_MS)) return false
+
         if (action.isParticipantAction) {
             if (senderId !in nearbyIds(session)) return false
             if (action == WatchPartyAction.READY) {
@@ -97,13 +109,6 @@ object WatchPartyManager {
                 session.ready.remove(senderId)
             }
             broadcast(session, now)
-            return true
-        }
-
-        if (action == WatchPartyAction.CLOSE) {
-            val ctx = PlaybackContexts.of(display, senderId, transport.isAdmin(senderId))
-            if (!PlaybackPermissions.canCloseWatchParty(ctx)) return false
-            close(display)
             return true
         }
 
