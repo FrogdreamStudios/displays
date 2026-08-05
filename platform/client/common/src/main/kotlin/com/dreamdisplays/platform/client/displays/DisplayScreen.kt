@@ -129,12 +129,14 @@ class DisplayScreen(
     /** The effective mode the player experiences — `WATCH_PARTY` while a session is live. */
     val effectiveMode: PlaybackMode get() = if (watchParty != null) PlaybackMode.WATCH_PARTY else mode
 
-    /** Permission context for the local player acting on this display (mirrors the server's rules). */
+    /**
+     * Permission context for the local player acting on this display (mirrors the server's rules).
+     */
     private fun ctx(): PlaybackContext = PlaybackContext(
         mode = effectiveMode,
         isOwner = owner,
         isAdmin = isAdmin,
-        isLocked = isLocked == true,
+        isLocked = PlaybackPermissions.isEffectivelyLocked(effectiveMode, isLocked == true),
         hasActiveParty = watchParty != null,
         isPartyHost = watchParty?.isHost == true,
     )
