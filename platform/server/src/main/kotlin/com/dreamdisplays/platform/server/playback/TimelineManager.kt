@@ -32,6 +32,14 @@ object TimelineManager {
     /** Sanity ceiling for a client-reported duration, same 24h limit as [MAX_SEEK_MS]. */
     private const val MAX_DURATION_MS = 24L * 60 * 60 * 1_000
 
+    /**
+     * Sanity floor for a client-reported duration. A near-zero value would still pass the naive
+     * "> 0" check but collapses [Timeline.positionAt]'s loop-wrap math into a near-permanent reset
+     * to position 0 for every viewer — this bounds how much damage a single bad (or hostile) report
+     * can do before the throttle below even engages.
+     */
+    private const val MIN_DURATION_MS = 2_000L
+
     /** Throttles duration reports per display against packet floods. */
     private val reportDurationThrottle = ActionThrottle()
     private const val REPORT_DURATION_COOLDOWN_MS = 2_000L
@@ -111,11 +119,19 @@ object TimelineManager {
      * Applies a client-reported media duration for [display]'s current video. First-report-wins: a
      * no-op once [DisplayData.duration] is already known, so redundant reports from other viewers
      * resolving the same media are cheap. Meaningless outside `SYNCED`/`BROADCAST`.
+     *
+     * [senderId] must be a player actually receiving [display]'s broadcasts (checked against
+     * [PlaybackTransport.nearbyPlayerIds], the same set a watch-party ready-check uses) — otherwise
+     * any player anywhere on the server could lock in a bogus duration for a display they've never
+     * even loaded, with no way to correct it short of changing the video.
      */
-    fun onDurationReported(display: DisplayData, durationMs: Long) {
+    fun onDurationReported(display: DisplayData, senderId: UUID, durationMs: Long) {
         if (display.mode != PlaybackMode.SYNCED && display.mode != PlaybackMode.BROADCAST) return
-        if (durationMs !in 1..MAX_DURATION_MS) return
+        if (durationMs !in MIN_DURATION_MS..MAX_DURATION_MS) return
         if ((display.duration ?: 0L) > 0L) return
+        // Checked before the throttle below: an attacker who is never nearby must not be able to
+        // burn the per-display cooldown window against a legitimate viewer's real report.
+        if (senderId !in transport.nearbyPlayerIds(display)) return
         if (!reportDurationThrottle.tryAcquire(display.id, REPORT_DURATION_COOLDOWN_MS)) return
 
         display.duration = durationMs * 1_000_000L

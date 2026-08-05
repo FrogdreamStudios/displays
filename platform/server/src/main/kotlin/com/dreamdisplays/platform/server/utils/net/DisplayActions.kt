@@ -156,7 +156,7 @@ object DisplayActions {
     /** Applies a client-reported media duration to the display's server timeline (SYNCED / BROADCAST only). */
     fun reportDuration(player: Player, displayId: UUID, durationMs: Long) {
         val displayData = DisplayManager.getDisplayData(displayId) ?: return
-        TimelineManager.onDurationReported(displayData, durationMs)
+        TimelineManager.onDurationReported(displayData, player.uniqueId, durationMs)
     }
 
     /** Builds the permission context for [player] acting on [display]. */
