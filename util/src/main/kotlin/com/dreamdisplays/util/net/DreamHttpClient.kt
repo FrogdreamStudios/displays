@@ -30,6 +30,7 @@ object DreamHttpClient {
 
     private const val DEFAULT_CONNECT_TIMEOUT_MS = 10_000L
     private const val DEFAULT_READ_TIMEOUT_MS = 30_000L
+    private const val MAX_UNLIMITED_BODY_BYTES = 64 * 1024 * 1024
 
     private val baseClient = OkHttpClient.Builder()
         .retryOnConnectionFailure(true)
@@ -130,7 +131,7 @@ object DreamHttpClient {
                 code = response.code,
                 message = response.message,
                 headers = response.headers.toMultimap(),
-                body = response.readBodyBytes(),
+                body = response.readBodyBytes(url),
                 finalUrl = response.request.url.toString(),
             )
         }
@@ -190,7 +191,7 @@ object DreamHttpClient {
                         code = response.code,
                         message = response.message,
                         headers = response.headers.toMultimap(),
-                        body = response.readBodyBytes(),
+                        body = response.readBodyBytes(url),
                         finalUrl = response.request.url.toString(),
                     ),
                     url,
@@ -276,8 +277,17 @@ object DreamHttpClient {
             .getOrNull()
     }
 
-    private fun Response.readBodyBytes(): ByteArray {
-        return bodyStream().use { it.readBytes() }
+    /**
+     * Reads the body, throwing when it exceeds [MAX_UNLIMITED_BODY_BYTES] instead of silently
+     * buffering an arbitrarily large response into memory. Requests one byte past the cap so an
+     * oversized body is detected without reading the whole thing.
+     */
+    private fun Response.readBodyBytes(url: String): ByteArray {
+        val probe = bodyStream().use { it.readAtMost(MAX_UNLIMITED_BODY_BYTES + 1) }
+        if (probe.size > MAX_UNLIMITED_BODY_BYTES) {
+            throw IOException("Response body for $url exceeds the ${MAX_UNLIMITED_BODY_BYTES / (1024 * 1024)} MiB limit.")
+        }
+        return probe
     }
 
     /** Reads at most [maxBytes] from this stream, returning fewer when it ends first. */

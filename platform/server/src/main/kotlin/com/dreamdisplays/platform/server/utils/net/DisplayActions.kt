@@ -36,6 +36,7 @@ import java.util.*
 @PaperOnly
 @NullMarked
 object DisplayActions {
+    /** Logger. */
     private val logger = LoggerFactory.getLogger("DreamDisplays/DisplayActions")
 
     /**
@@ -45,6 +46,13 @@ object DisplayActions {
      */
     private val setVideoThrottle = ActionThrottle()
     private const val SET_VIDEO_COOLDOWN_MS = 250L
+
+    /**
+     * Strips control characters (newlines, carriage returns, ANSI escapes, ...) from client-supplied
+     * text before it's interpolated into a log line, and caps its length — otherwise a forged
+     * version string or URL can inject fake extra log lines or flood the log file.
+     */
+    private fun String.sanitizedForLog(maxLength: Int = 200): String = take(maxLength).filter { !it.isISOControl() }
 
     /** Bounds how often one player may request a catch-up snapshot for one display. */
     private val requestSyncThrottle = ActionThrottle()
@@ -141,7 +149,7 @@ object DisplayActions {
             return
         }
         if (!MediaUrlPolicy.isAllowed(url)) {
-            logger.warn("Rejected unsafe watch-party URL from ${player.name}: ${url.take(120)}")
+            logger.warn("Rejected unsafe watch-party URL from ${player.name}: ${url.sanitizedForLog(120)}")
             return
         }
         CustomMediaGate.refusalKey(
@@ -197,7 +205,7 @@ object DisplayActions {
 
     /** Records the player's reported mod version and runs the mod / plugin update checks. */
     fun recordVersionAndCheckUpdates(player: Player, versionString: String) {
-        logger.info("${player.name} joined with Dream Displays $versionString.")
+        logger.info("${player.name} joined with Dream Displays ${versionString.sanitizedForLog()}.")
         val version = VersionUtil.parseOrNull(versionString)
         PlayerManager.setVersion(player, version)
 
