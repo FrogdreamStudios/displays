@@ -6,16 +6,15 @@ import com.dreamdisplays.platform.server.utils.RegionUtil
 import net.minecraft.core.BlockPos
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.level.Level
+import net.minecraft.world.level.block.piston.PistonStructureResolver
 import org.spongepowered.asm.mixin.Mixin
-import org.spongepowered.asm.mixin.Pseudo
 import org.spongepowered.asm.mixin.Shadow
 import org.spongepowered.asm.mixin.injection.At
 import org.spongepowered.asm.mixin.injection.Inject
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable
 
 @Suppress("UNUSED", "NonJavaMixin")
-@Pseudo
-@Mixin(targets = ["net.minecraft.world.level.block.piston.PistonStructureResolver"])
+@Mixin(PistonStructureResolver::class)
 open class PistonProtectionMixin {
     @Shadow
     @JvmField
@@ -27,8 +26,7 @@ open class PistonProtectionMixin {
     @Shadow
     open fun getToDestroy(): MutableList<BlockPos> = throw AssertionError()
 
-    /** Blocks the whole structure resolution when any position it would push or destroy is protected. */
-    @Inject(method = ["resolve"], at = [At("RETURN")], cancellable = true, require = 0)
+    @Inject(method = ["resolve"], at = [At("RETURN")], cancellable = true, require = 1)
     open fun dd_protectPistonStructure(cir: CallbackInfoReturnable<Boolean>) {
         if (cir.returnValue != true) return
         val serverLevel = level as? ServerLevel ?: return
