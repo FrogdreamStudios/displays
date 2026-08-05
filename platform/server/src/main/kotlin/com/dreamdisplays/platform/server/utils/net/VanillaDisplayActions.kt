@@ -204,6 +204,15 @@ object VanillaDisplayActions {
             return
         }
         if (!MediaUrlPolicy.isAllowed(url)) return
+        CustomMediaGate.refusalKey(
+            url,
+            VanillaServerState.config.settings.customMediaPolicy,
+            VanillaPermissions.has(
+                player,
+                VanillaServerState.config.permissions.custom,
+                VanillaPermissions.Fallback.EVERYONE,
+            ),
+        )?.let { return MessageUtil.sendMessage(player, it) }
         WatchPartyManager.start(displayData, player.uuid, url, MediaUrlPolicy.sanitizeLang(lang))
     }
 

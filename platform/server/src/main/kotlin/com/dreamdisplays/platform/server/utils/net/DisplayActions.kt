@@ -136,6 +136,11 @@ object DisplayActions {
             logger.warn("Rejected unsafe watch-party URL from ${player.name}: ${url.take(120)}")
             return
         }
+        CustomMediaGate.refusalKey(
+            url,
+            PaperServer.config.settings.customMediaPolicy,
+            player.hasPermission(PaperServer.config.permissions.custom),
+        )?.let { return MessageUtil.sendMessage(player, it) }
         WatchPartyManager.start(displayData, player.uniqueId, url, MediaUrlPolicy.sanitizeLang(lang))
     }
 
