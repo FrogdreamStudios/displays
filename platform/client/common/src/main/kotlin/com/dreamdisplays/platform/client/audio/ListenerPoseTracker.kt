@@ -4,12 +4,9 @@ import com.dreamdisplays.api.media.audio.ListenerPose
 import net.minecraft.client.Camera
 import net.minecraft.client.Minecraft
 import org.joml.Vector3f
-import java.lang.reflect.Method
 
 /** Reads the current game camera pose for the acoustics engine's shared listener state. */
 internal object ListenerPoseTracker {
-    private var cachedMainCameraMethod: Method? = null
-
     /** Returns the current camera pose, or [ListenerPose.IDENTITY] before a camera exists. */
     fun currentPose(minecraft: Minecraft): ListenerPose {
         val camera = runCatching { mainCameraOf(minecraft) }.getOrNull() ?: return ListenerPose.IDENTITY
@@ -29,17 +26,15 @@ internal object ListenerPoseTracker {
     }
 
     /**
-     * Resolves the main camera via reflection (`mainCamera()` / `getMainCamera()`), matching the
-     * accessor lookup the platform render entry points already use for the same version split.
+     * Resolves the main camera. `getMainCamera()` was renamed to `mainCamera()` in 26.2, resolved via
+     * a direct, version-gated call so loom remaps it — a reflective by-name lookup silently fails in
+     * the remapped jar (the method is intermediary `method_19418` there, not the literal name), which
+     * would pin the listener at [ListenerPose.IDENTITY] and mis-render every source's spatial mix.
      */
     private fun mainCameraOf(minecraft: Minecraft): Camera {
-        val gameRenderer = minecraft.gameRenderer
-        val method = cachedMainCameraMethod ?: run {
-            val m = runCatching { gameRenderer.javaClass.getMethod("mainCamera") }
-                .getOrElse { gameRenderer.javaClass.getMethod("getMainCamera") }
-            cachedMainCameraMethod = m
-            m
-        }
-        return method.invoke(gameRenderer) as Camera
+        //? if >=26.2 {
+        return minecraft.gameRenderer.mainCamera()
+        //?} else
+        /*return minecraft.gameRenderer.getMainCamera()*/
     }
 }

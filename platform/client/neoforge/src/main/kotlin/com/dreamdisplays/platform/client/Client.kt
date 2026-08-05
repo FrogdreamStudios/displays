@@ -92,10 +92,10 @@ class Client(modEventBus: IEventBus) : DreamMod {
 
     /** Main camera accessor. */
     private fun mainCamera(mc: Minecraft): Camera {
-        val gameRenderer = mc.gameRenderer
-        val method = runCatching { gameRenderer.javaClass.getMethod("mainCamera") }
-            .getOrElse { gameRenderer.javaClass.getMethod("getMainCamera") }
-        return method.invoke(gameRenderer) as Camera
+        //? if >=26.2 {
+        return mc.gameRenderer.mainCamera()
+        //?} else
+        /*return mc.gameRenderer.getMainCamera()*/
     }
 
     /** On tick events. */
