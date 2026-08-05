@@ -87,7 +87,7 @@ object VanillaDisplayActions {
     fun sendAllDisplays(player: ServerPlayer, server: MinecraftServer) {
         val displays = DisplayManager.getDisplays()
             .filterIsInstance<VanillaDisplayData>()
-            .filter { DisplayManager.isInRange(player, it) }
+            .filter { DisplayManager.isPlayerInRange(player, it) }
 
         val batchSize = 5
         displays.chunked(batchSize).forEachIndexed { index, batch ->
@@ -116,7 +116,7 @@ object VanillaDisplayActions {
             MessageUtil.sendMessage(player, "displayCommandMissingPermission")
             return
         }
-        if (!DisplayManager.isInRange(player, displayData)) {
+        if (!DisplayManager.isPlayerInRange(player, displayData)) {
             return MessageUtil.sendMessage(player, "noDisplay")
         }
 
@@ -140,7 +140,7 @@ object VanillaDisplayActions {
         )?.let { return MessageUtil.sendMessage(player, it) }
         // Checked before the throttle below: an attacker who is never nearby must not be able to
         // burn the per-display cooldown window against the display's real, present owner.
-        if (!DisplayManager.isInRange(player, displayData)) return
+        if (!DisplayManager.isPlayerInRange(player, displayData)) return
         if (!setVideoThrottle.tryAcquire(displayId, SET_VIDEO_COOLDOWN_MS)) return
 
         val wasSync = displayData.isSync
@@ -162,7 +162,7 @@ object VanillaDisplayActions {
             MessageUtil.sendMessage(player, "displayCommandMissingPermission")
             return
         }
-        if (!DisplayManager.isInRange(player, displayData)) return
+        if (!DisplayManager.isPlayerInRange(player, displayData)) return
 
         displayData.isLocked = locked
         ServerCoroutines.io.launch { VanillaServerState.storage?.saveDisplay(displayData) }
@@ -187,7 +187,7 @@ object VanillaDisplayActions {
             MessageUtil.sendMessage(player, "displayCommandMissingPermission")
             return
         }
-        if (!DisplayManager.isInRange(player, displayData)) return
+        if (!DisplayManager.isPlayerInRange(player, displayData)) return
 
         displayData.mode = mode
         ServerCoroutines.io.launch { VanillaServerState.storage?.saveDisplay(displayData) }
@@ -219,7 +219,7 @@ object VanillaDisplayActions {
                 VanillaPermissions.Fallback.EVERYONE,
             ),
         )?.let { return MessageUtil.sendMessage(player, it) }
-        if (!DisplayManager.isInRange(player, displayData)) return
+        if (!DisplayManager.isPlayerInRange(player, displayData)) return
         WatchPartyManager.start(displayData, player.uuid, url, MediaUrlPolicy.sanitizeLang(lang))
     }
 

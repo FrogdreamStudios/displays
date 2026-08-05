@@ -157,7 +157,7 @@ object DisplayManager {
      * anywhere else in the world, bypassing the physical-proximity gate the in-game menu enforces.
      */
     @PaperOnly
-    fun isInRange(player: Player, display: PaperDisplayData): Boolean = player.isInRange(display)
+    fun isPlayerInRange(player: Player, display: PaperDisplayData): Boolean = player.isInRange(display)
 
     /** Returns true if this location lies within `maxRenderDistance` of the [display]'s box. */
     @PaperOnly
@@ -410,7 +410,7 @@ object DisplayManager {
      * id the sender was never actually shown; otherwise any known display id could be targeted from
      * anywhere else in the world, bypassing the physical-proximity gate the in-game menu enforces.
      */
-    fun isInRange(player: ServerPlayer, display: VanillaDisplayData): Boolean =
+    fun isPlayerInRange(player: ServerPlayer, display: VanillaDisplayData): Boolean =
         RegionUtil.getPlayerLevelKey(player) == display.worldKey && player.blockPosition().isInRange(display)
 
     /** Returns true if this block position lies within `maxRenderDistance` of the [display]'s box. */

@@ -61,7 +61,7 @@ object DisplayActions {
             MessageUtil.sendMessage(player, "displayCommandMissingPermission")
             return
         }
-        if (displayData !is PaperDisplayData || !DisplayManager.isInRange(player, displayData)) {
+        if (displayData !is PaperDisplayData || !DisplayManager.isPlayerInRange(player, displayData)) {
             return MessageUtil.sendMessage(player, "noDisplay")
         }
 
@@ -83,7 +83,7 @@ object DisplayActions {
         )?.let { return MessageUtil.sendMessage(player, it) }
         // Checked before the throttle below: an attacker who is never nearby must not be able to
         // burn the per-display cooldown window against the display's real, present owner.
-        if (!DisplayManager.isInRange(player, displayData)) return
+        if (!DisplayManager.isPlayerInRange(player, displayData)) return
         if (!setVideoThrottle.tryAcquire(displayId, SET_VIDEO_COOLDOWN_MS)) return
 
         val wasSync = displayData.isSync
@@ -100,7 +100,7 @@ object DisplayActions {
     fun setLocked(player: Player, displayId: UUID, locked: Boolean) {
         val displayData = DisplayManager.getDisplayData(displayId) as? PaperDisplayData ?: return
         if (!PlaybackPermissions.canToggleLock(lockContext(displayData, player))) return
-        if (!DisplayManager.isInRange(player, displayData)) return
+        if (!DisplayManager.isPlayerInRange(player, displayData)) return
 
         displayData.isLocked = locked
 
@@ -119,7 +119,7 @@ object DisplayActions {
             MessageUtil.sendMessage(player, "displayCommandMissingPermission")
             return
         }
-        if (!DisplayManager.isInRange(player, displayData)) return
+        if (!DisplayManager.isPlayerInRange(player, displayData)) return
 
         displayData.mode = mode
         runAsync { PaperServer.getInstance().storage.saveDisplay(displayData) }
@@ -149,7 +149,7 @@ object DisplayActions {
             PaperServer.config.settings.customMediaPolicy,
             player.hasPermission(PaperServer.config.permissions.custom),
         )?.let { return MessageUtil.sendMessage(player, it) }
-        if (!DisplayManager.isInRange(player, displayData)) return
+        if (!DisplayManager.isPlayerInRange(player, displayData)) return
         WatchPartyManager.start(displayData, player.uniqueId, url, MediaUrlPolicy.sanitizeLang(lang))
     }
 
@@ -213,7 +213,7 @@ object DisplayActions {
     fun sendAllDisplays(player: Player) {
         val displays = DisplayManager.getDisplays()
             .filterIsInstance<PaperDisplayData>()
-            .filter { DisplayManager.isInRange(player, it) }
+            .filter { DisplayManager.isPlayerInRange(player, it) }
         if (displays.isEmpty()) return
 
         val batchSize = 5
