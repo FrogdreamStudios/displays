@@ -1,3 +1,23 @@
+# 1.9.0 Preview 5
+
+## Highlights
+
+- Hotfix: fixed explosion display protection mixin crash
+- Fixed audio issues in `Fabric` 1.21.1 & 1.21.11 versions
+
+## Client
+
+### Fixes
+
+- Fixed audio issues when in `Enhanced` / `Advanced` 3D audio mode for `Fabric` 1.21.1 & 1.21.11 versions
+- Fixed playback picked the lowest-bitrate rendition of an untagged track
+
+## Server
+
+### Fixes
+
+- Fixed explosion display protection mixin crash ([#161](https://github.com/arnodoelinger/dreamdisplays/issue/161))
+
 # 1.9.0 Preview 4
 
 ## Highlights
