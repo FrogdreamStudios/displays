@@ -193,22 +193,28 @@ object MediaStreamSelector {
         val requested = lang.trim()
 
         if (requested.isNotEmpty()) {
-            audioOnly.firstOrNull { matchesLanguage(it, requested) }?.let { return it }
+            audioOnly.filter { matchesLanguage(it, requested) }.highestBitrate()?.let { return it }
         }
 
-        audioOnly.firstOrNull {
+        audioOnly.filter {
             it.audioTrackName?.lowercase()?.let { n -> "original" in n || "default" in n } == true
-        }?.let { return it }
-        audioOnly.firstOrNull { it.audioTrackLang.isNullOrBlank() || it.audioTrackLang == "und" }
-            ?.let { return it }
-        audioOnly.firstOrNull()?.let { return it }
+        }.highestBitrate()?.let { return it }
+        audioOnly.filter { it.audioTrackLang.isNullOrBlank() || it.audioTrackLang == "und" }
+            .highestBitrate()?.let { return it }
+        audioOnly.highestBitrate()?.let { return it }
 
         if (chosenVideo != null && chosenVideo.type.hasAudio) return chosenVideo
         if (requested.isNotEmpty()) {
-            audioStreams.firstOrNull { matchesLanguage(it, requested) }?.let { return it }
+            audioStreams.filter { matchesLanguage(it, requested) }.highestBitrate()?.let { return it }
         }
         return audioStreams.firstOrNull()
     }
+
+    /**
+     * The highest-bitrate stream, or the first one when no candidate reports a bitrate (`maxByOrNull`
+     * keeps the earliest of equal values, so an all-unknown list preserves the resolver's own order).
+     */
+    private fun List<MediaStream>.highestBitrate(): MediaStream? = maxByOrNull { it.bitrate ?: 0 }
 
     /** Case-insensitive partial match of [lang] against the stream's language tag and track name. */
     fun matchesLanguage(stream: MediaStream, lang: String): Boolean {
