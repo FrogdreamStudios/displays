@@ -3,7 +3,7 @@ package com.dreamdisplays.platform.client.render
 //? if >=26 {
 //?} else
 /*import com.mojang.blaze3d.systems.RenderSystem*/
-//? if >=26 {
+//? if >=26.2 {
 //?} else
 /*import com.mojang.blaze3d.vertex.Tesselator*/
 //? if >=1.21.11 {
@@ -256,7 +256,7 @@ object ScreenRenderer : ClientRenderService {
     /** Compatibility layer for the new immediate mode API. */
     private object ImmediateRenderCompat {
         fun draw(stack: PoseStack, type: RenderType, appendVertices: QuadAppender) {
-            //? if >=26 {
+            //? if >=26.2 {
             draw262(stack, type, appendVertices)
             //?} else
             /*run {
@@ -275,8 +275,8 @@ object ScreenRenderer : ClientRenderService {
             }*/
         }
 
-        //? if >=26 {
-        /** Staged-buffer class and constructor for the 26.x draw path, resolved once. */
+        //? if >=26.2 {
+        /** Staged-buffer class and constructor for the 26.2+ draw path, resolved once. */
         private val stagedClass: Class<*> by lazy { Class.forName("net.minecraft.client.renderer.StagedVertexBuffer") }
         private val stagedCtor by lazy {
             stagedClass.getConstructor(java.util.function.Supplier::class.java, Int::class.javaPrimitiveType)
