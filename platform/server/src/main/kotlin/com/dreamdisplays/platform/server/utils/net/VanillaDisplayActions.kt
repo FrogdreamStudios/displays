@@ -20,7 +20,6 @@ import com.dreamdisplays.platform.server.playback.PlaybackContexts
 import com.dreamdisplays.platform.server.playback.TimelineManager
 import com.dreamdisplays.platform.server.playback.WatchPartyManager
 import com.dreamdisplays.platform.server.utils.MessageUtil
-import com.dreamdisplays.platform.server.utils.RegionUtil
 import com.dreamdisplays.platform.server.utils.VanillaPermissions
 import com.dreamdisplays.platform.server.utils.VersionUtil
 import com.dreamdisplays.platform.server.utils.net.VanillaDisplayActions.context
@@ -86,10 +85,9 @@ object VanillaDisplayActions {
 
     /** Streams every display in [player]'s world to them in small staggered batches. */
     fun sendAllDisplays(player: ServerPlayer, server: MinecraftServer) {
-        val playerWorldKey = RegionUtil.getPlayerLevelKey(player)
         val displays = DisplayManager.getDisplays()
             .filterIsInstance<VanillaDisplayData>()
-            .filter { it.worldKey == playerWorldKey }
+            .filter { DisplayManager.isInRange(player, it) }
 
         val batchSize = 5
         displays.chunked(batchSize).forEachIndexed { index, batch ->
@@ -106,7 +104,7 @@ object VanillaDisplayActions {
         }
     }
 
-    /** Handles a client-requested deletion, enforcing owner-or-permission check. */
+    /** Handles a client-requested deletion, enforcing owner-or-permission check and physical proximity. */
     fun delete(player: ServerPlayer, server: MinecraftServer, displayId: java.util.UUID) {
         val displayData = DisplayManager.getDisplayData(displayId) as? VanillaDisplayData
             ?: return MessageUtil.sendMessage(player, "noDisplay")
@@ -117,6 +115,9 @@ object VanillaDisplayActions {
         ) {
             MessageUtil.sendMessage(player, "displayCommandMissingPermission")
             return
+        }
+        if (!DisplayManager.isInRange(player, displayData)) {
+            return MessageUtil.sendMessage(player, "noDisplay")
         }
 
         DisplayManager.delete(displayData)
@@ -137,6 +138,9 @@ object VanillaDisplayActions {
                 VanillaPermissions.Fallback.EVERYONE,
             ),
         )?.let { return MessageUtil.sendMessage(player, it) }
+        // Checked before the throttle below: an attacker who is never nearby must not be able to
+        // burn the per-display cooldown window against the display's real, present owner.
+        if (!DisplayManager.isInRange(player, displayData)) return
         if (!setVideoThrottle.tryAcquire(displayId, SET_VIDEO_COOLDOWN_MS)) return
 
         val wasSync = displayData.isSync
@@ -158,6 +162,7 @@ object VanillaDisplayActions {
             MessageUtil.sendMessage(player, "displayCommandMissingPermission")
             return
         }
+        if (!DisplayManager.isInRange(player, displayData)) return
 
         displayData.isLocked = locked
         ServerCoroutines.io.launch { VanillaServerState.storage?.saveDisplay(displayData) }
@@ -182,6 +187,7 @@ object VanillaDisplayActions {
             MessageUtil.sendMessage(player, "displayCommandMissingPermission")
             return
         }
+        if (!DisplayManager.isInRange(player, displayData)) return
 
         displayData.mode = mode
         ServerCoroutines.io.launch { VanillaServerState.storage?.saveDisplay(displayData) }
@@ -213,6 +219,7 @@ object VanillaDisplayActions {
                 VanillaPermissions.Fallback.EVERYONE,
             ),
         )?.let { return MessageUtil.sendMessage(player, it) }
+        if (!DisplayManager.isInRange(player, displayData)) return
         WatchPartyManager.start(displayData, player.uuid, url, MediaUrlPolicy.sanitizeLang(lang))
     }
 

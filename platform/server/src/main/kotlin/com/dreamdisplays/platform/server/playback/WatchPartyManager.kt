@@ -107,8 +107,9 @@ object WatchPartyManager {
             return true
         }
 
-        // All remaining controls are host-only
+        // All remaining controls are host-only, and the host must still be nearby
         if (senderId != session.hostId) return false
+        if (senderId !in nearbyIds(session)) return false
         session.hostDisconnectedAt = 0 // Host is clearly present
 
         when (action) {

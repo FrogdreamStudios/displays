@@ -150,6 +150,15 @@ object DisplayManager {
     fun getReceivers(display: PaperDisplayData): List<Player> =
         display.pos1.world?.players?.filter { it.isInRange(display) } ?: emptyList()
 
+    /**
+     * True if [player] is currently within render range of [display] — the same predicate that
+     * decides who receives its broadcasts. Used to reject a client-originated mutation for a display
+     * id the sender was never actually shown; otherwise any known display id could be targeted from
+     * anywhere else in the world, bypassing the physical-proximity gate the in-game menu enforces.
+     */
+    @PaperOnly
+    fun isInRange(player: Player, display: PaperDisplayData): Boolean = player.isInRange(display)
+
     /** Returns true if this location lies within `maxRenderDistance` of the [display]'s box. */
     @PaperOnly
     private fun Location.isInRange(display: PaperDisplayData): Boolean =
@@ -394,6 +403,15 @@ object DisplayManager {
                     p.blockPosition().isInRange(display)
         }
     }
+
+    /**
+     * True if [player] is currently within render range of [display] — the same predicate that
+     * decides who receives its broadcasts. Used to reject a client-originated mutation for a display
+     * id the sender was never actually shown; otherwise any known display id could be targeted from
+     * anywhere else in the world, bypassing the physical-proximity gate the in-game menu enforces.
+     */
+    fun isInRange(player: ServerPlayer, display: VanillaDisplayData): Boolean =
+        RegionUtil.getPlayerLevelKey(player) == display.worldKey && player.blockPosition().isInRange(display)
 
     /** Returns true if this block position lies within `maxRenderDistance` of the [display]'s box. */
     private fun BlockPos.isInRange(display: VanillaDisplayData): Boolean =

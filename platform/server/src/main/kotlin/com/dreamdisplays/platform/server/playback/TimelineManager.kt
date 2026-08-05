@@ -44,6 +44,16 @@ object TimelineManager {
     private val reportDurationThrottle = ActionThrottle()
     private const val REPORT_DURATION_COOLDOWN_MS = 2_000L
 
+    /**
+     * Throttles [onCommand] per sender (not per display) — [PlaybackAction] has no other rate limit,
+     * and every call now also pays for the nearby-range check below (an O(players in the display's
+     * world) scan), so an unthrottled flood would force that scan on every single packet. Keyed by
+     * sender rather than by display so one player's flood can't also starve a different, legitimate
+     * player's own commands on the same display.
+     */
+    private val commandThrottle = ActionThrottle()
+    private const val COMMAND_COOLDOWN_MS = 100L
+
     /** Live platform transport, injected at startup. */
     private lateinit var transport: PlaybackTransport
 
@@ -65,11 +75,17 @@ object TimelineManager {
     /**
      * Applies a client playback intent to a `SYNCED` display. Returns true when it was permitted,
      * applied, and rebroadcast. Watch-party intents are handled by [WatchPartyManager], not here.
+     *
+     * [senderId] must currently be receiving [display]'s broadcasts (checked against
+     * [PlaybackTransport.nearbyPlayerIds]) — otherwise a client could forge a command for a display
+     * id it learned about but was never actually shown, from anywhere else in the world.
      */
     fun onCommand(display: DisplayData, senderId: UUID, action: PlaybackAction, positionMs: Long): Boolean {
         if (display.mode != PlaybackMode.SYNCED || WatchPartyManager.hasSession(display.id)) return false
         val ctx = PlaybackContexts.of(display, senderId, transport.isAdmin(senderId))
         if (!PlaybackPermissions.canPlayPause(ctx)) return false
+        if (!commandThrottle.tryAcquire(senderId, COMMAND_COOLDOWN_MS)) return false
+        if (senderId !in transport.nearbyPlayerIds(display)) return false
 
         val now = transport.nowMs()
         val current = timelines[display.id] ?: Timeline.start(now)

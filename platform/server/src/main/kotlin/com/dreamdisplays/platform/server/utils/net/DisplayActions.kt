@@ -50,7 +50,7 @@ object DisplayActions {
     private val requestSyncThrottle = ActionThrottle()
     private const val REQUEST_SYNC_COOLDOWN_MS = 250L
 
-    /** Handles a client-requested deletion, enforcing owner-or-permission check. */
+    /** Handles a client-requested deletion, enforcing owner-or-permission check and physical proximity. */
     fun delete(player: Player, displayId: UUID) {
         val displayData = DisplayManager.getDisplayData(displayId)
             ?: return MessageUtil.sendMessage(player, "noDisplay")
@@ -60,6 +60,9 @@ object DisplayActions {
         if (!canDelete) {
             MessageUtil.sendMessage(player, "displayCommandMissingPermission")
             return
+        }
+        if (displayData !is PaperDisplayData || !DisplayManager.isInRange(player, displayData)) {
+            return MessageUtil.sendMessage(player, "noDisplay")
         }
 
         DisplayManager.delete(displayId)
@@ -78,6 +81,9 @@ object DisplayActions {
             PaperServer.config.settings.customMediaPolicy,
             player.hasPermission(PaperServer.config.permissions.custom),
         )?.let { return MessageUtil.sendMessage(player, it) }
+        // Checked before the throttle below: an attacker who is never nearby must not be able to
+        // burn the per-display cooldown window against the display's real, present owner.
+        if (!DisplayManager.isInRange(player, displayData)) return
         if (!setVideoThrottle.tryAcquire(displayId, SET_VIDEO_COOLDOWN_MS)) return
 
         val wasSync = displayData.isSync
@@ -94,6 +100,7 @@ object DisplayActions {
     fun setLocked(player: Player, displayId: UUID, locked: Boolean) {
         val displayData = DisplayManager.getDisplayData(displayId) as? PaperDisplayData ?: return
         if (!PlaybackPermissions.canToggleLock(lockContext(displayData, player))) return
+        if (!DisplayManager.isInRange(player, displayData)) return
 
         displayData.isLocked = locked
 
@@ -112,6 +119,7 @@ object DisplayActions {
             MessageUtil.sendMessage(player, "displayCommandMissingPermission")
             return
         }
+        if (!DisplayManager.isInRange(player, displayData)) return
 
         displayData.mode = mode
         runAsync { PaperServer.getInstance().storage.saveDisplay(displayData) }
@@ -141,6 +149,7 @@ object DisplayActions {
             PaperServer.config.settings.customMediaPolicy,
             player.hasPermission(PaperServer.config.permissions.custom),
         )?.let { return MessageUtil.sendMessage(player, it) }
+        if (!DisplayManager.isInRange(player, displayData)) return
         WatchPartyManager.start(displayData, player.uniqueId, url, MediaUrlPolicy.sanitizeLang(lang))
     }
 
@@ -204,7 +213,7 @@ object DisplayActions {
     fun sendAllDisplays(player: Player) {
         val displays = DisplayManager.getDisplays()
             .filterIsInstance<PaperDisplayData>()
-            .filter { it.pos1.world == player.world }
+            .filter { DisplayManager.isInRange(player, it) }
         if (displays.isEmpty()) return
 
         val batchSize = 5
