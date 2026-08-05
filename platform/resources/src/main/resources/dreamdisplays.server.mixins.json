@@ -4,7 +4,9 @@
   "package": "com.dreamdisplays.platform.server.mixins",
   "compatibilityLevel": "JAVA_${javaVersion}",
   "server": [
-    "BareTokenArgumentTypeSyncMixin"
+    "BareTokenArgumentTypeSyncMixin",
+    "ExplosionProtectionMixin",
+    "PistonProtectionMixin"
   ],
   "injectors": {
     "defaultRequire": 1
