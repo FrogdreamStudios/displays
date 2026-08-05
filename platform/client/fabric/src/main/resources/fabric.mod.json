@@ -17,7 +17,8 @@
     ]
   },
   "mixins": [
-    "dreamdisplays.mixins.json"
+    "dreamdisplays.mixins.json",
+    "dreamdisplays.server.mixins.json"
   ],
   "accessWidener": "dreamdisplays.classtweaker",
   "depends": {

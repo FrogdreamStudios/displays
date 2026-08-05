@@ -190,7 +190,7 @@ tasks.processResources {
             )
         )
     }
-    filesMatching("dreamdisplays.mixins.json") {
+    filesMatching(listOf("dreamdisplays.mixins.json", "dreamdisplays.server.mixins.json")) {
         expand(mapOf("javaVersion" to javaVersion))
     }
     filesMatching("assets/dreamdisplays/version.txt") {

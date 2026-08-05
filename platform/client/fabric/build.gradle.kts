@@ -170,7 +170,7 @@ tasks.processResources {
     filesMatching("quilt.mod.json") {
         expand(mapOf("version" to projectVersion, "minecraftVersion" to fabricMcVer, "javaVersion" to javaVersion))
     }
-    filesMatching("dreamdisplays.mixins.json") {
+    filesMatching(listOf("dreamdisplays.mixins.json", "dreamdisplays.server.mixins.json")) {
         expand(mapOf("javaVersion" to javaVersion))
     }
     filesMatching("assets/dreamdisplays/version.txt") {
