@@ -8,6 +8,8 @@ import com.dreamdisplays.platform.server.datatypes.display.DisplayData
 import com.dreamdisplays.platform.server.playback.FullscreenBroadcastManager
 import com.dreamdisplays.platform.server.playback.FullscreenRadiusTarget
 import com.dreamdisplays.platform.server.playback.FullscreenSessionInfo
+import com.dreamdisplays.platform.server.proxy.ProxyBridge
+import com.dreamdisplays.platform.server.proxy.ProxyNetwork
 import com.dreamdisplays.platform.server.utils.MessageUtil
 import com.dreamdisplays.platform.server.utils.RegionUtil
 import com.dreamdisplays.platform.server.utils.VanillaPermissions
@@ -131,6 +133,7 @@ object PaperFullscreenCommand {
     fun start(
         sender: CommandSender,
         id: String,
+        serverScope: String?,
         players: String?,
         radiusBlocks: Double?,
         radiusX: Double?,
@@ -144,6 +147,23 @@ object PaperFullscreenCommand {
         quality: String?,
     ) {
         val player = sender as? Player ?: return
+        if (serverScope != null) {
+            if (!ProxyNetwork.isConnected()) return MessageUtil.sendMessage(sender, "fullscreenNetworkNoProxy")
+            if (runCatching { UUID.fromString(id) }.isSuccess) {
+                return MessageUtil.sendMessage(sender, "fullscreenNetworkUrlOnly")
+            }
+            ProxyBridge.startNetworkFullscreen(
+                player = player,
+                scope = serverScope,
+                url = id,
+                mode = mode?.let { m -> runCatching { FullscreenMode.valueOf(m.uppercase()) }.getOrNull() },
+                forced = forced,
+                volume = volume,
+                loop = loop,
+                quality = quality,
+            )
+            return MessageUtil.sendMessage(sender, "fullscreenNetworkQueued")
+        }
         val resolved = FullscreenBroadcastManager.resolveOrCreateDisplay(id, player.uniqueId)
             ?: return MessageUtil.sendMessage(sender, "fullscreenNoDisplay")
         val (display, virtual) = resolved
@@ -202,29 +222,47 @@ object PaperFullscreenCommand {
         else -> Bukkit.getPlayerExact(token)?.uniqueId?.let { setOf(it) } ?: emptySet()
     }
 
-    /** Handles `/display fullscreen stop <sessionId|displayId|all>`. */
+    /**
+     * Handles `/display fullscreen stop <sessionId|displayId|all>`. `all` only ever stops local
+     * sessions — a network-wide stop-all would need its own proxy-side bookkeeping and isn't worth
+     * it for a rarely-typed admin command; stop network sessions by their own id instead.
+     */
     fun stop(sender: CommandSender, idOrAll: String) {
         val count = FullscreenCommand.stop(idOrAll)
         if (count > 0) {
-            MessageUtil.sendColoredMessage(
+            return MessageUtil.sendColoredMessage(
                 sender,
                 MessageUtil.formatIndexed(sender, "fullscreenStopped", count.toString())
             )
-        } else {
-            MessageUtil.sendMessage(sender, "fullscreenStopFailed")
         }
+        if (idOrAll != "all" && sender is Player && ProxyNetwork.isConnected()) {
+            ProxyBridge.stopNetworkFullscreen(sender, idOrAll)
+            return MessageUtil.sendMessage(sender, "fullscreenNetworkStopQueued")
+        }
+        MessageUtil.sendMessage(sender, "fullscreenStopFailed")
     }
 
-    /** Handles `/display fullscreen list`. */
+    /** Handles `/display fullscreen list`: local sessions plus the last known network roster. */
     fun list(sender: CommandSender) {
-        val sessions = FullscreenCommand.list()
-        if (sessions.isEmpty()) return MessageUtil.sendMessage(sender, "fullscreenListEmpty")
-        sessions.forEach { s ->
+        val local = FullscreenCommand.list()
+        val network = ProxyNetwork.networkSessions()
+        if (sender is Player && ProxyNetwork.isConnected()) ProxyBridge.requestNetworkSessions(sender)
+        if (local.isEmpty() && network.isEmpty()) return MessageUtil.sendMessage(sender, "fullscreenListEmpty")
+        local.forEach { s ->
             MessageUtil.sendColoredMessage(
                 sender,
                 MessageUtil.formatIndexed(
                     sender, "fullscreenListEntry",
                     s.sessionId, s.displayId.toString(), s.virtual.toString(), s.reach.toString(),
+                ),
+            )
+        }
+        network.forEach { n ->
+            MessageUtil.sendColoredMessage(
+                sender,
+                MessageUtil.formatIndexed(
+                    sender, "fullscreenListNetworkEntry",
+                    n.sessionId, n.scope, n.totalReach.toString(),
                 ),
             )
         }
@@ -256,6 +294,7 @@ object VanillaFullscreenCommand {
     fun start(
         ctx: CommandContext<CommandSourceStack>,
         id: String,
+        serverScope: String?,
         players: String?,
         radiusBlocks: Double?,
         radiusX: Double?,
@@ -269,6 +308,11 @@ object VanillaFullscreenCommand {
         quality: String?,
     ): Int {
         val player = ctx.source.entity as? ServerPlayer ?: return 0
+        if (serverScope != null) {
+            val key = if (ProxyNetwork.isConnected()) "fullscreenNetworkNotYetSupported" else "fullscreenNetworkNoProxy"
+            MessageUtil.sendMessage(player, key)
+            return 0
+        }
         val resolved = FullscreenBroadcastManager.resolveOrCreateDisplay(id, player.uuid) ?: run {
             MessageUtil.sendMessage(player, "fullscreenNoDisplay")
             return 0

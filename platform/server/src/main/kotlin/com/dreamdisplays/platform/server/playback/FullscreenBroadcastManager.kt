@@ -137,6 +137,7 @@ object FullscreenBroadcastManager {
         title: String,
         namedTargets: Set<UUID>?,
         radius: FullscreenRadiusTarget?,
+        timelineAnchorMs: Long? = null,
     ): String? {
         if (namedTargets.isNullOrEmpty() && radius == null) return null
         if (sessions.containsKey(sessionId)) return null
@@ -157,7 +158,7 @@ object FullscreenBroadcastManager {
             title = title,
             namedTargets = namedTargets,
             radius = radius,
-            timeline = if (virtual) Timeline.start(now, loop = true) else null,
+            timeline = if (virtual) Timeline.start(timelineAnchorMs ?: now, loop = true) else null,
         )
         sessions[sessionId] = session
         deliverToAll(session)
@@ -221,6 +222,21 @@ object FullscreenBroadcastManager {
         for (session in sessions.values) {
             if (isTargeted(session, playerId)) deliverTo(session, playerId)
         }
+    }
+
+    /**
+     * Adds [playerId] to [sessionId]'s frozen `named targets` and delivers immediately if they're
+     * online - `namedTargets` is a one-time snapshot (mirrors plain `target @a` on a single backend),
+     * so a network fullscreen session doesn't automatically pick up a player who joins *this* backend
+     * after the broadcast already started here; the proxy calls this on a seamless server switch so a
+     * player who was already watching keeps watching. Returns false if [sessionId] isn't live locally.
+     */
+    fun addTarget(sessionId: String, playerId: UUID): Boolean {
+        val session = sessions[sessionId] ?: return false
+        session.namedTargets = (session.namedTargets ?: emptySet()) + playerId
+        session.dismissedBy.remove(playerId)
+        if (playerId in transport.onlinePlayerIds()) deliverTo(session, playerId)
+        return true
     }
 
     /** Forgets a removed display's session without persisting a stop-broadcast (display is already gone). */

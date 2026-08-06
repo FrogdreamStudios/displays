@@ -9,6 +9,7 @@ import com.dreamdisplays.core.protocol.WatchPartyState
 import com.dreamdisplays.platform.server.datatypes.display.DisplayData
 import com.dreamdisplays.platform.server.managers.ActionThrottle
 import com.dreamdisplays.platform.server.managers.DisplayManager
+import com.dreamdisplays.platform.server.proxy.TransferTracker
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
@@ -163,6 +164,10 @@ object WatchPartyManager {
 
     /** Starts the host grace timer when the host disconnects; pauses a live timeline meanwhile. */
     fun onPlayerQuit(playerId: UUID) {
+        // A proxy switch fires this backend's own quit event too, don't start the host-disconnect
+        // grace timer for a host who's merely transferring (matters once cross-server watch party
+        // sessions exist to actually follow them; a no-op guard on today's single-backend sessions).
+        if (TransferTracker.isTransferring(playerId)) return
         val now = transport.nowMs()
         sessions.values.filter { it.hostId == playerId && it.hostDisconnectedAt == 0L }.forEach { session ->
             session.hostDisconnectedAt = now
