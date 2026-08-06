@@ -177,13 +177,19 @@ object CommandRegistrar {
      * `id` / `url` are separate literal branches (rather than one argument that guesses which it got)
      * so both are actually discoverable via tab-complete.
      */
-    private fun fullscreenStartSubCommand() = Commands.literal("start")
-        .requires { it.sender is Player && it.sender.hasPermission(PaperServer.config.permissions.fullscreenStart) }
-        .then(fullscreenIdOrUrlNode("id"))
-        .then(fullscreenIdOrUrlNode("url"))
+    private fun fullscreenStartSubCommand(): LiteralArgumentBuilder<CommandSourceStack> {
+        val flagsCache = HashMap<Set<String>, List<CommandNode<CommandSourceStack>>>()
+        return Commands.literal("start")
+            .requires { it.sender is Player && it.sender.hasPermission(PaperServer.config.permissions.fullscreenStart) }
+            .then(fullscreenIdOrUrlNode("id", flagsCache))
+            .then(fullscreenIdOrUrlNode("url", flagsCache))
+    }
 
     /** Builds the `id <id>` / `url <url>` branch under `/display fullscreen start`, both feeding the same `id` argument. */
-    private fun fullscreenIdOrUrlNode(literalName: String) = Commands.literal(literalName).then(
+    private fun fullscreenIdOrUrlNode(
+        literalName: String,
+        flagsCache: MutableMap<Set<String>, List<CommandNode<CommandSourceStack>>>,
+    ) = Commands.literal(literalName).then(
         Commands.argument("id", PaperBareTokenArgumentType)
             .suggests { _, builder ->
                 if (literalName == "id") FullscreenBroadcastManager.displayIdSuggestions()
@@ -191,7 +197,7 @@ object CommandRegistrar {
                 builder.buildFuture()
             }
             .executes { ctx -> runFullscreenStart(ctx); Command.SINGLE_SUCCESS }
-            .also { idArg -> fullscreenFlagsNode().forEach { idArg.then(it) } }
+            .also { idArg -> fullscreenFlagsNode(cache = flagsCache).forEach { idArg.then(it) } }
     )
 
     /**

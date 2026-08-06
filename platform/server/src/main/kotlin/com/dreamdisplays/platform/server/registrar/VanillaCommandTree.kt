@@ -213,13 +213,19 @@ object VanillaCommandTree {
      * `id` / `url` are separate literal branches (rather than one argument that guesses which it got)
      * so both are actually discoverable via tab-complete.
      */
-    private fun fullscreenStartNode() = Commands.literal("start")
-        .requires { requiresNode(it, { p -> p.fullscreenStart }, VanillaPermissions.Fallback.OP) }
-        .then(fullscreenIdOrUrlNode("id"))
-        .then(fullscreenIdOrUrlNode("url"))
+    private fun fullscreenStartNode(): LiteralArgumentBuilder<CommandSourceStack> {
+        val flagsCache = HashMap<Set<String>, List<CommandNode<CommandSourceStack>>>()
+        return Commands.literal("start")
+            .requires { requiresNode(it, { p -> p.fullscreenStart }, VanillaPermissions.Fallback.OP) }
+            .then(fullscreenIdOrUrlNode("id", flagsCache))
+            .then(fullscreenIdOrUrlNode("url", flagsCache))
+    }
 
     /** Builds the `id <id>` / `url <url>` branch under `/display fullscreen start`, both feeding the same `id` argument. */
-    private fun fullscreenIdOrUrlNode(literalName: String) = Commands.literal(literalName).then(
+    private fun fullscreenIdOrUrlNode(
+        literalName: String,
+        flagsCache: MutableMap<Set<String>, List<CommandNode<CommandSourceStack>>>,
+    ) = Commands.literal(literalName).then(
         Commands.argument("id", BareTokenArgumentType)
             .suggests { _, builder ->
                 if (literalName == "id") FullscreenBroadcastManager.displayIdSuggestions()
@@ -227,7 +233,7 @@ object VanillaCommandTree {
                 builder.buildFuture()
             }
             .executes { ctx -> runFullscreenStart(ctx) }
-            .also { idArg -> fullscreenFlagsNode().forEach { idArg.then(it) } }
+            .also { idArg -> fullscreenFlagsNode(cache = flagsCache).forEach { idArg.then(it) } }
     )
 
     /**
