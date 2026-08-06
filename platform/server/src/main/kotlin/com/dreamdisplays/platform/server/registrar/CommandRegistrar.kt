@@ -39,6 +39,9 @@ object CommandRegistrar {
     /** Selector tokens suggested for the fullscreen `target` argument, alongside online player names. */
     private val TARGET_SELECTORS = listOf("@a", "@p", "@r", "@s", "@e")
 
+    /** The fullscreen-start flags, in the one order they may be given in. */
+    private val FULLSCREEN_FLAGS = listOf("target", "radius", "mode", "forced", "transient", "volume", "looped", "quality")
+
     /** Builds the full `Brigadier` tree for the `/display` command with all subcommands. */
     fun buildDisplayCommand(): LiteralCommandNode<CommandSourceStack> = Commands.literal("display")
         .executes { ctx ->
@@ -173,22 +176,23 @@ object CommandRegistrar {
      * `/display fullscreen start <id <id>|url <url>> [<flags in any order / combination>]`, flags
      * being `target <players>`, `radius <blocks> [<x> <y> <z>]`, `mode <standard|immersive>`,
      * `forced`, `transient`, `volume <0–200>` - every flag is a real literal / argument node with
-     * its own tab-complete, and [fullscreenFlagsNode] lets them appear in any order and any subset.
+     * its own tab-complete, and [fullscreenFlagsNode] accepts any subset of them, in the canonical
+     * [FULLSCREEN_FLAGS] order.
      * `id` / `url` are separate literal branches (rather than one argument that guesses which it got)
      * so both are actually discoverable via tab-complete.
      */
     private fun fullscreenStartSubCommand(): LiteralArgumentBuilder<CommandSourceStack> {
-        val flagsCache = HashMap<Set<String>, List<CommandNode<CommandSourceStack>>>()
+        val flags = fullscreenFlagsNode()
         return Commands.literal("start")
             .requires { it.sender is Player && it.sender.hasPermission(PaperServer.config.permissions.fullscreenStart) }
-            .then(fullscreenIdOrUrlNode("id", flagsCache))
-            .then(fullscreenIdOrUrlNode("url", flagsCache))
+            .then(fullscreenIdOrUrlNode("id", flags))
+            .then(fullscreenIdOrUrlNode("url", flags))
     }
 
     /** Builds the `id <id>` / `url <url>` branch under `/display fullscreen start`, both feeding the same `id` argument. */
     private fun fullscreenIdOrUrlNode(
         literalName: String,
-        flagsCache: MutableMap<Set<String>, List<CommandNode<CommandSourceStack>>>,
+        flags: List<CommandNode<CommandSourceStack>>,
     ) = Commands.literal(literalName).then(
         Commands.argument("id", PaperBareTokenArgumentType)
             .suggests { _, builder ->
@@ -197,7 +201,7 @@ object CommandRegistrar {
                 builder.buildFuture()
             }
             .executes { ctx -> runFullscreenStart(ctx); Command.SINGLE_SUCCESS }
-            .also { idArg -> fullscreenFlagsNode(cache = flagsCache).forEach { idArg.then(it) } }
+            .also { idArg -> flags.forEach { idArg.then(it) } }
     )
 
     /**
@@ -222,20 +226,15 @@ object CommandRegistrar {
     }
 
     /**
-     * All fullscreen-start flags, each combinable with every other flag remaining in [names], in
-     * any order.
-     *
-     * Warning: built bottom-up and memoized per remaining-flag-set: naively rebuilding every
-     * flag's whole subtree at every recursion step (one call per permutation of the 8 flags)
-     * blew up to ~110,000 `Brigadier` nodes and stalled server startup for minutes; memoizing by
-     * the set of remaining flags (order doesn't affect the subtree's shape) collapses that to
-     * ~1,000 builds since equal remaining-sets now share one already-built node instance.
+     * All fullscreen-start flags, any subset of them accepted but only in [FULLSCREEN_FLAGS] order:
+     * each flag's subtree offers just the flags that follow it.
      */
-    private fun fullscreenFlagsNode(
-        names: Set<String> = setOf("target", "radius", "mode", "forced", "transient", "volume", "looped", "quality"),
-        cache: MutableMap<Set<String>, List<CommandNode<CommandSourceStack>>> = HashMap(),
-    ): List<CommandNode<CommandSourceStack>> = cache.getOrPut(names) {
-        names.map { name -> buildFullscreenFlagNode(name, fullscreenFlagsNode(names - name, cache)) }
+    private fun fullscreenFlagsNode(): List<CommandNode<CommandSourceStack>> {
+        var following = emptyList<CommandNode<CommandSourceStack>>()
+        for (name in FULLSCREEN_FLAGS.asReversed()) {
+            following = listOf(buildFullscreenFlagNode(name, following)) + following
+        }
+        return following
     }
 
     /** Attaches [children] plus a bare `.executes` (this flag alone, nothing further) to [node], then builds it. */
