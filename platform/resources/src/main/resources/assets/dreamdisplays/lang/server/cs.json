@@ -21,6 +21,8 @@
   "settedURL": "&7D |&f Video bylo načteno!",
   "invalidURL": "&7D |&f Váš odkaz je neplatný! Použijte prosím platný odkaz na video (YouTube, Twitch atd.)",
   "settedName": "&7D |&f Název displeje byl nastaven!",
+  "currentName": "&7D |&f Název tohoto displeje: %s",
+  "noNameSet": "&7D |&f Tento displej nemá nastavený název",
   "invalidName": "&7D |&f Neplatný název! Použijte až 32 písmen, číslic, - nebo _, bez mezer",
   "nameTaken": "&7D |&f Tento název už používá jiný displej!",
   "displayVideoWrongTargetBlock": "&7D |&f Pro použití tohoto příkazu se musíte dívat na blok displeje!",

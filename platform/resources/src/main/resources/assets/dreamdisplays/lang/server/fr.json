@@ -21,6 +21,8 @@
   "settedURL": "&7D |&f La vidéo a été chargée !",
   "invalidURL": "&7D |&f Votre URL est invalide ! Utilisez un lien vidéo valide (YouTube, Twitch, etc.)",
   "settedName": "&7D |&f Le nom de l'affichage a été défini !",
+  "currentName": "&7D |&f Nom de cet affichage : %s",
+  "noNameSet": "&7D |&f Cet affichage n'a pas de nom",
   "invalidName": "&7D |&f Nom invalide ! Utilisez jusqu'à 32 lettres, chiffres, - ou _, sans espaces",
   "nameTaken": "&7D |&f Ce nom est déjà utilisé par un autre affichage !",
   "displayVideoWrongTargetBlock": "&7D |&f Vous devez regarder un bloc d'affichage pour utiliser cette commande !",

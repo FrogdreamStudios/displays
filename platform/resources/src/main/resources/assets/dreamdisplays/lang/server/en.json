@@ -21,6 +21,8 @@
   "settedURL": "&7D |&f Video has been loaded!",
   "invalidURL": "&7D |&f Your URL is invalid! Please use a valid video link (YouTube, Twitch, etc.)",
   "settedName": "&7D |&f Display name has been set!",
+  "currentName": "&7D |&f This display's name: %s",
+  "noNameSet": "&7D |&f This display has no name set",
   "invalidName": "&7D |&f Invalid name! Use up to 32 letters, digits, - or _, with no spaces",
   "nameTaken": "&7D |&f That name is already used by another display!",
   "displayVideoWrongTargetBlock": "&7D |&f You must look at a display block to use this command!",

@@ -169,19 +169,30 @@ object CommandRegistrar {
             }
 
     /**
-     * Builds the `/display name this|<id> <name>` subcommand — see [simpleWithThis] for why both
+     * Builds the `/display name this|<id> [name]` subcommand — see [simpleWithThis] for why both
      * `this` and an explicit id are offered. `name` is a single space-free token
      * ([StringArgumentType.word]) since [DisplayManager.resolveByIdOrPrefix] treats it exactly like
-     * an id afterwards.
+     * an id afterwards, and optional.
      */
     private fun nameSubCommand() = Commands.literal("name")
         .requires { it.sender is Player && it.sender.hasPermission(PaperServer.config.permissions.name) }
-        .then(Commands.literal("this").then(nameArgument { "this" }))
+        .then(
+            Commands.literal("this")
+                .executes { ctx ->
+                    NameCommand().execute(ctx.source.sender, arrayOf("this"))
+                    Command.SINGLE_SUCCESS
+                }
+                .then(nameArgument { "this" })
+        )
         .then(
             Commands.argument("id", PaperBareTokenArgumentType)
                 .suggests { _, b ->
                     FullscreenBroadcastManager.displayIdSuggestions().forEach { b.suggest(it) }
                     b.buildFuture()
+                }
+                .executes { ctx ->
+                    NameCommand().execute(ctx.source.sender, arrayOf(StringArgumentType.getString(ctx, "id")))
+                    Command.SINGLE_SUCCESS
                 }
                 .then(nameArgument { ctx -> StringArgumentType.getString(ctx, "id") })
         )

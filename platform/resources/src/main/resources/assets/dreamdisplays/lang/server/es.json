@@ -21,6 +21,8 @@
   "settedURL": "&7D |&f ¡El video ha sido cargado!",
   "invalidURL": "&7D |&f ¡Tu URL no es válida! Usa un enlace de vídeo válido (YouTube, Twitch, etc.)",
   "settedName": "&7D |&f ¡El nombre de la pantalla ha sido establecido!",
+  "currentName": "&7D |&f Nombre de esta pantalla: %s",
+  "noNameSet": "&7D |&f Esta pantalla no tiene nombre",
   "invalidName": "&7D |&f ¡Nombre inválido! Usa hasta 32 letras, dígitos, - o _, sin espacios",
   "nameTaken": "&7D |&f ¡Ese nombre ya lo usa otra pantalla!",
   "displayVideoWrongTargetBlock": "&7D |&f ¡Debes mirar un bloque de pantalla para usar este comando!",

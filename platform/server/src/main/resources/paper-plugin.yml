@@ -60,3 +60,5 @@ permissions:
     default: op
   dreamdisplays.name:
     default: true
+  dreamdisplays.name.others:
+    default: op

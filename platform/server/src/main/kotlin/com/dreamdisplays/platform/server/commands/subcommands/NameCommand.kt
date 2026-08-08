@@ -1,6 +1,5 @@
 package com.dreamdisplays.platform.server.commands.subcommands
 
-import com.dreamdisplays.api.playback.PlaybackPermissions
 import com.dreamdisplays.platform.server.PaperServer
 import com.dreamdisplays.platform.server.VanillaServerState
 import com.dreamdisplays.platform.server.datatypes.display.PaperDisplayData
@@ -8,9 +7,8 @@ import com.dreamdisplays.platform.server.datatypes.display.VanillaDisplayData
 import com.dreamdisplays.platform.server.managers.DisplayManager
 import com.dreamdisplays.platform.server.meta.Scheduler.runAsync
 import com.dreamdisplays.platform.server.meta.ServerCoroutines
-import com.dreamdisplays.platform.server.playback.PlaybackContexts
 import com.dreamdisplays.platform.server.utils.MessageUtil
-import com.dreamdisplays.platform.server.utils.net.VanillaDisplayActions
+import com.dreamdisplays.platform.server.utils.VanillaPermissions
 import com.mojang.brigadier.context.CommandContext
 import io.github.arnodoelinger.platformweaver.PaperOnly
 import kotlinx.coroutines.launch
@@ -39,15 +37,21 @@ class NameCommand : SubCommand {
 
         val data = resolvePaperDisplayTarget(sender, player, token) as? PaperDisplayData ?: return
 
-        if (!PlaybackPermissions.canSetVideo(
-                PlaybackContexts.of(data, player.uniqueId, player.hasPermission(PaperServer.config.permissions.delete))
-            )
-        ) {
-            MessageUtil.sendMessage(player, "displayVideoNotOwner")
+        val requestedName = args.getOrNull(1)
+        if (requestedName == null) {
+            data.name?.let { MessageUtil.sendMessage(player, "currentName", it) }
+                ?: MessageUtil.sendMessage(player, "noNameSet")
             return
         }
 
-        val normalized = normalizeDisplayName(args.getOrNull(1))
+        if (data.ownerId != player.uniqueId &&
+            !player.hasPermission(PaperServer.config.permissions.nameOthers)
+        ) {
+            MessageUtil.sendMessage(player, "displayCommandMissingPermission")
+            return
+        }
+
+        val normalized = normalizeDisplayName(requestedName)
         if (normalized == null) {
             MessageUtil.sendMessage(player, "invalidName")
             return
@@ -83,11 +87,20 @@ object VanillaNameCommand {
 
         val data = resolveVanillaDisplayTarget(player, token) as? VanillaDisplayData ?: return 0
 
-        if (!PlaybackPermissions.canSetVideo(
-                PlaybackContexts.of(data, player.uuid, VanillaDisplayActions.isAdmin(player))
+        if (requestedName == null) {
+            data.name?.let { MessageUtil.sendMessage(player, "currentName", it) }
+                ?: MessageUtil.sendMessage(player, "noNameSet")
+            return 1
+        }
+
+        if (data.ownerId != player.uuid &&
+            !VanillaPermissions.has(
+                player,
+                VanillaServerState.config.permissions.nameOthers,
+                VanillaPermissions.Fallback.OP,
             )
         ) {
-            MessageUtil.sendMessage(player, "displayVideoNotOwner")
+            MessageUtil.sendMessage(player, "displayCommandMissingPermission")
             return 0
         }
 

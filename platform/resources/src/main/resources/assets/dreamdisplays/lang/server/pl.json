@@ -21,6 +21,8 @@
   "settedURL": "&7D |&f Wideo załadowane!",
   "invalidURL": "&7D |&f Twój link jest nieprawidłowy! Proszę użyć prawidłowego linku do wideo (YouTube, Twitch itd.)",
   "settedName": "&7D |&f Nazwa wyświetlacza została ustawiona!",
+  "currentName": "&7D |&f Nazwa tego wyświetlacza: %s",
+  "noNameSet": "&7D |&f Ten wyświetlacz nie ma ustawionej nazwy",
   "invalidName": "&7D |&f Nieprawidłowa nazwa! Użyj do 32 liter, cyfr, - lub _, bez spacji",
   "nameTaken": "&7D |&f Ta nazwa jest już używana przez inny wyświetlacz!",
   "displayVideoWrongTargetBlock": "&7D |&f Aby użyć tej komendy, musisz patrzeć na blok wyświetlacza!",

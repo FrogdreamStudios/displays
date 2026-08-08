@@ -166,20 +166,25 @@ object VanillaCommandTree {
             }
 
     /**
-     * Builds the `/display name this|<id> <name>` subcommand — see [deleteNode] for `this`/id
+     * Builds the `/display name this|<id> [name]` subcommand — see [deleteNode] for `this` / id
      * semantics. `name` is a single space-free token ([StringArgumentType.word]) since
      * [com.dreamdisplays.platform.server.managers.DisplayManager.resolveByIdOrPrefix] treats it
-     * exactly like an id afterwards.
+     * exactly like an id afterwards, and optional.
      */
     private fun nameNode() = Commands.literal("name")
         .requires { requiresNode(it, { p -> p.name }, VanillaPermissions.Fallback.EVERYONE) }
-        .then(Commands.literal("this").then(nameArgument { "this" }))
+        .then(
+            Commands.literal("this")
+                .executes { ctx -> VanillaNameCommand.execute(ctx, "this", null) }
+                .then(nameArgument { "this" })
+        )
         .then(
             Commands.argument("id", BareTokenArgumentType)
                 .suggests { _, b ->
                     FullscreenBroadcastManager.displayIdSuggestions().forEach { b.suggest(it) }
                     b.buildFuture()
                 }
+                .executes { ctx -> VanillaNameCommand.execute(ctx, StringArgumentType.getString(ctx, "id"), null) }
                 .then(nameArgument { ctx -> StringArgumentType.getString(ctx, "id") })
         )
 
