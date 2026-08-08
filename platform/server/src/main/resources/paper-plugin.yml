@@ -58,3 +58,5 @@ permissions:
     default: op
   dreamdisplays.remote:
     default: op
+  dreamdisplays.name:
+    default: true

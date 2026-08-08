@@ -51,6 +51,7 @@ object VanillaCommandTree {
             .then(statsNode())
             .then(reloadNode())
             .then(videoNode())
+            .then(nameNode())
             .then(toggleNode("on"))
             .then(toggleNode("off"))
             .then(fullscreenNode())
@@ -162,6 +163,31 @@ object VanillaCommandTree {
                 val urlAndLang = StringArgumentType.getString(ctx, "url_and_lang")
                 VanillaVideoCommand.execute(ctx, token(ctx), urlAndLang)
                 Command.SINGLE_SUCCESS
+            }
+
+    /**
+     * Builds the `/display name this|<id> <name>` subcommand — see [deleteNode] for `this`/id
+     * semantics. `name` is a single space-free token ([StringArgumentType.word]) since
+     * [com.dreamdisplays.platform.server.managers.DisplayManager.resolveByIdOrPrefix] treats it
+     * exactly like an id afterwards.
+     */
+    private fun nameNode() = Commands.literal("name")
+        .requires { requiresNode(it, { p -> p.name }, VanillaPermissions.Fallback.EVERYONE) }
+        .then(Commands.literal("this").then(nameArgument { "this" }))
+        .then(
+            Commands.argument("id", BareTokenArgumentType)
+                .suggests { _, b ->
+                    FullscreenBroadcastManager.displayIdSuggestions().forEach { b.suggest(it) }
+                    b.buildFuture()
+                }
+                .then(nameArgument { ctx -> StringArgumentType.getString(ctx, "id") })
+        )
+
+    /** The `<name>` argument under `name this|<id> <name>`. */
+    private fun nameArgument(token: (CommandContext<CommandSourceStack>) -> String) =
+        Commands.argument("name", StringArgumentType.word())
+            .executes { ctx ->
+                VanillaNameCommand.execute(ctx, token(ctx), StringArgumentType.getString(ctx, "name"))
             }
 
     /** Builds the `/display list [filter] [value] [page]` subcommand. */

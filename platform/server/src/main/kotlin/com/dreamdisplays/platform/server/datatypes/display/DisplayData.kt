@@ -36,6 +36,9 @@ interface DisplayData {
     /** Video's language code. */
     var lang: String
 
+    /** Optional, space-free alias usable anywhere a display id is accepted (see [com.dreamdisplays.platform.server.managers.DisplayManager.resolveByIdOrPrefix]). */
+    var name: String?
+
     /** The persistent base playback mode. Source of truth; never [PlaybackMode.WATCH_PARTY]. */
     var mode: PlaybackMode
 
@@ -62,6 +65,9 @@ abstract class BaseDisplayData(override val virtual: Boolean = false) : DisplayD
 
     /** Video's language code. */
     override var lang: String = ""
+
+    /** Optional, space-free alias usable anywhere a display id is accepted. */
+    override var name: String? = null
 
     /** The persistent base playback mode. */
     override var mode: PlaybackMode = PlaybackMode.LOCAL
