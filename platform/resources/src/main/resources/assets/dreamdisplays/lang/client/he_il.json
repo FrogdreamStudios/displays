@@ -82,6 +82,12 @@
   "dreamdisplays.suggestions.empty": "לא נמצאו תוצאות.",
   "dreamdisplays.suggestions.error": "טעינה נכשלה.",
   "dreamdisplays.suggestions.unavailable": "הצעות לא זמינות.",
+  "dreamdisplays.sort.relevance": "רלוונטיות",
+  "dreamdisplays.sort.popularity": "פופולריות",
+  "dreamdisplays.sort.newest": "החדשים ביותר",
+  "dreamdisplays.sort.streams": "שידורים",
+  "dreamdisplays.sort.unwatched": "לא נצפו",
+  "dreamdisplays.sort.watched": "נצפו",
   "dreamdisplays.ui.custom": "קישור",
   "dreamdisplays.sort.my_links": "הקישורים שלי",
   "dreamdisplays.suggestions.no_links": "אין עדיין קישורים שמורים. הדביקו קישור לסרטון למעלה כדי להפעיל אותו."

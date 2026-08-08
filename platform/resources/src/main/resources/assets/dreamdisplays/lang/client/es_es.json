@@ -82,6 +82,12 @@
   "dreamdisplays.suggestions.empty": "No se han encontrado resultados.",
   "dreamdisplays.suggestions.error": "Error al cargar.",
   "dreamdisplays.suggestions.unavailable": "Sugerencias no disponibles.",
+  "dreamdisplays.sort.relevance": "Relevancia",
+  "dreamdisplays.sort.popularity": "Popularidad",
+  "dreamdisplays.sort.newest": "Más recientes",
+  "dreamdisplays.sort.streams": "Transmisiones",
+  "dreamdisplays.sort.unwatched": "Sin ver",
+  "dreamdisplays.sort.watched": "Vistos",
   "dreamdisplays.ui.custom": "Enlace",
   "dreamdisplays.sort.my_links": "Mis enlaces",
   "dreamdisplays.suggestions.no_links": "Aún no hay enlaces guardados. Pega arriba un enlace de vídeo para reproducirlo."

@@ -82,6 +82,12 @@
   "dreamdisplays.suggestions.empty": "Nenalezen žádný výsledek.",
   "dreamdisplays.suggestions.error": "Načítání se nezdařilo.",
   "dreamdisplays.suggestions.unavailable": "Návrhy nejsou dostupné.",
+  "dreamdisplays.sort.relevance": "Relevance",
+  "dreamdisplays.sort.popularity": "Popularita",
+  "dreamdisplays.sort.newest": "Nejnovější",
+  "dreamdisplays.sort.streams": "Streamy",
+  "dreamdisplays.sort.unwatched": "Nezhlédnuté",
+  "dreamdisplays.sort.watched": "Zhlédnuté",
   "dreamdisplays.ui.custom": "Odkaz",
   "dreamdisplays.sort.my_links": "Moje odkazy",
   "dreamdisplays.suggestions.no_links": "Zatím žádné uložené odkazy. Vlož výše odkaz na video a přehraj ho."

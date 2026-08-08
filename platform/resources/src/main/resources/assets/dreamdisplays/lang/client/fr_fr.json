@@ -82,6 +82,12 @@
   "dreamdisplays.suggestions.empty": "Aucun résultat trouvé.",
   "dreamdisplays.suggestions.error": "Échec du chargement.",
   "dreamdisplays.suggestions.unavailable": "Suggestions indisponibles.",
+  "dreamdisplays.sort.relevance": "Pertinence",
+  "dreamdisplays.sort.popularity": "Popularité",
+  "dreamdisplays.sort.newest": "Les plus récentes",
+  "dreamdisplays.sort.streams": "Diffusions",
+  "dreamdisplays.sort.unwatched": "Non vues",
+  "dreamdisplays.sort.watched": "Vues",
   "dreamdisplays.ui.custom": "Lien",
   "dreamdisplays.sort.my_links": "Mes liens",
   "dreamdisplays.suggestions.no_links": "Aucun lien enregistré. Collez un lien vidéo ci-dessus pour le lire."

@@ -82,6 +82,12 @@
   "dreamdisplays.suggestions.empty": "Keine Ergebnisse gefunden.",
   "dreamdisplays.suggestions.error": "Laden fehlgeschlagen.",
   "dreamdisplays.suggestions.unavailable": "Vorschläge nicht verfügbar.",
+  "dreamdisplays.sort.relevance": "Relevanz",
+  "dreamdisplays.sort.popularity": "Beliebtheit",
+  "dreamdisplays.sort.newest": "Neueste",
+  "dreamdisplays.sort.streams": "Streams",
+  "dreamdisplays.sort.unwatched": "Ungesehen",
+  "dreamdisplays.sort.watched": "Gesehen",
   "dreamdisplays.ui.custom": "Link",
   "dreamdisplays.sort.my_links": "Meine Links",
   "dreamdisplays.suggestions.no_links": "Noch keine gespeicherten Links. Füge oben einen Videolink ein, um ihn abzuspielen."

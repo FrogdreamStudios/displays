@@ -82,6 +82,12 @@
   "dreamdisplays.suggestions.empty": "Нічого не знайдено.",
   "dreamdisplays.suggestions.error": "Не вдалося завантажити.",
   "dreamdisplays.suggestions.unavailable": "Рекомендації недоступні.",
+  "dreamdisplays.sort.relevance": "Релевантність",
+  "dreamdisplays.sort.popularity": "Популярність",
+  "dreamdisplays.sort.newest": "Найновіші",
+  "dreamdisplays.sort.streams": "Стріми",
+  "dreamdisplays.sort.unwatched": "Непереглянуте",
+  "dreamdisplays.sort.watched": "Переглянуте",
   "dreamdisplays.ui.custom": "Посилання",
   "dreamdisplays.sort.my_links": "Мої посилання",
   "dreamdisplays.suggestions.no_links": "Збережених посилань ще немає. Вставте посилання на відео вище, щоб увімкнути його."
