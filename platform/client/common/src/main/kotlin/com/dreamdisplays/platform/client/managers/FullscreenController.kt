@@ -26,8 +26,14 @@ object FullscreenController {
     /** How long a state waits for its display to load before being given up on. */
     private const val PENDING_TIMEOUT_MS = 5_000L
 
+    /**
+     * How long a delivery waits for the world to finish loading before being shown anyway. Waiting
+     * avoids the visible seek a mid-load start causes.
+     */
+    private const val READY_GRACE_MS = 3_000L
+
     /** [deadlineMs] of 0 means the give-up clock hasn't started — see [onClientTick]. */
-    private class Pending(val state: FullscreenState, var deadlineMs: Long = 0L)
+    private class Pending(val state: FullscreenState, val queuedAtMs: Long, var deadlineMs: Long = 0L)
 
     /** States whose display hasn't loaded yet, keyed by display id. */
     private val pending = ConcurrentHashMap<UUID, Pending>()
@@ -41,7 +47,7 @@ object FullscreenController {
         }
         val screen = DisplayRegistry.screens[state.displayId]
         if (screen == null || !isClientReady()) {
-            pending[state.displayId] = Pending(state)
+            pending[state.displayId] = Pending(state, System.currentTimeMillis())
             return
         }
         apply(screen, state)
@@ -61,12 +67,14 @@ object FullscreenController {
         val now = System.currentTimeMillis()
         for ((displayId, entry) in pending.entries.toList()) {
             val screen = DisplayRegistry.screens[displayId]
-            if (ready && screen != null) {
+            val waitedOut = now - entry.queuedAtMs >= READY_GRACE_MS
+            if (screen != null && (ready || waitedOut)) {
                 pending.remove(displayId)
+                if (!ready) logger.debug("Showing fullscreen for {} before the world settled.", displayId)
                 apply(screen, entry.state)
                 continue
             }
-            if (!ready) {
+            if (!ready && !waitedOut) {
                 entry.deadlineMs = 0L
             } else if (entry.deadlineMs == 0L) {
                 entry.deadlineMs = now + PENDING_TIMEOUT_MS
@@ -83,12 +91,12 @@ object FullscreenController {
      * few seconds of the wrong part of the video before snapping — so nothing is shown at all until
      * the chunk the player stands in exists.
      */
-    private fun isClientReady(): Boolean {
+    private fun isClientReady(): Boolean = runCatching {
         val mc = Minecraft.getInstance()
-        val player = mc.player ?: return false
-        val level = mc.level ?: return false
-        return level.isLoaded(player.blockPosition())
-    }
+        val player = mc.player ?: return@runCatching false
+        val level = mc.level ?: return@runCatching false
+        level.isLoaded(player.blockPosition())
+    }.getOrDefault(false)
 
     /**
      * Activates the overlay, applies the volume / quality hints, and acknowledges delivery.
