@@ -1,9 +1,9 @@
 package com.dreamdisplays.platform.server.commands.subcommands
 
 import com.dreamdisplays.platform.server.PaperServer
-import com.dreamdisplays.platform.server.managers.DisplayManager
+import com.dreamdisplays.platform.server.datatypes.display.PaperDisplayData
+import com.dreamdisplays.platform.server.datatypes.display.VanillaDisplayData
 import com.dreamdisplays.platform.server.utils.MessageUtil
-import com.dreamdisplays.platform.server.utils.RegionUtil
 import com.mojang.brigadier.context.CommandContext
 import io.github.arnodoelinger.platformweaver.PaperOnly
 import net.minecraft.commands.CommandSourceStack
@@ -15,7 +15,7 @@ import org.bukkit.entity.Player
 
 /**
  * Handles the `/display info` command. Prints owner, UUID, region, size, and media metadata
- * of the display the player is currently looking at.
+ * of the display named by `this` (looked-at) or a remote id/prefix.
  */
 @Deprecated("This command is being replaced by UI interface. Will be removed in a future update.")
 @PaperOnly
@@ -27,10 +27,9 @@ class InfoCommand : SubCommand {
     /** Prints the owner, UUID, region, size and media metadata of the targeted display. */
     override fun execute(sender: CommandSender, args: Array<String?>) {
         val player = sender as? Player ?: return
+        val token = args.getOrNull(0) ?: "this"
 
-        val block = player.getTargetBlock(null, 32)
-        val data = DisplayManager.isContains(block.location)
-            ?: return MessageUtil.sendMessage(player, "noDisplay")
+        val data = resolvePaperDisplayTarget(sender, player, token) as? PaperDisplayData ?: return
 
         val ownerName =
             Bukkit.getOfflinePlayer(data.ownerId).name ?: MessageUtil.messageFor(player, "displayInfoUnknownOwner")
@@ -92,16 +91,11 @@ class InfoCommand : SubCommand {
 @Deprecated("This command is being replaced by UI interface. Will be removed in a future update.")
 object VanillaInfoCommand {
     /** Prints owner, UUID, region, size, and media metadata of the targeted display. */
-    fun execute(ctx: CommandContext<CommandSourceStack>): Int {
+    fun execute(ctx: CommandContext<CommandSourceStack>, token: String): Int {
         val player = ctx.source.entity as? ServerPlayer
             ?: return ctx.source.sendFailure(Component.literal("Players only.")).let { 0 }
 
-        val worldKey = RegionUtil.getPlayerLevelKey(player)
-        val targetPos = RegionUtil.getTargetedBlockPos(player)
-            ?: return MessageUtil.sendMessage(player, "noDisplay").let { 0 }
-
-        val data = DisplayManager.isContains(worldKey, targetPos)
-            ?: return MessageUtil.sendMessage(player, "noDisplay").let { 0 }
+        val data = resolveVanillaDisplayTarget(player, token) as? VanillaDisplayData ?: return 0
 
         val server = ctx.source.server
 

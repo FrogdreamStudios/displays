@@ -130,14 +130,8 @@ object FullscreenBroadcastManager {
         resolveDisplayByIdOrPrefix(idOrPrefix)?.url?.takeIf(String::isNotBlank)
 
     /** Exact UUID match first, then an unambiguous case-insensitive id prefix (>= 4 chars). */
-    private fun resolveDisplayByIdOrPrefix(idOrPrefix: String): DisplayData? {
-        runCatching { UUID.fromString(idOrPrefix) }.getOrNull()?.let { exact ->
-            DisplayManager.getDisplayData(exact)?.let { return it }
-        }
-        if (idOrPrefix.length < 4) return null
-        val matches = DisplayManager.getDisplays().filter { it.id.toString().startsWith(idOrPrefix, ignoreCase = true) }
-        return matches.singleOrNull()
-    }
+    private fun resolveDisplayByIdOrPrefix(idOrPrefix: String): DisplayData? =
+        DisplayManager.resolveByIdOrPrefix(idOrPrefix)
 
     /**
      * True if [value] looks like a URL / link a viewer would paste — an absolute URL (`scheme://...`)

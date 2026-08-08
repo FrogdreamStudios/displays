@@ -56,3 +56,5 @@ permissions:
     default: op
   dreamdisplays.fullscreen.network:
     default: op
+  dreamdisplays.remote:
+    default: op

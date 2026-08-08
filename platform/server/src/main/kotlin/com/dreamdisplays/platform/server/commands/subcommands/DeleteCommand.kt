@@ -2,10 +2,9 @@ package com.dreamdisplays.platform.server.commands.subcommands
 
 import com.dreamdisplays.platform.server.PaperServer
 import com.dreamdisplays.platform.server.VanillaServerState
-import com.dreamdisplays.platform.server.baseMaterial
+import com.dreamdisplays.platform.server.datatypes.display.VanillaDisplayData
 import com.dreamdisplays.platform.server.managers.DisplayManager
 import com.dreamdisplays.platform.server.utils.MessageUtil
-import com.dreamdisplays.platform.server.utils.RegionUtil
 import com.dreamdisplays.platform.server.utils.VanillaPermissions
 import com.dreamdisplays.platform.server.utils.net.VanillaPacketUtil
 import com.mojang.brigadier.context.CommandContext
@@ -27,18 +26,12 @@ class DeleteCommand : SubCommand {
     override val permission: String? = null
     override val playerOnly = true
 
-    /** Deletes the display the player is currently looking at (within 32 blocks). */
+    /** Deletes the display named by `this` (looked-at, within 32 blocks) or a remote id / prefix. */
     override fun execute(sender: CommandSender, args: Array<String?>) {
         val player = (sender as? Player) ?: return
+        val token = args.getOrNull(0) ?: "this"
 
-        val block = player.getTargetBlock(null, 32)
-        if (block.type != PaperServer.config.settings.baseMaterial) {
-            MessageUtil.sendMessage(player, "noDisplay")
-            return
-        }
-
-        val data = DisplayManager.isContains(block.location)
-            ?: return MessageUtil.sendMessage(player, "noDisplay")
+        val data = resolvePaperDisplayTarget(sender, player, token) ?: return
 
         if (data.ownerId != player.uniqueId &&
             !player.hasPermission(PaperServer.config.permissions.deleteOthers)
@@ -47,7 +40,7 @@ class DeleteCommand : SubCommand {
             return
         }
 
-        DisplayManager.delete(data)
+        DisplayManager.delete(data.id)
         MessageUtil.sendMessage(player, "displayDeleted")
     }
 }
@@ -57,20 +50,12 @@ class DeleteCommand : SubCommand {
  */
 @Deprecated("This command is being replaced by UI interface. Will be removed in a future update.")
 object VanillaDeleteCommand {
-    /** Deletes the display the player is currently looking at (within 32 blocks). */
-    fun execute(ctx: CommandContext<CommandSourceStack>): Int {
+    /** Deletes the display named by `this` (looked-at, within 32 blocks) or a remote id/prefix. */
+    fun execute(ctx: CommandContext<CommandSourceStack>, token: String): Int {
         val player = ctx.source.entity as? ServerPlayer
             ?: return ctx.source.sendFailure(Component.literal("Players only.")).let { 0 }
 
-        val targetPos = RegionUtil.getTargetedBlockPos(player) ?: run {
-            MessageUtil.sendMessage(player, "noDisplay")
-            return 0
-        }
-
-        val worldKey = RegionUtil.getPlayerLevelKey(player)
-
-        val data = DisplayManager.isContains(worldKey, targetPos)
-            ?: return MessageUtil.sendMessage(player, "noDisplay").let { 0 }
+        val data = resolveVanillaDisplayTarget(player, token) as? VanillaDisplayData ?: return 0
 
         if (data.ownerId != player.uuid &&
             !VanillaPermissions.has(

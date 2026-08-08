@@ -71,27 +71,50 @@ object VanillaCommandTree {
         }
 
     /**
-     * Builds the `/display delete this` subcommand. `this` is mandatory even though the command
-     * already always raycasts (there's no other id to give it) — the same explicit spelling of the
-     * looked-at target is required across every display-targeting command, matching `fullscreen
-     * start id this`.
+     * Builds the `/display delete this|<id>` subcommand. `this` (raycast, exactly what the command
+     * already always did) is mandatory when nothing more specific is given — the same explicit
+     * spelling of the looked-at target is required across every display-targeting command, matching
+     * `fullscreen start id this`. An explicit id / unambiguous id prefix is also accepted, gated
+     * behind [PermissionsSection.remote] since it lets you act on a display anywhere on the server.
      */
     private fun deleteNode() = Commands.literal("delete")
         .then(
             Commands.literal("this").executes { ctx ->
-                VanillaDeleteCommand.execute(ctx)
+                VanillaDeleteCommand.execute(ctx, "this")
                 Command.SINGLE_SUCCESS
             }
         )
+        .then(
+            Commands.argument("id", BareTokenArgumentType)
+                .suggests { _, b ->
+                    FullscreenBroadcastManager.displayIdSuggestions().forEach { b.suggest(it) }
+                    b.buildFuture()
+                }
+                .executes { ctx ->
+                    VanillaDeleteCommand.execute(ctx, StringArgumentType.getString(ctx, "id"))
+                    Command.SINGLE_SUCCESS
+                }
+        )
 
-    /** Builds the `/display info this` subcommand — see [deleteNode] for why `this` is mandatory. */
+    /** Builds the `/display info this|<id>` subcommand — see [deleteNode] for `this` / id semantics. */
     private fun infoNode() = Commands.literal("info")
         .requires { requiresNode(it, { p -> p.info }, VanillaPermissions.Fallback.EVERYONE) }
         .then(
             Commands.literal("this").executes { ctx ->
-                VanillaInfoCommand.execute(ctx)
+                VanillaInfoCommand.execute(ctx, "this")
                 Command.SINGLE_SUCCESS
             }
+        )
+        .then(
+            Commands.argument("id", BareTokenArgumentType)
+                .suggests { _, b ->
+                    FullscreenBroadcastManager.displayIdSuggestions().forEach { b.suggest(it) }
+                    b.buildFuture()
+                }
+                .executes { ctx ->
+                    VanillaInfoCommand.execute(ctx, StringArgumentType.getString(ctx, "id"))
+                    Command.SINGLE_SUCCESS
+                }
         )
 
     /** Builds the `/display stats` subcommand. */
@@ -110,13 +133,21 @@ object VanillaCommandTree {
             Command.SINGLE_SUCCESS
         }
 
-    /** Builds the `/display video this <url> [lang]` subcommand — see [deleteNode] for why `this` is mandatory. */
+    /** Builds the `/display video this|<id> <url> [lang]` subcommand — see [deleteNode] for `this`/id semantics. */
     private fun videoNode() = Commands.literal("video")
         .requires { requiresNode(it, { p -> p.video }, VanillaPermissions.Fallback.EVERYONE) }
-        .then(Commands.literal("this").then(videoUrlArgument()))
+        .then(Commands.literal("this").then(videoUrlArgument { "this" }))
+        .then(
+            Commands.argument("id", BareTokenArgumentType)
+                .suggests { _, b ->
+                    FullscreenBroadcastManager.displayIdSuggestions().forEach { b.suggest(it) }
+                    b.buildFuture()
+                }
+                .then(videoUrlArgument { ctx -> StringArgumentType.getString(ctx, "id") })
+        )
 
-    /** The `<url> [lang]` greedy argument under `video this <url> [lang]`. */
-    private fun videoUrlArgument() =
+    /** The `<url> [lang]` greedy argument under `video this|<id> <url> [lang]`. */
+    private fun videoUrlArgument(token: (CommandContext<CommandSourceStack>) -> String) =
         Commands.argument("url_and_lang", StringArgumentType.greedyString())
             .suggests { _, builder ->
                 if (builder.remaining.contains(' ')) {
@@ -129,7 +160,7 @@ object VanillaCommandTree {
             }
             .executes { ctx ->
                 val urlAndLang = StringArgumentType.getString(ctx, "url_and_lang")
-                VanillaVideoCommand.execute(ctx, urlAndLang)
+                VanillaVideoCommand.execute(ctx, token(ctx), urlAndLang)
                 Command.SINGLE_SUCCESS
             }
 

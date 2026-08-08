@@ -7,7 +7,8 @@ import com.dreamdisplays.api.security.LanguageTag
 import com.dreamdisplays.api.security.MediaUrlPolicy
 import com.dreamdisplays.platform.server.PaperServer
 import com.dreamdisplays.platform.server.VanillaServerState
-import com.dreamdisplays.platform.server.baseMaterial
+import com.dreamdisplays.platform.server.datatypes.display.PaperDisplayData
+import com.dreamdisplays.platform.server.datatypes.display.VanillaDisplayData
 import com.dreamdisplays.platform.server.managers.DisplayManager
 import com.dreamdisplays.platform.server.managers.StateManager
 import com.dreamdisplays.platform.server.meta.Scheduler.runAsync
@@ -15,7 +16,6 @@ import com.dreamdisplays.platform.server.meta.ServerCoroutines
 import com.dreamdisplays.platform.server.playback.PlaybackContexts
 import com.dreamdisplays.platform.server.playback.TimelineManager
 import com.dreamdisplays.platform.server.utils.MessageUtil
-import com.dreamdisplays.platform.server.utils.RegionUtil
 import com.dreamdisplays.platform.server.utils.VanillaPermissions
 import com.dreamdisplays.platform.server.utils.net.CustomMediaGate
 import com.dreamdisplays.platform.server.utils.net.VanillaDisplayActions
@@ -51,6 +51,7 @@ class VideoCommand : SubCommand {
             MessageUtil.sendMessage(player, "invalidURL")
             return
         }
+        val token = args[0] ?: "this"
 
         // Any URL the mod can resolve is accepted, not just YouTube: the same custom links the
         // menu takes work here too, subject to the same server policy applied further down.
@@ -60,18 +61,7 @@ class VideoCommand : SubCommand {
             return
         }
 
-        val block = player.getTargetBlock(null, 32)
-
-        if (block.type != PaperServer.config.settings.baseMaterial) {
-            MessageUtil.sendMessage(player, "displayVideoWrongTargetBlock")
-            return
-        }
-
-        val data = DisplayManager.isContains(block.location)
-        if (data == null) {
-            MessageUtil.sendMessage(player, "noDisplay")
-            return
-        }
+        val data = resolvePaperDisplayTarget(sender, player, token) as? PaperDisplayData ?: return
 
         if (!PlaybackPermissions.canSetVideo(
                 PlaybackContexts.of(data, player.uniqueId, player.hasPermission(PaperServer.config.permissions.delete))
@@ -154,7 +144,7 @@ private fun canonicalUrl(raw: String): String? {
 @Deprecated("This command is being replaced by UI interface. Will be removed in a future update.")
 object VanillaVideoCommand {
     /** Assigns a YouTube URL (and optional language) to the targeted display, after validating ownership. */
-    fun execute(ctx: CommandContext<CommandSourceStack>, urlAndLang: String): Int {
+    fun execute(ctx: CommandContext<CommandSourceStack>, token: String, urlAndLang: String): Int {
         val player = ctx.source.entity as? ServerPlayer
             ?: return ctx.source.sendFailure(Component.literal("Players only.")).let { 0 }
 
@@ -170,12 +160,7 @@ object VanillaVideoCommand {
         val requestedUrl = canonicalUrl(urlRaw)
             ?: return MessageUtil.sendMessage(player, "invalidURL").let { 0 }
 
-        val targetPos = RegionUtil.getTargetedBlockPos(player)
-            ?: return MessageUtil.sendMessage(player, "displayVideoWrongTargetBlock").let { 0 }
-
-        val worldKey = RegionUtil.getPlayerLevelKey(player)
-        val data = DisplayManager.isContains(worldKey, targetPos)
-            ?: return MessageUtil.sendMessage(player, "noDisplay").let { 0 }
+        val data = resolveVanillaDisplayTarget(player, token) as? VanillaDisplayData ?: return 0
 
         if (!PlaybackPermissions.canSetVideo(
                 PlaybackContexts.of(data, player.uuid, VanillaDisplayActions.isAdmin(player))

@@ -175,6 +175,7 @@ data class PermissionsSection(
     val fullscreenStop get() = permissions.fullscreen_stop
     val fullscreenList get() = permissions.fullscreen_list
     val fullscreenNetwork get() = permissions.fullscreen_network
+    val remote get() = permissions.remote
     val custom get() = permissions.custom
 
     data class PermissionsConfig(
@@ -200,6 +201,7 @@ data class PermissionsSection(
         val fullscreen_stop: String = "dreamdisplays.fullscreen.stop",
         val fullscreen_list: String = "dreamdisplays.fullscreen.list",
         val fullscreen_network: String = "dreamdisplays.fullscreen.network",
+        val remote: String = "dreamdisplays.remote",
         val custom: String = "dreamdisplays.custom",
     )
 }
@@ -300,6 +302,7 @@ fun parseServerConfig(t: TomlTable?): ParsedServerConfig = ParsedServerConfig(
             fullscreen_stop = t?.getString("permissions.fullscreen_stop") ?: "dreamdisplays.fullscreen.stop",
             fullscreen_list = t?.getString("permissions.fullscreen_list") ?: "dreamdisplays.fullscreen.list",
             fullscreen_network = t?.getString("permissions.fullscreen_network") ?: "dreamdisplays.fullscreen.network",
+            remote = t?.getString("permissions.remote") ?: "dreamdisplays.remote",
             custom = t?.getString("permissions.custom") ?: "dreamdisplays.custom",
         )
     ),

@@ -94,9 +94,11 @@ object CommandRegistrar {
     }
 
     /**
-     * Same as [simple], but only reachable as `/display <name> this` — [cmd] always targets whatever
-     * the sender is looking at (raycast); `this` is mandatory so that target reads the same,
-     * explicit way across every display-targeting command instead of some staying implicit.
+     * Same as [simple], but only reachable as `/display <name> this` (raycast, exactly what [cmd]
+     * always did) or `/display <name> <id>` (an id / unambiguous id prefix, gated behind
+     * [com.dreamdisplays.platform.server.PermissionsSection.remote] since it lets you act on a
+     * display anywhere on the server, not just one you're standing in front of). `this` is a literal
+     * so it's tried first; anything else falls into the `id` argument.
      */
     private fun simpleWithThis(
         name: String,
@@ -105,21 +107,44 @@ object CommandRegistrar {
     ): LiteralArgumentBuilder<CommandSourceStack> {
         var builder = Commands.literal(name)
         if (check != null) builder = builder.requires(check)
-        return builder.then(
-            Commands.literal("this").executes { ctx ->
-                cmd.execute(ctx.source.sender, emptyArray())
-                Command.SINGLE_SUCCESS
-            }
-        )
+        return builder
+            .then(
+                Commands.literal("this").executes { ctx ->
+                    cmd.execute(ctx.source.sender, arrayOf("this"))
+                    Command.SINGLE_SUCCESS
+                }
+            )
+            .then(
+                Commands.argument("id", PaperBareTokenArgumentType)
+                    .suggests { _, b ->
+                        FullscreenBroadcastManager.displayIdSuggestions().forEach { b.suggest(it) }
+                        b.buildFuture()
+                    }
+                    .executes { ctx ->
+                        cmd.execute(ctx.source.sender, arrayOf(StringArgumentType.getString(ctx, "id")))
+                        Command.SINGLE_SUCCESS
+                    }
+            )
     }
 
-    /** Builds the `/display video this <url> [lang]` subcommand with greedy argument and language suggestions. */
+    /**
+     * Builds the `/display video this|<id> <url> [lang]` subcommand — see [simpleWithThis] for why
+     * both `this` and an explicit id are offered.
+     */
     private fun videoSubCommand() = Commands.literal("video")
         .requires { it.sender is Player && it.sender.hasPermission(PaperServer.config.permissions.video) }
-        .then(Commands.literal("this").then(videoUrlArgument()))
+        .then(Commands.literal("this").then(videoUrlArgument { "this" }))
+        .then(
+            Commands.argument("id", PaperBareTokenArgumentType)
+                .suggests { _, b ->
+                    FullscreenBroadcastManager.displayIdSuggestions().forEach { b.suggest(it) }
+                    b.buildFuture()
+                }
+                .then(videoUrlArgument { ctx -> StringArgumentType.getString(ctx, "id") })
+        )
 
-    /** The `<url> [lang]` greedy argument under `/display video this <url> [lang]`. */
-    private fun videoUrlArgument() =
+    /** The `<url> [lang]` greedy argument under `/display video this|<id> <url> [lang]`. */
+    private fun videoUrlArgument(token: (CommandContext<CommandSourceStack>) -> String) =
         // greedyString captures the rest of the input (URL + optional lang separated by space)
         Commands.argument("url_and_lang", StringArgumentType.greedyString())
             .suggests { _, builder ->
@@ -137,7 +162,7 @@ object CommandRegistrar {
                 val parts = raw.split(" ")
                 val url = parts[0]
                 val lang = if (parts.size > 1) parts.last() else ""
-                VideoCommand().execute(ctx.source.sender, arrayOf("video", url, lang))
+                VideoCommand().execute(ctx.source.sender, arrayOf(token(ctx), url, lang))
                 Command.SINGLE_SUCCESS
             }
 
