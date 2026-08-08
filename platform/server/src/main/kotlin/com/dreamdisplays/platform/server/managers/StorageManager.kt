@@ -84,6 +84,9 @@ class DisplaysTable(prefix: String = "") : Table("${prefix}displays") {
     /** Integer representing the playback mode of the display. */
     val mode = integer("mode").default(PlaybackMode.LOCAL.wire)
 
+    /** Optional, space-free alias usable anywhere a display id is accepted; unique across displays. */
+    val name = varchar("name", 32).nullable()
+
     /** Primary key for the displays table, which is the unique identifier of the display. */
     override val primaryKey = PrimaryKey(id)
 }
@@ -235,6 +238,7 @@ class StorageManager(
                 it[lang] = data.lang
                 it[isLocked] = data.isLocked
                 it[mode] = data.mode.wire
+                it[name] = data.name
             }
         }
     }
@@ -253,5 +257,6 @@ class StorageManager(
         duration = row[table.duration]
         lang = row[table.lang]
         isLocked = row[table.isLocked]
+        name = row[table.name]
     }
 }

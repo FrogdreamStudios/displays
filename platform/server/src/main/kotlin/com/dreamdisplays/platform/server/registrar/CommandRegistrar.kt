@@ -2,6 +2,7 @@ package com.dreamdisplays.platform.server.registrar
 
 import com.dreamdisplays.platform.server.PaperServer
 import com.dreamdisplays.platform.server.commands.subcommands.*
+import com.dreamdisplays.platform.server.managers.DisplayManager
 import com.dreamdisplays.platform.server.playback.FullscreenBroadcastManager
 import com.dreamdisplays.platform.server.proxy.ProxyNetwork
 import com.dreamdisplays.platform.server.registrar.CommandRegistrar.fullscreenFlagsNode
@@ -73,6 +74,7 @@ object CommandRegistrar {
         .then(simple("stats", StatsCommand()) { it.sender.hasPermission(PaperServer.config.permissions.stats) })
         .then(simple("reload", ReloadCommand()) { it.sender.hasPermission(PaperServer.config.permissions.reload) })
         .then(videoSubCommand())
+        .then(nameSubCommand())
         .then(listSubCommand())
         .then(toggleSubCommand("on", OnCommand()))
         .then(toggleSubCommand("off", OffCommand()))
@@ -163,6 +165,46 @@ object CommandRegistrar {
                 val url = parts[0]
                 val lang = if (parts.size > 1) parts.last() else ""
                 VideoCommand().execute(ctx.source.sender, arrayOf(token(ctx), url, lang))
+                Command.SINGLE_SUCCESS
+            }
+
+    /**
+     * Builds the `/display name this|<id> [name]` subcommand — see [simpleWithThis] for why both
+     * `this` and an explicit id are offered. `name` is a single space-free token
+     * ([StringArgumentType.word]) since [DisplayManager.resolveByIdOrPrefix] treats it exactly like
+     * an id afterwards, and optional.
+     */
+    private fun nameSubCommand() = Commands.literal("name")
+        .requires { it.sender is Player && it.sender.hasPermission(PaperServer.config.permissions.name) }
+        .then(
+            Commands.literal("this")
+                .executes { ctx ->
+                    NameCommand().execute(ctx.source.sender, arrayOf("this"))
+                    Command.SINGLE_SUCCESS
+                }
+                .then(nameArgument { "this" })
+        )
+        .then(
+            Commands.argument("id", PaperBareTokenArgumentType)
+                .suggests { _, b ->
+                    FullscreenBroadcastManager.displayIdSuggestions().forEach { b.suggest(it) }
+                    b.buildFuture()
+                }
+                .executes { ctx ->
+                    NameCommand().execute(ctx.source.sender, arrayOf(StringArgumentType.getString(ctx, "id")))
+                    Command.SINGLE_SUCCESS
+                }
+                .then(nameArgument { ctx -> StringArgumentType.getString(ctx, "id") })
+        )
+
+    /** The `<name>` argument under `/display name this|<id> <name>`. */
+    private fun nameArgument(token: (CommandContext<CommandSourceStack>) -> String) =
+        Commands.argument("name", StringArgumentType.word())
+            .executes { ctx ->
+                NameCommand().execute(
+                    ctx.source.sender,
+                    arrayOf(token(ctx), StringArgumentType.getString(ctx, "name"))
+                )
                 Command.SINGLE_SUCCESS
             }
 

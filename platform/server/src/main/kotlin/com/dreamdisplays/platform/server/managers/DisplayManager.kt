@@ -71,20 +71,26 @@ object DisplayManager {
     fun countOwnedBy(ownerId: UUID): Int = displays.values.count { it.ownerId == ownerId }
 
     /**
-     * Resolves [idOrPrefix] against every registered display: an exact id match first, then an
-     * unambiguous case-insensitive id prefix (>= 4 chars, same short-id shape `/display list` shows).
-     * An ambiguous prefix resolves to nothing rather than guessing. Shared by remote id-targeting
-     * (`/display info|delete|video <id>`) and [com.dreamdisplays.platform.server.playback.FullscreenBroadcastManager]'s
+     * Resolves [idOrPrefix] against every registered display: an exact id match first, then an exact
+     * case-insensitive [DisplayData.name] match (set via `/display name`), then an unambiguous
+     * case-insensitive id prefix (>= 4 chars, same short-id shape `/display list` shows). An ambiguous
+     * prefix resolves to nothing rather than guessing. Shared by remote id-targeting
+     * (`/display info|delete|video|name <id>`) and [com.dreamdisplays.platform.server.playback.FullscreenBroadcastManager]'s
      * own id-or-url resolution, so both agree on exactly what counts as "found".
      */
     fun resolveByIdOrPrefix(idOrPrefix: String): DisplayData? {
         runCatching { UUID.fromString(idOrPrefix) }.getOrNull()?.let { exact ->
             getDisplayData(exact)?.let { return it }
         }
+        displays.values.firstOrNull { it.name.equals(idOrPrefix, ignoreCase = true) }?.let { return it }
         if (idOrPrefix.length < 4) return null
         val matches = displays.values.filter { it.id.toString().startsWith(idOrPrefix, ignoreCase = true) }
         return matches.singleOrNull()
     }
+
+    /** True when another display (not [excludeId]) already carries [name], case-insensitively. */
+    fun isNameTaken(name: String, excludeId: UUID): Boolean =
+        displays.values.any { it.id != excludeId && it.name.equals(name, ignoreCase = true) }
 
     /** Bulk-registers displays loaded from storage without sending any updates. */
     fun register(list: List<DisplayData>) {

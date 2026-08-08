@@ -177,6 +177,8 @@ data class PermissionsSection(
     val fullscreenNetwork get() = permissions.fullscreen_network
     val remote get() = permissions.remote
     val custom get() = permissions.custom
+    val name get() = permissions.name
+    val nameOthers get() = permissions.name_others
 
     data class PermissionsConfig(
         val create: String = "dreamdisplays.create",
@@ -203,6 +205,8 @@ data class PermissionsSection(
         val fullscreen_network: String = "dreamdisplays.fullscreen.network",
         val remote: String = "dreamdisplays.remote",
         val custom: String = "dreamdisplays.custom",
+        val name: String = "dreamdisplays.name",
+        val name_others: String = "dreamdisplays.name.others",
     )
 }
 
