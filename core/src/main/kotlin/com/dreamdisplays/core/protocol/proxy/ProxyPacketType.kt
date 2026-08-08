@@ -27,7 +27,12 @@ enum class ProxyPacketType(
     PLAYER_READY(11, PlayerReady::class, ProxyPacketDirection.BACKEND_TO_PROXY),
     REPLAY_FOR_PLAYER(12, ReplayForPlayer::class, ProxyPacketDirection.PROXY_TO_BACKEND),
     PLAYER_TRANSFERRING(13, PlayerTransferring::class, ProxyPacketDirection.PROXY_TO_BACKEND),
-    PLAYER_LEFT_NETWORK(14, PlayerLeftNetwork::class, ProxyPacketDirection.PROXY_TO_BACKEND);
+    PLAYER_LEFT_NETWORK(14, PlayerLeftNetwork::class, ProxyPacketDirection.PROXY_TO_BACKEND),
+    START_NETWORK_WATCH_PARTY(15, StartNetworkWatchParty::class, ProxyPacketDirection.BACKEND_TO_PROXY),
+    APPLY_NETWORK_WATCH_PARTY(16, ApplyNetworkWatchParty::class, ProxyPacketDirection.PROXY_TO_BACKEND),
+    JOIN_NETWORK_WATCH_PARTY(17, JoinNetworkWatchParty::class, ProxyPacketDirection.PROXY_TO_BACKEND),
+    NETWORK_WATCH_PARTY_STATE(18, NetworkWatchPartyState::class, ProxyPacketDirection.BIDIRECTIONAL),
+    CLOSE_NETWORK_WATCH_PARTY(19, CloseNetworkWatchParty::class, ProxyPacketDirection.BIDIRECTIONAL);
 
     companion object {
         private val byId = entries.associateBy { it.id }

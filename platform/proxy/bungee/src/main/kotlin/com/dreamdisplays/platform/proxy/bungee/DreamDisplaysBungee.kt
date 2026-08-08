@@ -1,11 +1,14 @@
 package com.dreamdisplays.platform.proxy.bungee
 
+import com.dreamdisplays.core.protocol.proxy.ApplyNetworkWatchParty
 import com.dreamdisplays.core.protocol.proxy.BackendHello
 import com.dreamdisplays.core.protocol.proxy.ClockProbe
 import com.dreamdisplays.core.protocol.proxy.ClockReply
+import com.dreamdisplays.core.protocol.proxy.CloseNetworkWatchParty
 import com.dreamdisplays.core.protocol.proxy.ListNetworkSessions
 import com.dreamdisplays.core.protocol.proxy.NetworkFullscreenAck
 import com.dreamdisplays.core.protocol.proxy.NetworkSessionList
+import com.dreamdisplays.core.protocol.proxy.NetworkWatchPartyState
 import com.dreamdisplays.core.protocol.proxy.PlayerLeftNetwork
 import com.dreamdisplays.core.protocol.proxy.PlayerReady
 import com.dreamdisplays.core.protocol.proxy.PlayerTransferring
@@ -14,10 +17,12 @@ import com.dreamdisplays.core.protocol.proxy.ProxyPacketRegistry
 import com.dreamdisplays.core.protocol.proxy.ProxyWelcome
 import com.dreamdisplays.core.protocol.proxy.ReplayForPlayer
 import com.dreamdisplays.core.protocol.proxy.StartNetworkFullscreen
+import com.dreamdisplays.core.protocol.proxy.StartNetworkWatchParty
 import com.dreamdisplays.core.protocol.proxy.StopNetworkFullscreen
 import com.dreamdisplays.platform.proxy.BungeeOnly
 import com.dreamdisplays.platform.proxy.NetworkBackendRegistry
 import com.dreamdisplays.platform.proxy.NetworkFullscreenManager
+import com.dreamdisplays.platform.proxy.NetworkWatchPartyManager
 import net.md_5.bungee.api.connection.Server
 import net.md_5.bungee.api.event.PlayerDisconnectEvent
 import net.md_5.bungee.api.event.PluginMessageEvent
@@ -115,6 +120,23 @@ class DreamDisplaysBungee : Plugin(), Listener {
                 retryPendingSessions(serverName)
                 val applicable = NetworkFullscreenManager.sessionIdsApplicableTo(serverName, NetworkBackendRegistry.allServerNames())
                 sendTo(serverName, ReplayForPlayer(packet.playerId, applicable))
+            }
+
+            is StartNetworkWatchParty -> {
+                val party = NetworkWatchPartyManager.start(packet, hostServer = serverName)
+                sendTo(
+                    serverName,
+                    ApplyNetworkWatchParty(party.partyId, party.sharedDisplayId.toString(), party.hostId, party.url, party.lang),
+                )
+            }
+
+            is NetworkWatchPartyState ->
+                NetworkWatchPartyManager.relayTargets(packet.partyId).forEach { name -> sendTo(name, packet) }
+
+            is CloseNetworkWatchParty -> {
+                val targets = NetworkWatchPartyManager.relayTargets(packet.partyId)
+                NetworkWatchPartyManager.stop(packet.partyId)
+                targets.forEach { name -> sendTo(name, packet) }
             }
 
             else -> logger.fine("Unhandled proxy packet from '$serverName': $packet")

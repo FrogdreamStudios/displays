@@ -1,13 +1,20 @@
 package com.dreamdisplays.platform.server.proxy
 
 import com.dreamdisplays.api.playback.FullscreenMode
+import com.dreamdisplays.api.playback.WatchPartySessionState
+import com.dreamdisplays.core.protocol.DisplayDelete
+import com.dreamdisplays.core.protocol.WatchPartyState
 import com.dreamdisplays.core.protocol.proxy.ApplyFullscreen
+import com.dreamdisplays.core.protocol.proxy.ApplyNetworkWatchParty
 import com.dreamdisplays.core.protocol.proxy.BackendHello
 import com.dreamdisplays.core.protocol.proxy.ClockProbe
 import com.dreamdisplays.core.protocol.proxy.ClockReply
+import com.dreamdisplays.core.protocol.proxy.CloseNetworkWatchParty
+import com.dreamdisplays.core.protocol.proxy.JoinNetworkWatchParty
 import com.dreamdisplays.core.protocol.proxy.ListNetworkSessions
 import com.dreamdisplays.core.protocol.proxy.NetworkFullscreenAck
 import com.dreamdisplays.core.protocol.proxy.NetworkSessionList
+import com.dreamdisplays.core.protocol.proxy.NetworkWatchPartyState
 import com.dreamdisplays.core.protocol.proxy.PlayerLeftNetwork
 import com.dreamdisplays.core.protocol.proxy.PlayerReady
 import com.dreamdisplays.core.protocol.proxy.PlayerTransferring
@@ -17,9 +24,11 @@ import com.dreamdisplays.core.protocol.proxy.ProxyPacketRegistry
 import com.dreamdisplays.core.protocol.proxy.ProxyWelcome
 import com.dreamdisplays.core.protocol.proxy.ReplayForPlayer
 import com.dreamdisplays.core.protocol.proxy.StartNetworkFullscreen
+import com.dreamdisplays.core.protocol.proxy.StartNetworkWatchParty
 import com.dreamdisplays.core.protocol.proxy.StopNetworkFullscreen
 import com.dreamdisplays.platform.server.PaperServer
 import com.dreamdisplays.platform.server.playback.FullscreenBroadcastManager
+import com.dreamdisplays.platform.server.playback.WatchPartyManager
 import io.github.arnodoelinger.platformweaver.PaperOnly
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
@@ -57,6 +66,8 @@ object ProxyBridge : PluginMessageListener {
         this.clockSyncIntervalMs = clockSyncIntervalSeconds.coerceAtLeast(1) * 1_000L
         helloSent.set(false)
         ProxyClock.reset()
+        WatchPartyManager.onVirtualBroadcast = { displayId, snapshot -> relayWatchPartyState(displayId, snapshot) }
+        WatchPartyManager.onVirtualClosed = { partyId -> sendViaAnyPlayer(CloseNetworkWatchParty(partyId)) }
     }
 
     /**
@@ -128,6 +139,33 @@ object ProxyBridge : PluginMessageListener {
     /** Forwards `/display fullscreen stop <id>` to the proxy when [sessionId] isn't a live local session. */
     fun stopNetworkFullscreen(player: Player, sessionId: String) {
         send(player, StopNetworkFullscreen(sessionId))
+    }
+
+    /** Requests a new network-wide watch party, hosted by [player]. The proxy replies with [ApplyNetworkWatchParty]. */
+    fun startNetworkWatchParty(player: Player, url: String, lang: String) {
+        send(player, StartNetworkWatchParty(hostId = player.uniqueId.toString(), url = url, lang = lang))
+    }
+
+    /** Relays the host's own [WatchPartyState] snapshot to the proxy, translated to its epoch. */
+    private fun relayWatchPartyState(displayId: UUID, snapshot: WatchPartyState) {
+        sendViaAnyPlayer(
+            NetworkWatchPartyState(
+                partyId = snapshot.sessionId,
+                sharedDisplayId = displayId.toString(),
+                state = snapshot.state,
+                hostId = snapshot.hostId.toString(),
+                hostName = snapshot.hostName,
+                url = snapshot.url,
+                lang = snapshot.lang,
+                readyCount = snapshot.readyCount,
+                nearbyCount = snapshot.nearbyCount,
+                countdownStartEpochMs = ProxyClock.toProxy(snapshot.countdownStartEpochMs),
+                positionMs = snapshot.positionMs,
+                serverTimeMs = ProxyClock.toProxy(snapshot.serverTimeMs),
+                durationMs = snapshot.durationMs,
+                paused = snapshot.paused,
+            ),
+        )
     }
 
     /** Requests a fresh [NetworkSessionList], refreshing [ProxyNetwork.networkSessions] for the next `/display fullscreen list`. */
@@ -209,6 +247,69 @@ object ProxyBridge : PluginMessageListener {
             is PlayerLeftNetwork -> {
                 val uuid = runCatching { UUID.fromString(packet.playerId) }.getOrNull() ?: return
                 TransferTracker.clear(uuid)
+            }
+
+            is ApplyNetworkWatchParty -> {
+                val displayId = runCatching { UUID.fromString(packet.sharedDisplayId) }.getOrNull() ?: return
+                val hostId = runCatching { UUID.fromString(packet.hostId) }.getOrNull() ?: return
+                if (!WatchPartyManager.startVirtual(displayId, hostId, packet.url, packet.lang)) {
+                    logger.warn("Could not start network watch party '{}' (no world loaded yet, or already live?)", packet.partyId)
+                }
+            }
+
+            is JoinNetworkWatchParty -> {
+                val displayId = runCatching { UUID.fromString(packet.sharedDisplayId) }.getOrNull() ?: return
+                val playerId = runCatching { UUID.fromString(packet.playerId) }.getOrNull() ?: return
+                val hostId = runCatching { UUID.fromString(packet.hostId) }.getOrNull() ?: return
+                if (WatchPartyManager.isVirtual(displayId)) {
+                    WatchPartyManager.addMember(displayId, playerId)
+                } else {
+                    val display = NetworkWatchPartyRelay.display(packet.partyId)
+                        ?: WatchPartyManager.createFollowerDisplay(displayId, hostId)?.also {
+                            NetworkWatchPartyRelay.registerDisplay(packet.partyId, it)
+                        }
+                    NetworkWatchPartyRelay.addMember(packet.partyId, playerId)
+                    if (display != null && playerId in Bukkit.getOnlinePlayers().map { it.uniqueId }) {
+                        WatchPartyManager.sendFollowerDisplayInfo(display, playerId)
+                    }
+                }
+            }
+
+            is NetworkWatchPartyState -> {
+                val displayId = runCatching { UUID.fromString(packet.sharedDisplayId) }.getOrNull() ?: return
+                val hostId = runCatching { UUID.fromString(packet.hostId) }.getOrNull() ?: return
+                val wire = WatchPartyState(
+                    id = displayId,
+                    sessionId = packet.partyId,
+                    state = packet.state,
+                    hostId = hostId,
+                    hostName = packet.hostName,
+                    url = packet.url,
+                    lang = packet.lang,
+                    readyCount = packet.readyCount,
+                    nearbyCount = packet.nearbyCount,
+                    countdownStartEpochMs = ProxyClock.toLocal(packet.countdownStartEpochMs),
+                    positionMs = packet.positionMs,
+                    serverTimeMs = ProxyClock.toLocal(packet.serverTimeMs),
+                    durationMs = packet.durationMs,
+                    paused = packet.paused,
+                )
+                NetworkWatchPartyRelay.localMembers(packet.partyId).forEach { memberId ->
+                    WatchPartyManager.sendToMember(memberId, wire)
+                }
+            }
+
+            is CloseNetworkWatchParty -> {
+                if (!WatchPartyManager.closeVirtual(packet.partyId)) {
+                    val (display, members) = NetworkWatchPartyRelay.remove(packet.partyId) ?: return
+                    val closing = WatchPartyState(
+                        id = display.id, sessionId = "", state = WatchPartySessionState.ENDED.wire,
+                    )
+                    members.forEach { memberId ->
+                        WatchPartyManager.sendToMember(memberId, closing)
+                        WatchPartyManager.sendToMember(memberId, DisplayDelete(display.id))
+                    }
+                }
             }
 
             else -> logger.debug("Ignoring non-backend-bound proxy packet {}.", packet::class.simpleName)

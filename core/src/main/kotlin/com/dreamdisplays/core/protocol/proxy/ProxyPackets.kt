@@ -179,3 +179,86 @@ data class PlayerLeftNetwork(
     @ProtoNumber(1) val playerId: String = "",
     @ProtoNumber(2) val server: String = "",
 ) : ProxyPacket
+
+/**
+ * Backend -> proxy: the host's backend requests a network-wide watch party. The proxy mints
+ * [ApplyNetworkWatchParty.partyId] / [ApplyNetworkWatchParty.sharedDisplayId] and replies only to
+ * this same backend — starting a network party is host-only, unlike network fullscreen's fan-out.
+ */
+@Serializable
+data class StartNetworkWatchParty(
+    @ProtoNumber(1) val hostId: String = "",
+    @ProtoNumber(2) val url: String = "",
+    @ProtoNumber(3) val lang: String = "",
+) : ProxyPacket
+
+/**
+ * Proxy -> backend: answers [StartNetworkWatchParty], sent only to the requesting (host) backend.
+ * That backend creates a virtual display for [sharedDisplayId] and starts a `virtual`
+ * [com.dreamdisplays.platform.server.playback.WatchPartyManager] session on it - the single
+ * authoritative copy of the party's state; every other backend only ever relays what this one says.
+ */
+@Serializable
+data class ApplyNetworkWatchParty(
+    @ProtoNumber(1) val partyId: String = "",
+    @ProtoNumber(2) val sharedDisplayId: String = "",
+    @ProtoNumber(3) val hostId: String = "",
+    @ProtoNumber(4) val url: String = "",
+    @ProtoNumber(5) val lang: String = "",
+) : ProxyPacket
+
+/**
+ * Proxy -> backend: registers [playerId] as a member of network party [partyId] on this backend.
+ * Sent to the host's own backend for non-host local members, and to any other backend hosting a
+ * member (including one who transferred there). The host's backend adds the member to its
+ * authoritative session ([com.dreamdisplays.platform.server.playback.WatchPartyManager.addMember]);
+ * every other backend just needs to know [sharedDisplayId] exists here and who to relay state to
+ * ([com.dreamdisplays.platform.server.proxy.NetworkWatchPartyRelay]).
+ */
+@Serializable
+data class JoinNetworkWatchParty(
+    @ProtoNumber(1) val partyId: String = "",
+    @ProtoNumber(2) val sharedDisplayId: String = "",
+    @ProtoNumber(3) val playerId: String = "",
+    @ProtoNumber(4) val hostId: String = "",
+    @ProtoNumber(5) val url: String = "",
+    @ProtoNumber(6) val lang: String = "",
+) : ProxyPacket
+
+/**
+ * Bidirectional: the host's backend reports its `virtual` session's state (backend -> proxy, with
+ * every timestamp already translated to the proxy's epoch via
+ * [com.dreamdisplays.platform.server.proxy.ProxyClock.toProxy]), and the proxy relays that same
+ * shape verbatim to every other backend hosting a member (proxy -> backend), each of which
+ * translates back to its own local clock via
+ * [com.dreamdisplays.platform.server.proxy.ProxyClock.toLocal] before forwarding to its members.
+ * Field shape mirrors [com.dreamdisplays.core.protocol.WatchPartyState] (the client-facing packet)
+ * one-for-one so translation at either end is a straight field copy.
+ */
+@Serializable
+data class NetworkWatchPartyState(
+    @ProtoNumber(1) val partyId: String = "",
+    @ProtoNumber(2) val sharedDisplayId: String = "",
+    @ProtoNumber(3) val state: Int = 0,
+    @ProtoNumber(4) val hostId: String = "",
+    @ProtoNumber(5) val hostName: String = "",
+    @ProtoNumber(6) val url: String = "",
+    @ProtoNumber(7) val lang: String = "",
+    @ProtoNumber(8) val readyCount: Int = 0,
+    @ProtoNumber(9) val nearbyCount: Int = 0,
+    @ProtoNumber(10) val countdownStartEpochMs: Long = 0,
+    @ProtoNumber(11) val positionMs: Long = 0,
+    @ProtoNumber(12) val serverTimeMs: Long = 0,
+    @ProtoNumber(13) val durationMs: Long = 0,
+    @ProtoNumber(14) val paused: Boolean = true,
+) : ProxyPacket
+
+/**
+ * Bidirectional: tears a network watch party down everywhere - a backend requests it (host closed
+ * the party locally), or the proxy fans it back out to every backend with members, same as
+ * [StopNetworkFullscreen].
+ */
+@Serializable
+data class CloseNetworkWatchParty(
+    @ProtoNumber(1) val partyId: String = "",
+) : ProxyPacket

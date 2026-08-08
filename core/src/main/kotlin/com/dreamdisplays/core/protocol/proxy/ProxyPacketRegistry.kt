@@ -60,6 +60,11 @@ object ProxyPacketRegistry {
         Entry(ProxyPacketType.REPLAY_FOR_PLAYER, ReplayForPlayer::class, ReplayForPlayer.serializer()),
         Entry(ProxyPacketType.PLAYER_TRANSFERRING, PlayerTransferring::class, PlayerTransferring.serializer()),
         Entry(ProxyPacketType.PLAYER_LEFT_NETWORK, PlayerLeftNetwork::class, PlayerLeftNetwork.serializer()),
+        Entry(ProxyPacketType.START_NETWORK_WATCH_PARTY, StartNetworkWatchParty::class, StartNetworkWatchParty.serializer()),
+        Entry(ProxyPacketType.APPLY_NETWORK_WATCH_PARTY, ApplyNetworkWatchParty::class, ApplyNetworkWatchParty.serializer()),
+        Entry(ProxyPacketType.JOIN_NETWORK_WATCH_PARTY, JoinNetworkWatchParty::class, JoinNetworkWatchParty.serializer()),
+        Entry(ProxyPacketType.NETWORK_WATCH_PARTY_STATE, NetworkWatchPartyState::class, NetworkWatchPartyState.serializer()),
+        Entry(ProxyPacketType.CLOSE_NETWORK_WATCH_PARTY, CloseNetworkWatchParty::class, CloseNetworkWatchParty.serializer()),
     )
 
     private val byId = entries.associateBy { it.id }

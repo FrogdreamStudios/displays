@@ -40,6 +40,9 @@ object ProxyClock {
     /** Translates a proxy-epoch timestamp (e.g. a network broadcast's anchor) to this backend's local clock. */
     fun toLocal(proxyMs: Long): Long = proxyMs - offsetMs.get()
 
+    /** Translates one of this backend's own local timestamps into the proxy's epoch, for outbound reports. */
+    fun toProxy(localMs: Long): Long = localMs + offsetMs.get()
+
     /** This backend's best current estimate of the proxy's wall clock. */
     fun proxyNow(): Long = System.currentTimeMillis() + offsetMs.get()
 
