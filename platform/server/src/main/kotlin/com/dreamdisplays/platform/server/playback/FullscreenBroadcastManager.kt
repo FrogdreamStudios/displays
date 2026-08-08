@@ -139,6 +139,18 @@ object FullscreenBroadcastManager {
                 Regex("""^[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?)+(?:[/?#].*)?$""")
                     .matches(value.trim())
 
+    /**
+     * Answers a client's `RequestSync` for [displayId] when a live session owns it, including a
+     * `virtual` one — those displays exist only inside this manager, so [DisplayManager] can't answer
+     * for them at all. Returns false when no session owns [displayId] and the caller should fall
+     * through to the display's own timeline.
+     */
+    fun sendCurrentTo(displayId: UUID, playerId: UUID): Boolean {
+        val session = sessions.values.firstOrNull { it.display.id == displayId } ?: return false
+        sendTimeline(session, playerId, transport.nowMs())
+        return true
+    }
+
     /** Display id short-id suggestions (the same 8-char prefix `/display list` shows) for the `target` argument. */
     fun displayIdSuggestions(): List<String> = DisplayManager.getDisplays().map { it.id.toString().take(8) }
 

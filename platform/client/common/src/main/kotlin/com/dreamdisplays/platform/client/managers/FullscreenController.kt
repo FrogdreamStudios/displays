@@ -5,9 +5,11 @@ import com.dreamdisplays.api.playback.FullscreenAckAction
 import com.dreamdisplays.api.playback.FullscreenMode
 import com.dreamdisplays.core.protocol.FullscreenAck
 import com.dreamdisplays.core.protocol.FullscreenState
+import com.dreamdisplays.core.protocol.RequestSync
 import com.dreamdisplays.platform.client.displays.DisplayRegistry
 import com.dreamdisplays.platform.client.displays.DisplayScreen
 import com.dreamdisplays.platform.client.net.ProtocolRouter
+import net.minecraft.client.Minecraft
 import org.slf4j.LoggerFactory
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -24,7 +26,8 @@ object FullscreenController {
     /** How long a state waits for its display to load before being given up on. */
     private const val PENDING_TIMEOUT_MS = 5_000L
 
-    private data class Pending(val state: FullscreenState, val expiresAtMs: Long)
+    /** [deadlineMs] of 0 means the give-up clock hasn't started — see [onClientTick]. */
+    private class Pending(val state: FullscreenState, var deadlineMs: Long = 0L)
 
     /** States whose display hasn't loaded yet, keyed by display id. */
     private val pending = ConcurrentHashMap<UUID, Pending>()
@@ -37,29 +40,54 @@ object FullscreenController {
             return
         }
         val screen = DisplayRegistry.screens[state.displayId]
-        if (screen == null) {
-            pending[state.displayId] = Pending(state, System.currentTimeMillis() + PENDING_TIMEOUT_MS)
+        if (screen == null || !isClientReady()) {
+            pending[state.displayId] = Pending(state)
             return
         }
         apply(screen, state)
     }
 
-    /** Retries pending states whose display has since loaded, and gives up on ones that timed out. Called once per client tick. */
+    /**
+     * Retries pending states whose display has since loaded, and gives up on ones that timed out.
+     * Called once per client tick.
+     *
+     * The give-up clock only runs while the client could actually have shown the overlay: right
+     * after a proxy server switch the terrain load alone can outlast [PENDING_TIMEOUT_MS], and
+     * expiring during it would drop a perfectly live broadcast on the floor.
+     */
     fun onClientTick() {
         if (pending.isEmpty()) return
+        val ready = isClientReady()
         val now = System.currentTimeMillis()
-        val due = pending.entries
-            .filter { (id, p) -> DisplayRegistry.screens.containsKey(id) || p.expiresAtMs < now }
-            .map { it.key }
-        for (displayId in due) {
-            val entry = pending.remove(displayId) ?: continue
+        for ((displayId, entry) in pending.entries.toList()) {
             val screen = DisplayRegistry.screens[displayId]
-            if (screen == null) {
-                logger.debug("Dropping fullscreen state for {}: display never loaded.", displayId)
+            if (ready && screen != null) {
+                pending.remove(displayId)
+                apply(screen, entry.state)
                 continue
             }
-            apply(screen, entry.state)
+            if (!ready) {
+                entry.deadlineMs = 0L
+            } else if (entry.deadlineMs == 0L) {
+                entry.deadlineMs = now + PENDING_TIMEOUT_MS
+            } else if (entry.deadlineMs < now) {
+                pending.remove(displayId)
+                logger.debug("Dropping fullscreen state for {}: display never loaded.", displayId)
+            }
         }
+    }
+
+    /**
+     * Whether the world around the viewer is actually up. A fullscreen delivery that lands
+     * mid-terrain-load would start playing before the server's position could be applied, showing a
+     * few seconds of the wrong part of the video before snapping — so nothing is shown at all until
+     * the chunk the player stands in exists.
+     */
+    private fun isClientReady(): Boolean {
+        val mc = Minecraft.getInstance()
+        val player = mc.player ?: return false
+        val level = mc.level ?: return false
+        return level.isLoaded(player.blockPosition())
     }
 
     /**
@@ -68,6 +96,7 @@ object FullscreenController {
      * takes over the same live player rather than starting a second one.
      */
     private fun apply(screen: DisplayScreen, state: FullscreenState) {
+        ProtocolRouter.send(RequestSync(state.displayId))
         screen.activateFullscreenMode(FullscreenMode.fromWire(state.mode), state.forced, state.sessionId, state.loop)
         if (state.volume >= 0f) screen.volume = state.volume.coerceIn(0f, 1f)
         if (state.quality.isNotEmpty()) screen.quality = VideoQuality.parse(state.quality)
