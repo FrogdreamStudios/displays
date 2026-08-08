@@ -4,6 +4,7 @@ import com.dreamdisplays.platform.server.PermissionsSection
 import com.dreamdisplays.platform.server.VanillaServerState
 import com.dreamdisplays.platform.server.commands.subcommands.*
 import com.dreamdisplays.platform.server.playback.FullscreenBroadcastManager
+import com.dreamdisplays.platform.server.proxy.ProxyNetwork
 import com.dreamdisplays.platform.server.registrar.VanillaCommandTree.fullscreenFlagsNode
 import com.dreamdisplays.platform.server.utils.MessageUtil
 import com.dreamdisplays.platform.server.utils.VanillaPermissions
@@ -69,20 +70,52 @@ object VanillaCommandTree {
             VanillaCreateCommand.execute(ctx)
         }
 
-    /** Builds the `/display delete` subcommand. */
+    /**
+     * Builds the `/display delete this|<id>` subcommand. `this` (raycast, exactly what the command
+     * already always did) is mandatory when nothing more specific is given — the same explicit
+     * spelling of the looked-at target is required across every display-targeting command, matching
+     * `fullscreen start id this`. An explicit id / unambiguous id prefix is also accepted, gated
+     * behind [PermissionsSection.remote] since it lets you act on a display anywhere on the server.
+     */
     private fun deleteNode() = Commands.literal("delete")
-        .executes { ctx ->
-            VanillaDeleteCommand.execute(ctx)
-            Command.SINGLE_SUCCESS
-        }
+        .then(
+            Commands.literal("this").executes { ctx ->
+                VanillaDeleteCommand.execute(ctx, "this")
+                Command.SINGLE_SUCCESS
+            }
+        )
+        .then(
+            Commands.argument("id", BareTokenArgumentType)
+                .suggests { _, b ->
+                    FullscreenBroadcastManager.displayIdSuggestions().forEach { b.suggest(it) }
+                    b.buildFuture()
+                }
+                .executes { ctx ->
+                    VanillaDeleteCommand.execute(ctx, StringArgumentType.getString(ctx, "id"))
+                    Command.SINGLE_SUCCESS
+                }
+        )
 
-    /** Builds the `/display info` subcommand. */
+    /** Builds the `/display info this|<id>` subcommand — see [deleteNode] for `this` / id semantics. */
     private fun infoNode() = Commands.literal("info")
         .requires { requiresNode(it, { p -> p.info }, VanillaPermissions.Fallback.EVERYONE) }
-        .executes { ctx ->
-            VanillaInfoCommand.execute(ctx)
-            Command.SINGLE_SUCCESS
-        }
+        .then(
+            Commands.literal("this").executes { ctx ->
+                VanillaInfoCommand.execute(ctx, "this")
+                Command.SINGLE_SUCCESS
+            }
+        )
+        .then(
+            Commands.argument("id", BareTokenArgumentType)
+                .suggests { _, b ->
+                    FullscreenBroadcastManager.displayIdSuggestions().forEach { b.suggest(it) }
+                    b.buildFuture()
+                }
+                .executes { ctx ->
+                    VanillaInfoCommand.execute(ctx, StringArgumentType.getString(ctx, "id"))
+                    Command.SINGLE_SUCCESS
+                }
+        )
 
     /** Builds the `/display stats` subcommand. */
     private fun statsNode() = Commands.literal("stats")
@@ -100,26 +133,36 @@ object VanillaCommandTree {
             Command.SINGLE_SUCCESS
         }
 
-    /** Builds the `/display video <url> [lang]` subcommand. */
+    /** Builds the `/display video this|<id> <url> [lang]` subcommand — see [deleteNode] for `this`/id semantics. */
     private fun videoNode() = Commands.literal("video")
         .requires { requiresNode(it, { p -> p.video }, VanillaPermissions.Fallback.EVERYONE) }
+        .then(Commands.literal("this").then(videoUrlArgument { "this" }))
         .then(
-            Commands.argument("url_and_lang", StringArgumentType.greedyString())
-                .suggests { _, builder ->
-                    if (builder.remaining.contains(' ')) {
-                        val prefix = builder.remaining.substringAfterLast(' ')
-                        getLanguageSuggestions()
-                            .filter { it.startsWith(prefix, ignoreCase = true) }
-                            .forEach { builder.suggest(builder.remaining.substringBeforeLast(' ') + " " + it) }
-                    }
-                    builder.buildFuture()
+            Commands.argument("id", BareTokenArgumentType)
+                .suggests { _, b ->
+                    FullscreenBroadcastManager.displayIdSuggestions().forEach { b.suggest(it) }
+                    b.buildFuture()
                 }
-                .executes { ctx ->
-                    val urlAndLang = StringArgumentType.getString(ctx, "url_and_lang")
-                    VanillaVideoCommand.execute(ctx, urlAndLang)
-                    Command.SINGLE_SUCCESS
-                }
+                .then(videoUrlArgument { ctx -> StringArgumentType.getString(ctx, "id") })
         )
+
+    /** The `<url> [lang]` greedy argument under `video this|<id> <url> [lang]`. */
+    private fun videoUrlArgument(token: (CommandContext<CommandSourceStack>) -> String) =
+        Commands.argument("url_and_lang", StringArgumentType.greedyString())
+            .suggests { _, builder ->
+                if (builder.remaining.contains(' ')) {
+                    val prefix = builder.remaining.substringAfterLast(' ')
+                    getLanguageSuggestions()
+                        .filter { it.startsWith(prefix, ignoreCase = true) }
+                        .forEach { builder.suggest(builder.remaining.substringBeforeLast(' ') + " " + it) }
+                }
+                builder.buildFuture()
+            }
+            .executes { ctx ->
+                val urlAndLang = StringArgumentType.getString(ctx, "url_and_lang")
+                VanillaVideoCommand.execute(ctx, token(ctx), urlAndLang)
+                Command.SINGLE_SUCCESS
+            }
 
     /** Builds the `/display list [filter] [value] [page]` subcommand. */
     private fun listNode(): LiteralArgumentBuilder<CommandSourceStack> {
@@ -229,17 +272,23 @@ object VanillaCommandTree {
     ) = Commands.literal(literalName).then(
         Commands.argument("id", BareTokenArgumentType)
             .suggests { _, builder ->
-                if (literalName == "id") FullscreenBroadcastManager.displayIdSuggestions()
-                    .forEach { builder.suggest(it) }
+                if (literalName == "id") {
+                    builder.suggest("this")
+                    FullscreenBroadcastManager.displayIdSuggestions().forEach { builder.suggest(it) }
+                }
                 builder.buildFuture()
             }
             .executes { ctx -> runFullscreenStart(ctx) }
             .also { idArg -> flags.forEach { idArg.then(it) } }
     )
 
-    /** The fullscreen-start flags, in the one order they may be given in. */
+    /**
+     * The fullscreen-start flags, in the one order they may be given in. `server` comes first: it
+     * picks the broadest scope (which backend, or the whole network) before `target` / `radius`
+     * narrow who within that scope actually sees it.
+     */
     private val FULLSCREEN_FLAGS =
-        listOf("target", "radius", "mode", "forced", "transient", "volume", "looped", "quality")
+        listOf("server", "target", "radius", "mode", "forced", "transient", "volume", "looped", "quality")
 
     /**
      * All fullscreen-start flags, any subset of them accepted but only in [FULLSCREEN_FLAGS] order:
@@ -269,6 +318,21 @@ object VanillaCommandTree {
         children: List<CommandNode<CommandSourceStack>>
     ): CommandNode<CommandSourceStack> =
         when (name) {
+            "server" -> Commands.literal("server")
+                .requires { requiresNode(it, { p -> p.fullscreenNetwork }, VanillaPermissions.Fallback.OP) }
+                .then(
+                    terminate(
+                        Commands.argument("name", StringArgumentType.word())
+                            .suggests { _, builder ->
+                                (ProxyNetwork.serverNames() + "global")
+                                    .filter { it.startsWith(builder.remaining, ignoreCase = true) }
+                                    .forEach { builder.suggest(it) }
+                                builder.buildFuture()
+                            },
+                        children,
+                    )
+                ).build()
+
             "target" -> Commands.literal("target").then(
                 terminate(
                     Commands.argument("players", BareTokenArgumentType)
@@ -331,6 +395,7 @@ object VanillaCommandTree {
         return VanillaFullscreenCommand.start(
             ctx,
             id = StringArgumentType.getString(ctx, "id"),
+            serverScope = tryArg(ctx, "name", String::class.java),
             players = tryArg(ctx, "players", String::class.java),
             radiusBlocks = tryArg(ctx, "blocks", java.lang.Double::class.java)?.toDouble(),
             radiusX = tryArg(ctx, "x", java.lang.Double::class.java)?.toDouble(),

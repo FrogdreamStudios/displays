@@ -3,6 +3,7 @@ package com.dreamdisplays.platform.server.registrar
 import com.dreamdisplays.platform.server.PaperServer
 import com.dreamdisplays.platform.server.commands.subcommands.*
 import com.dreamdisplays.platform.server.playback.FullscreenBroadcastManager
+import com.dreamdisplays.platform.server.proxy.ProxyNetwork
 import com.dreamdisplays.platform.server.registrar.CommandRegistrar.fullscreenFlagsNode
 import com.dreamdisplays.platform.server.utils.MessageUtil
 import com.mojang.brigadier.Command
@@ -39,8 +40,13 @@ object CommandRegistrar {
     /** Selector tokens suggested for the fullscreen `target` argument, alongside online player names. */
     private val TARGET_SELECTORS = listOf("@a", "@p", "@r", "@s", "@e")
 
-    /** The fullscreen-start flags, in the one order they may be given in. */
-    private val FULLSCREEN_FLAGS = listOf("target", "radius", "mode", "forced", "transient", "volume", "looped", "quality")
+    /**
+     * The fullscreen-start flags, in the one order they may be given in. `server` comes first: it
+     * picks the broadest scope (which backend, or the whole network) before `target`/`radius`
+     * narrow who within that scope actually sees it.
+     */
+    private val FULLSCREEN_FLAGS =
+        listOf("server", "target", "radius", "mode", "forced", "transient", "volume", "looped", "quality")
 
     /** Builds the full `Brigadier` tree for the `/display` command with all subcommands. */
     fun buildDisplayCommand(): LiteralCommandNode<CommandSourceStack> = Commands.literal("display")
@@ -55,12 +61,12 @@ object CommandRegistrar {
                 CreateCommand()
             ) { it.sender is Player && it.sender.hasPermission(PaperServer.config.permissions.create) })
         .then(
-            simple(
+            simpleWithThis(
                 "delete",
                 DeleteCommand()
             ) { it.sender is Player })
         .then(
-            simple(
+            simpleWithThis(
                 "info",
                 InfoCommand()
             ) { it.sender is Player && it.sender.hasPermission(PaperServer.config.permissions.info) })
@@ -87,31 +93,78 @@ object CommandRegistrar {
         }
     }
 
-    /** Builds the `/display video <url> [lang]` subcommand with greedy argument and language suggestions. */
-    private fun videoSubCommand() = Commands.literal("video")
-        .requires { it.sender is Player && it.sender.hasPermission(PaperServer.config.permissions.video) }
-        .then(
-            // greedyString captures the rest of the input (URL + optional lang separated by space)
-            Commands.argument("url_and_lang", StringArgumentType.greedyString())
-                .suggests { _, builder ->
-                    // Only suggest lang codes when the input looks like "url lang_prefix"
-                    if (builder.remaining.contains(' ')) {
-                        val prefix = builder.remaining.substringAfterLast(' ')
-                        VideoCommand.languageSuggestions
-                            .filter { it.startsWith(prefix, ignoreCase = true) }
-                            .forEach { builder.suggest(builder.remaining.substringBeforeLast(' ') + " " + it) }
-                    }
-                    builder.buildFuture()
-                }
-                .executes { ctx ->
-                    val raw = StringArgumentType.getString(ctx, "url_and_lang").trim()
-                    val parts = raw.split(" ")
-                    val url = parts[0]
-                    val lang = if (parts.size > 1) parts.last() else ""
-                    VideoCommand().execute(ctx.source.sender, arrayOf("video", url, lang))
+    /**
+     * Same as [simple], but only reachable as `/display <name> this` (raycast, exactly what [cmd]
+     * always did) or `/display <name> <id>` (an id / unambiguous id prefix, gated behind
+     * [com.dreamdisplays.platform.server.PermissionsSection.remote] since it lets you act on a
+     * display anywhere on the server, not just one you're standing in front of). `this` is a literal
+     * so it's tried first; anything else falls into the `id` argument.
+     */
+    private fun simpleWithThis(
+        name: String,
+        cmd: SubCommand,
+        check: ((CommandSourceStack) -> Boolean)? = null,
+    ): LiteralArgumentBuilder<CommandSourceStack> {
+        var builder = Commands.literal(name)
+        if (check != null) builder = builder.requires(check)
+        return builder
+            .then(
+                Commands.literal("this").executes { ctx ->
+                    cmd.execute(ctx.source.sender, arrayOf("this"))
                     Command.SINGLE_SUCCESS
                 }
+            )
+            .then(
+                Commands.argument("id", PaperBareTokenArgumentType)
+                    .suggests { _, b ->
+                        FullscreenBroadcastManager.displayIdSuggestions().forEach { b.suggest(it) }
+                        b.buildFuture()
+                    }
+                    .executes { ctx ->
+                        cmd.execute(ctx.source.sender, arrayOf(StringArgumentType.getString(ctx, "id")))
+                        Command.SINGLE_SUCCESS
+                    }
+            )
+    }
+
+    /**
+     * Builds the `/display video this|<id> <url> [lang]` subcommand — see [simpleWithThis] for why
+     * both `this` and an explicit id are offered.
+     */
+    private fun videoSubCommand() = Commands.literal("video")
+        .requires { it.sender is Player && it.sender.hasPermission(PaperServer.config.permissions.video) }
+        .then(Commands.literal("this").then(videoUrlArgument { "this" }))
+        .then(
+            Commands.argument("id", PaperBareTokenArgumentType)
+                .suggests { _, b ->
+                    FullscreenBroadcastManager.displayIdSuggestions().forEach { b.suggest(it) }
+                    b.buildFuture()
+                }
+                .then(videoUrlArgument { ctx -> StringArgumentType.getString(ctx, "id") })
         )
+
+    /** The `<url> [lang]` greedy argument under `/display video this|<id> <url> [lang]`. */
+    private fun videoUrlArgument(token: (CommandContext<CommandSourceStack>) -> String) =
+        // greedyString captures the rest of the input (URL + optional lang separated by space)
+        Commands.argument("url_and_lang", StringArgumentType.greedyString())
+            .suggests { _, builder ->
+                // Only suggest lang codes when the input looks like "url lang_prefix"
+                if (builder.remaining.contains(' ')) {
+                    val prefix = builder.remaining.substringAfterLast(' ')
+                    VideoCommand.languageSuggestions
+                        .filter { it.startsWith(prefix, ignoreCase = true) }
+                        .forEach { builder.suggest(builder.remaining.substringBeforeLast(' ') + " " + it) }
+                }
+                builder.buildFuture()
+            }
+            .executes { ctx ->
+                val raw = StringArgumentType.getString(ctx, "url_and_lang").trim()
+                val parts = raw.split(" ")
+                val url = parts[0]
+                val lang = if (parts.size > 1) parts.last() else ""
+                VideoCommand().execute(ctx.source.sender, arrayOf(token(ctx), url, lang))
+                Command.SINGLE_SUCCESS
+            }
 
     /** Builds an on / off toggle subcommand that optionally targets another player. */
     private fun toggleSubCommand(name: String, cmd: SubCommand) = Commands.literal(name)
@@ -196,8 +249,10 @@ object CommandRegistrar {
     ) = Commands.literal(literalName).then(
         Commands.argument("id", PaperBareTokenArgumentType)
             .suggests { _, builder ->
-                if (literalName == "id") FullscreenBroadcastManager.displayIdSuggestions()
-                    .forEach { builder.suggest(it) }
+                if (literalName == "id") {
+                    builder.suggest("this")
+                    FullscreenBroadcastManager.displayIdSuggestions().forEach { builder.suggest(it) }
+                }
                 builder.buildFuture()
             }
             .executes { ctx -> runFullscreenStart(ctx); Command.SINGLE_SUCCESS }
@@ -253,6 +308,21 @@ object CommandRegistrar {
         children: List<CommandNode<CommandSourceStack>>
     ): CommandNode<CommandSourceStack> =
         when (name) {
+            "server" -> Commands.literal("server")
+                .requires { it.sender.hasPermission(PaperServer.config.permissions.fullscreenNetwork) }
+                .then(
+                    terminate(
+                        Commands.argument("name", StringArgumentType.word())
+                            .suggests { _, builder ->
+                                (ProxyNetwork.serverNames() + "global")
+                                    .filter { it.startsWith(builder.remaining, ignoreCase = true) }
+                                    .forEach { builder.suggest(it) }
+                                builder.buildFuture()
+                            },
+                        children,
+                    )
+                ).build()
+
             "target" -> Commands.literal("target").then(
                 terminate(
                     Commands.argument("players", PaperBareTokenArgumentType)
@@ -315,6 +385,7 @@ object CommandRegistrar {
         PaperFullscreenCommand.start(
             ctx.source.sender,
             id = StringArgumentType.getString(ctx, "id"),
+            serverScope = tryArg(ctx, "name", String::class.java),
             players = tryArg(ctx, "players", String::class.java),
             radiusBlocks = tryArg(ctx, "blocks", java.lang.Double::class.java)?.toDouble(),
             radiusX = tryArg(ctx, "x", java.lang.Double::class.java)?.toDouble(),

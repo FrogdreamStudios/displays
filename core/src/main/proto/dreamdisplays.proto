@@ -282,6 +282,8 @@ message FullscreenState {
   optional bool loop = 8;
   // WARNING: a default value decoded when value is missing
   optional string quality = 9;
+  // WARNING: a default value decoded when value is missing
+  optional bool minimized = 10;
 }
 
 // serial name 'com.dreamdisplays.core.protocol.FullscreenAck'

@@ -70,6 +70,22 @@ object DisplayManager {
     /** Number of displays currently owned by [ownerId], across every registered display. */
     fun countOwnedBy(ownerId: UUID): Int = displays.values.count { it.ownerId == ownerId }
 
+    /**
+     * Resolves [idOrPrefix] against every registered display: an exact id match first, then an
+     * unambiguous case-insensitive id prefix (>= 4 chars, same short-id shape `/display list` shows).
+     * An ambiguous prefix resolves to nothing rather than guessing. Shared by remote id-targeting
+     * (`/display info|delete|video <id>`) and [com.dreamdisplays.platform.server.playback.FullscreenBroadcastManager]'s
+     * own id-or-url resolution, so both agree on exactly what counts as "found".
+     */
+    fun resolveByIdOrPrefix(idOrPrefix: String): DisplayData? {
+        runCatching { UUID.fromString(idOrPrefix) }.getOrNull()?.let { exact ->
+            getDisplayData(exact)?.let { return it }
+        }
+        if (idOrPrefix.length < 4) return null
+        val matches = displays.values.filter { it.id.toString().startsWith(idOrPrefix, ignoreCase = true) }
+        return matches.singleOrNull()
+    }
+
     /** Bulk-registers displays loaded from storage without sending any updates. */
     fun register(list: List<DisplayData>) {
         list.forEach { displays[it.id] = it }
