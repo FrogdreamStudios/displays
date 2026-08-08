@@ -10,6 +10,7 @@ import com.dreamdisplays.platform.server.playback.FullscreenRadiusTarget
 import com.dreamdisplays.platform.server.playback.FullscreenSessionInfo
 import com.dreamdisplays.platform.server.proxy.ProxyBridge
 import com.dreamdisplays.platform.server.proxy.ProxyNetwork
+import com.dreamdisplays.platform.server.proxy.VanillaProxyBridge
 import com.dreamdisplays.platform.server.utils.MessageUtil
 import com.dreamdisplays.platform.server.utils.RegionUtil
 import com.dreamdisplays.platform.server.utils.VanillaPermissions
@@ -331,9 +332,39 @@ object VanillaFullscreenCommand {
     ): Int {
         val player = ctx.source.entity as? ServerPlayer ?: return 0
         if (serverScope != null) {
-            val key = if (ProxyNetwork.isConnected()) "fullscreenNetworkNotYetSupported" else "fullscreenNetworkNoProxy"
-            MessageUtil.sendMessage(player, key)
-            return 0
+            if (!ProxyNetwork.isConnected()) {
+                MessageUtil.sendMessage(player, "fullscreenNetworkNoProxy")
+                return 0
+            }
+            val fullscreenMode = mode?.let { m -> runCatching { FullscreenMode.valueOf(m.uppercase()) }.getOrNull() }
+            val resolvedUrl = FullscreenBroadcastManager.resolveNetworkFullscreenUrl(id)
+            if (resolvedUrl != null) {
+                VanillaProxyBridge.startNetworkFullscreen(
+                    player = player,
+                    scope = serverScope,
+                    url = resolvedUrl,
+                    mode = fullscreenMode,
+                    forced = forced,
+                    volume = volume,
+                    loop = loop,
+                    quality = quality,
+                    targetsRaw = players,
+                )
+            } else {
+                VanillaProxyBridge.startNetworkFullscreenByDisplayId(
+                    player = player,
+                    scope = serverScope,
+                    token = id,
+                    mode = fullscreenMode,
+                    forced = forced,
+                    volume = volume,
+                    loop = loop,
+                    quality = quality,
+                    targetsRaw = players,
+                )
+            }
+            MessageUtil.sendMessage(player, "fullscreenNetworkQueued")
+            return 1
         }
         val resolved = FullscreenBroadcastManager.resolveOrCreateDisplay(id, player.uuid) ?: run {
             MessageUtil.sendMessage(player, "fullscreenNoDisplay")
@@ -401,12 +432,31 @@ object VanillaFullscreenCommand {
             ?: emptySet()
     }
 
-    /** Handles `/display fullscreen stop <sessionId|displayId|all>`. */
+    /**
+     * Handles `/display fullscreen stop <sessionId|displayId|all>`. Mirrors
+     * `PaperFullscreenCommand.stop`'s network forwarding, but only when the sender is an actual
+     * player — a network stop needs a connection to ride the plugin message on, so a console / command
+     * block invocation only ever stops local sessions.
+     */
     fun stop(ctx: CommandContext<CommandSourceStack>, idOrAll: String): Int {
         val player = ctx.source.entity as? ServerPlayer
+        val networkIds =
+            if (idOrAll.equals("all", ignoreCase = true)) FullscreenCommand.list().map { it.sessionId }
+            else listOf(idOrAll)
+
         val count = FullscreenCommand.stop(idOrAll)
-        val key = if (count > 0) "fullscreenStopped" else "fullscreenStopFailed"
-        val line = MessageUtil.formatIndexed(player, key, count.toString())
+
+        var forwarded = false
+        if (player != null && ProxyNetwork.isConnected() && networkIds.isNotEmpty()) {
+            forwarded = true
+            networkIds.forEach { VanillaProxyBridge.stopNetworkFullscreen(player, it) }
+        }
+
+        val line = when {
+            count > 0 -> MessageUtil.formatIndexed(player, "fullscreenStopped", count.toString())
+            forwarded -> MessageUtil.messageFor(player, "fullscreenNetworkStopQueued")
+            else -> MessageUtil.messageFor(player, "fullscreenStopFailed")
+        }
         if (player != null) MessageUtil.sendColoredMessage(
             player,
             line
@@ -414,11 +464,13 @@ object VanillaFullscreenCommand {
         return count
     }
 
-    /** Handles `/display fullscreen list`. */
+    /** Handles `/display fullscreen list`: local sessions plus the last known network roster. */
     fun list(ctx: CommandContext<CommandSourceStack>): Int {
         val player = ctx.source.entity as? ServerPlayer
-        val sessions = FullscreenCommand.list()
-        if (sessions.isEmpty()) {
+        val local = FullscreenCommand.list()
+        val network = ProxyNetwork.networkSessions()
+        if (player != null && ProxyNetwork.isConnected()) VanillaProxyBridge.requestNetworkSessions(player)
+        if (local.isEmpty() && network.isEmpty()) {
             val line = MessageUtil.messageFor(player, "fullscreenListEmpty")
             if (player != null) MessageUtil.sendColoredMessage(
                 player,
@@ -426,7 +478,7 @@ object VanillaFullscreenCommand {
             ) else ctx.source.sendSystemMessage(Component.literal(line))
             return 0
         }
-        sessions.forEach { s ->
+        local.forEach { s ->
             val line = MessageUtil.formatIndexed(
                 player, "fullscreenListEntry",
                 s.sessionId, s.displayId.toString(), s.virtual.toString(), s.reach.toString(),
@@ -436,7 +488,17 @@ object VanillaFullscreenCommand {
                 line
             ) else ctx.source.sendSystemMessage(Component.literal(line))
         }
-        return sessions.size
+        network.forEach { n ->
+            val line = MessageUtil.formatIndexed(
+                player, "fullscreenListNetworkEntry",
+                n.sessionId, n.scope, n.totalReach.toString(),
+            )
+            if (player != null) MessageUtil.sendColoredMessage(
+                player,
+                line
+            ) else ctx.source.sendSystemMessage(Component.literal(line))
+        }
+        return local.size + network.size
     }
 
     /** Online player names, for the `target` argument's suggestion list. */
