@@ -148,11 +148,16 @@ data class PlayerReady(
     @ProtoNumber(1) val playerId: String = "",
 ) : ProxyPacket
 
-/** Proxy -> backend: replays live network fullscreen session ids that [playerId] should be shown here. */
+/**
+ * Proxy -> backend: replays live network fullscreen session ids that [playerId] should be shown here.
+ * [minimizedSessionIds] is the subset they had collapsed to PiP before landing on this backend, so
+ * the switch restores how they left it instead of re-opening the overlay full-screen.
+ */
 @Serializable
 data class ReplayForPlayer(
     @ProtoNumber(1) val playerId: String = "",
     @ProtoNumber(2) val sessionIds: List<String> = emptyList(),
+    @ProtoNumber(3) val minimizedSessionIds: List<String> = emptyList(),
 ) : ProxyPacket
 
 /**
@@ -292,4 +297,17 @@ data class DisplayTokenResolved(
     @ProtoNumber(1) val requestId: String = "",
     @ProtoNumber(2) val originServer: String = "",
     @ProtoNumber(3) val url: String = "",
+) : ProxyPacket
+
+/**
+ * Backend -> proxy: a viewer collapsed a network fullscreen session to PiP, or restored it. Only the
+ * backend they were on at the time sees the client's `FullscreenAck`, and it forgets the moment they
+ * leave — parking the flag on the proxy is what lets the *next* backend replay it (see
+ * [ReplayForPlayer.minimizedSessionIds]).
+ */
+@Serializable
+data class PlayerFullscreenMinimized(
+    @ProtoNumber(1) val sessionId: String = "",
+    @ProtoNumber(2) val playerId: String = "",
+    @ProtoNumber(3) val minimized: Boolean = false,
 ) : ProxyPacket

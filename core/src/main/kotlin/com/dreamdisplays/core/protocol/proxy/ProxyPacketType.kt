@@ -34,7 +34,8 @@ enum class ProxyPacketType(
     NETWORK_WATCH_PARTY_STATE(18, NetworkWatchPartyState::class, ProxyPacketDirection.BIDIRECTIONAL),
     CLOSE_NETWORK_WATCH_PARTY(19, CloseNetworkWatchParty::class, ProxyPacketDirection.BIDIRECTIONAL),
     RESOLVE_DISPLAY_TOKEN(20, ResolveDisplayToken::class, ProxyPacketDirection.BIDIRECTIONAL),
-    DISPLAY_TOKEN_RESOLVED(21, DisplayTokenResolved::class, ProxyPacketDirection.BIDIRECTIONAL);
+    DISPLAY_TOKEN_RESOLVED(21, DisplayTokenResolved::class, ProxyPacketDirection.BIDIRECTIONAL),
+    PLAYER_FULLSCREEN_MINIMIZED(22, PlayerFullscreenMinimized::class, ProxyPacketDirection.BACKEND_TO_PROXY);
 
     companion object {
         private val byId = entries.associateBy { it.id }

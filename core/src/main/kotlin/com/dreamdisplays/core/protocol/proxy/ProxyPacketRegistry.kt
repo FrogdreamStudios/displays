@@ -67,6 +67,7 @@ object ProxyPacketRegistry {
         Entry(ProxyPacketType.CLOSE_NETWORK_WATCH_PARTY, CloseNetworkWatchParty::class, CloseNetworkWatchParty.serializer()),
         Entry(ProxyPacketType.RESOLVE_DISPLAY_TOKEN, ResolveDisplayToken::class, ResolveDisplayToken.serializer()),
         Entry(ProxyPacketType.DISPLAY_TOKEN_RESOLVED, DisplayTokenResolved::class, DisplayTokenResolved.serializer()),
+        Entry(ProxyPacketType.PLAYER_FULLSCREEN_MINIMIZED, PlayerFullscreenMinimized::class, PlayerFullscreenMinimized.serializer()),
     )
 
     private val byId = entries.associateBy { it.id }

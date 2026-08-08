@@ -10,6 +10,7 @@ import com.dreamdisplays.core.protocol.proxy.ListNetworkSessions
 import com.dreamdisplays.core.protocol.proxy.NetworkFullscreenAck
 import com.dreamdisplays.core.protocol.proxy.NetworkSessionList
 import com.dreamdisplays.core.protocol.proxy.NetworkWatchPartyState
+import com.dreamdisplays.core.protocol.proxy.PlayerFullscreenMinimized
 import com.dreamdisplays.core.protocol.proxy.PlayerLeftNetwork
 import com.dreamdisplays.core.protocol.proxy.PlayerReady
 import com.dreamdisplays.core.protocol.proxy.PlayerTransferring
@@ -148,7 +149,8 @@ class DreamDisplaysVelocity @Inject constructor(
             is PlayerReady -> {
                 retryPendingSessions(serverName)
                 val applicable = NetworkFullscreenManager.sessionIdsApplicableTo(serverName, NetworkBackendRegistry.allServerNames())
-                sendTo(serverName, ReplayForPlayer(packet.playerId, applicable))
+                val minimized = NetworkFullscreenManager.minimizedSessionIdsFor(packet.playerId, applicable)
+                sendTo(serverName, ReplayForPlayer(packet.playerId, applicable, minimized))
             }
 
             is StartNetworkWatchParty -> {
@@ -174,6 +176,9 @@ class DreamDisplaysVelocity @Inject constructor(
             }
 
             is DisplayTokenResolved -> sendTo(packet.originServer, packet)
+
+            is PlayerFullscreenMinimized ->
+                NetworkFullscreenManager.setMinimized(packet.sessionId, packet.playerId, packet.minimized)
 
             else -> logger.debug("Unhandled proxy packet from '{}': {}", serverName, packet)
         }

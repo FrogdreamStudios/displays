@@ -16,6 +16,7 @@ import com.dreamdisplays.core.protocol.proxy.ListNetworkSessions
 import com.dreamdisplays.core.protocol.proxy.NetworkFullscreenAck
 import com.dreamdisplays.core.protocol.proxy.NetworkSessionList
 import com.dreamdisplays.core.protocol.proxy.NetworkWatchPartyState
+import com.dreamdisplays.core.protocol.proxy.PlayerFullscreenMinimized
 import com.dreamdisplays.core.protocol.proxy.PlayerLeftNetwork
 import com.dreamdisplays.core.protocol.proxy.PlayerReady
 import com.dreamdisplays.core.protocol.proxy.PlayerTransferring
@@ -93,6 +94,9 @@ object ProxyBridge : PluginMessageListener {
         ProxyClock.reset()
         WatchPartyManager.onVirtualBroadcast = { displayId, snapshot -> relayWatchPartyState(displayId, snapshot) }
         WatchPartyManager.onVirtualClosed = { partyId -> sendViaAnyPlayer(CloseNetworkWatchParty(partyId)) }
+        FullscreenBroadcastManager.onMinimizedChanged = { sessionId, playerId, minimized ->
+            sendViaAnyPlayer(PlayerFullscreenMinimized(sessionId, playerId.toString(), minimized))
+        }
     }
 
     /**
@@ -294,7 +298,10 @@ object ProxyBridge : PluginMessageListener {
 
             is ReplayForPlayer -> {
                 val uuid = runCatching { UUID.fromString(packet.playerId) }.getOrNull() ?: return
-                packet.sessionIds.forEach { sessionId -> FullscreenBroadcastManager.addTarget(sessionId, uuid) }
+                val minimized = packet.minimizedSessionIds.toSet()
+                packet.sessionIds.forEach { sessionId ->
+                    FullscreenBroadcastManager.addTarget(sessionId, uuid, sessionId in minimized)
+                }
             }
 
             is PlayerTransferring -> {

@@ -110,8 +110,28 @@ object NetworkFullscreenManager {
     fun sessionIdsApplicableTo(serverName: String, knownServers: Set<String>): List<String> =
         sessions.values.filter { serverName in targetServers(it.scope, knownServers) }.map { it.sessionId }
 
+    /**
+     * Viewers who collapsed a session to PiP, as `sessionId -> player ids`. Lives here rather than on
+     * a backend because only the backend a viewer happened to be on sees the client's ack, and it
+     * drops the player the moment they switch away - the whole point is surviving that switch.
+     */
+    private val minimizedBy = ConcurrentHashMap<String, MutableSet<String>>()
+
+    /** Records that [playerId] collapsed [sessionId] to PiP, or restored it. */
+    fun setMinimized(sessionId: String, playerId: String, minimized: Boolean) {
+        val players = minimizedBy.computeIfAbsent(sessionId) { ConcurrentHashMap.newKeySet() }
+        if (minimized) players.add(playerId) else players.remove(playerId)
+    }
+
+    /** The subset of [sessionIds] that [playerId] currently has collapsed to PiP. */
+    fun minimizedSessionIdsFor(playerId: String, sessionIds: List<String>): List<String> =
+        sessionIds.filter { minimizedBy[it]?.contains(playerId) == true }
+
     /** Stops and forgets [sessionId]; returns the removed session, or null if it wasn't live. */
-    fun stop(sessionId: String): Session? = sessions.remove(sessionId)
+    fun stop(sessionId: String): Session? {
+        minimizedBy.remove(sessionId)
+        return sessions.remove(sessionId)
+    }
 
     /** Every live network session, for `/display fullscreen list`. */
     fun list(): List<NetworkSessionInfo> = sessions.values.map {

@@ -61,6 +61,8 @@ object FullscreenBroadcastManager {
         val shownTo: MutableSet<UUID> = ConcurrentHashMap.newKeySet(),
         /** Players who closed an unforced broadcast themselves; excluded from re-delivery for the rest of this session. */
         val dismissedBy: MutableSet<UUID> = ConcurrentHashMap.newKeySet(),
+        /** Players who collapsed this session to PiP; re-delivered collapsed instead of fullscreen. */
+        val minimizedBy: MutableSet<UUID> = ConcurrentHashMap.newKeySet(),
         var lastTick: Long = 0,
         var lastTimelineResend: Long = 0,
     )
@@ -225,11 +227,33 @@ object FullscreenBroadcastManager {
      */
     fun handleAck(sessionId: String, playerId: UUID, action: FullscreenAckAction) {
         val session = sessions[sessionId] ?: return
-        if (action == FullscreenAckAction.DISMISSED && !session.forced) {
-            session.shownTo.remove(playerId)
-            session.dismissedBy.add(playerId)
+        when (action) {
+            FullscreenAckAction.SHOWN -> {
+                session.minimizedBy.remove(playerId)
+                sendTimeline(session, playerId, transport.nowMs())
+                onMinimizedChanged?.invoke(session.sessionId, playerId, false)
+            }
+
+            FullscreenAckAction.DISMISSED -> if (!session.forced) {
+                session.shownTo.remove(playerId)
+                session.dismissedBy.add(playerId)
+            }
+
+            FullscreenAckAction.MINIMIZED -> {
+                session.minimizedBy.add(playerId)
+                sendTimeline(session, playerId, transport.nowMs())
+                onMinimizedChanged?.invoke(session.sessionId, playerId, true)
+            }
         }
     }
+
+    /**
+     * Fired when a viewer collapses a session to PiP or restores it, so
+     * [com.dreamdisplays.platform.server.proxy.ProxyBridge] can park the flag on the proxy — a
+     * network session's other backends never saw the ack, and the one that did forgets it the moment
+     * the player leaves it. Null on a single-server setup, where [Session.minimizedBy] is enough.
+     */
+    var onMinimizedChanged: ((sessionId: String, playerId: UUID, minimized: Boolean) -> Unit)? = null
 
     /** Forgets sessions for a player who left, so a rejoin is treated as a fresh delivery (a past dismissal doesn't carry over either). */
     fun onPlayerQuit(playerId: UUID) {
@@ -253,10 +277,11 @@ object FullscreenBroadcastManager {
      * after the broadcast already started here; the proxy calls this on a seamless server switch so a
      * player who was already watching keeps watching. Returns false if [sessionId] isn't live locally.
      */
-    fun addTarget(sessionId: String, playerId: UUID): Boolean {
+    fun addTarget(sessionId: String, playerId: UUID, minimized: Boolean = false): Boolean {
         val session = sessions[sessionId] ?: return false
         session.namedTargets = (session.namedTargets ?: emptySet()) + playerId
         session.dismissedBy.remove(playerId)
+        if (minimized) session.minimizedBy.add(playerId) else session.minimizedBy.remove(playerId)
         if (playerId in transport.onlinePlayerIds()) deliverTo(session, playerId)
         return true
     }
@@ -385,6 +410,7 @@ object FullscreenBroadcastManager {
                 title = session.title,
                 loop = session.loop,
                 quality = session.quality,
+                minimized = playerId in session.minimizedBy,
             ),
         )
         sendTimeline(session, playerId, transport.nowMs())

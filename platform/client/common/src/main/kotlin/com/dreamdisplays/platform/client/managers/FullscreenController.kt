@@ -62,12 +62,18 @@ object FullscreenController {
         }
     }
 
-    /** Activates the overlay, applies the volume / quality hints, and acknowledges delivery. */
+    /**
+     * Activates the overlay, applies the volume / quality hints, and acknowledges delivery.
+     * A [FullscreenState.minimized] delivery is still activated first and then collapsed, so PiP
+     * takes over the same live player rather than starting a second one.
+     */
     private fun apply(screen: DisplayScreen, state: FullscreenState) {
         screen.activateFullscreenMode(FullscreenMode.fromWire(state.mode), state.forced, state.sessionId, state.loop)
         if (state.volume >= 0f) screen.volume = state.volume.coerceIn(0f, 1f)
         if (state.quality.isNotEmpty()) screen.quality = VideoQuality.parse(state.quality)
-        ProtocolRouter.send(FullscreenAck(state.sessionId, FullscreenAckAction.SHOWN.wire))
+        if (state.minimized) screen.minimizeFullscreenToPip()
+        val action = if (state.minimized) FullscreenAckAction.MINIMIZED else FullscreenAckAction.SHOWN
+        ProtocolRouter.send(FullscreenAck(state.sessionId, action.wire))
     }
 
     /** Drops pending state on disconnect. */
