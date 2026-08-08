@@ -10,6 +10,7 @@ import com.dreamdisplays.core.protocol.DisplayDelete
 import com.dreamdisplays.core.protocol.FullscreenState
 import com.dreamdisplays.core.protocol.toSync
 import com.dreamdisplays.platform.server.datatypes.display.DisplayData
+import com.dreamdisplays.platform.server.datatypes.display.shortLabel
 import com.dreamdisplays.platform.server.managers.DisplayManager
 import com.dreamdisplays.platform.server.storage.FullscreenSessionStore
 import org.slf4j.LoggerFactory
@@ -156,8 +157,8 @@ object FullscreenBroadcastManager {
         return true
     }
 
-    /** Display id short-id suggestions (the same 8-char prefix `/display list` shows) for the `target` argument. */
-    fun displayIdSuggestions(): List<String> = DisplayManager.getDisplays().map { it.id.toString().take(8) }
+    /** Display target suggestions (name if set, else the same short-id `/display list` shows) — see [shortLabel]. */
+    fun displayIdSuggestions(): List<String> = DisplayManager.getDisplays().map { it.shortLabel }
 
     /**
      * Starts a new session. [namedTargets] and [radius] are combined by OR - at least one must be

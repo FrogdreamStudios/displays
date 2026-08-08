@@ -56,6 +56,12 @@ interface DisplayData {
 }
 
 /**
+ * Short, human-facing label for a display: its [DisplayData.name] when set (via `/display name`),
+ * otherwise the first 8 hex characters of its [DisplayData.id].
+ */
+val DisplayData.shortLabel: String get() = name ?: id.toString().take(8)
+
+/**
  * Base shared by [PaperDisplayData] and [VanillaDisplayData], holding the mutable playback /
  * content fields common to both so platform subclasses only add their position types.
  */

@@ -3,6 +3,7 @@ package com.dreamdisplays.platform.server.commands.subcommands
 import com.dreamdisplays.platform.server.PaperServer
 import com.dreamdisplays.platform.server.datatypes.display.PaperDisplayData
 import com.dreamdisplays.platform.server.datatypes.display.VanillaDisplayData
+import com.dreamdisplays.platform.server.datatypes.display.shortLabel
 import com.dreamdisplays.platform.server.managers.DisplayManager
 import com.dreamdisplays.platform.server.utils.MessageUtil
 import com.mojang.brigadier.context.CommandContext
@@ -77,7 +78,7 @@ class ListCommand : SubCommand {
             val owner =
                 getOwnerName(d.ownerId, ownerNameCache) ?: MessageUtil.messageFor(sender, "displayListUnknownOwner")
             val worldName = d.pos1.world?.name ?: MessageUtil.messageFor(sender, "displayListUnknownWorld")
-            val idShort = d.id.toString().substring(0, 8)
+            val idShort = d.shortLabel
             val url = d.url.ifBlank { MessageUtil.messageFor(sender, "displayListUnavailableUrl") }
             val baseLine = MessageUtil.formatIndexed(
                 sender,
@@ -388,7 +389,7 @@ object VanillaListCommand {
             val index = startIndex + localIndex + 1
             val owner = getOwnerName(d.ownerId) ?: MessageUtil.messageFor(player, "displayListUnknownOwner")
             val worldName = d.worldKey.substringAfterLast(':')
-            val idShort = d.id.toString().substring(0, 8)
+            val idShort = d.shortLabel
             val url = d.url.ifBlank { MessageUtil.messageFor(player, "displayListUnavailableUrl") }
             val baseLine = MessageUtil.formatIndexed(
                 player,
