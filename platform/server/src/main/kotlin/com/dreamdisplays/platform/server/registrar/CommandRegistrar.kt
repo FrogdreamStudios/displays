@@ -94,35 +94,31 @@ object CommandRegistrar {
     }
 
     /**
-     * Same as [simple], but also reachable as `/display <name> this` — [cmd] already always targets
-     * whatever the sender is looking at (raycast), so `this` changes nothing about how it resolves;
-     * it just makes that implicit target explicit and typeable, the same way `fullscreen start id
-     * this` already lets you name a display without knowing its id, so the convention reads the same
-     * across every display-targeting command.
+     * Same as [simple], but only reachable as `/display <name> this` — [cmd] always targets whatever
+     * the sender is looking at (raycast); `this` is mandatory so that target reads the same,
+     * explicit way across every display-targeting command instead of some staying implicit.
      */
     private fun simpleWithThis(
         name: String,
         cmd: SubCommand,
         check: ((CommandSourceStack) -> Boolean)? = null,
-    ): LiteralArgumentBuilder<CommandSourceStack> =
-        simple(name, cmd, check).then(
+    ): LiteralArgumentBuilder<CommandSourceStack> {
+        var builder = Commands.literal(name)
+        if (check != null) builder = builder.requires(check)
+        return builder.then(
             Commands.literal("this").executes { ctx ->
                 cmd.execute(ctx.source.sender, emptyArray())
                 Command.SINGLE_SUCCESS
             }
         )
+    }
 
-    /** Builds the `/display video [this] <url> [lang]` subcommand with greedy argument and language suggestions. */
+    /** Builds the `/display video this <url> [lang]` subcommand with greedy argument and language suggestions. */
     private fun videoSubCommand() = Commands.literal("video")
         .requires { it.sender is Player && it.sender.hasPermission(PaperServer.config.permissions.video) }
-        .then(videoUrlArgument())
         .then(Commands.literal("this").then(videoUrlArgument()))
 
-    /**
-     * The `<url> [lang]` greedy argument shared by `/display video <url> [lang]` and
-     * `/display video this <url> [lang]` — `this` changes nothing about resolution (the command
-     * already always raycasts), it's only an explicit spelling of that implicit target.
-     */
+    /** The `<url> [lang]` greedy argument under `/display video this <url> [lang]`. */
     private fun videoUrlArgument() =
         // greedyString captures the rest of the input (URL + optional lang separated by space)
         Commands.argument("url_and_lang", StringArgumentType.greedyString())

@@ -71,16 +71,12 @@ object VanillaCommandTree {
         }
 
     /**
-     * Builds the `/display delete [this]` subcommand. `this` is also reachable and changes nothing
-     * about resolution (the command already always raycasts) — it's only an explicit spelling of
-     * that implicit target, the same way `fullscreen start id this` already lets you name a display
-     * without knowing its id, so the convention reads the same across every display-targeting command.
+     * Builds the `/display delete this` subcommand. `this` is mandatory even though the command
+     * already always raycasts (there's no other id to give it) — the same explicit spelling of the
+     * looked-at target is required across every display-targeting command, matching `fullscreen
+     * start id this`.
      */
     private fun deleteNode() = Commands.literal("delete")
-        .executes { ctx ->
-            VanillaDeleteCommand.execute(ctx)
-            Command.SINGLE_SUCCESS
-        }
         .then(
             Commands.literal("this").executes { ctx ->
                 VanillaDeleteCommand.execute(ctx)
@@ -88,13 +84,9 @@ object VanillaCommandTree {
             }
         )
 
-    /** Builds the `/display info [this]` subcommand — see [deleteNode] for why `this` is a no-op alias. */
+    /** Builds the `/display info this` subcommand — see [deleteNode] for why `this` is mandatory. */
     private fun infoNode() = Commands.literal("info")
         .requires { requiresNode(it, { p -> p.info }, VanillaPermissions.Fallback.EVERYONE) }
-        .executes { ctx ->
-            VanillaInfoCommand.execute(ctx)
-            Command.SINGLE_SUCCESS
-        }
         .then(
             Commands.literal("this").executes { ctx ->
                 VanillaInfoCommand.execute(ctx)
@@ -118,16 +110,12 @@ object VanillaCommandTree {
             Command.SINGLE_SUCCESS
         }
 
-    /**
-     * Builds the `/display video [this] <url> [lang]` subcommand — see [deleteNode] for why `this`
-     * is a no-op alias.
-     */
+    /** Builds the `/display video this <url> [lang]` subcommand — see [deleteNode] for why `this` is mandatory. */
     private fun videoNode() = Commands.literal("video")
         .requires { requiresNode(it, { p -> p.video }, VanillaPermissions.Fallback.EVERYONE) }
-        .then(videoUrlArgument())
         .then(Commands.literal("this").then(videoUrlArgument()))
 
-    /** The `<url> [lang]` greedy argument shared by `video <url> [lang]` and `video this <url> [lang]`. */
+    /** The `<url> [lang]` greedy argument under `video this <url> [lang]`. */
     private fun videoUrlArgument() =
         Commands.argument("url_and_lang", StringArgumentType.greedyString())
             .suggests { _, builder ->
