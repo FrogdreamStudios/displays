@@ -41,7 +41,10 @@ object FullscreenController {
     fun handle(state: FullscreenState) {
         if (!state.active) {
             pending.remove(state.displayId)
-            DisplayRegistry.screens[state.displayId]?.deactivateFullscreen()
+            DisplayRegistry.screens[state.displayId]?.let {
+                it.lastFullscreenState = null
+                it.deactivateFullscreen()
+            }
             return
         }
         val screen = DisplayRegistry.screens[state.displayId]
@@ -103,6 +106,12 @@ object FullscreenController {
      * takes over the same live player rather than starting a second one.
      */
     private fun apply(screen: DisplayScreen, state: FullscreenState) {
+        if (screen.lastFullscreenState == state) {
+            val action = if (state.minimized) FullscreenAckAction.MINIMIZED else FullscreenAckAction.SHOWN
+            ProtocolRouter.send(FullscreenAck(state.sessionId, action.wire))
+            return
+        }
+        screen.lastFullscreenState = state
         screen.activateFullscreenMode(FullscreenMode.fromWire(state.mode), state.forced, state.sessionId, state.loop)
         if (state.volume >= 0f) screen.volume = state.volume.coerceIn(0f, 1f)
         if (state.quality.isNotEmpty()) screen.quality = VideoQuality.parse(state.quality)

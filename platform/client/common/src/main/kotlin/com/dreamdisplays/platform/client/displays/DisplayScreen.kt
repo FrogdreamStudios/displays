@@ -719,6 +719,15 @@ class DisplayScreen(
     /** Whether the active fullscreen overlay should stay open (re-showing) past the video's end instead of auto-closing. */
     private var fullscreenLoop = false
 
+    /**
+     * The last [FullscreenState] [FullscreenController] actually applied to this screen. Lives and
+     * dies with this instance, so it naturally survives a carried-over server switch (same screen
+     * object, per [DisplayRegistry.unloadAllForServerSwitch]) but never leaks into a genuinely new
+     * screen for the same display id — that one starts with `null` and always applies fresh.
+     */
+    @Volatile
+    internal var lastFullscreenState: FullscreenState? = null
+
     /** Shows this display's video as a fullscreen overlay in [mode]. Closes PiP if active. */
     fun activateFullscreenMode(
         mode: FullscreenMode = FullscreenMode.STANDARD,
