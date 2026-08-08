@@ -35,7 +35,7 @@
   "dreamdisplays.button.quality.tooltip.2": "Qualité de l'affichage",
   "dreamdisplays.button.quality.tooltip.3": "",
   "dreamdisplays.button.quality.tooltip.4": "Actuel : %sp",
-  "dreamdisplays.button.quality.tooltip.5": "Avertissement : 1080p et plus peuvent affecter les performances",
+  "dreamdisplays.button.quality.tooltip.5": "Avertissement : une qualité supérieure à 1080p peut affecter les performances",
   "dreamdisplays.button.brightness": "Luminosité",
   "dreamdisplays.button.brightness.tooltip.1": "Luminosité",
   "dreamdisplays.button.brightness.tooltip.2": "Contrôle la luminosité de cet affichage",

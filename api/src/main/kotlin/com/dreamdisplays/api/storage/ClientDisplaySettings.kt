@@ -18,7 +18,7 @@ data class ClientDisplaySettings(
     var volume: Float = DEFAULT_VOLUME,
 
     /** Video quality, e.g. "720" or "1080". */
-    var quality: String = "720",
+    var quality: String = "1080",
 
     /** Brightness in the range [0.0, 2.0]. */
     var brightness: Float = 1.0f,

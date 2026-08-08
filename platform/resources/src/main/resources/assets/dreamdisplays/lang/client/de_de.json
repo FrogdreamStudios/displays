@@ -35,7 +35,7 @@
   "dreamdisplays.button.quality.tooltip.2": "Display-Qualitätsverbesserungs-einstellung",
   "dreamdisplays.button.quality.tooltip.3": "",
   "dreamdisplays.button.quality.tooltip.4": "Aktuell: %sp",
-  "dreamdisplays.button.quality.tooltip.5": "Warnung: 1080p und höher können die Leistung beeinträchtigen",
+  "dreamdisplays.button.quality.tooltip.5": "Warnung: Qualität über 1080p kann die Leistung beeinträchtigen",
   "dreamdisplays.button.brightness": "Helligkeit",
   "dreamdisplays.button.brightness.tooltip.1": "Helligkeit",
   "dreamdisplays.button.brightness.tooltip.2": "Steuert die Helligkeit dieser Anzeige",

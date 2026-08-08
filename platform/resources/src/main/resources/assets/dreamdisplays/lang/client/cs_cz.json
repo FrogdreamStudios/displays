@@ -35,7 +35,7 @@
   "dreamdisplays.button.quality.tooltip.2": "Kvalita zobrazení displeje",
   "dreamdisplays.button.quality.tooltip.3": "",
   "dreamdisplays.button.quality.tooltip.4": "Nyní: %sp",
-  "dreamdisplays.button.quality.tooltip.5": "Varování: 1080p a vyšší mohou ovlivnit výkon",
+  "dreamdisplays.button.quality.tooltip.5": "Varování: kvalita nad 1080p může ovlivnit výkon",
   "dreamdisplays.button.brightness": "Jas",
   "dreamdisplays.button.brightness.tooltip.1": "Jas",
   "dreamdisplays.button.brightness.tooltip.2": "Ovládá jas tohoto displeje",

@@ -996,7 +996,7 @@ class DisplayScreen(
 
     /**
      * Resolves the current quality to a target pixel height, clamped to [qualityCap] when set
-     * ([VideoQuality.Auto] falls back to [DEFAULT_QUALITY]). Broadcast caps every client at 360p.
+     * ([VideoQuality.Auto] falls back to [DEFAULT_QUALITY]). Broadcast caps every client at 720p.
      */
     private fun parseQualityOrDefault(): Int {
         if (qualityCap > 0) return qualityCap
@@ -1072,7 +1072,7 @@ class DisplayScreen(
         }
 
         /** Fallback target quality (pixel height) when none is resolvable. */
-        private const val DEFAULT_QUALITY = 720
+        private const val DEFAULT_QUALITY = 1080
 
         /** Skip the restore seek when already within this tolerance of the saved position. */
         private const val RESTORE_SEEK_TOLERANCE_NS = 250_000_000L
