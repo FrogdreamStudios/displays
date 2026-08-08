@@ -149,18 +149,33 @@ object PaperFullscreenCommand {
         val player = sender as? Player ?: return
         if (serverScope != null) {
             if (!ProxyNetwork.isConnected()) return MessageUtil.sendMessage(sender, "fullscreenNetworkNoProxy")
+            val fullscreenMode = mode?.let { m -> runCatching { FullscreenMode.valueOf(m.uppercase()) }.getOrNull() }
             val resolvedUrl = FullscreenBroadcastManager.resolveNetworkFullscreenUrl(id)
-                ?: return MessageUtil.sendMessage(sender, "fullscreenNoDisplay")
-            ProxyBridge.startNetworkFullscreen(
-                player = player,
-                scope = serverScope,
-                url = resolvedUrl,
-                mode = mode?.let { m -> runCatching { FullscreenMode.valueOf(m.uppercase()) }.getOrNull() },
-                forced = forced,
-                volume = volume,
-                loop = loop,
-                quality = quality,
-            )
+            if (resolvedUrl != null) {
+                ProxyBridge.startNetworkFullscreen(
+                    player = player,
+                    scope = serverScope,
+                    url = resolvedUrl,
+                    mode = fullscreenMode,
+                    forced = forced,
+                    volume = volume,
+                    loop = loop,
+                    quality = quality,
+                )
+            } else {
+                // Unknown here, but display ids are per-backend - the one being named very likely
+                // lives on another server, so ask the network before reporting it as missing.
+                ProxyBridge.startNetworkFullscreenByDisplayId(
+                    player = player,
+                    scope = serverScope,
+                    token = id,
+                    mode = fullscreenMode,
+                    forced = forced,
+                    volume = volume,
+                    loop = loop,
+                    quality = quality,
+                )
+            }
             return MessageUtil.sendMessage(sender, "fullscreenNetworkQueued")
         }
         val resolved = FullscreenBroadcastManager.resolveOrCreateDisplay(id, player.uniqueId)

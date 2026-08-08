@@ -5,6 +5,7 @@ import com.dreamdisplays.core.protocol.proxy.BackendHello
 import com.dreamdisplays.core.protocol.proxy.ClockProbe
 import com.dreamdisplays.core.protocol.proxy.ClockReply
 import com.dreamdisplays.core.protocol.proxy.CloseNetworkWatchParty
+import com.dreamdisplays.core.protocol.proxy.DisplayTokenResolved
 import com.dreamdisplays.core.protocol.proxy.ListNetworkSessions
 import com.dreamdisplays.core.protocol.proxy.NetworkFullscreenAck
 import com.dreamdisplays.core.protocol.proxy.NetworkSessionList
@@ -16,6 +17,7 @@ import com.dreamdisplays.core.protocol.proxy.ProxyPacket
 import com.dreamdisplays.core.protocol.proxy.ProxyPacketRegistry
 import com.dreamdisplays.core.protocol.proxy.ProxyWelcome
 import com.dreamdisplays.core.protocol.proxy.ReplayForPlayer
+import com.dreamdisplays.core.protocol.proxy.ResolveDisplayToken
 import com.dreamdisplays.core.protocol.proxy.StartNetworkFullscreen
 import com.dreamdisplays.core.protocol.proxy.StartNetworkWatchParty
 import com.dreamdisplays.core.protocol.proxy.StopNetworkFullscreen
@@ -138,6 +140,13 @@ class DreamDisplaysBungee : Plugin(), Listener {
                 NetworkWatchPartyManager.stop(packet.partyId)
                 targets.forEach { name -> sendTo(name, packet) }
             }
+
+            is ResolveDisplayToken -> {
+                val stamped = packet.copy(originServer = serverName)
+                (NetworkBackendRegistry.allServerNames() - serverName).forEach { name -> sendTo(name, stamped) }
+            }
+
+            is DisplayTokenResolved -> sendTo(packet.originServer, packet)
 
             else -> logger.fine("Unhandled proxy packet from '$serverName': $packet")
         }

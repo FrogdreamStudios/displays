@@ -262,3 +262,34 @@ data class NetworkWatchPartyState(
 data class CloseNetworkWatchParty(
     @ProtoNumber(1) val partyId: String = "",
 ) : ProxyPacket
+
+/**
+ * Bidirectional: asks the rest of the network what video the display named by [token] (a full id or
+ * the 8-character short id `/display list` shows) is playing, so `/display fullscreen start id <id>
+ * server <scope>` works for a display that lives on a different backend — each backend's display
+ * registry is local, so the backend running the command usually can't resolve it alone.
+ *
+ * Backend -> proxy with [originServer] empty; the proxy stamps the requesting backend's name in and
+ * fans it out to every other backend. The proxy keeps no state of its own for this — the pending
+ * request lives on [originServer]'s backend, which resumes on [DisplayTokenResolved].
+ */
+@Serializable
+data class ResolveDisplayToken(
+    @ProtoNumber(1) val requestId: String = "",
+    @ProtoNumber(2) val token: String = "",
+    @ProtoNumber(3) val originServer: String = "",
+) : ProxyPacket
+
+/**
+ * Bidirectional: answers a [ResolveDisplayToken] from the backend that actually hosts the display,
+ * carrying its currently loaded video [url]. Only backends that know the token reply at all, so a
+ * request may draw no answer (unknown network-wide, or its backend has no players to carry the
+ * plugin message); the requester expires it instead of waiting forever. The proxy routes the reply
+ * back to [originServer] verbatim.
+ */
+@Serializable
+data class DisplayTokenResolved(
+    @ProtoNumber(1) val requestId: String = "",
+    @ProtoNumber(2) val originServer: String = "",
+    @ProtoNumber(3) val url: String = "",
+) : ProxyPacket

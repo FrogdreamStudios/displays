@@ -10,6 +10,7 @@ import com.dreamdisplays.core.protocol.proxy.BackendHello
 import com.dreamdisplays.core.protocol.proxy.ClockProbe
 import com.dreamdisplays.core.protocol.proxy.ClockReply
 import com.dreamdisplays.core.protocol.proxy.CloseNetworkWatchParty
+import com.dreamdisplays.core.protocol.proxy.DisplayTokenResolved
 import com.dreamdisplays.core.protocol.proxy.JoinNetworkWatchParty
 import com.dreamdisplays.core.protocol.proxy.ListNetworkSessions
 import com.dreamdisplays.core.protocol.proxy.NetworkFullscreenAck
@@ -23,6 +24,7 @@ import com.dreamdisplays.core.protocol.proxy.ProxyPacketDirection
 import com.dreamdisplays.core.protocol.proxy.ProxyPacketRegistry
 import com.dreamdisplays.core.protocol.proxy.ProxyWelcome
 import com.dreamdisplays.core.protocol.proxy.ReplayForPlayer
+import com.dreamdisplays.core.protocol.proxy.ResolveDisplayToken
 import com.dreamdisplays.core.protocol.proxy.StartNetworkFullscreen
 import com.dreamdisplays.core.protocol.proxy.StartNetworkWatchParty
 import com.dreamdisplays.core.protocol.proxy.StopNetworkFullscreen
@@ -36,6 +38,7 @@ import org.bukkit.plugin.messaging.PluginMessageListener
 import org.jspecify.annotations.NullMarked
 import org.slf4j.LoggerFactory
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 
@@ -59,6 +62,28 @@ object ProxyBridge : PluginMessageListener {
 
     /** `[proxy] clock_sync_interval`, in milliseconds; how often [tick] emits a [ClockProbe]. */
     private var clockSyncIntervalMs: Long = 5_000L
+
+    /** How long a network display-id lookup waits for the backend that owns it to answer. */
+    private const val RESOLVE_TIMEOUT_MS = 5_000L
+
+    /**
+     * A `/display fullscreen start id <id> server <scope>` held while the network is asked which
+     * backend hosts `<id>` — see [ResolveDisplayToken]. Everything but the URL is already decided,
+     * so the answer just fills in the last blank and the normal [startNetworkFullscreen] runs.
+     */
+    private class PendingNetworkStart(
+        val playerId: UUID,
+        val token: String,
+        val scope: String,
+        val mode: FullscreenMode?,
+        val forced: Boolean,
+        val volume: Float?,
+        val loop: Boolean,
+        val quality: String?,
+        val expiresAtMs: Long,
+    )
+
+    private val pendingStarts = ConcurrentHashMap<String, PendingNetworkStart>()
 
     /** Called from [com.dreamdisplays.platform.server.PaperServer.doEnable]. Resets per-session state. */
     fun init(enabled: Boolean, clockSyncIntervalSeconds: Int = 5) {
@@ -134,6 +159,39 @@ object ProxyBridge : PluginMessageListener {
                 quality = quality ?: "",
             ),
         )
+    }
+
+    /**
+     * Same as [startNetworkFullscreen], but for a `<id>` this backend doesn't know: asks the network
+     * which backend hosts it ([ResolveDisplayToken]) and starts once the answer arrives. Displays are
+     * registered per backend, so an id that means nothing here is routinely valid one server over.
+     * Silently expires after [RESOLVE_TIMEOUT_MS] if nothing claims the id.
+     */
+    fun startNetworkFullscreenByDisplayId(
+        player: Player,
+        scope: String,
+        token: String,
+        mode: FullscreenMode?,
+        forced: Boolean,
+        volume: Float?,
+        loop: Boolean,
+        quality: String?,
+    ) {
+        val now = System.currentTimeMillis()
+        pendingStarts.values.removeIf { it.expiresAtMs < now }
+        val requestId = UUID.randomUUID().toString().take(8)
+        pendingStarts[requestId] = PendingNetworkStart(
+            playerId = player.uniqueId,
+            token = token,
+            scope = scope,
+            mode = mode,
+            forced = forced,
+            volume = volume,
+            loop = loop,
+            quality = quality,
+            expiresAtMs = now + RESOLVE_TIMEOUT_MS,
+        )
+        send(player, ResolveDisplayToken(requestId = requestId, token = token))
     }
 
     /** Forwards `/display fullscreen stop <id>` to the proxy when [sessionId] isn't a live local session. */
@@ -310,6 +368,28 @@ object ProxyBridge : PluginMessageListener {
                         WatchPartyManager.sendToMember(memberId, DisplayDelete(display.id))
                     }
                 }
+            }
+
+            is ResolveDisplayToken -> {
+                val url = FullscreenBroadcastManager.displayUrlByIdOrPrefix(packet.token) ?: return
+                sendViaAnyPlayer(DisplayTokenResolved(packet.requestId, packet.originServer, url))
+            }
+
+            is DisplayTokenResolved -> {
+                val pending = pendingStarts.remove(packet.requestId) ?: return
+                if (pending.expiresAtMs < System.currentTimeMillis()) return
+                val player = Bukkit.getPlayer(pending.playerId) ?: return
+                logger.debug("Display '{}' resolved network-wide to {}.", pending.token, packet.url)
+                startNetworkFullscreen(
+                    player = player,
+                    scope = pending.scope,
+                    url = packet.url,
+                    mode = pending.mode,
+                    forced = pending.forced,
+                    volume = pending.volume,
+                    loop = pending.loop,
+                    quality = pending.quality,
+                )
             }
 
             else -> logger.debug("Ignoring non-backend-bound proxy packet {}.", packet::class.simpleName)

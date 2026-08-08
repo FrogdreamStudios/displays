@@ -101,10 +101,20 @@ object FullscreenBroadcastManager {
      * URL — that URL itself, normalized the same way [resolveOrCreateDisplay] does.
      */
     fun resolveNetworkFullscreenUrl(idOrUrl: String): String? {
-        resolveDisplayByIdOrPrefix(idOrUrl)?.let { return it.url.takeIf(String::isNotBlank) }
+        displayUrlByIdOrPrefix(idOrUrl)?.let { return it }
         if (!looksLikeUrl(idOrUrl)) return null
         return MediaSource.from(idOrUrl).toResolvableUrl() ?: idOrUrl
     }
+
+    /**
+     * The video a display on this server is currently loaded with, by full id or unambiguous id
+     * prefix. Unlike [resolveNetworkFullscreenUrl] this never falls back to treating the token as a
+     * URL, so it can safely answer another backend's
+     * [com.dreamdisplays.core.protocol.proxy.ResolveDisplayToken] - only a backend that really hosts
+     * the display replies.
+     */
+    fun displayUrlByIdOrPrefix(idOrPrefix: String): String? =
+        resolveDisplayByIdOrPrefix(idOrPrefix)?.url?.takeIf(String::isNotBlank)
 
     /** Exact UUID match first, then an unambiguous case-insensitive id prefix (>= 4 chars). */
     private fun resolveDisplayByIdOrPrefix(idOrPrefix: String): DisplayData? {
