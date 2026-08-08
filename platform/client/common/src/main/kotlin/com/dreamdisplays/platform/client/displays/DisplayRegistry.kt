@@ -82,11 +82,23 @@ object DisplayRegistry {
         DreamServices.registry.getOrNull(AudioAcousticsServices.ACOUSTICS)?.registerSource(displayScreen.uuid)
     }
 
-    /** Unregisters a display screen, saving its data for later re-registration. */
+    /**
+     * Unregisters a display screen. A world-anchored display is cached for later distance-triggered
+     * re-registration; a `virtual` one (a network fullscreen broadcast's synthetic display, or a
+     * watch-party one) never gets a second life the same way — it has no real world position, so
+     * caching its [FullDisplayData] would let a later distance check resurrect it as a phantom
+     * floating display wherever the server happened to place it. Its [ClientSettingsStore] entry is
+     * dropped too, since a fresh network broadcast always gets a brand-new id — keeping it would
+     * leak one permanent orphaned entry per broadcast ever watched.
+     */
     fun unregisterScreen(displayScreen: DisplayScreen) {
-        unloadedScreens[displayScreen.uuid] = displayScreen.toFullDisplayData()
-        ClientSettingsStore.setSavedTimeNanos(displayScreen.uuid, displayScreen.currentTimeNanos)
-        ClientSettingsStore.setRenderDistance(displayScreen.uuid, displayScreen.renderDistance)
+        if (displayScreen.virtual) {
+            ClientSettingsStore.remove(displayScreen.uuid)
+        } else {
+            unloadedScreens[displayScreen.uuid] = displayScreen.toFullDisplayData()
+            ClientSettingsStore.setSavedTimeNanos(displayScreen.uuid, displayScreen.currentTimeNanos)
+            ClientSettingsStore.setRenderDistance(displayScreen.uuid, displayScreen.renderDistance)
+        }
         screens.remove(displayScreen.uuid)
         displayScreen.unregister()
         displaySystem?.removeDisplay(DisplayId(displayScreen.uuid))

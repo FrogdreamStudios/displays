@@ -300,6 +300,13 @@ object VanillaProxyBridge {
             radius = null,
             timelineAnchorMs = ProxyClock.toLocal(packet.anchorProxyMs),
         )
+        if (sessionId == null) {
+            logger.warn(
+                "Could not start network fullscreen '{}' locally (session id already taken here, or " +
+                        "nobody online right now to target?)",
+                packet.sessionId,
+            )
+        }
         val reach = if (sessionId != null) {
             FullscreenBroadcastManager.list().firstOrNull { it.sessionId == sessionId }?.reach ?: 0
         } else 0

@@ -166,7 +166,7 @@ data class ReplayForPlayer(
 /**
  * Proxy -> backend: tells the backend [playerId] is currently on ([from]) that a switch to [to] is
  * starting, sent while the player's connection to [from] is still open (`Velocity`
- * `ServerPreConnectEvent` / `Bungee` `ServerConnectEvent` both fire before the origin disconnects) -
+ * `ServerPreConnectEvent` / `Bungeecord` `ServerConnectEvent` both fire before the origin disconnects) -
  * lets that backend distinguish "player is transferring" from "player quit" for anything gated on
  * `PlayerQuitEvent` (currently: the watch-party host-disconnect grace timer).
  */

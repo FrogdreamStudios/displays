@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap
  * has someone online.
  *
  * Deliberately platform-API-free, like [NetworkBackendRegistry] — both the
- * `Velocity` and `Bungee` adapters drive this with plain strings and do the actual I / O themselves.
+ * `Velocity` and `Bungeecord` adapters drive this with plain strings and do the actual I / O themselves.
  */
 object NetworkFullscreenManager {
     /**
@@ -23,6 +23,12 @@ object NetworkFullscreenManager {
      * media prebuffer, or slower backends would start visibly behind rather than synchronized.
      */
     private const val FANOUT_LEAD_MS = 1_500L
+
+    /**
+     * How stale a session may get (age since [Session.createdAtMs], with zero reach reported on
+     * every backend it was ever applied to) before [pruneStale] drops it.
+     */
+    const val STALE_SESSION_MAX_AGE_MS: Long = 30L * 60L * 1000L
 
     /** One live network fullscreen broadcast. */
     class Session(
@@ -39,6 +45,7 @@ object NetworkFullscreenManager {
         val title: String,
         val targetsRaw: String,
         val anchorProxyMs: Long,
+        val createdAtMs: Long,
     ) {
         /** Backend name -> last reported reach (player count actually targeted there). */
         val reach: MutableMap<String, Int> = ConcurrentHashMap()
@@ -65,6 +72,7 @@ object NetworkFullscreenManager {
             title = request.title,
             targetsRaw = request.targetsRaw,
             anchorProxyMs = proxyNowMs + FANOUT_LEAD_MS,
+            createdAtMs = proxyNowMs,
         )
         sessions[session.sessionId] = session
         return session
@@ -103,9 +111,13 @@ object NetworkFullscreenManager {
         if (pending) session.pendingServers.add(serverName) else session.pendingServers.remove(serverName)
     }
 
-    /** Live sessions still owed a retry on [serverName] — called when that backend sends a fresh [BackendHello][com.dreamdisplays.core.protocol.proxy.BackendHello]. */
+    /** Live sessions still owed a retry on [serverName] — called on a [PlayerReady][com.dreamdisplays.core.protocol.proxy.PlayerReady]. */
     fun pendingSessionsFor(serverName: String): List<Session> =
         sessions.values.filter { serverName in it.pendingServers }
+
+    /** Live sessionns that should apply on [serverName] right now. */
+    fun liveSessionsApplicableTo(serverName: String, knownServers: Set<String>): List<Session> =
+        sessions.values.filter { serverName in targetServers(it.scope, knownServers) }
 
     /**
      * Ids of every live session that should apply on [serverName] right now — `global`-scope
@@ -137,6 +149,19 @@ object NetworkFullscreenManager {
     fun stop(sessionId: String): Session? {
         minimizedBy.remove(sessionId)
         return sessions.remove(sessionId)
+    }
+
+    /**
+     * Drops every session older than [STALE_SESSION_MAX_AGE_MS] with zero reach recorded on every
+     * backend it was ever applied to; returns the dropped ids. Called periodically by the `Velocity` /
+     * `Bungeecord` adapter's own scheduler — this class does no scheduling of its own.
+     */
+    fun pruneStale(nowMs: Long): List<String> {
+        val stale = sessions.values
+            .filter { nowMs - it.createdAtMs >= STALE_SESSION_MAX_AGE_MS && it.reach.values.sum() == 0 }
+            .map { it.sessionId }
+        stale.forEach(::stop)
+        return stale
     }
 
     /** Every live network session, for `/display fullscreen list`. */

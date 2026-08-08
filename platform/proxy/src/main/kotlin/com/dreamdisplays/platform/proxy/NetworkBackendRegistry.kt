@@ -2,6 +2,7 @@ package com.dreamdisplays.platform.proxy
 
 import com.dreamdisplays.core.protocol.proxy.BackendHello
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicReference
 
 /**
  * Proxy-side bookkeeping shared by both the `Velocity` and `BungeeCord` adapters: which backends in
@@ -11,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap
  * a liveness check).
  *
  * Deliberately platform-API-free so it compiles unchanged into both `dreamdisplays-velocity` and
- * `dreamdisplays-bungee` - the `Velocity` / `Bungee`-specific plugin classes own the actual player /
+ * `dreamdisplays-bungee` - the `Velocity` / `Bungeecord`-specific plugin classes own the actual player /
  * server-connection objects and only hand this registry plain strings.
  */
 object NetworkBackendRegistry {
@@ -23,17 +24,16 @@ object NetworkBackendRegistry {
         val lastHelloMs: Long,
     )
 
-    private val known = ConcurrentHashMap.newKeySet<String>()
+    private val known = AtomicReference<Set<String>>(emptySet())
     private val seen = ConcurrentHashMap<String, BackendInfo>()
 
     /** Replaces the full roster of backend server names configured on the proxy (e.g. on reload). */
     fun updateKnownServers(names: Collection<String>) {
-        known.clear()
-        known.addAll(names)
+        known.set(names.toSet())
     }
 
     /** The full configured roster — used to answer [com.dreamdisplays.core.protocol.proxy.ProxyWelcome.allServerNames]. */
-    fun allServerNames(): Set<String> = known.toSet()
+    fun allServerNames(): Set<String> = known.get()
 
     /** Records that [serverName] announced itself with [hello] just now. */
     fun recordHello(serverName: String, hello: BackendHello, nowMs: Long) {

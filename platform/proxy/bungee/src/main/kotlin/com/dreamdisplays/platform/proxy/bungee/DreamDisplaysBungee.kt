@@ -27,6 +27,7 @@ import com.dreamdisplays.platform.proxy.BungeeOnly
 import com.dreamdisplays.platform.proxy.NetworkBackendRegistry
 import com.dreamdisplays.platform.proxy.NetworkDisplayIndex
 import com.dreamdisplays.platform.proxy.NetworkFullscreenManager
+import com.dreamdisplays.platform.proxy.NetworkTokenResolutions
 import com.dreamdisplays.platform.proxy.NetworkWatchPartyManager
 import net.md_5.bungee.api.connection.Server
 import net.md_5.bungee.api.event.PlayerDisconnectEvent
@@ -35,9 +36,13 @@ import net.md_5.bungee.api.event.ServerConnectEvent
 import net.md_5.bungee.api.plugin.Listener
 import net.md_5.bungee.api.plugin.Plugin
 import net.md_5.bungee.event.EventHandler
+import java.util.concurrent.TimeUnit
 
 /** `dreamdisplays:proxy` channel tag, shared verbatim with the Velocity sibling (see that plugin's doc). */
 private const val PROXY_CHANNEL = "dreamdisplays:proxy"
+
+/** How often the stale-session sweep ([NetworkFullscreenManager.pruneStale]) runs. */
+private const val PRUNE_INTERVAL_MS = 5L * 60L * 1000L
 
 /**
  * `BungeeCord` entry point for the thin-coordinator proxy plugin.
@@ -55,6 +60,11 @@ class DreamDisplaysBungee : Plugin(), Listener {
         logger.info(
             "DreamDisplays proxy bridge ready on BungeeCord - " +
                     "${proxy.servers.size} backend(s) configured: ${NetworkBackendRegistry.allServerNames().sorted()}"
+        )
+        proxy.scheduler.schedule(
+            this,
+            Runnable { NetworkFullscreenManager.pruneStale(System.currentTimeMillis()) },
+            PRUNE_INTERVAL_MS, PRUNE_INTERVAL_MS, TimeUnit.MILLISECONDS,
         )
     }
 
@@ -85,7 +95,7 @@ class DreamDisplaysBungee : Plugin(), Listener {
                     proxyNowMs = System.currentTimeMillis(),
                 )
                 sender.sendData(PROXY_CHANNEL, ProxyPacketRegistry.encode(welcome))
-                retryPendingSessions(serverName)
+                resendLiveSessions(serverName)
             }
 
             is ClockProbe -> {
@@ -151,11 +161,18 @@ class DreamDisplaysBungee : Plugin(), Listener {
                     sendTo(serverName, DisplayTokenResolved(packet.requestId, serverName, known))
                 } else {
                     val stamped = packet.copy(originServer = serverName)
+                    NetworkTokenResolutions.start(packet.requestId, serverName)
                     (NetworkBackendRegistry.allServerNames() - serverName).forEach { name -> sendTo(name, stamped) }
+                    proxy.scheduler.schedule(
+                        this,
+                        Runnable { settleResolution(packet.requestId) },
+                        NetworkTokenResolutions.FANOUT_WINDOW_MS,
+                        TimeUnit.MILLISECONDS,
+                    )
                 }
             }
 
-            is DisplayTokenResolved -> sendTo(packet.originServer, packet)
+            is DisplayTokenResolved -> NetworkTokenResolutions.addReply(packet.requestId, packet.url)
 
             is BackendDisplayIndex -> NetworkDisplayIndex.update(serverName, packet)
 
@@ -198,9 +215,30 @@ class DreamDisplaysBungee : Plugin(), Listener {
         proxy.getServerInfo(serverName)?.sendData(PROXY_CHANNEL, ProxyPacketRegistry.encode(packet))
     }
 
-    /** Re-applies every network fullscreen session [serverName] is still owed, after it (re)announces itself. */
+    /** Closes a [ResolveDisplayToken] fan-out window and forwards the answer, if [NetworkTokenResolutions.settle] found exactly one. */
+    private fun settleResolution(requestId: String) {
+        NetworkTokenResolutions.settle(requestId)?.let { (origin, url) ->
+            sendTo(origin, DisplayTokenResolved(requestId, origin, url))
+        }
+    }
+
+    /** Re-applies every network fullscreen session [serverName] is still owed, on a [PlayerReady]. */
     private fun retryPendingSessions(serverName: String) {
         NetworkFullscreenManager.pendingSessionsFor(serverName).forEach { session ->
+            sendTo(serverName, NetworkFullscreenManager.toApplyPacket(session))
+        }
+    }
+
+    /**
+     * Re-applies every live session [serverName] scope-matches, on a fresh [BackendHello] — broader
+     * than [retryPendingSessions]: a `BackendHello` means that backend's own process just started, so
+     * a session it already acked before a restart (crash, routine restart) needs reapplying too, since
+     * `ApplyFullscreen` sessions are never persisted locally and the proxy would otherwise never resend
+     * one it already believes succeeded.
+     */
+    private fun resendLiveSessions(serverName: String) {
+        NetworkFullscreenManager.liveSessionsApplicableTo(serverName, NetworkBackendRegistry.allServerNames()).forEach { session ->
+            NetworkFullscreenManager.markPending(session.sessionId, setOf(serverName))
             sendTo(serverName, NetworkFullscreenManager.toApplyPacket(session))
         }
     }

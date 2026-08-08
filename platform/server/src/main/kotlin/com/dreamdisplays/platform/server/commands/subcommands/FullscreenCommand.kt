@@ -149,6 +149,7 @@ object PaperFullscreenCommand {
     ) {
         val player = sender as? Player ?: return
         if (serverScope != null) {
+            if (radiusBlocks != null) return MessageUtil.sendMessage(sender, "fullscreenNetworkRadiusUnsupported")
             if (!ProxyNetwork.isConnected()) return MessageUtil.sendMessage(sender, "fullscreenNetworkNoProxy")
             val fullscreenMode = mode?.let { m -> runCatching { FullscreenMode.valueOf(m.uppercase()) }.getOrNull() }
             val resolvedUrl = FullscreenBroadcastManager.resolveNetworkFullscreenUrl(id)
@@ -332,6 +333,10 @@ object VanillaFullscreenCommand {
     ): Int {
         val player = ctx.source.entity as? ServerPlayer ?: return 0
         if (serverScope != null) {
+            if (radiusBlocks != null) {
+                MessageUtil.sendMessage(player, "fullscreenNetworkRadiusUnsupported")
+                return 0
+            }
             if (!ProxyNetwork.isConnected()) {
                 MessageUtil.sendMessage(player, "fullscreenNetworkNoProxy")
                 return 0

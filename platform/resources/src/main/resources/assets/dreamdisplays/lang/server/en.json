@@ -177,6 +177,7 @@
   "fullscreenNetworkNoProxy": "&7D |&f This backend is not connected to a Dream Displays proxy, check [proxy] in config.toml.",
   "fullscreenNetworkNotYetSupported": "&7D |&f Network-wide fullscreen (server <name>/<global>) is not wired up.",
   "fullscreenNetworkUrlOnly": "&7D |&f Network-wide fullscreen only supports a video URL, not an existing display id",
+  "fullscreenNetworkRadiusUnsupported": "&7D |&f radius is not supported with server — it applies only to this server, so start it locally there instead",
   "fullscreenNetworkQueued": "&7D |&f Network fullscreen broadcast queued. It will start on every matching server shortly",
   "fullscreenNetworkStopQueued": "&7D |&f Sent a network-wide stop request for that session",
   "fullscreenListEmpty": "&7D |&f No fullscreen broadcasts are running",

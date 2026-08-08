@@ -62,7 +62,7 @@ object Initializer {
     fun onServerLeft() {
         val serverId = ClientStateManager.connectedServerId
         DisplayRegistry.saveAllScreens()
-        DisplayRegistry.unloadAllForServerSwitch()
+        DisplayRegistry.unloadAll()
         ClientStateManager.isPremium = false
         ClientStateManager.isAdmin = false
         ClientStateManager.connectedServerId = null
