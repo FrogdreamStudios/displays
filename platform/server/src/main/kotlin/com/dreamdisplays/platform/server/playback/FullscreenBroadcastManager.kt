@@ -94,6 +94,18 @@ object FullscreenBroadcastManager {
         return virtual to true
     }
 
+    /**
+     * Resolves the `/display fullscreen start ... server <scope>` target argument to the actual URL
+     * to broadcast network-wide: an existing display's own currently-loaded video (by id or
+     * unambiguous id prefix, same as [resolveOrCreateDisplay]), or — only when [idOrUrl] looks like a
+     * URL — that URL itself, normalized the same way [resolveOrCreateDisplay] does.
+     */
+    fun resolveNetworkFullscreenUrl(idOrUrl: String): String? {
+        resolveDisplayByIdOrPrefix(idOrUrl)?.let { return it.url.takeIf(String::isNotBlank) }
+        if (!looksLikeUrl(idOrUrl)) return null
+        return MediaSource.from(idOrUrl).toResolvableUrl() ?: idOrUrl
+    }
+
     /** Exact UUID match first, then an unambiguous case-insensitive id prefix (>= 4 chars). */
     private fun resolveDisplayByIdOrPrefix(idOrPrefix: String): DisplayData? {
         runCatching { UUID.fromString(idOrPrefix) }.getOrNull()?.let { exact ->

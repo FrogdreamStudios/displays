@@ -149,13 +149,12 @@ object PaperFullscreenCommand {
         val player = sender as? Player ?: return
         if (serverScope != null) {
             if (!ProxyNetwork.isConnected()) return MessageUtil.sendMessage(sender, "fullscreenNetworkNoProxy")
-            if (runCatching { UUID.fromString(id) }.isSuccess) {
-                return MessageUtil.sendMessage(sender, "fullscreenNetworkUrlOnly")
-            }
+            val resolvedUrl = FullscreenBroadcastManager.resolveNetworkFullscreenUrl(id)
+                ?: return MessageUtil.sendMessage(sender, "fullscreenNoDisplay")
             ProxyBridge.startNetworkFullscreen(
                 player = player,
                 scope = serverScope,
-                url = id,
+                url = resolvedUrl,
                 mode = mode?.let { m -> runCatching { FullscreenMode.valueOf(m.uppercase()) }.getOrNull() },
                 forced = forced,
                 volume = volume,
