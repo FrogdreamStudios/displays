@@ -1,6 +1,7 @@
 package com.dreamdisplays.platform.proxy.bungee
 
 import com.dreamdisplays.core.protocol.proxy.ApplyNetworkWatchParty
+import com.dreamdisplays.core.protocol.proxy.BackendDisplayIndex
 import com.dreamdisplays.core.protocol.proxy.BackendHello
 import com.dreamdisplays.core.protocol.proxy.ClockProbe
 import com.dreamdisplays.core.protocol.proxy.ClockReply
@@ -24,6 +25,7 @@ import com.dreamdisplays.core.protocol.proxy.StartNetworkWatchParty
 import com.dreamdisplays.core.protocol.proxy.StopNetworkFullscreen
 import com.dreamdisplays.platform.proxy.BungeeOnly
 import com.dreamdisplays.platform.proxy.NetworkBackendRegistry
+import com.dreamdisplays.platform.proxy.NetworkDisplayIndex
 import com.dreamdisplays.platform.proxy.NetworkFullscreenManager
 import com.dreamdisplays.platform.proxy.NetworkWatchPartyManager
 import net.md_5.bungee.api.connection.Server
@@ -144,11 +146,18 @@ class DreamDisplaysBungee : Plugin(), Listener {
             }
 
             is ResolveDisplayToken -> {
-                val stamped = packet.copy(originServer = serverName)
-                (NetworkBackendRegistry.allServerNames() - serverName).forEach { name -> sendTo(name, stamped) }
+                val known = NetworkDisplayIndex.resolve(packet.token)
+                if (known != null) {
+                    sendTo(serverName, DisplayTokenResolved(packet.requestId, serverName, known))
+                } else {
+                    val stamped = packet.copy(originServer = serverName)
+                    (NetworkBackendRegistry.allServerNames() - serverName).forEach { name -> sendTo(name, stamped) }
+                }
             }
 
             is DisplayTokenResolved -> sendTo(packet.originServer, packet)
+
+            is BackendDisplayIndex -> NetworkDisplayIndex.update(serverName, packet)
 
             is PlayerFullscreenMinimized ->
                 NetworkFullscreenManager.setMinimized(packet.sessionId, packet.playerId, packet.minimized)

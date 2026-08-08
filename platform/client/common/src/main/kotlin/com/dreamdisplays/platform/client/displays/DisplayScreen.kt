@@ -380,6 +380,9 @@ class DisplayScreen(
     /** True while a PiP or window popout is open for this display. */
     val isPopoutActive: Boolean; get() = popoutManager.isActive
 
+    /** True for a fullscreen broadcast's synthetic display. */
+    var virtual: Boolean = false
+
     /** Anchor block position of the display (cached). */
     val pos: BlockPos; get() = blockPos ?: BlockPos(x, y, z).also { blockPos = it }
 
@@ -517,6 +520,7 @@ class DisplayScreen(
 
     /** Updates position, dimensions, and video URL from an incoming [DisplayInfo] packet. */
     fun updateData(packet: DisplayInfo) {
+        virtual = packet.virtual
         x = packet.x
         y = packet.y
         z = packet.z

@@ -161,6 +161,7 @@ object PaperFullscreenCommand {
                     volume = volume,
                     loop = loop,
                     quality = quality,
+                    targetsRaw = players,
                 )
             } else {
                 // Unknown here, but display ids are per-backend - the one being named very likely
@@ -174,6 +175,7 @@ object PaperFullscreenCommand {
                     volume = volume,
                     loop = loop,
                     quality = quality,
+                    targetsRaw = players,
                 )
             }
             return MessageUtil.sendMessage(sender, "fullscreenNetworkQueued")
@@ -242,18 +244,24 @@ object PaperFullscreenCommand {
      * it for a rarely-typed admin command; stop network sessions by their own id instead.
      */
     fun stop(sender: CommandSender, idOrAll: String) {
+        val networkIds =
+            if (idOrAll.equals("all", ignoreCase = true)) FullscreenCommand.list().map { it.sessionId }
+            else listOf(idOrAll)
+
         val count = FullscreenCommand.stop(idOrAll)
-        if (count > 0) {
-            return MessageUtil.sendColoredMessage(
+
+        val forwarded = sender is Player && ProxyNetwork.isConnected() && networkIds.isNotEmpty()
+        if (forwarded) networkIds.forEach { ProxyBridge.stopNetworkFullscreen(sender as Player, it) }
+
+        when {
+            count > 0 -> MessageUtil.sendColoredMessage(
                 sender,
                 MessageUtil.formatIndexed(sender, "fullscreenStopped", count.toString())
             )
+
+            forwarded -> MessageUtil.sendMessage(sender, "fullscreenNetworkStopQueued")
+            else -> MessageUtil.sendMessage(sender, "fullscreenStopFailed")
         }
-        if (idOrAll != "all" && sender is Player && ProxyNetwork.isConnected()) {
-            ProxyBridge.stopNetworkFullscreen(sender, idOrAll)
-            return MessageUtil.sendMessage(sender, "fullscreenNetworkStopQueued")
-        }
-        MessageUtil.sendMessage(sender, "fullscreenStopFailed")
     }
 
     /** Handles `/display fullscreen list`: local sessions plus the last known network roster. */

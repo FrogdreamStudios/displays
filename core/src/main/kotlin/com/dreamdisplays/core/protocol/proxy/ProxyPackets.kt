@@ -69,6 +69,7 @@ data class StartNetworkFullscreen(
     @ProtoNumber(7) val loop: Boolean = false,
     @ProtoNumber(8) val quality: String = "",
     @ProtoNumber(9) val title: String = "",
+    @ProtoNumber(10) val targetsRaw: String = "",
 ) : ProxyPacket
 
 /**
@@ -84,6 +85,7 @@ data class StartNetworkFullscreen(
 data class ApplyFullscreen(
     @ProtoNumber(1) val sessionId: String = "",
     @ProtoNumber(2) val anchorProxyMs: Long = 0L,
+    @ProtoNumber(11) val sharedDisplayId: String = "",
     @ProtoNumber(3) val ownerId: String = "",
     @ProtoNumber(4) val url: String = "",
     @ProtoNumber(5) val mode: Int = 0,
@@ -92,6 +94,7 @@ data class ApplyFullscreen(
     @ProtoNumber(8) val loop: Boolean = false,
     @ProtoNumber(9) val quality: String = "",
     @ProtoNumber(10) val title: String = "",
+    @ProtoNumber(12) val targetsRaw: String = "",
 ) : ProxyPacket
 
 /**
@@ -310,4 +313,23 @@ data class PlayerFullscreenMinimized(
     @ProtoNumber(1) val sessionId: String = "",
     @ProtoNumber(2) val playerId: String = "",
     @ProtoNumber(3) val minimized: Boolean = false,
+) : ProxyPacket
+
+/** One display a backend hosts, as advertised in a [BackendDisplayIndex]. */
+@Serializable
+data class DisplayIndexEntry(
+    @ProtoNumber(1) val id: String = "",
+    @ProtoNumber(2) val url: String = "",
+)
+
+/**
+ * Backend -> proxy: everything this backend can play, so the proxy can answer a
+ * [ResolveDisplayToken] from its own index instead of asking around. Plugin messages ride player
+ * connections, so a backend with nobody on it can neither be asked nor answer — remembering what it
+ * announced while it did have players is the only way `fullscreen start id <id>` works for a
+ * display that lives on a currently empty server.
+ */
+@Serializable
+data class BackendDisplayIndex(
+    @ProtoNumber(1) val displays: List<DisplayIndexEntry> = emptyList(),
 ) : ProxyPacket

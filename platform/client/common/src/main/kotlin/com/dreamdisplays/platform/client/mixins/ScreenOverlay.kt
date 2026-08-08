@@ -48,7 +48,6 @@ open class ScreenOverlay {
         open fun onRenderHead(graphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTick: Float, ci: CallbackInfo) {*/
         if (FullscreenOverlayManager.isEmpty) return
         val mc = Minecraft.getInstance()
-        if (mc.level == null || mc.player == null) return
         FullscreenOverlayManager.onClientTick(mc)
         if (FullscreenOverlayManager.isEmpty) return
         FullscreenOverlayManager.renderAll(mc, graphics, partialTick)
@@ -85,7 +84,6 @@ open class ScreenOverlay {
         val overlays = DreamServices.registry.getOrNull<OverlayManager>() ?: return
         if (overlays.isEmpty) return
         val mc = Minecraft.getInstance()
-        if (mc.level == null || mc.player == null) return
         val window =
             //? if >=1.21.11 {
             mc.window.handle()

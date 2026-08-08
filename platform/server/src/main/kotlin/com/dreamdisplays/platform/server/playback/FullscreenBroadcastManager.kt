@@ -40,6 +40,12 @@ object FullscreenBroadcastManager {
     /** Minimum interval between drift-correction resends of a real display's timeline to a target. */
     private const val TIMELINE_RESEND_MS = 5_000L
 
+    /** How long to wait for a delivery to be confirmed before sending it again. */
+    private const val REDELIVER_UNCONFIRMED_MS = 1_500L
+
+    /** How long a single delivery keeps being retried before the viewer is left alone. */
+    private const val DELIVERY_CONFIRM_WINDOW_MS = 20_000L
+
     private lateinit var transport: PlaybackTransport
     private val sessions = ConcurrentHashMap<String, Session>()
 
@@ -59,10 +65,11 @@ object FullscreenBroadcastManager {
         var radius: FullscreenRadiusTarget?,
         var timeline: Timeline?,
         val shownTo: MutableSet<UUID> = ConcurrentHashMap.newKeySet(),
-        /** Players who closed an unforced broadcast themselves; excluded from re-delivery for the rest of this session. */
         val dismissedBy: MutableSet<UUID> = ConcurrentHashMap.newKeySet(),
-        /** Players who collapsed this session to PiP; re-delivered collapsed instead of fullscreen. */
         val minimizedBy: MutableSet<UUID> = ConcurrentHashMap.newKeySet(),
+        val confirmedBy: MutableSet<UUID> = ConcurrentHashMap.newKeySet(),
+        val deliveredAtMs: MutableMap<UUID, Long> = ConcurrentHashMap(),
+        val retryUntilMs: MutableMap<UUID, Long> = ConcurrentHashMap(),
         var lastTick: Long = 0,
         var lastTimelineResend: Long = 0,
     )
@@ -88,10 +95,14 @@ object FullscreenBroadcastManager {
      * nothing matches a display and the input isn't URL-shaped (never silently treats a mistyped id
      * as a URL), or when a virtual display is needed but no world is loaded yet.
      */
-    fun resolveOrCreateDisplay(idOrUrl: String, ownerId: UUID): Pair<DisplayData, Boolean>? {
+    fun resolveOrCreateDisplay(
+        idOrUrl: String,
+        ownerId: UUID,
+        virtualDisplayId: UUID? = null,
+    ): Pair<DisplayData, Boolean>? {
         resolveDisplayByIdOrPrefix(idOrUrl)?.let { return it to false }
         if (!looksLikeUrl(idOrUrl)) return null
-        val virtual = transport.createVirtualDisplay(UUID.randomUUID(), ownerId) ?: return null
+        val virtual = transport.createVirtualDisplay(virtualDisplayId ?: UUID.randomUUID(), ownerId) ?: return null
         virtual.url = MediaSource.from(idOrUrl).toResolvableUrl() ?: idOrUrl
         return virtual to true
     }
@@ -241,6 +252,7 @@ object FullscreenBroadcastManager {
         val session = sessions[sessionId] ?: return
         when (action) {
             FullscreenAckAction.SHOWN -> {
+                session.confirmedBy.add(playerId)
                 session.minimizedBy.remove(playerId)
                 sendTimeline(session, playerId, transport.nowMs())
                 onMinimizedChanged?.invoke(session.sessionId, playerId, false)
@@ -252,6 +264,7 @@ object FullscreenBroadcastManager {
             }
 
             FullscreenAckAction.MINIMIZED -> {
+                session.confirmedBy.add(playerId)
                 session.minimizedBy.add(playerId)
                 sendTimeline(session, playerId, transport.nowMs())
                 onMinimizedChanged?.invoke(session.sessionId, playerId, true)
@@ -270,9 +283,17 @@ object FullscreenBroadcastManager {
     /** Forgets sessions for a player who left, so a rejoin is treated as a fresh delivery (a past dismissal doesn't carry over either). */
     fun onPlayerQuit(playerId: UUID) {
         sessions.values.forEach {
-            it.shownTo.remove(playerId)
+            forget(it, playerId)
             it.dismissedBy.remove(playerId)
         }
+    }
+
+    /** Drops every per-player delivery record, so a later re-target is treated as a fresh delivery. */
+    private fun forget(session: Session, playerId: UUID) {
+        session.shownTo.remove(playerId)
+        session.confirmedBy.remove(playerId)
+        session.deliveredAtMs.remove(playerId)
+        session.retryUntilMs.remove(playerId)
     }
 
     /** Re-sends every live session's state to [playerId] on join, in case they're still within a radius/selector. */
@@ -425,8 +446,11 @@ object FullscreenBroadcastManager {
                 minimized = playerId in session.minimizedBy,
             ),
         )
-        sendTimeline(session, playerId, transport.nowMs())
-        session.shownTo.add(playerId)
+        val now = transport.nowMs()
+        sendTimeline(session, playerId, now)
+        if (session.shownTo.add(playerId)) session.retryUntilMs[playerId] = now + DELIVERY_CONFIRM_WINDOW_MS
+        session.confirmedBy.remove(playerId)
+        session.deliveredAtMs[playerId] = now
     }
 
     /** Sends the session's current playback position: the display's own clock for real displays, or the session's own looping [Timeline] for virtual ones. */
@@ -449,9 +473,12 @@ object FullscreenBroadcastManager {
                 deliverTo(session, playerId)
             } else if (!targeted && shown) {
                 transport.sendTo(playerId, FullscreenState(sessionId = session.sessionId, active = false))
-                session.shownTo.remove(playerId)
-            } else if (targeted && resendDue) {
-                sendTimeline(session, playerId, now)
+                forget(session, playerId)
+            } else if (targeted) {
+                val unconfirmed = playerId !in session.confirmedBy &&
+                        now < (session.retryUntilMs[playerId] ?: 0L) &&
+                        now - (session.deliveredAtMs[playerId] ?: now) >= REDELIVER_UNCONFIRMED_MS
+                if (unconfirmed) deliverTo(session, playerId) else if (resendDue) sendTimeline(session, playerId, now)
             }
         }
         if (resendDue) session.lastTimelineResend = now

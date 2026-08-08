@@ -27,6 +27,7 @@ object NetworkFullscreenManager {
     /** One live network fullscreen broadcast. */
     class Session(
         val sessionId: String,
+        val sharedDisplayId: UUID,
         val scope: String,
         val ownerId: String,
         val url: String,
@@ -36,6 +37,7 @@ object NetworkFullscreenManager {
         val loop: Boolean,
         val quality: String,
         val title: String,
+        val targetsRaw: String,
         val anchorProxyMs: Long,
     ) {
         /** Backend name -> last reported reach (player count actually targeted there). */
@@ -51,6 +53,7 @@ object NetworkFullscreenManager {
     fun start(request: StartNetworkFullscreen, proxyNowMs: Long): Session {
         val session = Session(
             sessionId = generateSessionId(),
+            sharedDisplayId = UUID.randomUUID(),
             scope = request.scope,
             ownerId = request.ownerId,
             url = request.url,
@@ -60,6 +63,7 @@ object NetworkFullscreenManager {
             loop = request.loop,
             quality = request.quality,
             title = request.title,
+            targetsRaw = request.targetsRaw,
             anchorProxyMs = proxyNowMs + FANOUT_LEAD_MS,
         )
         sessions[session.sessionId] = session
@@ -69,6 +73,7 @@ object NetworkFullscreenManager {
     /** Builds the [ApplyFullscreen] every target backend receives for [session]. */
     fun toApplyPacket(session: Session): ApplyFullscreen = ApplyFullscreen(
         sessionId = session.sessionId,
+        sharedDisplayId = session.sharedDisplayId.toString(),
         anchorProxyMs = session.anchorProxyMs,
         ownerId = session.ownerId,
         url = session.url,
@@ -78,6 +83,7 @@ object NetworkFullscreenManager {
         loop = session.loop,
         quality = session.quality,
         title = session.title,
+        targetsRaw = session.targetsRaw,
     )
 
     /** Resolves a `server` flag's [scope] ("global", or one backend name) against [knownServers]. */

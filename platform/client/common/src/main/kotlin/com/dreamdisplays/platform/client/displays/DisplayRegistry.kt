@@ -99,7 +99,58 @@ object DisplayRegistry {
         screens.values.forEach { it.unregister(); acoustics?.unregisterSource(it.uuid) }
         screens.clear()
         unloadedScreens.clear()
+        awaitingReconfirm.clear()
         displaySystem?.clearDisplays()
+    }
+
+    /** How long a carried-over display waits to be re-announced by the new server before it is dropped. */
+    private const val RECONFIRM_GRACE_MS = 12_000L
+
+    /** Display id -> instant after which an unconfirmed carry-over is torn down. */
+    private val awaitingReconfirm = ConcurrentHashMap<UUID, Long>()
+
+    /**
+     * Server-switch teardown. World-anchored displays go immediately — their geometry belongs to the
+     * old world — but a display the viewer is actively watching in a popout is a screen-space
+     * surface that has nothing to do with the world, so it keeps running: its media player, decoder
+     * and audio are left untouched and playback simply continues across the switch.
+     *
+     * Such a display is only provisional: the new server must re-announce it (the proxy pins one
+     * display id network-wide, so a `DisplayInfo` for the same id reuses this very screen). If it
+     * does not within [RECONFIRM_GRACE_MS], the viewer moved somewhere the broadcast does not reach
+     * and [tickReconfirm] drops it.
+     */
+    fun unloadAllForServerSwitch() {
+        val now = System.currentTimeMillis()
+        val carried = mutableSetOf<UUID>()
+        for (screen in screens.values.toList()) {
+            if (screen.isPopoutActive) {
+                carried += screen.uuid
+                awaitingReconfirm[screen.uuid] = now + RECONFIRM_GRACE_MS
+            } else {
+                // Per-display removal, never displaySystem.clearDisplays(): that one wipes every
+                // display it knows about, and the removal event closes the very popout being carried.
+                unregisterScreen(screen)
+            }
+        }
+        unloadedScreens.keys.removeAll(carried)
+        awaitingReconfirm.keys.retainAll(carried)
+    }
+
+    /** The new server re-announced [displayId]; it is no longer provisional. */
+    fun markReconfirmed(displayId: UUID) {
+        awaitingReconfirm.remove(displayId)
+    }
+
+    /** Drops carried-over displays the new server never re-announced. Called once per client tick. */
+    fun tickReconfirm() {
+        if (awaitingReconfirm.isEmpty()) return
+        val now = System.currentTimeMillis()
+        for ((displayId, deadline) in awaitingReconfirm.entries.toList()) {
+            if (deadline > now) continue
+            awaitingReconfirm.remove(displayId)
+            screens[displayId]?.let { unregisterScreen(it) }
+        }
     }
 
     /** Saves the display screen data to disk. */

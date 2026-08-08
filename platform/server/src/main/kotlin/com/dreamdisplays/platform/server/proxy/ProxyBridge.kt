@@ -6,6 +6,8 @@ import com.dreamdisplays.core.protocol.DisplayDelete
 import com.dreamdisplays.core.protocol.WatchPartyState
 import com.dreamdisplays.core.protocol.proxy.ApplyFullscreen
 import com.dreamdisplays.core.protocol.proxy.ApplyNetworkWatchParty
+import com.dreamdisplays.core.protocol.proxy.BackendDisplayIndex
+import com.dreamdisplays.core.protocol.proxy.DisplayIndexEntry
 import com.dreamdisplays.core.protocol.proxy.BackendHello
 import com.dreamdisplays.core.protocol.proxy.ClockProbe
 import com.dreamdisplays.core.protocol.proxy.ClockReply
@@ -30,6 +32,7 @@ import com.dreamdisplays.core.protocol.proxy.StartNetworkFullscreen
 import com.dreamdisplays.core.protocol.proxy.StartNetworkWatchParty
 import com.dreamdisplays.core.protocol.proxy.StopNetworkFullscreen
 import com.dreamdisplays.platform.server.PaperServer
+import com.dreamdisplays.platform.server.managers.DisplayManager
 import com.dreamdisplays.platform.server.playback.FullscreenBroadcastManager
 import com.dreamdisplays.platform.server.playback.WatchPartyManager
 import io.github.arnodoelinger.platformweaver.PaperOnly
@@ -81,6 +84,7 @@ object ProxyBridge : PluginMessageListener {
         val volume: Float?,
         val loop: Boolean,
         val quality: String?,
+        val targetsRaw: String?,
         val expiresAtMs: Long,
     )
 
@@ -118,6 +122,19 @@ object ProxyBridge : PluginMessageListener {
             )
         }
         send(player, PlayerReady(playerId = player.uniqueId.toString()))
+        sendDisplayIndex(player)
+    }
+
+    /**
+     * Tells the proxy every display this backend can play, so `fullscreen start id <id>` resolves
+     * network-wide even for a display whose backend is empty at the time — such a backend can be
+     * neither asked nor heard, since plugin messages ride player connections.
+     */
+    private fun sendDisplayIndex(player: Player) {
+        val entries = DisplayManager.getDisplays()
+            .filter { it.url.isNotBlank() }
+            .map { DisplayIndexEntry(it.id.toString(), it.url) }
+        if (entries.isNotEmpty()) send(player, BackendDisplayIndex(entries))
     }
 
     /** Encodes and sends [packet] on [PROXY_CHANNEL] via [player]'s connection to the proxy. */
@@ -149,10 +166,12 @@ object ProxyBridge : PluginMessageListener {
         volume: Float?,
         loop: Boolean,
         quality: String?,
+        targetsRaw: String? = null,
     ) {
         send(
             player,
             StartNetworkFullscreen(
+                targetsRaw = targetsRaw ?: "",
                 scope = scope,
                 ownerId = player.uniqueId.toString(),
                 url = url,
@@ -180,6 +199,7 @@ object ProxyBridge : PluginMessageListener {
         volume: Float?,
         loop: Boolean,
         quality: String?,
+        targetsRaw: String? = null,
     ) {
         val now = System.currentTimeMillis()
         pendingStarts.values.removeIf { it.expiresAtMs < now }
@@ -193,6 +213,7 @@ object ProxyBridge : PluginMessageListener {
             volume = volume,
             loop = loop,
             quality = quality,
+            targetsRaw = targetsRaw,
             expiresAtMs = now + RESOLVE_TIMEOUT_MS,
         )
         send(player, ResolveDisplayToken(requestId = requestId, token = token))
@@ -230,6 +251,23 @@ object ProxyBridge : PluginMessageListener {
         )
     }
 
+    /**
+     * Resolves a broadcast's `target` tokens against this backend's online players. Sender-relative
+     * selectors (`@s`, `@p`, `@r`) are meaningless for a network broadcast — the commanding player is
+     * on one backend only — so they are not offered here. Blank means everyone online.
+     */
+    private fun resolveNetworkTargets(targetsRaw: String): Set<UUID> {
+        val online = Bukkit.getOnlinePlayers()
+        if (targetsRaw.isBlank()) return online.map { it.uniqueId }.toSet()
+        return targetsRaw.split(",").map { it.trim() }.filter { it.isNotEmpty() }.flatMapTo(mutableSetOf()) { token ->
+            when {
+                token.equals("@a", true) || token.equals("@e", true) -> online.map { it.uniqueId }
+                token.startsWith("%") -> online.filter { it.hasPermission($$"group.${token.substring(1)}") }.map { it.uniqueId }
+                else -> listOfNotNull(Bukkit.getPlayerExact(token)?.uniqueId)
+            }
+        }
+    }
+
     /** Requests a fresh [NetworkSessionList], refreshing [ProxyNetwork.networkSessions] for the next `/display fullscreen list`. */
     fun requestNetworkSessions(player: Player) {
         send(player, ListNetworkSessions())
@@ -238,14 +276,15 @@ object ProxyBridge : PluginMessageListener {
     /** Applies a proxy-driven [ApplyFullscreen], creating a fresh local virtual display for it. */
     private fun applyNetworkFullscreen(packet: ApplyFullscreen) {
         val ownerId = runCatching { UUID.fromString(packet.ownerId) }.getOrNull() ?: return
-        val resolved = FullscreenBroadcastManager.resolveOrCreateDisplay(packet.url, ownerId)
+        val sharedId = runCatching { UUID.fromString(packet.sharedDisplayId) }.getOrNull()
+        val resolved = FullscreenBroadcastManager.resolveOrCreateDisplay(packet.url, ownerId, sharedId)
         if (resolved == null) {
             logger.warn("Could not create a virtual display for network fullscreen '{}' (no world loaded yet?)", packet.sessionId)
             sendViaAnyPlayer(NetworkFullscreenAck(packet.sessionId, reach = 0, pending = true))
             return
         }
         val (display, _) = resolved
-        val onlineIds = Bukkit.getOnlinePlayers().map { it.uniqueId }.toSet()
+        val onlineIds = resolveNetworkTargets(packet.targetsRaw)
         val mode = FullscreenMode.entries.getOrElse(packet.mode) { FullscreenMode.STANDARD }
         val sessionId = FullscreenBroadcastManager.start(
             sessionId = packet.sessionId,
@@ -396,6 +435,7 @@ object ProxyBridge : PluginMessageListener {
                     volume = pending.volume,
                     loop = pending.loop,
                     quality = pending.quality,
+                    targetsRaw = pending.targetsRaw,
                 )
             }
 

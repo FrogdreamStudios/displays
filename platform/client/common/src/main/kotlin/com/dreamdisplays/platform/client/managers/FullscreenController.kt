@@ -5,7 +5,6 @@ import com.dreamdisplays.api.playback.FullscreenAckAction
 import com.dreamdisplays.api.playback.FullscreenMode
 import com.dreamdisplays.core.protocol.FullscreenAck
 import com.dreamdisplays.core.protocol.FullscreenState
-import com.dreamdisplays.core.protocol.RequestSync
 import com.dreamdisplays.platform.client.displays.DisplayRegistry
 import com.dreamdisplays.platform.client.displays.DisplayScreen
 import com.dreamdisplays.platform.client.net.ProtocolRouter
@@ -104,7 +103,6 @@ object FullscreenController {
      * takes over the same live player rather than starting a second one.
      */
     private fun apply(screen: DisplayScreen, state: FullscreenState) {
-        ProtocolRouter.send(RequestSync(state.displayId))
         screen.activateFullscreenMode(FullscreenMode.fromWire(state.mode), state.forced, state.sessionId, state.loop)
         if (state.volume >= 0f) screen.volume = state.volume.coerceIn(0f, 1f)
         if (state.quality.isNotEmpty()) screen.quality = VideoQuality.parse(state.quality)
