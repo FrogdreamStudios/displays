@@ -5,6 +5,7 @@ import com.dreamdisplays.platform.client.core.DreamServices
 import com.dreamdisplays.platform.client.overlay.OverlayManager
 import com.dreamdisplays.platform.client.ui.FullscreenOverlayManager
 import com.dreamdisplays.platform.client.ui.MinecraftOverlayRenderContext
+import com.dreamdisplays.platform.client.utils.MinecraftScreenUtil
 import net.minecraft.client.Minecraft
 //? if >=26 {
 import net.minecraft.client.gui.GuiGraphicsExtractor
@@ -50,6 +51,7 @@ open class ScreenOverlay {
         val mc = Minecraft.getInstance()
         FullscreenOverlayManager.onClientTick(mc)
         if (FullscreenOverlayManager.isEmpty) return
+        if (MinecraftScreenUtil.isTransientLoadingScreen(MinecraftScreenUtil.currentScreen(mc))) return
         FullscreenOverlayManager.renderAll(mc, graphics, partialTick)
     }
 
@@ -81,9 +83,17 @@ open class ScreenOverlay {
             require = 0
         )
         open fun onRenderReturn(graphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTick: Float, ci: CallbackInfo) {*/
+        val mc = Minecraft.getInstance()
+        if (!FullscreenOverlayManager.isEmpty &&
+            MinecraftScreenUtil.isTransientLoadingScreen(MinecraftScreenUtil.currentScreen(mc))
+        ) {
+            //? if >=1.21.11 {
+            graphics.nextStratum()
+            //?}
+            FullscreenOverlayManager.renderAll(mc, graphics, partialTick)
+        }
         val overlays = DreamServices.registry.getOrNull<OverlayManager>() ?: return
         if (overlays.isEmpty) return
-        val mc = Minecraft.getInstance()
         val window =
             //? if >=1.21.11 {
             mc.window.handle()
