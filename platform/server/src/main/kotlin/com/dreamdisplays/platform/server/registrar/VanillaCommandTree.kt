@@ -70,20 +70,37 @@ object VanillaCommandTree {
             VanillaCreateCommand.execute(ctx)
         }
 
-    /** Builds the `/display delete` subcommand. */
+    /**
+     * Builds the `/display delete [this]` subcommand. `this` is also reachable and changes nothing
+     * about resolution (the command already always raycasts) — it's only an explicit spelling of
+     * that implicit target, the same way `fullscreen start id this` already lets you name a display
+     * without knowing its id, so the convention reads the same across every display-targeting command.
+     */
     private fun deleteNode() = Commands.literal("delete")
         .executes { ctx ->
             VanillaDeleteCommand.execute(ctx)
             Command.SINGLE_SUCCESS
         }
+        .then(
+            Commands.literal("this").executes { ctx ->
+                VanillaDeleteCommand.execute(ctx)
+                Command.SINGLE_SUCCESS
+            }
+        )
 
-    /** Builds the `/display info` subcommand. */
+    /** Builds the `/display info [this]` subcommand — see [deleteNode] for why `this` is a no-op alias. */
     private fun infoNode() = Commands.literal("info")
         .requires { requiresNode(it, { p -> p.info }, VanillaPermissions.Fallback.EVERYONE) }
         .executes { ctx ->
             VanillaInfoCommand.execute(ctx)
             Command.SINGLE_SUCCESS
         }
+        .then(
+            Commands.literal("this").executes { ctx ->
+                VanillaInfoCommand.execute(ctx)
+                Command.SINGLE_SUCCESS
+            }
+        )
 
     /** Builds the `/display stats` subcommand. */
     private fun statsNode() = Commands.literal("stats")
@@ -101,26 +118,32 @@ object VanillaCommandTree {
             Command.SINGLE_SUCCESS
         }
 
-    /** Builds the `/display video <url> [lang]` subcommand. */
+    /**
+     * Builds the `/display video [this] <url> [lang]` subcommand — see [deleteNode] for why `this`
+     * is a no-op alias.
+     */
     private fun videoNode() = Commands.literal("video")
         .requires { requiresNode(it, { p -> p.video }, VanillaPermissions.Fallback.EVERYONE) }
-        .then(
-            Commands.argument("url_and_lang", StringArgumentType.greedyString())
-                .suggests { _, builder ->
-                    if (builder.remaining.contains(' ')) {
-                        val prefix = builder.remaining.substringAfterLast(' ')
-                        getLanguageSuggestions()
-                            .filter { it.startsWith(prefix, ignoreCase = true) }
-                            .forEach { builder.suggest(builder.remaining.substringBeforeLast(' ') + " " + it) }
-                    }
-                    builder.buildFuture()
+        .then(videoUrlArgument())
+        .then(Commands.literal("this").then(videoUrlArgument()))
+
+    /** The `<url> [lang]` greedy argument shared by `video <url> [lang]` and `video this <url> [lang]`. */
+    private fun videoUrlArgument() =
+        Commands.argument("url_and_lang", StringArgumentType.greedyString())
+            .suggests { _, builder ->
+                if (builder.remaining.contains(' ')) {
+                    val prefix = builder.remaining.substringAfterLast(' ')
+                    getLanguageSuggestions()
+                        .filter { it.startsWith(prefix, ignoreCase = true) }
+                        .forEach { builder.suggest(builder.remaining.substringBeforeLast(' ') + " " + it) }
                 }
-                .executes { ctx ->
-                    val urlAndLang = StringArgumentType.getString(ctx, "url_and_lang")
-                    VanillaVideoCommand.execute(ctx, urlAndLang)
-                    Command.SINGLE_SUCCESS
-                }
-        )
+                builder.buildFuture()
+            }
+            .executes { ctx ->
+                val urlAndLang = StringArgumentType.getString(ctx, "url_and_lang")
+                VanillaVideoCommand.execute(ctx, urlAndLang)
+                Command.SINGLE_SUCCESS
+            }
 
     /** Builds the `/display list [filter] [value] [page]` subcommand. */
     private fun listNode(): LiteralArgumentBuilder<CommandSourceStack> {
@@ -230,8 +253,10 @@ object VanillaCommandTree {
     ) = Commands.literal(literalName).then(
         Commands.argument("id", BareTokenArgumentType)
             .suggests { _, builder ->
-                if (literalName == "id") FullscreenBroadcastManager.displayIdSuggestions()
-                    .forEach { builder.suggest(it) }
+                if (literalName == "id") {
+                    builder.suggest("this")
+                    FullscreenBroadcastManager.displayIdSuggestions().forEach { builder.suggest(it) }
+                }
                 builder.buildFuture()
             }
             .executes { ctx -> runFullscreenStart(ctx) }

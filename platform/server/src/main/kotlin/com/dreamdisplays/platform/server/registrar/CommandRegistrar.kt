@@ -61,12 +61,12 @@ object CommandRegistrar {
                 CreateCommand()
             ) { it.sender is Player && it.sender.hasPermission(PaperServer.config.permissions.create) })
         .then(
-            simple(
+            simpleWithThis(
                 "delete",
                 DeleteCommand()
             ) { it.sender is Player })
         .then(
-            simple(
+            simpleWithThis(
                 "info",
                 InfoCommand()
             ) { it.sender is Player && it.sender.hasPermission(PaperServer.config.permissions.info) })
@@ -93,31 +93,57 @@ object CommandRegistrar {
         }
     }
 
-    /** Builds the `/display video <url> [lang]` subcommand with greedy argument and language suggestions. */
+    /**
+     * Same as [simple], but also reachable as `/display <name> this` — [cmd] already always targets
+     * whatever the sender is looking at (raycast), so `this` changes nothing about how it resolves;
+     * it just makes that implicit target explicit and typeable, the same way `fullscreen start id
+     * this` already lets you name a display without knowing its id, so the convention reads the same
+     * across every display-targeting command.
+     */
+    private fun simpleWithThis(
+        name: String,
+        cmd: SubCommand,
+        check: ((CommandSourceStack) -> Boolean)? = null,
+    ): LiteralArgumentBuilder<CommandSourceStack> =
+        simple(name, cmd, check).then(
+            Commands.literal("this").executes { ctx ->
+                cmd.execute(ctx.source.sender, emptyArray())
+                Command.SINGLE_SUCCESS
+            }
+        )
+
+    /** Builds the `/display video [this] <url> [lang]` subcommand with greedy argument and language suggestions. */
     private fun videoSubCommand() = Commands.literal("video")
         .requires { it.sender is Player && it.sender.hasPermission(PaperServer.config.permissions.video) }
-        .then(
-            // greedyString captures the rest of the input (URL + optional lang separated by space)
-            Commands.argument("url_and_lang", StringArgumentType.greedyString())
-                .suggests { _, builder ->
-                    // Only suggest lang codes when the input looks like "url lang_prefix"
-                    if (builder.remaining.contains(' ')) {
-                        val prefix = builder.remaining.substringAfterLast(' ')
-                        VideoCommand.languageSuggestions
-                            .filter { it.startsWith(prefix, ignoreCase = true) }
-                            .forEach { builder.suggest(builder.remaining.substringBeforeLast(' ') + " " + it) }
-                    }
-                    builder.buildFuture()
+        .then(videoUrlArgument())
+        .then(Commands.literal("this").then(videoUrlArgument()))
+
+    /**
+     * The `<url> [lang]` greedy argument shared by `/display video <url> [lang]` and
+     * `/display video this <url> [lang]` — `this` changes nothing about resolution (the command
+     * already always raycasts), it's only an explicit spelling of that implicit target.
+     */
+    private fun videoUrlArgument() =
+        // greedyString captures the rest of the input (URL + optional lang separated by space)
+        Commands.argument("url_and_lang", StringArgumentType.greedyString())
+            .suggests { _, builder ->
+                // Only suggest lang codes when the input looks like "url lang_prefix"
+                if (builder.remaining.contains(' ')) {
+                    val prefix = builder.remaining.substringAfterLast(' ')
+                    VideoCommand.languageSuggestions
+                        .filter { it.startsWith(prefix, ignoreCase = true) }
+                        .forEach { builder.suggest(builder.remaining.substringBeforeLast(' ') + " " + it) }
                 }
-                .executes { ctx ->
-                    val raw = StringArgumentType.getString(ctx, "url_and_lang").trim()
-                    val parts = raw.split(" ")
-                    val url = parts[0]
-                    val lang = if (parts.size > 1) parts.last() else ""
-                    VideoCommand().execute(ctx.source.sender, arrayOf("video", url, lang))
-                    Command.SINGLE_SUCCESS
-                }
-        )
+                builder.buildFuture()
+            }
+            .executes { ctx ->
+                val raw = StringArgumentType.getString(ctx, "url_and_lang").trim()
+                val parts = raw.split(" ")
+                val url = parts[0]
+                val lang = if (parts.size > 1) parts.last() else ""
+                VideoCommand().execute(ctx.source.sender, arrayOf("video", url, lang))
+                Command.SINGLE_SUCCESS
+            }
 
     /** Builds an on / off toggle subcommand that optionally targets another player. */
     private fun toggleSubCommand(name: String, cmd: SubCommand) = Commands.literal(name)
@@ -202,8 +228,10 @@ object CommandRegistrar {
     ) = Commands.literal(literalName).then(
         Commands.argument("id", PaperBareTokenArgumentType)
             .suggests { _, builder ->
-                if (literalName == "id") FullscreenBroadcastManager.displayIdSuggestions()
-                    .forEach { builder.suggest(it) }
+                if (literalName == "id") {
+                    builder.suggest("this")
+                    FullscreenBroadcastManager.displayIdSuggestions().forEach { builder.suggest(it) }
+                }
                 builder.buildFuture()
             }
             .executes { ctx -> runFullscreenStart(ctx); Command.SINGLE_SUCCESS }

@@ -3,8 +3,10 @@ package com.dreamdisplays.platform.server.commands.subcommands
 import com.dreamdisplays.api.media.VideoQuality
 import com.dreamdisplays.api.playback.FullscreenMode
 import com.dreamdisplays.platform.server.PaperServer
+import com.dreamdisplays.platform.server.baseMaterial
 import com.dreamdisplays.platform.server.VanillaServerState
 import com.dreamdisplays.platform.server.datatypes.display.DisplayData
+import com.dreamdisplays.platform.server.managers.DisplayManager
 import com.dreamdisplays.platform.server.playback.FullscreenBroadcastManager
 import com.dreamdisplays.platform.server.playback.FullscreenRadiusTarget
 import com.dreamdisplays.platform.server.playback.FullscreenSessionInfo
@@ -148,6 +150,15 @@ object PaperFullscreenCommand {
         quality: String?,
     ) {
         val player = sender as? Player ?: return
+        val id = if (id.equals("this", ignoreCase = true)) {
+            val block = player.getTargetBlock(null, 32)
+            if (block.type != PaperServer.config.settings.baseMaterial) {
+                return MessageUtil.sendMessage(sender, "displayVideoWrongTargetBlock")
+            }
+            val data = DisplayManager.isContains(block.location)
+                ?: return MessageUtil.sendMessage(sender, "noDisplay")
+            data.id.toString()
+        } else id
         if (serverScope != null) {
             if (radiusBlocks != null) return MessageUtil.sendMessage(sender, "fullscreenNetworkRadiusUnsupported")
             if (!ProxyNetwork.isConnected()) return MessageUtil.sendMessage(sender, "fullscreenNetworkNoProxy")
@@ -332,6 +343,14 @@ object VanillaFullscreenCommand {
         quality: String?,
     ): Int {
         val player = ctx.source.entity as? ServerPlayer ?: return 0
+        val id = if (id.equals("this", ignoreCase = true)) {
+            val targetPos = RegionUtil.getTargetedBlockPos(player)
+                ?: return MessageUtil.sendMessage(player, "displayVideoWrongTargetBlock").let { 0 }
+            val worldKey = RegionUtil.getPlayerLevelKey(player)
+            val data = DisplayManager.isContains(worldKey, targetPos)
+                ?: return MessageUtil.sendMessage(player, "noDisplay").let { 0 }
+            data.id.toString()
+        } else id
         if (serverScope != null) {
             if (radiusBlocks != null) {
                 MessageUtil.sendMessage(player, "fullscreenNetworkRadiusUnsupported")
