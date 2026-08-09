@@ -129,11 +129,39 @@ class SuggestionsPanel(
     private fun thumbH(viewportW: Int): Int =
         if (vertical) max(THUMB_H, (cardW(viewportW) * 180.0 / 320.0).toInt()) else dynThumbH()
 
-    /** Card height for the current orientation/viewport. */
-    private fun cardH(viewportW: Int): Int = when {
+    /**
+     * Card height for [info] at the current orientation / viewport.
+     */
+    private fun cardH(viewportW: Int, info: MediaSearchResult): Int = when {
         !vertical -> dynCardH()
         compactCards -> THUMB_H + 4
-        else -> thumbH(viewportW) + CARD_TEXT_H + CARD_INNER_PAD
+        else -> thumbH(viewportW) + textBlockH(titleLineCount(Minecraft.getInstance().font, info, cardW(viewportW)))
+    }
+
+    /**
+     * Worst-case card height (a two-line title) for the current orientation / viewport, for call sites
+     * with no particular card in hand yet — the loading-more placeholder, or a row-centering calc that
+     * only applies to the (always uniform) horizontal strip anyway.
+     */
+    private fun maxCardH(viewportW: Int): Int = when {
+        !vertical -> dynCardH()
+        compactCards -> THUMB_H + 4
+        else -> thumbH(viewportW) + textBlockH(2)
+    }
+
+    /** Number of lines [info]'s title wraps to at the current card width (1 or 2). */
+    private fun titleLineCount(f: Font, info: MediaSearchResult, cw: Int): Int =
+        UiText.wrap(f, info.title, cw - 8, 2).size.coerceAtLeast(1)
+
+    /**
+     * Exact height [drawCard]'s title + meta block needs for a title wrapped to [lines] lines, plus a
+     * small fixed [BOTTOM_PAD] below the meta row.
+     */
+    private fun textBlockH(lines: Int): Int {
+        val lh = Minecraft.getInstance().font.lineHeight
+        // top gap (drawCard's `+ 4`) + that many title lines (each `lineHeight + 1`) + gap before the
+        // meta row (`+ 1`) + the meta row itself (one line) + breathing room below it.
+        return 4 + lines * (lh + 1) + 1 + lh + BOTTOM_PAD
     }
 
     private fun dynThumbH(): Int {
@@ -149,10 +177,15 @@ class SuggestionsPanel(
         return max(80, (th * CARD_W / THUMB_H.toDouble()).toInt())
     }
 
-    /** Total scrollable content extent along the scroll axis. */
+    /**
+     * Total scrollable content extent along the scroll axis. Vertical cards no longer share one height,
+     * so this sums each card's own (unlike the horizontal strip, which stays a flat width × count).
+     */
     private fun contentExtent(viewportW: Int): Int {
-        val per = (if (vertical) cardH(viewportW) else cardW(viewportW)) + CARD_GAP
-        return controller.visibleCards.size * per - CARD_GAP
+        val cards = controller.visibleCards
+        if (cards.isEmpty()) return 0
+        if (!vertical) return cards.size * (cardW(viewportW) + CARD_GAP) - CARD_GAP
+        return cards.sumOf { cardH(viewportW, it) + CARD_GAP } - CARD_GAP
     }
 
     /** Maximum scroll offset for the current viewport. */
@@ -204,17 +237,18 @@ class SuggestionsPanel(
         val viewportH = stripBottom - stripTop
         val cw = cardW(viewportW)
         val th = thumbH(viewportW)
-        val ch = cardH(viewportW)
+        val refCh = maxCardH(viewportW)
         val maxOff = maxScroll(viewportW, viewportH)
         scrollOffset = scrollOffset.coerceIn(0, maxOff)
 
         val cards = controller.visibleCards
         g.enableScissor(stripLeft, stripTop, stripRight, stripBottom)
         hoveredCard = -1
-        val rowY = if (vertical) 0 else stripTop + max(0, (viewportH - ch) / 2)
+        val rowY = if (vertical) 0 else stripTop + max(0, (viewportH - refCh) / 2)
         var pos = (if (vertical) stripTop else stripLeft) - scrollOffset
         for (i in cards.indices) {
             val info = cards[i]
+            val ch = cardH(viewportW, info)
             val cardX = if (vertical) stripLeft else pos
             val cardY = if (vertical) pos else rowY
             val visibleOnAxis = if (vertical) {
@@ -238,7 +272,7 @@ class SuggestionsPanel(
             val visibleOnAxis = if (vertical) phantomY <= stripBottom else phantomX <= stripRight
             if (visibleOnAxis) {
                 g.drawShimmer(
-                    phantomX, phantomY, phantomX + cw, phantomY + ch,
+                    phantomX, phantomY, phantomX + cw, phantomY + refCh,
                     UiTheme.PLACEHOLDER_BG, UiTheme.PLACEHOLDER_SHIMMER,
                 )
             }
@@ -660,10 +694,10 @@ class SuggestionsPanel(
         if (viewportW <= 0 || viewportH <= 0) return -1
 
         val cw = cardW(viewportW)
-        val ch = cardH(viewportW)
-        val rowY = if (vertical) 0 else stripTop + max(0, (viewportH - ch) / 2)
+        val rowY = if (vertical) 0 else stripTop + max(0, (viewportH - maxCardH(viewportW)) / 2)
         var pos = (if (vertical) stripTop else stripLeft) - scrollOffset
-        for (i in controller.visibleCards.indices) {
+        for ((i, info) in controller.visibleCards.withIndex()) {
+            val ch = cardH(viewportW, info)
             val cardX = if (vertical) stripLeft else pos
             val cardY = if (vertical) pos else rowY
             if (mouseX >= max(cardX, stripLeft) && mouseX < min(cardX + cw, stripRight) &&
@@ -720,6 +754,7 @@ class SuggestionsPanel(
         private const val CARD_W = 152
         private const val CARD_TEXT_H = 32
         private const val THUMB_H = 86
+        private const val BOTTOM_PAD = 4
         private const val CARD_H = THUMB_H + CARD_TEXT_H
         private const val SEARCH_H = 22
         private const val ACTION_W = SEARCH_H
