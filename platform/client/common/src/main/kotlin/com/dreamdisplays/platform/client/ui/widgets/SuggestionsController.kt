@@ -7,7 +7,9 @@ import com.dreamdisplays.api.media.source.CustomMediaUrls
 import com.dreamdisplays.api.media.source.KickUrls
 import com.dreamdisplays.api.media.source.MediaPlatform
 import com.dreamdisplays.api.media.source.MediaSource
+import com.dreamdisplays.media.source.bilibili.BilibiliApi
 import com.dreamdisplays.media.source.bilibili.BilibiliMetadataCache
+import com.dreamdisplays.media.source.bilibili.BilibiliSearchItem
 import com.dreamdisplays.media.source.kick.KickApi
 import com.dreamdisplays.media.source.kick.KickMetadataCache
 import com.dreamdisplays.media.source.platform.PlatformVideoMetadata
@@ -250,11 +252,18 @@ class SuggestionsController {
                         val kickDeferred = async {
                             kickSlug?.let { runCatching { liveKickResult(it) }.getOrNull() }
                         }
+                        val bilibiliDeferred = async {
+                            runCatching { withContext(Dispatchers.IO) { BilibiliApi.searchVideos(q) } }
+                                .onFailure { if (it is CancellationException) throw it; logger.debug("Bilibili search failed: ${it.message}") }
+                                .getOrNull()
+                                ?.map(::bilibiliSearchResult)
+                        }
 
                         val youtubePage = ytDeferred.await()
                         val youtubeResults = youtubePage?.results
                         var liveTwitch = twitchDeferred.await()
                         val liveKick = kickDeferred.await()
+                        val bilibiliResults = bilibiliDeferred.await()
 
                         if (liveTwitch == null) {
                             val fuzzyLogin = fuzzyTwitchLogin(q, youtubeResults)
@@ -263,16 +272,18 @@ class SuggestionsController {
                             }
                         }
 
-                        if (youtubeResults == null && liveTwitch == null && liveKick == null) {
+                        if (youtubeResults == null && liveTwitch == null && liveKick == null && bilibiliResults.isNullOrEmpty()) {
                             publish(seq, null, KEY_ERROR)
                             return@launchLoad
                         }
 
-                        // Live channels lead the list, ahead of the on-demand YouTube results
-                        val combined = ArrayList<MediaSearchResult>(2 + (youtubeResults?.size ?: 0)).apply {
+                        // On-demand results from every platform are interleaved so the list reads as a mix,
+                        // not a block of YouTube followed by a block of BIlibili. Live channels still lead.
+                        val onDemand = interleave(youtubeResults.orEmpty(), bilibiliResults.orEmpty().take(BILIBILI_RESULT_CAP))
+                        val combined = ArrayList<MediaSearchResult>(2 + onDemand.size).apply {
                             liveTwitch?.let(::add)
                             liveKick?.let(::add)
-                            youtubeResults?.let(::addAll)
+                            addAll(onDemand)
                         }
                         publish(
                             seq,
@@ -317,6 +328,44 @@ class SuggestionsController {
     }.onFailure { e ->
         logger.debug("Kick live-channel lookup failed for '$slug': ${e.message}.")
     }.getOrNull()
+
+    /** Builds a search-result card for a BIlibili video hit, keyed by its watch URL like other platform cards. */
+    private fun bilibiliSearchResult(item: BilibiliSearchItem): MediaSearchResult {
+        val url = "https://www.bilibili.com/video/${item.bvid}"
+        return MediaSearchResult(
+            id = url,
+            title = item.title,
+            uploader = item.uploader,
+            durationSec = item.durationSec,
+            viewCount = item.viewCount,
+            watchUrlOverride = url,
+            thumbnailUrlOverride = item.thumbnailUrl,
+            platform = MediaPlatform.BILIBILI,
+        )
+    }
+
+    /**
+     * Spreads [secondary] evenly through [primary] instead of clustering it at either end, so a
+     * mixed-platform search reads as one shuffled list rather than "all YouTube, then all BIlibili".
+     */
+    private fun interleave(
+        primary: List<MediaSearchResult>,
+        secondary: List<MediaSearchResult>,
+    ): List<MediaSearchResult> {
+        if (secondary.isEmpty()) return primary
+        if (primary.isEmpty()) return secondary
+        val result = ArrayList<MediaSearchResult>(primary.size + secondary.size)
+        val ratio = primary.size.toDouble() / secondary.size
+        var secondaryIdx = 0
+        for ((i, item) in primary.withIndex()) {
+            result.add(item)
+            while (secondaryIdx < secondary.size && (i + 1) >= (secondaryIdx + 1) * ratio) {
+                result.add(secondary[secondaryIdx++])
+            }
+        }
+        while (secondaryIdx < secondary.size) result.add(secondary[secondaryIdx++])
+        return result
+    }
 
     /**
      * Picks the uploader (from [youtubeResults]) whose login shape is closest to [query] by edit
@@ -581,5 +630,8 @@ class SuggestionsController {
 
         /** Max distinct uploader names scanned for a fuzzy Twitch-login match, so a big result page stays cheap. */
         private const val FUZZY_CANDIDATE_LIMIT = 8
+
+        /** Max BIlibili search hits mixed into a single results page, so it stays a mix rather than a takeover. */
+        private const val BILIBILI_RESULT_CAP = 10
     }
 }

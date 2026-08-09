@@ -24,6 +24,16 @@ data class BilibiliPlayback(
     val isSeekable: Boolean,
 )
 
+/** One video card from a BIlibili keyword search. */
+data class BilibiliSearchItem(
+    val bvid: String,
+    val title: String,
+    val uploader: String?,
+    val thumbnailUrl: String?,
+    val durationSec: Long?,
+    val viewCount: Long?,
+)
+
 /**
  * Resolves BIlibili VODs and live rooms through BIlibili's public web API — the same JSON the
  * website uses, gated behind WBI-signed `playurl` requests (no API key or auth required).
@@ -64,6 +74,44 @@ object BilibiliApi {
 
     /** Metadata-only lookup for the cache. */
     fun metadata(source: MediaSource.Bilibili): PlatformVideoMetadata? = resolve(source)?.metadata
+
+    /** Keyword video search, WBI-signed like `playurl` — used to mix BIlibili results into the free-text suggestions list. */
+    fun searchVideos(keyword: String, page: Int = 1): List<BilibiliSearchItem> {
+        val params = mapOf("search_type" to "video", "keyword" to keyword, "page" to page.toString())
+        val root = getJson("https://api.bilibili.com/x/web-interface/wbi/search/type?${signedQuery(params)}")
+        val results = root?.obj("data")?.array("result")?.mapNotNull { it.asJsonObjectOrNull() } ?: return emptyList()
+        return results.mapNotNull { item ->
+            val bvid = item.optString("bvid") ?: return@mapNotNull null
+            BilibiliSearchItem(
+                bvid = bvid,
+                title = stripHighlightTags(item.optString("title").orEmpty()),
+                uploader = item.optString("author"),
+                thumbnailUrl = normalizeThumbnailUrl(item.optString("pic")),
+                durationSec = parseSearchDuration(item.optString("duration")),
+                viewCount = item.optLong("play"),
+            )
+        }
+    }
+
+    /** Strips the `<em class="keyword">...</em>` highlight markup BIlibili's search API wraps matches in. */
+    private fun stripHighlightTags(title: String): String = title.replace(Regex("</?em[^>]*>"), "")
+
+    /** BIlibili's search API returns protocol-relative thumbnail URLs (`//i0.hdslb.com/...`). */
+    private fun normalizeThumbnailUrl(pic: String?): String? = when {
+        pic.isNullOrEmpty() -> null
+        pic.startsWith("//") -> "https:$pic"
+        else -> pic
+    }
+
+    /** Parses a search result's `"mm:ss"` / `"hh:mm:ss"` duration string into seconds. */
+    private fun parseSearchDuration(text: String?): Long? {
+        val parts = text?.split(":")?.map { it.toLongOrNull() ?: return null } ?: return null
+        return when (parts.size) {
+            2 -> parts[0] * 60 + parts[1]
+            3 -> parts[0] * 3600 + parts[1] * 60 + parts[2]
+            else -> null
+        }
+    }
 
     /** Follows a `b23.tv` short link's redirect chain and re-parses the final URL into a BIlibili source. */
     private fun resolveShortlink(url: String): MediaSource.Bilibili? {
