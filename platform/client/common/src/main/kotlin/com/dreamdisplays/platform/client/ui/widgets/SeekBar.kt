@@ -60,6 +60,15 @@ class SeekBar(
     private var hoverFade = 0f
     private var previewFade = 0f
 
+    /** The last non-null [scheduleLabel] text, kept around so the suffix has something to shrink away from. */
+    private var lastScheduleText: String? = scheduleLabel?.invoke()
+
+    /**
+     * 0..1 reveal progress for the [scheduleLabel] suffix — grows / shrinks it in character by
+     * character.
+     */
+    private var scheduleReveal = if (lastScheduleText != null) 1f else 0f
+
     override fun handlesWholeWidgetCursor(): Boolean = false
 
     override fun draw(g: GuiGraphicsCompat, mouseX: Int, mouseY: Int, partialTick: Float) {
@@ -96,19 +105,28 @@ class SeekBar(
             /*g.blitSprite(HANDLE, hoverX, y, 8, height)*/
         }
 
+        val scheduleNow = scheduleLabel?.invoke()
+        if (scheduleNow != null) lastScheduleText = scheduleNow
+        val scheduleTarget = if (scheduleNow != null) 1f else 0f
+        scheduleReveal += (scheduleTarget - scheduleReveal) * FADE_SPEED
+        if (scheduleReveal < 0.01f) scheduleReveal = 0f
+        if (scheduleReveal > 0.99f) scheduleReveal = 1f
+
         val waiting = waitingLabel?.invoke()
-        if (waiting != null) {
-            drawScrollingLabel(g, Component.literal(waiting).copy().withStyle { it.withColor(WAITING_COLOR) }, 4)
+        val base = if (waiting != null) {
+            Component.literal(waiting).copy().withStyle { it.withColor(WAITING_COLOR) }
         } else {
-            val label = timeLabel(cur, dur)
-            val schedule = scheduleLabel?.invoke()
-            val shown = if (schedule != null) {
-                label.copy().append(Component.literal(" • $schedule").withStyle { it.withColor(WAITING_COLOR) })
-            } else {
-                label
-            }
-            drawScrollingLabel(g, shown, 4)
+            timeLabel(cur, dur)
         }
+
+        val shown = if (scheduleReveal > 0f && lastScheduleText != null) {
+            val full = " • $lastScheduleText"
+            val chars = (full.length * scheduleReveal).toInt().coerceIn(0, full.length)
+            base.copy().append(Component.literal(full.substring(0, chars)).withStyle { it.withColor(WAITING_COLOR) })
+        } else {
+            base
+        }
+        drawScrollingLabel(g, shown, 4)
 
         val previewTarget = if (previewFrame != null && active && dur > 0 && (isHovered || dragging)) 1f else 0f
         previewFade += (previewTarget - previewFade) * FADE_SPEED
