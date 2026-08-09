@@ -17,4 +17,4 @@ import io.github.arnodoelinger.platformweaver.PlatformOnly
     AnnotationTarget.PROPERTY_SETTER,
 )
 @Retention(AnnotationRetention.SOURCE)
-annotation class BungeecordOnly
+annotation class BungeeCordOnly

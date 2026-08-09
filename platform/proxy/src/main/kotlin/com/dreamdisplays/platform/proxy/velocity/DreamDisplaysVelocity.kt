@@ -58,7 +58,7 @@ private const val PRUNE_INTERVAL_MS = 5L * 60L * 1000L
 @VelocityOnly
 @Plugin(
     id = "dreamdisplays-proxy",
-    name = "DreamDisplays Proxy",
+    name = "Dream Displays Proxy",
     version = "1.9.0-dev",
     authors = ["DreamDisplays"],
 )
@@ -74,7 +74,7 @@ class DreamDisplaysVelocity @Inject constructor(
         proxyServer.channelRegistrar.register(channel)
         refreshKnownServers()
         logger.info(
-            "DreamDisplays proxy bridge ready on Velocity - {} backend(s) configured: {}",
+            "Dream Displays proxy bridge ready on Velocity — {} backend(s) configured: {}.",
             proxyServer.allServers.size,
             NetworkBackendRegistry.allServerNames().sorted(),
         )
@@ -84,7 +84,7 @@ class DreamDisplaysVelocity @Inject constructor(
             .schedule()
     }
 
-    /** Updates the known server list when Velocity's roster changes. */
+    /** Updates the known server list when `Velocity`'s roster changes. */
     private fun refreshKnownServers() {
         NetworkBackendRegistry.updateKnownServers(proxyServer.allServers.map { it.serverInfo.name })
     }
@@ -102,7 +102,7 @@ class DreamDisplaysVelocity @Inject constructor(
                 refreshKnownServers()
                 NetworkBackendRegistry.recordHello(serverName, packet, System.currentTimeMillis())
                 logger.info(
-                    "Backend '{}' announced itself (Dream Displays {}, MC {}, {})",
+                    "Backend '{}' announced itself (Dream Displays {}, MC {}, {}).",
                     serverName, packet.pluginVersion, packet.mcVersion, packet.platform,
                 )
                 val welcome = ProxyWelcome(
@@ -130,7 +130,7 @@ class DreamDisplaysVelocity @Inject constructor(
                     NetworkFullscreenManager.targetServers(session.scope, NetworkBackendRegistry.allServerNames())
                 if (targets.isEmpty()) {
                     logger.warn(
-                        "Network fullscreen '{}' from '{}' matched no backends for scope '{}'",
+                        "Network fullscreen '{}' from '{}' matched no backends for scope '{}'.",
                         session.sessionId,
                         serverName,
                         session.scope
@@ -156,7 +156,7 @@ class DreamDisplaysVelocity @Inject constructor(
                         NetworkBackendRegistry.allServerNames()
                     )
                 }
-                    ?: NetworkBackendRegistry.allServerNames() // unknown locally - fan out anyway, a no-op stop() is harmless
+                    ?: NetworkBackendRegistry.allServerNames() // Unknown locally, fan out anyway, a no-op stop() is harmless
                 targets.forEach { name -> sendTo(name, packet) }
             }
 
@@ -217,7 +217,7 @@ class DreamDisplaysVelocity @Inject constructor(
             is PlayerFullscreenMinimized ->
                 NetworkFullscreenManager.setMinimized(packet.sessionId, packet.playerId, packet.minimized)
 
-            else -> logger.debug("Unhandled proxy packet from '{}': {}", serverName, packet)
+            else -> logger.debug("Unhandled proxy packet from '{}': {}.", serverName, packet)
         }
     }
 
@@ -226,8 +226,12 @@ class DreamDisplaysVelocity @Inject constructor(
     fun onServerPreConnect(event: ServerPreConnectEvent) {
         val fromServer = event.player.currentServer.orElse(null)?.serverInfo?.name ?: return
         val toServer = event.result.server.orElse(event.originalServer)
-        if (fromServer == toServer.serverInfo.name) return
-        sendTo(fromServer, PlayerTransferring(event.player.uniqueId.toString(), fromServer, toServer.serverInfo.name))
+        if (toServer != null) {
+            if (fromServer == toServer.serverInfo.name) return
+        }
+        if (toServer != null) {
+            sendTo(fromServer, PlayerTransferring(event.player.uniqueId.toString(), fromServer, toServer.serverInfo.name))
+        }
     }
 
     /** Notifies the last backend when a player leaves the proxy entirely. */

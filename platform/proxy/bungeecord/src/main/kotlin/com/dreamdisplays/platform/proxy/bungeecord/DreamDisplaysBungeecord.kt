@@ -23,7 +23,7 @@ import com.dreamdisplays.core.protocol.proxy.ResolveDisplayToken
 import com.dreamdisplays.core.protocol.proxy.StartNetworkFullscreen
 import com.dreamdisplays.core.protocol.proxy.StartNetworkWatchParty
 import com.dreamdisplays.core.protocol.proxy.StopNetworkFullscreen
-import com.dreamdisplays.platform.proxy.BungeecordOnly
+import com.dreamdisplays.platform.proxy.BungeeCordOnly
 import com.dreamdisplays.platform.proxy.NetworkBackendRegistry
 import com.dreamdisplays.platform.proxy.NetworkDisplayIndex
 import com.dreamdisplays.platform.proxy.NetworkFullscreenManager
@@ -48,19 +48,19 @@ private const val PRUNE_INTERVAL_MS = 5L * 60L * 1000L
  * `BungeeCord` entry point for the thin-coordinator proxy plugin. Same responsibilities as the `Velocity` equivalent:
  * relay fullscreen / session packets between backends.
  */
-@BungeecordOnly
+@BungeeCordOnly
 class DreamDisplaysBungeecord : Plugin(), Listener {
     override fun onEnable() {
         proxy.registerChannel(PROXY_CHANNEL)
         proxy.pluginManager.registerListener(this, this)
         refreshKnownServers()
         logger.info(
-            "DreamDisplays proxy bridge ready on BungeeCord - " +
+            "Dream Displays proxy bridge ready on BungeeCord — " +
                     "${proxy.servers.size} backend(s) configured: ${NetworkBackendRegistry.allServerNames().sorted()}"
         )
         proxy.scheduler.schedule(
             this,
-            Runnable { NetworkFullscreenManager.pruneStale(System.currentTimeMillis()) },
+            { NetworkFullscreenManager.pruneStale(System.currentTimeMillis()) },
             PRUNE_INTERVAL_MS, PRUNE_INTERVAL_MS, TimeUnit.MILLISECONDS,
         )
     }
@@ -183,7 +183,7 @@ class DreamDisplaysBungeecord : Plugin(), Listener {
                     (NetworkBackendRegistry.allServerNames() - serverName).forEach { name -> sendTo(name, stamped) }
                     proxy.scheduler.schedule(
                         this,
-                        Runnable { settleResolution(packet.requestId) },
+                        { settleResolution(packet.requestId) },
                         NetworkTokenResolutions.FANOUT_WINDOW_MS,
                         TimeUnit.MILLISECONDS,
                     )
