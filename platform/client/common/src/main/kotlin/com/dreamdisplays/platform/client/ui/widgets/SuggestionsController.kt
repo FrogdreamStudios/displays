@@ -298,8 +298,13 @@ class SuggestionsController {
                                 bilibiliResults.orEmpty().take(BILIBILI_RESULT_CAP) to BILIBILI_WEIGHT,
                             )
                         )
-                        val onDemand = interleave(
-                            listOf(youtubeAndMinor, twitchSearchResults.orEmpty().take(TWITCH_RESULT_CAP))
+                        // Twitch channel hits get folded in at a small weight too, same idea as Bilibili
+                        // above: YouTube should stay the thing you mostly see, Twitch an occasional find.
+                        val onDemand = weightedInterleave(
+                            listOf(
+                                youtubeAndMinor to (1.0 - TWITCH_WEIGHT),
+                                twitchSearchResults.orEmpty().take(TWITCH_RESULT_CAP) to TWITCH_WEIGHT,
+                            )
                         )
                         val combined = ArrayList<MediaSearchResult>(1 + onDemand.size).apply {
                             liveTwitch?.let(::add)
@@ -341,10 +346,14 @@ class SuggestionsController {
     private fun twitchSearchFragment(query: String): String {
         val cleaned = query.replace(NON_WORD_RE, " ")
             .split(Regex("\\s+"))
-            .filter { it.isNotBlank() && it.lowercase() !in TWITCH_SEARCH_NOISE_WORDS }
+            .filter { it.isNotBlank() && !it.lowercase().isNoiseWord() }
             .joinToString(" ")
         return cleaned.ifBlank { query }
     }
+
+    /** True when [this] (already lowercased) or its naive singular (trailing "s" stripped) is a known noise word. */
+    private fun String.isNoiseWord(): Boolean =
+        this in TWITCH_SEARCH_NOISE_WORDS || removeSuffix("s") in TWITCH_SEARCH_NOISE_WORDS
 
     /** Looks up [login] on Twitch and, if it's live, builds the card shown ahead of the YouTube results. */
     private fun liveTwitchResult(login: String): MediaSearchResult? = runCatching {
@@ -390,44 +399,12 @@ class SuggestionsController {
     }
 
     /**
-     * Spreads every non-empty list in [lists] proportionally through the combined output instead of
-     * clustering any one of them at either end, so a mixed-platform search reads as one shuffled list
-     * rather than "all YouTube, then all Bilibili, then all Kick...". Ties (two lists equally "due" for
-     * their next pick) favor the larger list, then the list's original position in [lists], so the
-     * merge order stays deterministic across calls with the same inputs.
-     */
-    private fun interleave(lists: List<List<MediaSearchResult>>): List<MediaSearchResult> {
-        val sources = lists.filter { it.isNotEmpty() }
-        if (sources.isEmpty()) return emptyList()
-        if (sources.size == 1) return sources[0]
-
-        val totalSize = sources.sumOf { it.size }
-        val result = ArrayList<MediaSearchResult>(totalSize)
-        val taken = IntArray(sources.size)
-        repeat(totalSize) {
-            var bestIdx = -1
-            var bestFraction = Double.MAX_VALUE
-            for (i in sources.indices) {
-                if (taken[i] >= sources[i].size) continue
-                val fraction = taken[i].toDouble() / sources[i].size
-                val better = fraction < bestFraction - FRACTION_EPSILON ||
-                        (fraction < bestFraction + FRACTION_EPSILON && (bestIdx == -1 || sources[i].size > sources[bestIdx].size))
-                if (better) {
-                    bestFraction = fraction
-                    bestIdx = i
-                }
-            }
-            result.add(sources[bestIdx][taken[bestIdx]])
-            taken[bestIdx]++
-        }
-        return result
-    }
-
-    /**
-     * Like [interleave], but each list is entitled to a share of the output proportional to its
-     * [weight] rather than its own size — e.g. weight 0.8 keeps claiming a slot roughly 4x as often as
-     * weight 0.1, regardless of how many items either list actually has. A list that runs out early
-     * just stops competing; it does not inflate the others' share.
+     * Spreads every non-empty list in [lists] through the combined output so a mixed-platform search
+     * reads as one shuffled list rather than "all YouTube, then all Bilibili, then all Twitch...". Each
+     * list is entitled to a share of the output proportional to its [weight] rather than its own size —
+     * e.g. weight 0.8 keeps claiming a slot roughly 4x as often as weight 0.1, regardless of how many
+     * items either list actually has. A list that runs out early just stops competing; it does not
+     * inflate the others' share.
      */
     private fun weightedInterleave(lists: List<Pair<List<MediaSearchResult>, Double>>): List<MediaSearchResult> {
         val sources = lists.filter { it.first.isNotEmpty() }
@@ -741,16 +718,21 @@ class SuggestionsController {
         private const val BILIBILI_MIN_VIEWS = 50_000L
 
         /** Max Twitch channel hits mixed in; channel cards are heavier (whole-channel, not a single video) than a VOD card. */
-        private const val TWITCH_RESULT_CAP = 6
+        private const val TWITCH_RESULT_CAP = 4
 
-        /** Tolerance for comparing [interleave]'s fractional "how due" scores, avoiding float-equality flakiness. */
+        /** Tolerance for comparing [weightedInterleave]'s fractional "how due" scores, avoiding float-equality flakiness. */
         private const val FRACTION_EPSILON = 1e-9
 
         /** [weightedInterleave] share YouTube is entitled to against Bilibili. */
         private const val YOUTUBE_WEIGHT = 0.8
 
-        /** BIlibili's share in [weightedInterleave]. It only ever competes at all on a Chinese query
-         *  ([looksChinese]) — and on those, it should show up strongly rather than as an afterthought. */
+        /**
+         * BIlibili's share in [weightedInterleave]. It only ever competes at all on a Chinese query
+         * ([looksChinese]) — and on those, it should show up strongly rather than as an afterthought.
+         */
         private const val BILIBILI_WEIGHT = 0.6
+
+        /** Twitch's share of the final [weightedInterleave] pass — YouTube should dominate, Twitch pop up rarely. */
+        private const val TWITCH_WEIGHT = 0.12
     }
 }

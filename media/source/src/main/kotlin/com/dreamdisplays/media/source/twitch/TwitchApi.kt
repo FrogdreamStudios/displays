@@ -173,7 +173,7 @@ object TwitchApi {
             """{searchSuggestions(queryFragment:"${escape(keyword)}",withOfflineChannelContent:true){edges{node{""" +
                     """content{__typename ... on SearchSuggestionChannel{login isLive isVerified """ +
                     """profileImageURL(width:70) user{displayName broadcastSettings{title} """ +
-                    """stream{viewersCount previewImageURL(width:640,height:360) game{displayName}}}}}}}}"""
+                    """stream{viewersCount previewImageURL(width:640,height:360) game{displayName}}}}}}}}}"""
         )
         val edges = data.obj("searchSuggestions")?.array("edges")?.mapNotNull { it.asJsonObjectOrNull() } ?: return emptyList()
         return edges.mapNotNull { edge ->
@@ -273,7 +273,7 @@ object TwitchApi {
             ),
         )
         return DreamJson.compact.parseToJsonElement(response).jsonObject.obj("data")
-            ?: throw IllegalStateException("GQL response has no data object.")
+            ?: throw IllegalStateException("GQL response has no data object: ${response.take(500)}")
     }
 
     /** Escapes a URL-derived value for safe embedding inside a GQL string literal. */
