@@ -30,15 +30,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-/**
- * Scrollable search / related-videos panel: a search row (edit box + clear + search buttons) above a
- * strip of video cards, laid out vertically (sidebar) or horizontally (bottom strip). All async
- * loading lives in [SuggestionsController]; this widget is the view.
- *
- * @param onPick invoked when the user clicks a result card.
- * @param controller the async state machine backing this panel; pass one owned by a longer-lived
- * object (e.g. the display) so results survive this panel being recreated on menu reopen.
- */
+/** Scrollable search / related-videos panel: a search row (edit box + clear + search buttons) above a strip of result cards. */
 class SuggestionsPanel(
     private val onPick: (MediaSearchResult) -> Unit,
     private val controller: SuggestionsController,

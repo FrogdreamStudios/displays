@@ -3,13 +3,7 @@ package com.dreamdisplays.platform.client.ui.widgets
 import com.dreamdisplays.api.media.search.SortOrder
 import net.minecraft.network.chat.Component
 
-/**
- * Sort/filter choices offered by the suggestions panel's sort dropdown. [RELEVANCE ] /[POPULARITY] /
- * [NEWEST] / [STREAMS] map to a YouTube [SortOrder] and re-run the current search server-side;
- * [UNWATCHED] / [WATCHED] are purely local filters over whatever is already loaded (see
- * [WatchedVideoStore][com.dreamdisplays.platform.client.storage.WatchedVideoStore]), so they never
- * trigger a network call. [MY_LINKS] replaces the list entirely with the player's own custom links.
- */
+/** Sort / filter choices offered by the suggestions panel's sort dropdown. [RELEVANCE] / [POPULARITY] / [NEWEST] / [STREAMS] re-query; the rest filter locally. */
 enum class SortOption(val labelKey: String, val networkSort: SortOrder) {
     RELEVANCE("dreamdisplays.sort.relevance", SortOrder.RELEVANCE),
     POPULARITY("dreamdisplays.sort.popularity", SortOrder.VIEW_COUNT),

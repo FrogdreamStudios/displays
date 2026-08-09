@@ -35,11 +35,8 @@ enum class CookieSource(val browserName: String?) {
         private val DISABLED_ALIASES = setOf(DISABLED_TOKEN, "off", "disabled", "auto")
 
         /**
-         * Parses a raw config value into a [CookieSource].
-         *
-         * @return [NONE] for an empty string or a disabled-alias; the matching browser constant for
-         *   a recognized token; or null for an unrecognized non-empty value, so the caller can decide
-         *   whether to warn or attempt it as a raw yt-dlp browser name.
+         * Parses a raw config value into a [CookieSource]: [NONE] for empty / disabled aliases, a matching browser for
+         * a recognized token, or null otherwise.
          */
         fun fromConfig(raw: String): CookieSource? {
             val v = raw.trim().lowercase(Locale.ENGLISH)

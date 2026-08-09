@@ -21,13 +21,7 @@ internal class HlsAudioFeeder(
 ) {
     private val logger = LoggerFactory.getLogger("DreamDisplays/HlsAudioFeeder")
 
-    /**
-     * PES PTS of the first audio access unit fed into the pipe, in nanos (90 kHz ticks converted),
-     * or -1 until the first segment has been scanned. Twitch renditions share one segmenter, so
-     * this is on the same stream clock as the video channel's raw LAV PTS — their difference is
-     * the exact content offset between the two independently joined HLS streams, which the session
-     * manager uses to anchor A/V pacing precisely instead of guessing from wall time.
-     */
+    /** PES PTS of the first audio access unit fed into the pipe, in nanos (90 kHz ticks converted), or -1 until the first segment has been scanned. */
     @Volatile
     var firstPtsNanos: Long = -1L; private set
 
@@ -140,10 +134,8 @@ internal class HlsAudioFeeder(
     }
 
     /**
-     * Scans a raw MPEG-TS [segment] for the first audio PES header (stream ids `0xC0`..`0xDF`;
-     * Twitch's `timed_id3` rides private stream `0xBD` and is skipped) and records its PTS into
-     * [firstPtsNanos]. Walks 188-byte TS packets, honoring the adaptation field, and only looks at
-     * packets that start a new PES payload.
+     * Scans a raw MPEG-TS [segment] for the first audio PES header (stream ids `0xC0`..`0xDF`; Twitch's `timed_id3`
+     * stream is skipped) to derive [firstPtsNanos].
      */
     private fun scanFirstAudioPts(segment: ByteArray) {
         var i = 0

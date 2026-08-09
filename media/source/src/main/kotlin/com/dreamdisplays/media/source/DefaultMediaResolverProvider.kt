@@ -10,10 +10,8 @@ import com.dreamdisplays.media.source.ytdlp.NewPipeResolver
 import com.dreamdisplays.media.source.ytdlp.YtDlpResolver
 
 /**
- * Supplies the built-in resolver chain, fastest path first: direct media URLs (one HTTP probe),
- * then the in-process platform extractors (`NewPipeExtractor` for YouTube, GQL + usher for Twitch,
- * player-config for Vimeo, site-API for Kick), then the `yt-dlp` subprocess as the universal
- * fallback that also covers the long tail of sites none of the fast paths handle.
+ * Built-in resolver chain, fastest first: direct URL probe, then in-process platform resolvers (NewPipe, Twitch, Vimeo, Kick),
+ * then yt-dlp fallback.
  */
 object DefaultMediaResolverProvider : MediaResolverProvider {
     override fun resolvers(): List<MediaResolver> = listOf(

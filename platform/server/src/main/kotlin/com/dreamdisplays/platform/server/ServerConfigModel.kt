@@ -361,12 +361,7 @@ private fun loadLanguageMessages(file: File): Map<String, Any> {
     }.toMap()
 }
 
-/**
- * Extracts the bundled per-language JSONs into [dataDir]/lang and loads them into memory, resolving
- * messages by locale with an English fallback. [resourceLookup] and [warn] are the only platform seam:
- * Paper resolves resources via the plugin classloader ([net.md_5][io.papermc] `JavaPlugin.getResource`),
- * Fabric/NeoForge via the raw JVM classloader.
- */
+/** Extracts bundled per-language JSONs into [dataDir] / lang and loads them as message lookups. */
 internal class LanguageStore(
     private val dataDir: File,
     private val resourceLookup: (String) -> InputStream?,

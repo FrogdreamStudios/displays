@@ -318,15 +318,8 @@ internal class AudioSink(private val debugLabel: String) {
     }
 
     /**
-     * Starts the audio reading / writing loop.
-     * @param contentStartNanos content position the process was seeked to — the origin of this
-     * session's master clock (see [ClockSample]).
-     * @param originKnown false when the process joined the stream at a point only the server knows
-     * (live HLS), so [contentStartNanos] is nominal and pacing must anchor the clock externally.
-     * @param onUnexpectedEnd called with the accumulated ffmpeg stderr if the audio process ends on its
-     * own (crash, broken pipe, EOF) rather than via [stop] — never called for a deliberate teardown.
-     * @param catchUp when set, leading PCM between the process's seek target and the live playback
-     * clock is discarded before playback starts (see [CatchUp]).
+     * Starts the audio reading / writing loop. session's master clock (see [ClockSample]). (live HLS), so
+     * [contentStartNanos] is the anchor for the session's timeline.
      */
     fun start(
         proc: Process,
@@ -348,26 +341,7 @@ internal class AudioSink(private val debugLabel: String) {
     }
 
     /**
-     * Prewarms a replacement line for a seamless in-place audio-track switch and, once it is primed,
-     * flips it in for the currently playing line with no audible gap. Runs entirely on a background
-     * thread; the live line is left untouched until the flip, so its clock, ring and pacing stay
-     * valid while the replacement opens, applies its [catchUp] skip and pre-buffers leading PCM
-     * (silent — not yet started). At the flip the old line is stopped and closed and the new one is
-     * promoted and started from its primed buffer (instant sound), then [onPromoted] fires so the
-     * caller can tear down the old half's process.
-     *
-     * The prime window carries volume only (no acoustics DSP) and is not ring-cached, to avoid racing
-     * the still-live old session's shared DSP / ring state; both resume once the line is promoted.
-     *
-     * @param contentStartNanos see [start]; advanced by whatever the [catchUp] skip discards, so the
-     * promoted line's clock is exact from its very first sample.
-     * @param shouldPromote re-checked once the line is primed, right before the flip; when it returns
-     * false (e.g. a newer switch has superseded this one) the flip is skipped and [onAborted] fires.
-     * @param onPromoted invoked on the switch thread right after the flip (old line stopped, new one
-     * playing) — the caller swaps ownership to the new half here.
-     * @param onAborted invoked if the replacement never promotes (line open / prime failed, superseded,
-     * or a stop fired first) so the caller can discard the new process and keep the current track.
-     * @param onUnexpectedEnd see [start]; armed only once the promoted line begins its normal pump.
+     * Prewarms a replacement line for a seamless in-place audio-track switch and, once it is primed, flips it in
      */
     fun startSwitch(
         proc: Process,
@@ -483,11 +457,7 @@ internal class AudioSink(private val debugLabel: String) {
     }
 
     /**
-     * Pre-buffers the replacement switch line with leading PCM before it is started (silent). Volume
-     * is applied but not acoustics DSP, and nothing is ring-cached — the old session still owns that
-     * shared state until the flip. Fills up to the pacer's learned backlog (clamped) so the promoted
-     * line starts with a healthy buffer and no open-latency dropout. Returns false only when no PCM
-     * arrived at all (immediate EOF) or a stop fired before anything was buffered.
+     * Pre-buffers the replacement switch line with leading PCM before it is started (silent).
      */
     private fun primeSwitchLine(
         input: InputStream, ln: SourceDataLine, terminated: AtomicBoolean, stopFlag: AtomicBoolean,
@@ -506,13 +476,8 @@ internal class AudioSink(private val debugLabel: String) {
     }
 
     /**
-     * Starts a reappearance bridge on a single line: plays the cached [prelude] immediately, then — on the
-     * same [SourceDataLine], with no flush and no second line — continues with the live PCM once
-     * [provideLiveInput] supplies its process. The seam is therefore sample-continuous. The master clock
-     * stays unavailable until the line crosses out of the prelude, so video pacing is unaffected while it
-     * plays.
-     * @param liveEdgeNanos content position the live PCM (i.e. the first frame past the prelude) starts at.
-     * @param onUnexpectedEnd see [start].
+     * Starts a reappearance bridge on a single line: plays the cached [prelude] immediately, then — on the same
+     * line — waits for the live `FFmpeg` process to be supplied via [provideLiveInput] and continues pumping it.
      */
     fun startBridge(
         prelude: ByteArray,
@@ -736,15 +701,7 @@ internal class AudioSink(private val debugLabel: String) {
         return null
     }
 
-    /**
-     * Discards the leading PCM span between [CatchUp.contentStartNanos] and the live playback clock,
-     * so the first sample actually played matches the video's current position, and returns how much
-     * content (in nanos) was dropped so the caller can advance the session's clock origin by exactly
-     * that much. Runs before the line starts playing (nothing here is audible, and none of it is
-     * ring-cached — it is never heard). Iterative: each skip pass takes real time to read (the process
-     * decodes faster than realtime, so passes converge), and the residual is re-measured against the
-     * clock until it is inaudible.
-     */
+    /** Discards the leading PCM span between [CatchUp.contentStartNanos] and the live playback clock, so the first sample fed downstream is already caught up to now. */
     private fun skipCatchUp(
         input: InputStream, catchUp: CatchUp, terminated: AtomicBoolean, stopFlag: AtomicBoolean,
     ): Long {
@@ -853,15 +810,8 @@ internal class AudioSink(private val debugLabel: String) {
     }
 
     /**
-     * Writes one live chunk while keeping the line's *unplayed* backlog near [paceTargetBytes] instead of
-     * letting it fill the whole [LINE_BUFFER_BYTES] capacity, so DSP-to-ear latency (and thus how quickly
-     * acoustics track head / position changes) stays close to the target rather than the buffer size.
-     *
-     * The target is self-adapting: if the line drained to empty while this chunk was being produced (an
-     * underrun), it grows a step to buy more headroom; after a long clean-playback window it eases back
-     * one step toward [MIN_PACE_BYTES]. So it settles at the smallest backlog the machine can actually
-     * sustain without stuttering. A / V sync is unaffected — the master clock tracks the line's playout
-     * position, not how far ahead we queue.
+     * Writes one live chunk while keeping the line's unplayed backlog near [paceTargetBytes] instead of letting it
+     * grow.
      */
     private fun paceLiveWrite(
         ln: SourceDataLine,

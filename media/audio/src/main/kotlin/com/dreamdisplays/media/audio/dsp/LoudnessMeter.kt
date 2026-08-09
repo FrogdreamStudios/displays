@@ -5,11 +5,8 @@ import kotlin.math.log10
 import kotlin.math.max
 
 /**
- * Real-time loudness estimator and slow makeup-gain controller, in the spirit of ITU-R BS.1770 /
- * EBU R128. This is a single-stage running estimate (K-weighting pre-filter + one exponential
- * integrator), not the full two-stage gated algorithm from the spec: that needs multi-second
- * lookback windows that don't fit a live 50 ms audio block, and a slow-adapting approximation is
- * all a makeup-gain controller needs anyway.
+ * Real-time loudness estimator and slow makeup-gain controller, in the spirit of ITU-R BS.1770 / EBU R128.
+ * Not a certified meter, just enough to normalize sources.
  */
 class LoudnessMeter(private val sampleRate: Float) {
     private val shelf = Biquad().apply { configure(Biquad.Type.HIGH_SHELF, sampleRate, 1500f, 0.7f, 4f) }
@@ -34,13 +31,8 @@ class LoudnessMeter(private val sampleRate: Float) {
     fun loudnessLufs(): Float = -0.691f + 10f * log10(max(meanSquare, 1e-9f))
 
     /**
-     * Computes the makeup gain (linear multiplier) needed to move the current estimate toward
-     * [targetLufs], clamped to [-maxCutDb, +maxBoostDb] and slew-limited to [maxSlewDbPerSecond] over
-     * [dtSeconds]. The cut side is capped much tighter than the boost side: this multiplies into the
-     * same sample as the spatial chain's own distance / directivity / occlusion attenuation
-     * ([AudioRenderChain]), which is already quiet by design when the listener is far, off-axis, or
-     * behind an obstruction — stacking a full [maxCutDb] loudness cut on top of that compounds into
-     * near silence for ordinarily-loud source content. Quiet content still gets the full boost.
+     * Computes the makeup gain (linear multiplier) needed to move the current estimate toward [targetLufs],
+     * clamping both the correction range and the per-second slew rate.
      */
     fun makeupGain(targetLufs: Float, maxBoostDb: Float, maxCutDb: Float, maxSlewDbPerSecond: Float, dtSeconds: Float): Float {
         val desiredDb = (targetLufs - loudnessLufs()).coerceIn(-maxCutDb, maxBoostDb)

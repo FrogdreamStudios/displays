@@ -47,10 +47,8 @@ object DreamPlaybackEnvironment : PlaybackEnvironment {
     override val uploaderFactory: FrameUploaderFactory = FrameUploaderFactory { GpuFrameUploader() as FrameUploader }
 
     /**
-     * Invalidates every resolved-URL cache for a stream (`NewPipe`, `yt-dlp`, Twitch, Vimeo, Kick,
-     * direct). Every resolver that caches has to be listed here: the chain serves whichever cache
-     * still holds an entry, so one that is missed keeps handing back the dead URL this call exists
-     * to get rid of.
+     * Invalidates every resolved-URL cache for a stream (`NewPipe`, `yt-dlp`, Twitch, Vimeo, Kick, direct), forcing a
+     * fresh resolve on next play.
      */
     override val cacheInvalidator: CacheInvalidator = CacheInvalidator { url ->
         NewPipeResolver.invalidate(url)

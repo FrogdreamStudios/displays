@@ -6,16 +6,7 @@ import com.dreamdisplays.api.playback.PlaybackMode
 import kotlinx.serialization.Serializable
 import java.util.*
 
-/**
- * Full persisted snapshot of a single display on a server.
- *
- * Holds everything needed to recreate a display.
- *
- * Render distance here is the distance at which the display is rendered. Can be replaced with a different
- * approach or removed entirely.
- *
- * @since 1.8.4
- */
+/** Full persisted snapshot of a display; holds all state needed to recreate it. */
 @DreamDisplaysUnstableApi
 @Serializable
 data class FullDisplayData(

@@ -7,18 +7,7 @@ import java.nio.charset.StandardCharsets
 import java.util.*
 
 /**
- * A single cheap HTTP round trip that answers everything the direct resolver needs to know about a
- * user-pasted URL: is it reachable, is it media at all, how big is it, and may it be seeked.
- *
- * `HEAD` is tried first because it costs no body. A meaningful minority of file hosts (and most CDN
- * signed-URL setups) answer `HEAD` with 403/405 while serving `GET` perfectly, so a failed or
- * unhelpful `HEAD` retries as a one-byte ranged `GET` — which also confirms range support directly
- * instead of trusting the `Accept-Ranges` header. When the server is coy about the content type, a
- * short magic-byte sniff settles it, so extension-less CDN links still resolve.
- *
- * The caller is expected to pass a URL already run through the SSRF guard's redirect-safe resolver,
- * so every request here is made with redirects disabled — the guard, not `OkHttp`, decides which
- * hosts may be reached.
+ * A single cheap HTTP round trip that answers everything the direct resolver needs to know about a user-pasted URL.
  */
 internal object DirectMediaProbe {
     /** Logger. */
@@ -30,16 +19,7 @@ internal object DirectMediaProbe {
     /** Bytes read for the container magic-number sniff. */
     private const val SNIFF_BYTES = 64
 
-    /**
-     * What the server said about the URL.
-     *
-     * @property finalUrl the URL that was actually probed (already redirect-resolved by the caller).
-     * @property contentType lowercase MIME type without parameters, or null when unstated.
-     * @property contentLength total byte length when known, else null (chunked / live responses).
-     * @property acceptsRanges true when the server confirmed byte-range requests, which is what
-     * makes a progressive file seekable.
-     * @property fileName the name from `Content-Disposition`, when the server offered one.
-     */
+    /** What the server said about the URL.  makes a progressive file seekable. */
     data class Result(
         val finalUrl: String,
         val contentType: String?,
@@ -68,12 +48,7 @@ internal object DirectMediaProbe {
         "application/dash+xml",
     )
 
-    /**
-     * Generic types a correctly-served media file is nonetheless often labelled with: object
-     * storage defaults to `application/octet-stream`, and some hosts mislabel `.mp4` as
-     * `binary/octet-stream`. Accepted only because the URL already classified as media by
-     * extension - the caller never probes an unclassified URL expecting these to pass.
-     */
+    /** Generic types a correctly-served media file is nonetheless often labelled with: object storage defaults to binary / octet-stream. */
     private val TOLERATED_TYPES = setOf("application/octet-stream", "binary/octet-stream")
 
     /**

@@ -89,18 +89,13 @@ class MediaPlayer(
         private const val REPEATED_STALL_WINDOW_NS = 90_000_000_000L
 
         /**
-         * The audio and video sides of a VOD are two independent `FFmpeg` processes decoding the same
-         * source, so their organic end-of-stream can land a moment apart. Within this window of the known
-         * duration, the audio pipe reaching EOF is treated as the track finishing normally rather than a
-         * crash, and is left to the video side's own EOS handling instead of triggering a stall recovery.
+         * Audio and video are two independent `FFmpeg` processes decoding the same source, so their EOS timing can drift;
+         * this guards against a premature end-of-stream near the tail.
          */
         private const val AUDIO_EOS_NEAR_END_GUARD_NS = 3_000_000_000L
 
         /**
-         * On reappearance, cached replay resumes this far before the saved position. Default 0 =
-         * zero rewind: the saved frame is held (no backward jump) while the live source warms up, then live
-         * continues forward from the saved position. A non-zero lead trades a short re-watch of cached
-         * motion for a shorter hold; tunable via `-Ddreamdisplays.replayLeadMs` (must be <= the cache window).
+         * On reappearance, cached replay resumes this far before the saved position. Default 0 = zero rewind: the saved position itself is the resume point.
          */
         private val REPLAY_LEAD_NS: Long =
             (System.getProperty("dreamdisplays.replayLeadMs")?.toLongOrNull()?.coerceAtLeast(0L) ?: 0L) * 1_000_000L
@@ -330,10 +325,8 @@ class MediaPlayer(
     }
 
     /**
-     * Position to save / resume from. Identical to [getCurrentTime] in normal playback, but while a
-     * replay -> live bridge is in flight it returns the live edge instead of the replay playhead (which sits
-     * up to [REPLAY_LEAD_NS] behind). This keeps the saved position from regressing — and from
-     * compounding ~5 s per cycle — when a display is unloaded mid-bridge (rapid leave / return).
+     * Position to save / resume from. Identical to [getCurrentTime] in normal playback, but while a replay -> live bridge
+     * is active it prefers the parked or bridge-edge position instead.
      */
     fun getResumePositionNanos(): Long =
         sessionManager.parkedPositionNanos() ?: sessionManager.activeBridgeEdgeNanos() ?: getCurrentTime()
@@ -931,10 +924,8 @@ class MediaPlayer(
     }
 
     /**
-     * Moves the seek offset to [nanos]. While playing this is an in-place seek: the picture freezes on
-     * its last frame and jumps once the target's first frame lands, with the old session dismantled in
-     * the background instead of a blocking teardown-then-cold-start. Falls back to a full restart when
-     * the session cannot be seeked in place.
+     * Moves the seek offset to [nanos]. While playing this is an in-place seek: the picture freezes on its last frame until
+     * the decoder resumes past the new position.
      */
     private fun doSeek(nanos: Long, fire: Boolean) {
         if (!isReady || !seekable) return
@@ -1000,13 +991,8 @@ class MediaPlayer(
     }
 
     /**
-     * Swaps only the audio channel to the track identified by [trackUrl], leaving the video, clock,
-     * and picture untouched. The seamless path ([PlaybackSessionManager.beginAudioTrackSwitch]) warms
-     * the replacement in the background while the old track keeps playing, then swaps with a PCM
-     * catch-up skip so the new language joins already lip-synced — no silence gap, no drift. When the
-     * session state can't support that (paused / parked / mid-handoff) it falls back to a plain
-     * [PlaybackSessionManager.restartAudio]. [streams] is updated regardless, so a no-op live swap
-     * still takes effect on the next fresh session start.
+     * Swaps only the audio channel to the track identified by [trackUrl], leaving the video, clock, and picture untouched
+     * (audio-only respawn).
      */
     private fun changeAudioTrack(trackUrl: String) {
         val ss = streams ?: return

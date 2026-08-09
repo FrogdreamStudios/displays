@@ -15,15 +15,7 @@ import com.dreamdisplays.media.player.stream.ActiveStreams
  */
 internal object MediaPreparationService {
 
-    /**
-     * Resolves [url] through the registry's [MediaResolverRegistry], selects tracks via [StreamSelector],
-     * and returns all necessary playback metadata.
-     *
-     * @param url raw media URL (YouTube, direct stream, etc.)
-     * @param lang preferred audio language (empty = default)
-     * @param quality preferred video quality ([VideoQuality.Auto] caps at 1080p as a sane default)
-     * @throws DreamMediaException if no usable streams are found
-     */
+    /** Resolves [url] through the registry's [MediaResolverRegistry], selects tracks via [StreamSelector], and returns a [PreparedMedia] ready for playback. */
     fun prepare(url: String, lang: String, quality: VideoQuality, env: PlaybackEnvironment): PreparedMedia {
         val chain: MediaResolverRegistry = env.resolverChain()
         val selector: StreamSelector = env.streamSelector()

@@ -10,16 +10,7 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.resources.sounds.SimpleSoundInstance
 import net.minecraft.sounds.SoundEvents
 
-/**
- * Small popup listing [SortOption]s, opened from the suggestions panel's sort button. Same visual /
- * interaction pattern as [com.dreamdisplays.platform.client.ui.menu.PopoutDropdown]: a static item
- * list, anchor-centered grow animation, and self-contained hit-testing — but it also tints the
- * currently active option, the same way
- * [com.dreamdisplays.platform.client.ui.menu.AudioTrackDropdown] highlights the playing track.
- *
- * @param current supplies the currently selected option each frame.
- * @param onSelect invoked with the picked option.
- */
+/** Small popup listing [SortOption]s, opened from the suggestions panel's sort button. Same visual / interaction style as [com.dreamdisplays.platform.client.ui.menu.PopoutDropdown]. */
 class SortDropdown(
     private val current: () -> SortOption,
     private val onSelect: (SortOption) -> Unit,
@@ -44,12 +35,7 @@ class SortDropdown(
         visible = false
     }
 
-    /**
-     * Draws the dropdown anchored below ([anchorCenterX], [anchorY]) — the sort button sits near the
-     * top of the suggestions panel, so unlike [com.dreamdisplays.platform.client.ui.menu.PopoutDropdown]
-     * (which opens upward from a bottom-of-screen button) this one grows downward — horizontally
-     * centered on [anchorCenterX], easing in / out of [visible].
-     */
+    /** Draws the dropdown anchored below ([anchorCenterX], [anchorY]) — the sort button sits near the top of the suggestions panel. */
     fun draw(g: GuiGraphicsCompat, anchorCenterX: Int, anchorY: Int, mouseX: Int, mouseY: Int) {
         val now = System.nanoTime()
         val dt = if (lastFrameNanos == 0L) 0.016f else ((now - lastFrameNanos) / 1e9f).coerceIn(0f, 0.1f)

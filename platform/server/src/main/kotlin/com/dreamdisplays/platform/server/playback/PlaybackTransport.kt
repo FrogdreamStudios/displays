@@ -4,12 +4,7 @@ import com.dreamdisplays.core.protocol.DreamPacket
 import com.dreamdisplays.platform.server.datatypes.display.DisplayData
 import java.util.*
 
-/**
- * The minimal platform surface the v2 playback backend ([TimelineManager], [WatchPartyManager])
- * needs. Implemented once per platform (`Paper` / `Fabric`) and injected at startup so the managers
- * themselves stay platform-agnostic. Everything here is v2-only — modes and watch parties never
- * degrade to frozen-v1, so there is no legacy path to mirror.
- */
+/** The minimal platform surface the v2 playback backend ([TimelineManager], [WatchPartyManager]) needs. */
 interface PlaybackTransport {
     /** Server wall-clock in ms; the single time source for every authoritative timeline. */
     fun nowMs(): Long

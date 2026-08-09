@@ -23,13 +23,7 @@ data class Envelope(
     override fun hashCode(): Int = 31 * type + payload.contentHashCode()
 }
 
-/**
- * Maps append-only type ids to packet serializers. Encoding wraps the packet into an [Envelope];
- * decoding an unknown type id returns null (forward compatibility with newer peers).
- *
- * Only direct generated `X.serializer()` references are allowed here — reflection-based lookup
- * (`serializer(typeOf<...>())`, `serializersModule`) breaks under shadow relocation.
- */
+/** Maps type ids to packet serializers; wraps packets into [Envelope] for wire encoding / decoding. */
 object PacketRegistry {
     private val proto = ProtoBuf { encodeDefaults = false }
 
@@ -100,14 +94,7 @@ object PacketRegistry {
         return proto.decodeFromByteArray(entry.serializer, envelope.payload)
     }
 
-    /**
-     * Decodes envelope bytes for a receiver that legitimately accepts packets travelling [inbound]
-     * (servers pass [PacketDirection.CLIENT_TO_SERVER]; clients pass [PacketDirection.SERVER_TO_CLIENT]).
-     *
-     * Unknown type ids return null as in [decode]; a packet whose registered direction does not match
-     * (and is not [PacketDirection.BIDIRECTIONAL]) throws, surfacing a wrongly-wired handler instead
-     * of letting the receiver act on a packet meant for the other side.
-     */
+    /** Decodes envelope bytes, validating packet direction matches [inbound]; rejects packets from invalid directions. */
     fun decode(bytes: ByteArray, inbound: PacketDirection): DreamPacket? {
         val packet = decode(bytes) ?: return null
         val direction = directionOf(packet)

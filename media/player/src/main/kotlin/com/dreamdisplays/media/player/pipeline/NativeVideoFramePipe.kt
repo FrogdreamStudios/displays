@@ -15,12 +15,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 
 /**
- * Native (Rust) variant of [VideoFramePipe]: the FFmpeg process and its pipe live inside
- * `dreamdisplays_native`, which reads NV12/RGB24 frames in large blocks and writes
- * brightness-adjusted RGB24 or RGBA32 directly into the spare direct buffer in one fused pass.
- *
- * The JVM side keeps only what it is good at: A/V pacing against the audio clock,
- * the ready-buffer swap, and the GPU upload — all shared with the JVM pipe via [FrameSurface].
+ * Native (Rust) variant of [VideoFramePipe]: in-process LAV decoder via Rust FFI.
  */
 internal class NativeVideoFramePipe(
     private val debugLabel: String,
@@ -71,12 +66,7 @@ internal class NativeVideoFramePipe(
 
     private val lastFrame = LastFrameCache()
 
-    /**
-     * Set by the popout window to receive raw frames. Called on the reader thread.
-     * Replays the last cached frame into a freshly attached sink immediately, so it doesn't sit on
-     * a blank/waiting placeholder until the next frame decodes (which may not happen for a while
-     * if playback is currently paused or parked).
-     */
+    /** Popout frame sink; replays cached last frame when set. */
     override var popoutFrameSink: ((ByteBuffer, Int, Int, FramePixelFormat) -> Unit)?
         get() = rawPopoutFrameSink
         set(value) {
@@ -122,10 +112,8 @@ internal class NativeVideoFramePipe(
     }
 
     /**
-     * Raw (unbiased) LAV PTS of the first frame of the current session / in-place seek, in nanos,
-     * or [Long.MIN_VALUE] until known. For a shared-segmenter HLS source (Twitch) this is the
-     * stream-clock position the video joined at; paired with the audio feeder's first PES PTS it
-     * gives the exact A/V content offset for pacing.
+     * Raw (unbiased) LAV PTS of the first frame of the current session / in-place seek, in nanos, or [Long.MIN_VALUE]
+     * before any frame has arrived.
      */
     @Volatile
     var firstRawPtsNanos: Long = Long.MIN_VALUE; private set
@@ -161,20 +149,7 @@ internal class NativeVideoFramePipe(
 
     override fun cleanup() = surface.cleanup()
 
-    /**
-     * Opens a native FFmpeg session for [args] and starts the reader thread.
-     * Returns the running thread, or null when the native session could not be spawned
-     * (e.g., the FFmpeg binary is missing).
-     *
-     * @param args            full FFmpeg argv including the binary path (see `MediaProcess.videoArgs`)
-     * @param nv12            true when [args] makes FFmpeg emit NV12 instead of RGB24
-     * @param seekOffsetNanos initial playback position (must match the FFmpeg `-ss` offset)
-     * @param sourceFps       frame rate reported by yt-dlp for the chosen stream
-     * @param getAudioClock   returns current audio position in nanos, or -1 if unavailable
-     * @param onFirstFrame    called once when the first frame arrives (starts the wall clock)
-     * @param getBrightness   returns current brightness multiplier (read per frame)
-     * @param onEos           called when the stream ends with stderr output and EOS flag
-     */
+    /** Opens a native `FFmpeg` session and starts the reader thread. */
     fun start(
         args: List<String>, w: Int, h: Int, nv12: Boolean, seekOffsetNanos: Long, sourceFps: Double,
         stopFlag: AtomicBoolean, terminated: AtomicBoolean, getAudioClock: () -> Long, onFirstFrame: () -> Unit,

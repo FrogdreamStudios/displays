@@ -18,11 +18,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 
 /**
- * Producer-consumer frame buffer and `FFmpeg` video reader loop (pure-JVM pipeline).
- *
- * The reader thread parses PPM frames from the `FFmpeg` pipe, fills a "spare" buffer, then
- * atomically swaps it into the shared [FrameSurface]; the render thread reads from the
- * surface without blocking the reader.
+ * Producer-consumer frame buffer and `FFmpeg` video reader loop (pure-JVM pipeline). The reader thread parses raw
+ * frames from the process's stdout into [FrameSurface].
  */
 internal class VideoFramePipe(
     private val debugLabel: String,
@@ -39,10 +36,8 @@ internal class VideoFramePipe(
     private val lastFrame = LastFrameCache()
 
     /**
-     * Set by the popout window to receive raw RGB frames. Called on the reader thread.
-     * Replays the last cached frame into a freshly attached sink immediately, so it doesn't sit on
-     * a blank/waiting placeholder until the next frame decodes (which may not happen for a while
-     * if playback is currently paused or parked).
+     * Set by the popout window to receive raw RGB frames. Called on the reader thread. Replays the last cached frame
+     * immediately so the popout isn't blank until the next frame arrives.
      */
     override var popoutFrameSink: ((ByteBuffer, Int, Int, FramePixelFormat) -> Unit)?
         get() = rawPopoutFrameSink
@@ -73,16 +68,8 @@ internal class VideoFramePipe(
     override fun textureFilled(): Boolean = surface.textureFilled()
 
     /**
-     * Uploads the ready frame to [texture] if one is available.
-     * [actualW] / [actualH] must match the dimensions this pipe was started with.
-     *
-     * Warning: this is one of the most expensive operations in the pipeline. It's critical to call this as soon as
-     * possible after [textureFilled] returns true, to minimize the chance of the reader thread overwriting the ready
-     * buffer before upload.
-     *
-     * You should also never call this method more than once per frame, or call it when [textureFilled] is false.
-     * It does not block or wait for a frame to be ready, and it does not guarantee that the same frame will still be
-     * ready by the time it executes.
+     * Uploads the ready frame to [texture] if one is available. [actualW] / [actualH] must match the dimensions the
+     * texture was allocated with.
      */
     override fun updateFrame(texture: GpuTextureRef, actualW: Int, actualH: Int): Boolean =
         surface.updateFrame(texture, actualW, actualH, expectedW, expectedH)
@@ -102,16 +89,7 @@ internal class VideoFramePipe(
      */
     override fun cleanup() = surface.cleanup()
 
-    /**
-     * Starts the video reader thread and returns it (already running).
-     *
-     * @param seekOffsetNanos initial playback position (must match the `FFmpeg` `-ss` offset)
-     * @param sourceFps       frame rate reported by yt-dlp for the chosen stream
-     * @param getAudioClock   returns current audio position in nanos, or -1 if unavailable
-     * @param onFirstFrame    called once when the first frame arrives (starts the wall clock)
-     * @param getBrightness   returns current brightness multiplier (read per frame)
-     * @param onEos           called when the stream ends with stderr output and EOS flag
-     */
+    /** Starts the video reader thread and returns it (already running). */
     fun start(
         proc: Process, w: Int, h: Int, seekOffsetNanos: Long, sourceFps: Double, stopFlag: AtomicBoolean,
         terminated: AtomicBoolean, getAudioClock: () -> Long, onFirstFrame: () -> Unit, getBrightness: () -> Double,

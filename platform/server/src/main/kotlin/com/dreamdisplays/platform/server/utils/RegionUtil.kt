@@ -18,12 +18,7 @@ import org.jspecify.annotations.NullMarked
 import kotlin.math.max
 import kotlin.math.min
 
-/**
- * Utils for 3D region calculations, boundary checks, and world / level resolution. The single
- * source of truth for the min / max / delta and floor-or-ceiling screen-dimension math that both the
- * `Paper` ([Location]-based) and `Fabric` / `NeoForge` ([BlockPos]-based) selection / display code
- * needs identically.
- */
+/** Utils for 3D region calculations, boundary checks, and world / level resolution. The single source of truth for both. */
 object RegionUtil {
     /** Computes the [RegionData] describing the axis-aligned box between two integer corners. */
     private fun calculateRegion(x1: Int, y1: Int, z1: Int, x2: Int, y2: Int, z2: Int): RegionData {
@@ -109,10 +104,8 @@ object RegionUtil {
     fun playerServer(player: ServerPlayer): MinecraftServer = playerServerLevel(player).server
 
     /**
-     * Returns the [ServerLevel] of a [ServerPlayer]. `ServerPlayer.serverLevel()` was renamed to
-     * `level()` (covariant `ServerLevel`) in >=1.21.11. Resolved via a direct, version-gated call so
-     * loom remaps it correctly — a reflective by-name lookup fails in the remapped jar (the method is
-     * intermediary `method_...` there, not the literal `"level"` / `"serverLevel"` string).
+     * Returns the [ServerLevel] of a [ServerPlayer]. `ServerPlayer.serverLevel()` was renamed to `level()`
+     * (covariant return) in later versions — chisel-gated here.
      */
     private fun playerServerLevel(player: ServerPlayer): ServerLevel =
         //? if >=1.21.11 {

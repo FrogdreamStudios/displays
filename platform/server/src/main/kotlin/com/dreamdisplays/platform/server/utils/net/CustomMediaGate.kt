@@ -19,13 +19,7 @@ internal object CustomMediaGate {
     /** The URL is custom but carries no usable host. */
     const val KEY_INVALID = "invalidURL"
 
-    /**
-     * Returns the message key explaining why [url] is refused, or null when it may be applied.
-     *
-     * [hasPermission] is only consulted for genuinely custom URLs, so a player without the node can
-     * still set YouTube and Twitch videos exactly as before - the node gates pasting arbitrary
-     * links, not using displays.
-     */
+    /** Returns the message key explaining why [url] is refused, or null when it may be applied. */
     fun refusalKey(url: String, settings: CustomMediaPolicy.Settings, hasPermission: Boolean): String? {
         return when (CustomMediaPolicy.evaluate(url, settings)) {
             CustomMediaPolicy.Verdict.ALLOWED ->

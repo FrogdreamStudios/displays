@@ -5,15 +5,8 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicReference
 
 /**
- * Proxy-side bookkeeping shared by both the `Velocity` and `BungeeCord` adapters: which backends in
- * the network are configured, and which of them have announced themselves with a [BackendHello] so
- * far (a backend only does so once a player is actually connected to ride the plugin message on -
- * see `ProxyBridge` on the backend side, which explains why this is a "seen at least once" set, not
- * a liveness check).
- *
- * Deliberately platform-API-free so it compiles unchanged into both `dreamdisplays-velocity` and
- * `dreamdisplays-bungee` - the `Velocity` / `Bungeecord`-specific plugin classes own the actual player /
- * server-connection objects and only hand this registry plain strings.
+ * Proxy-side bookkeeping shared by both the `Velocity` and `BungeeCord` adapters: which backends in the network are
+ * alive and what each last reported about itself.
  */
 object NetworkBackendRegistry {
     /** What a backend told us about itself in its [BackendHello]. */

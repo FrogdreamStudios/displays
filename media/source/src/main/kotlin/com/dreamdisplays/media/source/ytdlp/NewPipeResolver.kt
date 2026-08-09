@@ -22,25 +22,13 @@ import org.slf4j.LoggerFactory
 import java.nio.charset.StandardCharsets
 import kotlin.time.Duration.Companion.nanoseconds
 
-/**
- * In-process YouTube stream resolver backed by NewPipeExtractor. This is the fast path used before
- * falling back to the `yt-dlp` subprocess: it resolves de-throttled (n-parameter solved), FFmpeg-ready
- * stream URLs over plain HTTP with no process spawn, no Python start-up, and no browser cookies.
- *
- * It never throws to its callers; on any failure it returns an empty list so [YtDlp.fetchUncached]
- * transparently falls back to `yt-dlp`.
- */
+/** In-process YouTube stream resolver backed by `NewPipeExtractor`; fast path before `yt-dlp` fallback. */
 object NewPipeResolver : MediaResolver {
     private val logger = LoggerFactory.getLogger("DreamDisplays/NewPipe")
 
     private val initialized = atomic(false)
 
-    /**
-     * How long a resolved video is reused before `NewPipeExtractor` is hit again. Matches
-     * [FormatDiskCache.DEFAULT_TTL_MS] — [YtDlp] trusts the same googlevideo URLs for that long, so
-     * there is no reason for this fast-path cache to expire them sooner and force a redundant
-     * re-extraction (and, via [YtDlp.fetchUncached], a wasted parallel `yt-dlp` race) on every replay.
-     */
+    /** How long a resolved video is reused before `NewPipeExtractor` is hit again. Matches FormatDiskCache.DEFAULT_TTL_MS. */
     private val POSITIVE_TTL_NANOS = FormatDiskCache.DEFAULT_TTL_MS * 1_000_000L
 
     /**
@@ -134,15 +122,7 @@ object NewPipeResolver : MediaResolver {
         )
     }
 
-    /**
-     * Drops [url]'s cached resolution so the next resolve goes back to YouTube.
-     *
-     * This is the fast path of the chain, so without it the player's stall recovery and its live
-     * resume both invalidated every other cache and then got served the same stale entry from
-     * here — which for a livestream is a playlist pointing into a window the server has already
-     * moved past. Nothing downstream could tell that apart from a network fault, so playback simply
-     * produced no frames until the watchdog gave up.
-     */
+    /** Drops [url]'s cached resolution so the next resolve goes back to YouTube. */
     fun invalidate(url: String) {
         cache.invalidate(YouTubeUrls.extractVideoId(url) ?: url)
     }
@@ -158,12 +138,7 @@ object NewPipeResolver : MediaResolver {
         }
     }
 
-    /**
-     * Fetches and compiles YouTube's base JavaScript player ahead of the first real resolution.
-     * This moves the one-time costs off the playback critical path: the `base.js` download and the
-     * Rhino parse of both the signature-timestamp and n-parameter deobfuscation functions, all of
-     * which `NewPipeExtractor` caches globally once warmed. Best-effort; failures are ignored.
-     */
+    /** Fetches and compiles YouTube's base JavaScript player ahead of first resolution. */
     fun prewarmPlayer() {
         if (!initialized.value) return
         runCatching {
@@ -203,20 +178,7 @@ object NewPipeResolver : MediaResolver {
         return resolved.isLive || YtStreams.offersQualityLadder(resolved.streams)
     }
 
-    /**
-     * Whether to start the `yt-dlp` fallback alongside this extraction instead of after it.
-     *
-     * The resolver chain runs strictly in priority order, so a video this extractor cannot ladder
-     * used to cost the extraction plus a full `yt-dlp` run — the two paths [YtDlp.fetchUncached]
-     * was built to overlap ending up serialized end to end, because by the time `YtDlpResolver` was
-     * reached the NewPipe half of its race was already cached and returned instantly.
-     *
-     * Starting the fallback up front removes that, at the price of a subprocess that gets killed
-     * moments later whenever this extractor does ladder. So it is spent only when the recent ladder
-     * rate says it is likely to pay off — or when there is no history yet, since first-play latency
-     * is what a viewer actually notices and one short-lived subprocess is cheap beside a second of
-     * extra waiting.
-     */
+    /** Whether to start `yt-dlp` fallback alongside extraction instead of after. */
     private fun shouldOverlapFallback(): Boolean {
         if (!OVERLAP_FALLBACK_ENABLED) return false
         val hits = ladderHits.value
@@ -234,13 +196,7 @@ object NewPipeResolver : MediaResolver {
         ladderMisses.value = ladderMisses.value / 2
     }
 
-    /**
-     * Returns the cached resolution for [url] if still fresh, otherwise resolves it once and caches
-     * the result. A `null` result (`NewPipeExtractor` declined or failed) is cached too, with a shorter
-     * TTL, so the immediate [resolve] -> [fetch] retry for the same video does not pay a second network
-     * round. The TTL otherwise depends on what kind of result it is — see [POSITIVE_TTL_NANOS] and
-     * [PARTIAL_TTL_NANOS].
-     */
+    /** Returns cached resolution if fresh, otherwise resolves, caches, and records whether quality ladder is available. */
     private fun resolveCached(url: String, overlapFallback: Boolean = false): Resolved? {
         val key = YouTubeUrls.extractVideoId(url) ?: url
         cache.getIfPresent(key)?.let { return it.value }
@@ -261,12 +217,7 @@ object NewPipeResolver : MediaResolver {
         }.value
     }
 
-    /**
-     * Drives the [StreamExtractor] directly for [url]: a single [StreamExtractor.fetchPage] followed
-     * by reads of only the stream lists and the handful of metadata fields we map. Each metadata read
-     * is guarded individually so one bad field never sinks the whole resolution. Returns `null` when
-     * no usable stream could be extracted.
-     */
+    /** Drives [StreamExtractor] directly: single fetchPage() + reads from live stream. */
     private fun doExtract(url: String): Resolved? {
         return runCatching {
             val service = NewPipe.getServiceByUrl(url)

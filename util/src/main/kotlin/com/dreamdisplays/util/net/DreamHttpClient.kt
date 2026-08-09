@@ -148,14 +148,7 @@ object DreamHttpClient {
         return response.body
     }
 
-    /**
-     * Like [execute], but stops reading the body after [maxBytes] and closes the connection.
-     *
-     * Needed wherever only the head of a response is interesting and the response may be huge -
-     * probing a remote media file's container header, for instance, where a server that ignores a
-     * `Range` request would otherwise stream a whole movie into memory. The returned response's
-     * body holds at most [maxBytes] bytes; everything else is reported unchanged.
-     */
+    /** Like [execute], but stops reading body after [maxBytes]; closes connection when needed. */
     @Throws(IOException::class)
     fun executeLimited(
         url: String,

@@ -71,10 +71,8 @@ object YtDlpBinary {
     private val zipappUpdateChecked = atomic(false)
 
     /**
-     * Returns the path to a usable `yt-dlp` binary, checking the `dreamdisplays.ytdlp` override,
-     * well-known system paths, then the bundled directory, and downloading from GitHub as a last
-     * resort. The result is cached for the session. The background self-update of a bundled copy
-     * runs on [DreamCoroutines.clientIo].
+     * Returns the path to a usable `yt-dlp` binary, checking the `dreamdisplays.ytdlp` override, well-known system paths,
+     * then falling back to the bundled copy.
      */
     @Throws(IOException::class)
     fun resolve(): String {
@@ -206,10 +204,8 @@ object YtDlpBinary {
     }
 
     /**
-     * If the bundled binary at [bundled] is older than [BINARY_REFRESH_MS], runs `yt-dlp -U` on
-     * [executor] to pull the latest release. Runs at most once per session and never blocks the
-     * caller; failures are logged and ignored. The binary's mtime is bumped on a successful run so a
-     * no-op update doesn't re-check for another week.
+     * If the bundled binary at [bundled] is older than [BINARY_REFRESH_MS], runs `yt-dlp -U` on [executor] to pull the
+     * latest release in the background.
      */
     private fun maybeSelfUpdate(bundled: Path) {
         if (!updateChecked.compareAndSet(false, true)) return

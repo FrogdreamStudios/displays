@@ -19,17 +19,7 @@ data class KickPlayback(
     val isSeekable: Boolean,
 )
 
-/**
- * Resolves Kick channels and VODs through Kick's public site API — the same JSON the website uses,
- * no API key. The live channel endpoint (`api/v2/channels/<slug>`) carries the HLS `playback_url`
- * plus live metadata; the VOD endpoint (`api/v1/video/<uuid>`) carries the VOD `source` playlist.
- *
- * Kick sits behind Cloudflare, which rejects datacenter IPs — but resolution runs on the player's
- * own machine, so a residential client usually passes. When it does not, the resolver chain still
- * falls through to `yt-dlp`, so Kick keeps working either way. :)
- *
- * @since 1.9.0
- */
+/** Resolves Kick channels and VODs through Kick's public site API — the same JSON the website uses, no API key or auth required. */
 object KickApi {
     /** Logger. */
     private val logger = LoggerFactory.getLogger("DreamDisplays/KickApi")

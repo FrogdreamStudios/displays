@@ -268,13 +268,7 @@ internal class PlaybackSessionManager(
     /** Fallback timestamp source when no channel is live (the watchdog guards against reading it then). */
     private val noFrames = AtomicLong(0)
 
-    /**
-     * Upper bound the shared wall clock is clamped to while a replay -> live bridge is in flight (the live
-     * edge the live channel resumes at). Both the replay channel and the warming-up live channel pace
-     * on this one clamped clock, so the live channel's first frame becomes due *exactly* when replay
-     * reaches the edge — the handoff has no forward jump and no drop-storm. On the live channel's first
-     * frame the clock is rebased to the edge and this is lifted to [Long.MAX_VALUE]. Default disables it.
-     */
+    /** Upper bound the shared wall clock is clamped to while a replay -> live bridge is in flight (the live edge the replay is catching up to). */
     @Volatile
     private var bridgeCeilingNanos: Long = Long.MAX_VALUE
 
@@ -351,16 +345,7 @@ internal class PlaybackSessionManager(
         active?.pipe?.popoutFrameSink = sink
     }
 
-    /**
-     * Stops any running session, then launches new `FFmpeg` processes for [streamSet]
-     * starting at [offsetNanos]. Wires up the clock, brightness, and EOS callbacks.
-     *
-     * @param lastQuality last confirmed quality in pixels; 0 = derive from stream metadata
-     * @param live true for a live stream; selects the JVM-fed HLS audio transport (see [buildAudioProcess])
-     * @param onFirstFrame invoked once the first real video frame actually decodes — the caller's
-     * signal that this session is genuinely playing, not just that its process launched (a launched
-     * `FFmpeg` / LAV session can still fail moments later, e.g. a 403 on the resolved URL).
-     */
+    /** Stops any running session, then launches new FFmpeg processes for [streamSet] starting at [offsetNanos]. */
     fun start(
         streamSet: ActiveStreams, offsetNanos: Long, lastQuality: Int, hwAccel: HwAccelBackend, live: Boolean = false,
         onFirstFrame: () -> Unit = {},
@@ -415,15 +400,7 @@ internal class PlaybackSessionManager(
         }
     }
 
-    /**
-     * Seamless in-place seek: silences the old audio, freezes the picture on its last uploaded frame,
-     * and warms the same streams at [offsetNanos] as the new live channel — all without the blocking
-     * teardown-then-cold-start of a full [start]. The old session is dismantled on a background thread
-     * while the new decode is already connecting, and the audio is gated on the new channel's first
-     * presented frame exactly like a normal start. Returns false when the session is in a state that
-     * cannot be seeked in place (bridge / quality switch in flight, parked, not playing); the caller
-     * falls back to a full restart.
-     */
+    /** Seamless in-place seek: silences old audio, freezes picture on last frame, warms new stream at offset. */
     fun beginSeek(streamSet: ActiveStreams, offsetNanos: Long, lastQuality: Int, hwAccel: HwAccelBackend): Boolean {
         if (!isPlaying || terminated.get() || parkFlag.get()) return false
         if (bridgeCeilingNanos != Long.MAX_VALUE) return false
@@ -528,19 +505,7 @@ internal class PlaybackSessionManager(
         }
     }
 
-    /**
-     * Replaces only the audio half of a playing session with a fresh process on the same audio URL,
-     * leaving the video channel, the clock, and the picture untouched. Used when the live audio process
-     * dies or never delivers PCM while video is decoding fine — restarting the whole session for that
-     * blanks a healthy picture and, on live streams, forces a needless full re-resolve. The new line
-     * starts ungated (video is already presenting); until its first PCM chunk arrives the pacing clock
-     * simply stays on the wall clock.
-     *
-     * On a seekable source the replacement is seeked to [offsetNanos] and then skips whatever the
-     * playback clock advanced through while it was spawning ([AudioSink.CatchUp]), so it rejoins
-     * already lip-synced instead of silently playing a few hundred ms behind the picture forever.
-     * Returns false when the session is in a state where only a full restart makes sense.
-     */
+    /** Replaces audio half of playing session with fresh process on same audio URL, leaving video unchanged. */
     fun restartAudio(streamSet: ActiveStreams, offsetNanos: Long): Boolean {
         if (!isPlaying || terminated.get() || parkFlag.get()) return false
         if (bridgeCeilingNanos != Long.MAX_VALUE || bridgeAudio != null) return false
@@ -584,16 +549,7 @@ internal class PlaybackSessionManager(
      *  so rapid re-picks and a session [stop] (which bumps it) safely orphan older warm-ups. */
     private val audioSwitchGeneration = AtomicLong()
 
-    /**
-     * Seamless audio-track switch for seekable content: spawns the new track's `FFmpeg` on a background
-     * thread and lets the current line keep playing through the whole spawn + connect + seek latency —
-     * the swap happens only once the replacement's first PCM is ready (the audio analogue of the
-     * parallel video quality switch). At the swap, the sink discards the PCM span the new track is
-     * behind the live clock ([AudioSink.CatchUp]), so the new language joins already lip-synced instead
-     * of permanently lagging by the warm-up time. Returns false when the session state only supports a
-     * plain restart (paused / parked / bridging / mid-quality-handoff) — callers then rely on the
-     * updated stream set taking effect on the next fresh session, same as [restartAudio].
-     */
+    /** Seamless audio-track switch for seekable content: spawns new track's FFmpeg on background thread, then swaps. */
     fun beginAudioTrackSwitch(streamSet: ActiveStreams): Boolean {
         if (!isPlaying || terminated.get() || parkFlag.get()) return false
         if (bridgeCeilingNanos != Long.MAX_VALUE || bridgeAudio != null) return false
@@ -696,13 +652,7 @@ internal class PlaybackSessionManager(
         }, "MediaPlayer-session-discard").start()
     }
 
-    /**
-     * Starts cached replay video alone — no audio, no network — so a reappearing display shows frames
-     * instantly. Resumes at [resumeNanos] and plays toward [liveEdgeNanos] (the saved position the live
-     * source will resume at). The wall clock is clamped to [liveEdgeNanos] so replay never overruns
-     * the handoff point; [attachLiveAfterReplay] takes over there. Returns false when native replay is
-     * unavailable.
-     */
+    /** Starts cached replay video alone (no audio, no network) so reappearing display shows frames instantly. */
     fun startReplayVideoOnly(
         snapshot: ByteArray,
         resumeNanos: Long,
@@ -749,14 +699,7 @@ internal class PlaybackSessionManager(
         return true
     }
 
-    /**
-     * Attaches the live source while replay holds the screen. The live channel warms up as the
-     * **incoming channel paced on the same clamped clock**, so its first frame becomes due exactly when
-     * replay reaches the live edge — seamless, no jump. Audio is gated on that first frame (as in a
-     * normal start). On the first live frame the clock is rebased to the edge (matching the audio
-     * offset) and the clamp lifted, so playback continues forward with sound. The render thread
-     * promotes ([promoteIncoming]). Returns false when replay is not active or live cannot start.
-     */
+    /** Attaches live source while replay holds screen: live channel warms up as incoming channel in parallel. */
     fun attachLiveAfterReplay(
         streamSet: ActiveStreams, liveOffsetNanos: Long, lastQuality: Int, hwAccel: HwAccelBackend,
     ): Boolean {
@@ -869,13 +812,7 @@ internal class PlaybackSessionManager(
         }
     }
 
-    /**
-     * Captures the live channel's entire encoded-packet cache (the whole rolling window), so a later
-     * replay has a real buffer to play while the live source re-resolves. Null when no cache. While a
-     * replay -> live bridge is still in flight the live channel is the incoming one (the [active]
-     * channel is the cache-less replay player), so capture from it — otherwise a quick leave-and-return
-     * during the bridge would snapshot nothing and lose the cache.
-     */
+    /** Captures live channel's entire encoded-packet cache (rolling window) for later replay. */
     fun captureVideoCacheSnapshot(): ByteArray? {
         val bridging = bridgeCeilingNanos != Long.MAX_VALUE
         val channel = if (bridging) (incoming ?: active) else active
@@ -898,24 +835,13 @@ internal class PlaybackSessionManager(
      */
     fun canPark(): Boolean = canHoldWarm() && active?.inProcess == true
 
-    /**
-     * Whether the session can hold its position warm at all: something is playing, and no replay
-     * bridge or quality switch is in flight. Unlike [canPark] this includes the external-process
-     * pipelines — a full pipe back-pressures `FFmpeg` into a standstill, which is exactly what a
-     * user-initiated pause wants (instant resume, no cold restart).
-     */
+    /** Whether the session can hold its position warm at all: something is playing, and no replay bridge or quality switch is currently in flight. */
     private fun canHoldWarm(): Boolean =
         isPlaying && !terminated.get() && active != null &&
                 bridgeCeilingNanos == Long.MAX_VALUE && incoming == null &&
                 (audioHalf != null || silentSession)
 
-    /**
-     * Parks the live session: the video + audio reader threads idle in place (decoder + audio line stay
-     * open, position frozen), so [resume] continues instantly without re-resolving or cold-decoding.
-     * [allowExternalProcess] extends this to the `FFmpeg`-process pipelines (used for user pause; see
-     * [canPark] for why dormancy parking stays in-process only).
-     * Returns false when the session is not in a parkable state (caller should tear down instead).
-     */
+    /** Parks live session: reader threads idle in place (decoder + audio line stay open, position frozen). */
     fun suspend(allowExternalProcess: Boolean = false): Boolean {
         if (!(if (allowExternalProcess) canHoldWarm() else canPark()) || parkFlag.get()) return false
         parkFlag.set(true)
@@ -927,8 +853,7 @@ internal class PlaybackSessionManager(
         return true
     }
 
-    /** Un-parks a [suspend]ed session: the readers resume from the frozen position; the wall clock is
-     *  shifted past the dormant interval so the position continues instead of jumping ahead. */
+    /** Un-parks suspended session: readers resume from frozen position; wall clock shifted past dormant interval. */
     fun resume() {
         if (!parkFlag.get()) return
         clock.addPausedDuration(System.nanoTime() - parkStartNanos)
@@ -957,13 +882,7 @@ internal class PlaybackSessionManager(
      */
     private val masterClock = AudioMasterClock(debugLabel, requestAudioResync = audio::requestResync)
 
-    /**
-     * Master-clock position in nanos, or -1 when neither the audio line nor the wall clock is up yet.
-     *
-     * The audio line is authoritative whenever it has one: it reports what the listener is actually
-     * hearing, so pacing video against it is what keeps lip sync. The wall clock only fills the gaps
-     * (before the first PCM chunk, between sessions, during a bridge's cached prelude).
-     */
+    /** Master-clock position in nanos, or -1 when neither audio line nor wall clock is up yet. Audio drives pacing. */
     private fun pacingClockNanos(): Long {
         // While a replay -> live bridge is active the wall clock is clamped to the live edge so it never
         // overruns the handoff point (otherwise the live channel's first frame arrives "late" and is
@@ -975,15 +894,7 @@ internal class PlaybackSessionManager(
     /** The position playback is actually at, for callers that need to freeze or save it. */
     fun currentPacingNanos(): Long = pacingClockNanos()
 
-    /**
-     * Exact audio-vs-video content offset from shared stream PTS: the audio feeder's first PES PTS
-     * minus the video channel's first raw LAV PTS, both on the segmenter's shared 90 kHz clock. That
-     * pins video frame X to the audio sample carrying the same stream time — real lip sync for two
-     * independently joined live HLS renditions, rather than an approximation from wall time.
-     *
-     * Null when either side hasn't observed its first PTS. Plausibility bounds are applied by
-     * [AudioMasterClock], which knows what a bias it cannot absorb would cost.
-     */
+    /** Exact audio-vs-video offset from shared PTS: audio feeder's first PES PTS minus video first raw PTS. */
     private fun exactAvBiasNanos(): Long? {
         val a0 = audioFeeder?.firstPtsNanos ?: return null
         if (a0 < 0) return null
@@ -1006,11 +917,8 @@ internal class PlaybackSessionManager(
     }
 
     /**
-     * Seamless quality switch: launches [streamSet]'s new-quality video as a parallel incoming
-     * channel while the live channel keeps decoding and rendering the old resolution. Audio and the
-     * clock are untouched. The render thread promotes the incoming channel on its first frame
-     * ([promoteIncoming]); on incoming failure the handoff is aborted and the live channel stays.
-     * Falls back to a full [start] when nothing is playing. Must be called from the control thread.
+     * Seamless quality switch: launches [streamSet]'s new-quality video as a parallel incoming channel while the
+     * current one keeps playing, then swaps once it's caught up.
      */
     fun beginQualitySwitch(streamSet: ActiveStreams, offsetNanos: Long, lastQuality: Int, hwAccel: HwAccelBackend) {
         if (active == null || !isPlaying || terminated.get()) {

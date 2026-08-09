@@ -222,12 +222,8 @@ object YtDlp {
     fun getPublicCookieHeader(): String? = cookies.header()
 
     /**
-     * Resolves streams for [videoUrl]. Runs the in-process [NewPipeResolver] fast path and the
-     * `yt-dlp` subprocess ([raceClients]) concurrently, so resolution costs max(NewPipe, yt-dlp)
-     * instead of their sum. NewPipe still wins outright when it yields a full ladder (cheaper, no
-     * subprocess), in which case the in-flight `yt-dlp` is aborted; otherwise the `yt-dlp` result is
-     * awaited, falling back to a NewPipe muxed-only result if every client failed. `yt-dlp` only
-     * starts after [HEDGE_DELAY_MS], so a fast NewPipe ladder can skip it entirely.
+     * Resolves streams for [videoUrl]: races the in-process [NewPipeResolver] fast path against the `yt-dlp` subprocess
+     * and returns whichever first offers a full quality ladder.
      */
     @Throws(IOException::class)
     private suspend fun fetchUncached(videoUrl: String): List<YtStream> {
@@ -295,10 +291,8 @@ object YtDlp {
     }
 
     /**
-     * Resolves [videoUrl] via `yt-dlp`. Tries [PRIMARY_CLIENT] alone first (one request, fast, the
-     * only client that currently yields a ladder); only if it produces nothing usable does it fall
-     * back to racing [FALLBACK_CLIENTS] in parallel. With browser cookies configured, a single
-     * cookie-backed invocation is run instead (no client arg, no race). Returns null on total failure.
+     * Resolves [videoUrl] via `yt-dlp`. Tries [PRIMARY_CLIENT] alone first (one request, fast, the only client that
+     * isn't PO-token gated), then races [FALLBACK_CLIENTS] in parallel if that fails.
      */
     private suspend fun raceClients(videoUrl: String, onProcess: (Process) -> Unit): List<YtStream>? {
         if (!cookies.disabledByConfig()) {

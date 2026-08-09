@@ -32,14 +32,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.*
 
-/**
- * Screen-covering video overlay for one display screen.
- *
- * Unlike [PipOverlay] it has no anchors, dragging, or resize: the video is letterboxed into the
- * whole screen ([FullscreenMode.IMMERSIVE]) or into a slightly inset area over a translucent scrim
- * ([FullscreenMode.STANDARD]). It is closed (or minimized to PiP when [forced]) via Esc, handled by
- * [FullscreenOverlayManager].
- */
+/** Full-screen overlay covering the entire viewport. No anchors or resizing like PiP. */
 class FullscreenOverlay(
     val displayScreen: DisplayScreen,
     val mode: FullscreenMode,

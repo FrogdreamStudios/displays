@@ -6,11 +6,8 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
 /**
- * One-time probe of optional `FFmpeg` features (hardware scale filters etc.) for a given binary.
- *
- * Building the filter graph around a filter the binary doesn't have fails the whole session at
- * runtime, so callers check here first; the result is cached per binary path for the process
- * lifetime. Probing spawns `ffmpeg -filters` once (~30 ms) on first use.
+ * One-time probe of optional `FFmpeg` features (hardware scale filters etc.) for a given binary. Building the process's
+ * filter list is expensive, so results are cached per path.
  */
 internal object FFmpegCapabilities {
     private val logger = LoggerFactory.getLogger("DreamDisplays/FFmpegCapabilities")

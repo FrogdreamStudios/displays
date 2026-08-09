@@ -7,17 +7,7 @@ import com.dreamdisplays.util.json.JsonFileStore
 import kotlinx.serialization.builtins.ListSerializer
 import org.slf4j.LoggerFactory
 
-/**
- * The player's own list of custom links, most recent first.
- *
- * A pasted link exists nowhere but in the message the player typed it into: there is no channel to
- * come back to and no search that finds it again. This store is the answer - every custom link that
- * gets played is remembered locally, so putting it on a second display (or on the same one
- * tomorrow) is a click in the suggestions panel instead of finding the original message again.
- *
- * Client-only and never sent anywhere. Backed by `custom-videos.json`, capped at [MAX_ENTRIES] with
- * the oldest entry evicted on overflow, and persisted on every change like [WatchedVideoStore].
- */
+/** The player's own list of custom links, most recent first. Pasted links persist across sessions. */
 object CustomVideoStore {
     /** Logger. */
     private val logger = LoggerFactory.getLogger("DreamDisplays/CustomVideoStore")

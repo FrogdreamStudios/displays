@@ -87,22 +87,14 @@ internal object DisplayGeometry {
         }
 
     /**
-     * Distance the quad floats in front of the supporting blocks, in local block space. This is a
-     * secondary safety margin only: the primary defense against z-fighting is the GPU polygon-offset
-     * bias baked into the render pipeline itself (see `RenderPipelineCompat.configureDepth` /
-     * `DisplayUnlitRenderTypes`'s `POLYGON_OFFSET_LAYERING`), which operates in depth-buffer units and
-     * so stays effective at any camera distance.
+     * Distance the quad floats in front of the supporting blocks, in local block space. This is a secondary safety margin
+     * on top of the depth-bias trick.
      */
     private const val SURFACE_OFFSET = 0.008f
 
     /**
-     * Larger surface offset used while a shader pack is active. Shader packs (notably OptiFine /
-     * SEUS Renewed) drive the depth buffer with far coarser precision than vanilla, so the tiny
-     * [SURFACE_OFFSET] no longer separates the video plane from the backing block: past a few blocks
-     * the block wins the depth test and the screen reverts to the bare block. A wider gap keeps the
-     * quad in front across the whole render distance.
-     *
-     * @see <a href="https://github.com/arnodoelinger/dreamdisplays/issues/108">Issue #108</a>
+     * Larger surface offset used while a shader pack is active. Shader packs (notably `OptiFine` / `SEUS Renewed`) draw with
+     * a different depth pass that needs more clearance to avoid z-fighting.
      */
     private const val SHADER_SURFACE_OFFSET = 0.016f
 
@@ -173,10 +165,8 @@ internal object DisplayGeometry {
     }
 
     /**
-     * Nudges [stack] [amount] blocks toward the viewer along [facing]'s outward normal. Call this
-     * before [applyScreenTransform] to lift an overlay layer off the video plane: the transform's
-     * final `scale(w, h, 0)` flattens local z to zero, so coplanar quads can only be depth-separated
-     * by offsetting them in world space here, ahead of that scale.
+     * Nudges [stack] [amount] blocks toward the viewer along [facing]'s outward normal. Call this before [applyScale],
+     * so the lift isn't itself scaled.
      */
     fun liftTowardViewer(stack: PoseStack, facing: DisplayFacing, amount: Float) = moveForward(stack, facing, amount)
 

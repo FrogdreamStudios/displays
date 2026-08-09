@@ -11,12 +11,8 @@ import java.net.URI
 import java.util.concurrent.TimeUnit
 
 /**
- * SSRF guard for client-supplied media URLs.
- *
- * Both entry points are memoized, because they sit on the playback launch path and are hit several
- * times per start and again on every seek, quality switch and stall restart. Unmemoized, each call
- * cost a blocking DNS lookup plus — for [resolveSafeUrl] — a full HTTPS round trip per redirect hop,
- * all before `FFmpeg` was even spawned.
+ * SSRF guard for client-supplied media URLs. Both entry points are memoized, because they sit on the playback launch path
+ * and get called repeatedly.
  */
 object MediaHostGuard {
     private val logger = LoggerFactory.getLogger("DreamDisplays/MediaHostGuard")
@@ -112,12 +108,8 @@ object MediaHostGuard {
     }
 
     /**
-     * Validates [url] and, for `http(s)` URLs, walks its redirect chain ourselves (each hop
-     * re-checked with [requireAllowed]), returning the final URL to hand to `FFmpeg` / `libav`.
-     *
-     * [isAllowed]/[requireAllowed] alone only validate the URL we were given; `FFmpeg` and the
-     * in-process `libav` path resolve DNS and follow redirects entirely on their own, moments
-     * later and outside this guard's view.
+     * Validates [url] and, for `http(s)` URLs, walks its redirect chain ourselves (each hop re-checked with [requireAllowed])
+     * up to [maxRedirects], returning the final safe URL.
      */
     @Throws(IOException::class)
     fun resolveSafeUrl(url: String, maxRedirects: Int = 5): String {

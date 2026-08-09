@@ -4,15 +4,8 @@ import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
 
 /**
- * Watches whether frames are arriving. If no frame arrives within the applicable threshold,
- * calls [onStall] and resets.
- *
- * A session that has never delivered a frame is held to the much shorter [startupThresholdMs]. Those
- * two failures look identical from here but are not the same thing: a running stream that goes quiet
- * usually recovers on its own, and cutting it off early costs a needless restart, whereas a session
- * that never started is almost always pointed at something dead (a live playlist whose window has
- * moved on, an expired signed URL) and will never recover no matter how long it is given. Cold starts
- * measured well under 5 s even on a 1080p HLS ladder, so [startupThresholdMs] leaves ample headroom.
+ * Watches whether frames are arriving. If no frame arrives within the applicable threshold, calls [onStall] and stops itself;
+ * the caller decides how to recover.
  */
 internal class StreamWatchdog(
     private val debugLabel: String,
@@ -61,14 +54,8 @@ internal class StreamWatchdog(
     }
 
     /**
-     * One pass over [stallThresholdMs] / [startupThresholdMs]. Returns false once [onStall] has been
-     * called, which ends the watch.
-     *
-     * Reporting the same stall on every tick is not harmless. Recovery takes a moment — a re-resolve
-     * and a fresh `FFmpeg` — and during that moment the session still has no frames, so a watchdog
-     * that keeps counting keeps asking for another recovery, each one tearing down the attempt before
-     * it can produce its first frame. That is a restart storm that never converges, and the display
-     * simply never plays.
+     * One pass over [stallThresholdMs] / [startupThresholdMs]. Returns false once [onStall] has been called, which ends
+     * the watchdog's polling loop.
      */
     private fun check(): Boolean {
         return runCatching {

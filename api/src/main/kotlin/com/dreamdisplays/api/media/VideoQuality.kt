@@ -31,7 +31,7 @@ sealed interface VideoQuality {
         /** Client default when nothing is persisted. */
         val DEFAULT: VideoQuality = Fixed(1080)
 
-        /** Parses a label into [VideoQuality]: null/"auto" → Auto, digits → Fixed, else Auto. */
+        /** Parses a label into [VideoQuality]: null / "auto" -> Auto, digits -> Fixed, else Auto. */
         fun parse(raw: String?): VideoQuality {
             if (raw == null) return Auto
             val trimmed = raw.trim()

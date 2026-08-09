@@ -36,10 +36,7 @@ sealed class FullscreenStartResult {
 
 /**
  * Shared `/display fullscreen` logic, common to both the `Paper` and `Fabric` / `NeoForge` command trees
- * (see `CommandRegistrar.kt` / `VanillaCommandTree.kt` for the thin per-platform adapters, which
- * build every flag - `target`, `radius`, `mode`, `forced`, `transient`, `volume` — as a proper
- * Brigadier node with tab-complete, combinable in any order). Targets and radius are independent
- * and combinable - a player is delivered the broadcast if they match either one.
+ * see `PaperFullscreenCommand` and `FabricFullscreenCommand`).
  */
 object FullscreenCommand {
     /** Starts a session on [display]. */
@@ -98,10 +95,8 @@ object FullscreenCommand {
     }
 
     /**
-     * Clamps [requested] to [qualityCap] (0 or less means no cap): `auto` becomes a fixed height at
-     * the cap, and a fixed height above the cap is lowered to it. `auto` must not be a way around a
-     * configured cap — the same hard-ceiling philosophy `Broadcast` mode already applies via
-     * [com.dreamdisplays.api.playback.PlaybackPermissions.BROADCAST_QUALITY_CAP].
+     * Clamps [requested] to [qualityCap] (0 or less means no cap): `auto` becomes a fixed height at the cap, and any
+     * explicit request above the cap is lowered to it.
      */
     private fun clampQuality(requested: String?, qualityCap: Int): String {
         if (qualityCap <= 0) return requested ?: ""
@@ -225,10 +220,8 @@ object PaperFullscreenCommand {
     }
 
     /**
-     * Expands one `target` token to the players it refers to: `@a` / `@e` (everyone online), `@s`
-     * (the [sender] themselves), `@p` (nearest online player to the sender), `@r` (one random online
-     * player), `%<group>` (everyone holding the `group.<group>` permission node — the same convention
-     * `permissions.premium` already uses for `group.premium`), or an exact player name.
+     * Expands one `target` token to the players it refers to: `@a` / `@e` (everyone online), `@s` (the [sender] themselves),
+     * `@p` (nearest in the same world), or a literal player name.
      */
     private fun resolveTargetToken(sender: Player, token: String): Set<UUID> = when {
         token.equals("@a", ignoreCase = true) || token.equals("@e", ignoreCase = true) ->
@@ -425,10 +418,8 @@ object VanillaFullscreenCommand {
     }
 
     /**
-     * Expands one `target` token to the players it refers to: `@a`/`@e` (everyone online), `@s`
-     * (the [sender] themselves), `@p` (nearest online player to the sender), `@r` (one random online
-     * player), `%<group>` (everyone holding the `group.<group>` permission node - the same convention
-     * `permissions.premium` already uses for `group.premium`), or an exact player name.
+     * Expands one `target` token to the players it refers to: `@a`/`@e` (everyone online), `@s` (the [sender] themselves),
+     * `@p` (nearest in the same level), or a literal player name.
      */
     private fun resolveTargetToken(online: List<ServerPlayer>, sender: ServerPlayer, token: String): Set<UUID> = when {
         token.equals("@a", ignoreCase = true) || token.equals("@e", ignoreCase = true) ->
@@ -457,10 +448,8 @@ object VanillaFullscreenCommand {
     }
 
     /**
-     * Handles `/display fullscreen stop <sessionId|displayId|all>`. Mirrors
-     * `PaperFullscreenCommand.stop`'s network forwarding, but only when the sender is an actual
-     * player — a network stop needs a connection to ride the plugin message on, so a console / command
-     * block invocation only ever stops local sessions.
+     * Handles `/display fullscreen stop <sessionId|displayId|all>`. Mirrors `PaperFullscreenCommand.stop`'s network-id
+     * resolution before delegating to the shared [FullscreenCommand.stop].
      */
     fun stop(ctx: CommandContext<CommandSourceStack>, idOrAll: String): Int {
         val player = ctx.source.entity as? ServerPlayer

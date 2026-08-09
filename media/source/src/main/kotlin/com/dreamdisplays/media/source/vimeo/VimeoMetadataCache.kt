@@ -5,13 +5,7 @@ import com.dreamdisplays.media.source.platform.PlatformMetadataCache
 import com.dreamdisplays.media.source.platform.PlatformVideoMetadata
 import com.dreamdisplays.media.source.platform.YtDlpMetadataFallback
 
-/**
- * Metadata cache for Vimeo videos, so the menu can show a real title / uploader / thumbnail on a
- * pasted Vimeo link without waiting for full stream resolution. Keyed by video id plus its optional
- * unlisted hash, since the hash is what authorizes the fetch.
- *
- * @since 1.9.0
- */
+/** Metadata cache for Vimeo videos, so the menu can show a real title / uploader / thumbnail for a pasted Vimeo link. */
 object VimeoMetadataCache {
     private val cache = PlatformMetadataCache(
         name = "Vimeo",

@@ -9,12 +9,7 @@ import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.seconds
 
-/** TTL-bounded LRU memoizer with in-flight request deduplication.
- * @param maxSize LRU capacity.
- * @param ttlMs entry freshness window.
- * @param scope coroutine scope for loads.
- * @param tag name for error messages.
- */
+/** TTL-bounded LRU memoizer with in-flight request deduplication. */
 class AsyncMemo<K : Any, V : Any>(
     maxSize: Int,
     private val ttlMs: Long,

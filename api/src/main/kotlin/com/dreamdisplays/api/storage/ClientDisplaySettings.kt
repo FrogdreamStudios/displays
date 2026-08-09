@@ -3,14 +3,7 @@ package com.dreamdisplays.api.storage
 import com.dreamdisplays.api.DreamDisplaysUnstableApi
 import kotlinx.serialization.Serializable
 
-/**
- * Client-local preferences.
- *
- * These are the viewer's own choices (volume, quality, mute, an optional URL / language override) and are
- * kept separate from the server-authoritative display snapshot.
- *
- * @since 1.8.4
- */
+/** Client-local preferences: volume, quality, mute, URL / language overrides, PiP position, acoustics. */
 @DreamDisplaysUnstableApi
 @Serializable
 data class ClientDisplaySettings(

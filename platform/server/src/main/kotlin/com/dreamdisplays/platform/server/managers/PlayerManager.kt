@@ -21,15 +21,7 @@ object PlayerManager {
     /** Set of player UUIDs for which displays are disabled. */
     private val displaysDisabled: MutableSet<UUID> = ConcurrentHashMap.newKeySet()
 
-    /**
-     * One-way "already notified this session" bits per player, kept for the server's lifetime (see
-     * [removePlayer]) so a player is told about an update / requirement only once per server session,
-     * not on every re-join.
-     *
-     * Packed into a single bitmask entry instead of three separate `UUID` sets — on a server that sees
-     * hundreds of unique joins in one session, three per-player hash-set nodes each is pure overhead once
-     * you're just tracking three booleans.
-     */
+    /** One-way "already notified this session" bits per player, kept for the server's lifetime (see [removePlayer] for cleanup on disconnect). */
     private val notifiedFlags: MutableMap<UUID, Int> = ConcurrentHashMap()
 
     private const val MOD_UPDATE_NOTIFIED = 1

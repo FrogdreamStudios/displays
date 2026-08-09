@@ -19,15 +19,8 @@ data class VimeoPlayback(
 )
 
 /**
- * Resolves Vimeo videos through the public player config endpoint — the same JSON Vimeo's own
- * embedded player fetches, needing no API key.
- *
- * One request to `player.vimeo.com/video/<id>/config` returns both the metadata (title, owner,
- * thumbnails, duration) and the playable files: a ladder of progressive MP4s (ideal — the player
- * opens them directly and seeks by byte range) plus an HLS master as the fallback for videos Vimeo
- * only streams adaptively. This is why [VimeoResolver] can skip the `yt-dlp` subprocess.
- *
- * @since 1.9.0
+ * Resolves Vimeo videos through the public player config endpoint — the same JSON Vimeo's own embedded player fetches,
+ * so no API key or auth is needed.
  */
 object VimeoApi {
     /** Logger. */

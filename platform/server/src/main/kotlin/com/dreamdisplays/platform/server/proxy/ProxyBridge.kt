@@ -103,12 +103,7 @@ object ProxyBridge : PluginMessageListener {
         }
     }
 
-    /**
-     * Called from the join handshake once a player is fully v2-negotiated — on every join and
-     * every proxy-driven server switch, not just this backend's first-ever player. Announces the
-     * backend itself once per restart ([BackendHello]), then always reports this specific player as
-     * ready so the proxy can [ReplayForPlayer] any network state they should still see here.
-     */
+    /** Called from the v2 handshake when a player finishes negotiation; sends hello and display index. */
     fun onPlayerReady(player: Player) {
         if (!enabled) return
         if (helloSent.compareAndSet(false, true)) {
@@ -184,12 +179,7 @@ object ProxyBridge : PluginMessageListener {
         )
     }
 
-    /**
-     * Same as [startNetworkFullscreen], but for a `<id>` this backend doesn't know: asks the network
-     * which backend hosts it ([ResolveDisplayToken]) and starts once the answer arrives. Displays are
-     * registered per backend, so an id that means nothing here is routinely valid one server over.
-     * Silently expires after [RESOLVE_TIMEOUT_MS] if nothing claims the id.
-     */
+    /** Starts a network fullscreen for an unknown id; asks the network to resolve it first. */
     fun startNetworkFullscreenByDisplayId(
         player: Player,
         scope: String,

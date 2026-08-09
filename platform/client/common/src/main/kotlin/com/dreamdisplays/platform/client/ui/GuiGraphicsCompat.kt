@@ -10,16 +10,8 @@ import net.minecraft.client.gui.GuiGraphicsExtractor
 /*import net.minecraft.client.gui.GuiGraphics*/
 
 /**
- * Version-neutral alias for the per-frame GUI draw target.
- *
- * Minecraft 26+ draws into a [GuiGraphicsExtractor] (deferred render-state extraction); pre-26 uses
- * the immediate `GuiGraphics`. The two expose the same drawing surface under different method names
- * for some calls (notably text: `text()` vs `drawString()`), which previously forced every overlay /
- * widget / screen to carry two near-identical copies of its render code behind Stonecutter
- * `//? if >=26` gates.
- *
- * This alias plus the small shim layer below lets render bodies be written once against
- * [GuiGraphicsCompat]; only the genuinely divergent call names live here, gated in one place.
+ * Version-neutral alias for the per-frame GUI draw target. Minecraft 26+ draws into a [GuiGraphicsExtractor];
+ * older versions use the vanilla `GuiGraphics` type directly.
  */
 //? if >=26 {
 typealias GuiGraphicsCompat = GuiGraphicsExtractor

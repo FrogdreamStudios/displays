@@ -41,12 +41,7 @@ object NeoForgeV2Networking {
         }
     }
 
-    /**
-     * Registers the single v2 envelope receiver against [registrar]. Must be called exactly once
-     * total for the whole mod (NeoForge's payload registry rejects a second registration of the
-     * same id) - see `NeoForgeServer.registerPayloads` for why this can't also be registered from
-     * `Client`.
-     */
+    /** Registers the single v2 envelope receiver against [registrar]. Must be called exactly once total for the whole mod. */
     fun registerReceivers(registrar: PayloadRegistrar) {
         //? if >=1.21.11 {
         registrar.playBidirectional(
@@ -123,10 +118,8 @@ object NeoForgeV2Networking {
     }
 
     /**
-     * Marks [player] as a v2 peer, replies with the [ServerHello] and the display batch. Fullscreen
-     * re-delivery also has to wait for this point — sending it from the raw join event races the
-     * handshake, since `sendTo` / `sendDisplayInfo` are gated on [V2PlayerTracker.isV2], which isn't
-     * true yet there.
+     * Marks [player] as a v2 peer, replies with the [ServerHello] and the display batch. Fullscreen re-delivery also
+     * runs here for reconnecting viewers.
      */
     private fun handleHello(player: ServerPlayer, server: MinecraftServer, hello: ClientHello) {
         if (V2PlayerTracker.isV2(player.uuid)) return

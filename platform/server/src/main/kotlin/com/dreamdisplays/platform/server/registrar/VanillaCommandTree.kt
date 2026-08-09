@@ -75,11 +75,8 @@ object VanillaCommandTree {
         }
 
     /**
-     * Builds the `/display delete this|<id>` subcommand. `this` (raycast, exactly what the command
-     * already always did) is mandatory when nothing more specific is given — the same explicit
-     * spelling of the looked-at target is required across every display-targeting command, matching
-     * `fullscreen start id this`. An explicit id / unambiguous id prefix is also accepted, gated
-     * behind [PermissionsSection.remote] since it lets you act on a display anywhere on the server.
+     * Builds the `/display delete this|<id>` subcommand. `this` resolves via raycast, matching every other
+     * `this`-accepting node in this tree.
      */
     private fun deleteNode() = Commands.literal("delete")
         .then(
@@ -169,10 +166,8 @@ object VanillaCommandTree {
             }
 
     /**
-     * Builds the `/display name this|<id> [name]` subcommand — see [deleteNode] for `this` / id
-     * semantics. `name` is a single space-free token ([StringArgumentType.word]) since
-     * [com.dreamdisplays.platform.server.managers.DisplayManager.resolveByIdOrPrefix] treats it
-     * exactly like an id afterwards, and optional.
+     * Builds the `/display name this|<id> [name]` subcommand — see [deleteNode] for `this` / id semantics.
+     * `name` is optional; omitting it clears the display's name.
      */
     private fun nameNode() = Commands.literal("name")
         .requires { requiresNode(it, { p -> p.name }, VanillaPermissions.Fallback.EVERYONE) }
@@ -360,13 +355,8 @@ object VanillaCommandTree {
         .then(fullscreenListNode())
 
     /**
-     * `/display fullscreen start <id <id>|url <url>> [<flags in any order/combination>]`, flags
-     * being `target <players>`, `radius <blocks> [<x> <y> <z>]`, `mode <standard|immersive>`,
-     * `forced`, `transient`, `volume <0–200>` - every flag is a real literal/argument node with its
-     * own tab-complete, and [fullscreenFlagsNode] accepts any subset of them, in the canonical
-     * [FULLSCREEN_FLAGS] order.
-     * `id` / `url` are separate literal branches (rather than one argument that guesses which it got)
-     * so both are actually discoverable via tab-complete.
+     * `/display fullscreen start <id <id>|url <url>> [<flags in any order/combination>]`, flags being `target <players>`,
+     * `scope`, `force`, and the like — see [fullscreenFlagsNode].
      */
     private fun fullscreenStartNode(): LiteralArgumentBuilder<CommandSourceStack> {
         val flags = fullscreenFlagsNode()

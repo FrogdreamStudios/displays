@@ -26,13 +26,7 @@ object GeneralUtil {
         runCatching { readResource("/assets/dreamdisplays/version.txt").trim() }
             .getOrDefault("unknown")
 
-    /**
-     * Formats [getModVersion] into a human-readable channel label:
-     * `1.8.5-dev` -> `1.8.5 Developer`, `1.9.0-preview.5` -> `1.9.0 Preview 5`,
-     * `1.8.4` -> `1.8.4 Release`.
-     *
-     * Unrecognized versions are returned unchanged.
-     */
+    /** Formats version to human-readable label: `1.8.5-dev` -> `1.8.5 Developer`, `1.9.0-preview` -> `1.9.0 Preview`. */
     fun getPrettyModVersion(): String {
         val version = getModVersion()
         DEV_VERSION.matchEntire(version)?.let { return "${it.groupValues[1]} Developer" }

@@ -7,14 +7,8 @@ import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Proxy-side authority for network-wide fullscreen broadcasts: mints the shared `sessionId` and
- * anchor instant every backend applies identically, resolves the `server <name>|global` scope
- * against the known backend roster, and tracks per-backend acknowledgement / reach so a backend
- * that was empty (no players to ride the plugin message, or none to target) can be retried once it
- * has someone online.
- *
- * Deliberately platform-API-free, like [NetworkBackendRegistry] — both the
- * `Velocity` and `Bungeecord` adapters drive this with plain strings and do the actual I / O themselves.
+ * Proxy-side authority for network-wide fullscreen broadcasts: mints the shared `sessionId` and anchor instant, and
+ * tracks which sessions apply where.
  */
 object NetworkFullscreenManager {
     /**
@@ -120,10 +114,8 @@ object NetworkFullscreenManager {
         sessions.values.filter { serverName in targetServers(it.scope, knownServers) }
 
     /**
-     * Ids of every live session that should apply on [serverName] right now — `global`-scope
-     * sessions, plus any scoped to this backend by name. Answers a [PlayerReady][com.dreamdisplays.core.protocol.proxy.PlayerReady]
-     * with a [ReplayForPlayer][com.dreamdisplays.core.protocol.proxy.ReplayForPlayer] so a player who
-     * transfers here keeps seeing what they were already watching.
+     * Ids of every live session that should apply on [serverName] right now — `global`-scope sessions, plus any scoped
+     * to this server specifically.
      */
     fun sessionIdsApplicableTo(serverName: String, knownServers: Set<String>): List<String> =
         sessions.values.filter { serverName in targetServers(it.scope, knownServers) }.map { it.sessionId }

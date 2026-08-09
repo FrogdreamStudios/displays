@@ -4,10 +4,8 @@ import com.dreamdisplays.api.media.search.MediaSearchResult
 import com.dreamdisplays.api.media.source.MediaPlatform
 
 /**
- * The single source of truth for the little coloured platform tag ("Twitch", "Vimeo", "Kick",
- * "Link") drawn on suggestion cards and the preview overlay. Keeping the label key, background, and
- * text color together here means the card strip and the preview never disagree on how a platform
- * looks, and adding a platform is one entry rather than edits in two draw routines.
+ * The single source of truth for the little coloured platform tag ("Twitch", "Vimeo", "Kick", "Link") drawn on search
+ * results and thumbnails.
  */
 object PlatformBadge {
 

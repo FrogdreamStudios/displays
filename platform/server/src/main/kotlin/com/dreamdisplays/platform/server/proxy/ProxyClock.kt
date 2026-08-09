@@ -3,15 +3,7 @@ package com.dreamdisplays.platform.server.proxy
 import com.dreamdisplays.core.protocol.proxy.ClockReply
 import java.util.concurrent.atomic.AtomicLong
 
-/**
- * Tracks this backend's clock offset from the proxy's clock (`proxyEpoch - localEpoch`), estimated
- * NTP-style from [ClockReply] round trips. Used only to translate a proxy-supplied anchor (e.g. a
- * network fullscreen broadcast's start instant) into this backend's local wall clock - never to
- * rewrite [com.dreamdisplays.api.playback.Timeline.serverTimeMs] itself, which must stay a purely
- * local timestamp for the client-side monotonic-staleness guard to keep working.
- *
- * Platform-neutral: holds no `Bukkit` / Minecraft types, so it works unchanged on every backend loader.
- */
+/** Tracks the NTP-style clock offset between this backend and the proxy via sampled RTT measurements. */
 object ProxyClock {
     private const val NO_SAMPLE = Long.MIN_VALUE
 

@@ -19,10 +19,8 @@ import net.minecraft.resources.Identifier
 /*import net.minecraft.resources.ResourceLocation as Identifier*/
 
 /**
- * Discrete-mode selector styled like the existing sliders, generic over any small fixed [modes] list
- * (playback mode, acoustics tier, ...). Unlike [ValueSlider], this ignores drag updates, so transient
- * pointer movement cannot repeatedly re-trigger [onApply]. A click snaps directly to whichever mode's
- * notch it lands closest to, like a real slider, instead of always advancing one step.
+ * Discrete-mode selector styled like the existing sliders, generic over any small fixed [modes] list (playback mode,
+ * quality, etc).
  */
 class ModeSlider<T : Any>(
     private val modes: List<T>,

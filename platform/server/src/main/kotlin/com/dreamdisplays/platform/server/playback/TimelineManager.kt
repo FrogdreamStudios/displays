@@ -14,10 +14,8 @@ import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Owns the authoritative playback clock for every `SYNCED` and `BROADCAST` display. Clients never
- * report their own time; they send intents ([PlaybackCommand]) and this
- * manager mutates the single [Timeline] and rebroadcasts it. Replaces the old owner-relay
- * `StateManager` for the v2 path. Watch-party timelines live in [WatchPartyManager].
+ * Owns the authoritative playback clock for every `SYNCED` and `BROADCAST` display. Clients never report their own
+ * position back as truth.
  */
 object TimelineManager {
     /** Logger. */
@@ -33,10 +31,8 @@ object TimelineManager {
     private const val MAX_DURATION_MS = 24L * 60 * 60 * 1_000
 
     /**
-     * Sanity floor for a client-reported duration. A near-zero value would still pass the naive
-     * "> 0" check but collapses [Timeline.positionAt]'s loop-wrap math into a near-permanent reset
-     * to position 0 for every viewer — this bounds how much damage a single bad (or hostile) report
-     * can do before the throttle below even engages.
+     * Sanity floor for a client-reported duration. A near-zero value would still pass the naive "> 0" check but can't be
+     * a real video length.
      */
     private const val MIN_DURATION_MS = 2_000L
 
@@ -45,11 +41,8 @@ object TimelineManager {
     private const val REPORT_DURATION_COOLDOWN_MS = 2_000L
 
     /**
-     * Throttles [onCommand] per sender (not per display) — [PlaybackAction] has no other rate limit,
-     * and every call now also pays for the nearby-range check below (an O(players in the display's
-     * world) scan), so an unthrottled flood would force that scan on every single packet. Keyed by
-     * sender rather than by display so one player's flood can't also starve a different, legitimate
-     * player's own commands on the same display.
+     * Throttles [onCommand] per sender (not per display) — [PlaybackAction] has no other rate limit, and every caller
+     * shares this one gate.
      */
     private val commandThrottle = ActionThrottle()
     private const val COMMAND_COOLDOWN_MS = 100L
@@ -73,12 +66,8 @@ object TimelineManager {
     fun timelineOf(displayId: UUID): Timeline? = timelines[displayId]
 
     /**
-     * Applies a client playback intent to a `SYNCED` display. Returns true when it was permitted,
-     * applied, and rebroadcast. Watch-party intents are handled by [WatchPartyManager], not here.
-     *
-     * [senderId] must currently be receiving [display]'s broadcasts (checked against
-     * [PlaybackTransport.nearbyPlayerIds]) — otherwise a client could forge a command for a display
-     * id it learned about but was never actually shown, from anywhere else in the world.
+     * Applies a client playback intent to a `SYNCED` display. Returns true when it was permitted, applied, and rebroadcast;
+     * false otherwise.
      */
     fun onCommand(display: DisplayData, senderId: UUID, action: PlaybackAction, positionMs: Long): Boolean {
         if (display.mode != PlaybackMode.SYNCED || WatchPartyManager.hasSession(display.id)) return false
@@ -147,14 +136,7 @@ object TimelineManager {
     }
 
     /**
-     * Applies a client-reported media duration for [display]'s current video. First-report-wins: a
-     * no-op once [DisplayData.duration] is already known, so redundant reports from other viewers
-     * resolving the same media are cheap. Meaningless outside `SYNCED`/`BROADCAST`.
-     *
-     * [senderId] must be a player actually receiving [display]'s broadcasts (checked against
-     * [PlaybackTransport.nearbyPlayerIds], the same set a watch-party ready-check uses) — otherwise
-     * any player anywhere on the server could lock in a bogus duration for a display they've never
-     * even loaded, with no way to correct it short of changing the video.
+     * Applies a client-reported media duration for [display]'s current video. First-report-wins: a no-op once [DisplayData.duration] is already set.
      */
     fun onDurationReported(display: DisplayData, senderId: UUID, durationMs: Long) {
         if (display.mode != PlaybackMode.SYNCED && display.mode != PlaybackMode.BROADCAST) return

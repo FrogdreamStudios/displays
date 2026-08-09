@@ -27,11 +27,7 @@ import org.bukkit.inventory.EquipmentSlot
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent as NeoForgePlayerInteractEvent
 
 /**
- * Listener for player interactions to manage selection points for display creation.
- *
- * Players can set selection points by interacting with blocks while holding the designated selection material.
- * Left-clicking sets the first point, right-clicking sets the second point.
- * Sneaking and right-clicking resets the selection.
+ * Listener for player interactions to manage selection points for display creation. Players can set selection points via item interaction.
  */
 @PaperOnly
 class SelectionListener(plugin: PaperServer) : Listener {

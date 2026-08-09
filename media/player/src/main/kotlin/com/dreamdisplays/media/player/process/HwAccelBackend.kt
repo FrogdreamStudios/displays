@@ -39,13 +39,8 @@ enum class HwAccelBackend(val ffmpegName: String?, val hwOutputFormat: String?, 
         }
 
         /**
-         * Returns true if [stderr] looks like an `FFmpeg` startup failure caused specifically by the
-         * hardware decoder (codec not supported on this hardware, driver missing, device init
-         * failed, etc.). We use this to detect when a hwaccel pick was wrong for the current stream
-         * and silently retry with software decoding.
-         *
-         * False positives just mean a one-off slower restart, false negatives mean
-         * the stream stays broken until the user toggles the config flag.
+         * Returns true if [stderr] looks like an `FFmpeg` startup failure caused specifically by the hardware decoder
+         * (as opposed to some unrelated error), so we can fall back to software.
          */
         fun looksLikeHwAccelFailure(stderr: String): Boolean {
             if (stderr.isEmpty()) return false

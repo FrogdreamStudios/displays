@@ -45,10 +45,8 @@ fun GuiGraphicsCompat.fillVGradient(x1: Int, y1: Int, x2: Int, y2: Int, top: Int
 }
 
 /**
- * Draws an animated loading shimmer inside [x1, y1) - [x2, y2): a subtle top-to-bottom [base] gradient
- * (so the card doesn't read as dead flat) with a soft [highlight] band sweeping left-to-right, eased
- * in and out like a glare rather than a hard-edged triangle. Time-driven, so it animates on its own
- * each frame with no state to keep.
+ * Draws an animated loading shimmer inside [x1, y1) and [x2, y2): a subtle top-to-bottom [base] gradient with a [highlight]
+ * band sweeping left to right.
  */
 fun GuiGraphicsCompat.drawShimmer(x1: Int, y1: Int, x2: Int, y2: Int, base: Int, highlight: Int) {
     val w = x2 - x1

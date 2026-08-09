@@ -111,10 +111,7 @@ class DisplayScreen(
     /** Whether the user has muted this display. */
     var muted: Boolean = savedSettings.muted
 
-    /**
-     * Whether the 3D acoustics engine (directivity, occlusion, reverb, binaural) applies to this
-     * display; false forces the legacy distance-gain-only path.
-     */
+    /** 3D acoustics engine (directivity, occlusion, reverb); false = legacy distance-gain only. */
     var acousticsEnabled: Boolean = savedSettings.acousticsEnabled
 
     /** Legacy mirror of [mode]; true only for [PlaybackMode.SYNCED]. */
@@ -128,16 +125,13 @@ class DisplayScreen(
     @Volatile
     var localWatchPartyReady: Boolean = false; internal set
 
-    /** Suggestions-panel state for this display; owned here (not the menu screen) so its results and
-     *  search state survive the menu being closed and reopened. */
+    /** Suggestions-panel state; survives menu close/reopen. */
     val suggestionsController = SuggestionsController()
 
     /** The effective mode the player experiences — `WATCH_PARTY` while a session is live. */
     val effectiveMode: PlaybackMode get() = if (watchParty != null) PlaybackMode.WATCH_PARTY else mode
 
-    /**
-     * Permission context for the local player acting on this display (mirrors the server's rules).
-     */
+    /** Local player permission context. */
     private fun ctx(): PlaybackContext = PlaybackContext(
         mode = effectiveMode,
         isOwner = owner,
@@ -234,23 +228,14 @@ class DisplayScreen(
             DisplayRegistry.recordScreen(this)
         }
 
-    /**
-     * Requested audio track, identified by its resolved stream URL; writes push the choice to the
-     * player, which respawns only the audio line. Not persisted — track URLs are re-resolved per
-     * video, so there's nothing stable to save across sessions.
-     */
+    /** Requested audio track (stream URL); respawns audio only, not persisted. */
     var audioTrack: String = ""
         set(value) {
             field = value
             mediaPlayer?.setAudioTrack(value)
         }
 
-    /**
-     * In Broadcast ([qualityCap] > 0) every client is pinned to the highest allowed quality (the
-     * cap, e.g. 360p) regardless of the user's saved setting; otherwise the user's [requested]
-     * quality is used unchanged. The result is then stepped down further by [distanceQualitySteps]
-     * (see [updateDistanceQuality]).
-     */
+    /** Broadcast pins to cap; otherwise applies distance steps. */
     private fun effectiveQuality(requested: VideoQuality = quality): VideoQuality {
         val base = if (qualityCap > 0) VideoQuality.Fixed(qualityCap) else requested
         return applyDistanceSteps(base)
@@ -259,11 +244,7 @@ class DisplayScreen(
     /** How many rungs down [QUALITY_LADDER] the current distance has pushed the effective quality; 0 when close. */
     private var distanceQualitySteps = 0
 
-    /**
-     * Re-derives [distanceQualitySteps] from [fraction] (distance to the screen as a fraction of
-     * [renderDistance], `0` at the screen and `1` at the render-distance edge) and re-pushes the
-     * effective quality if it changed.
-     */
+    /** Re-derives distance quality steps and re-pushes if changed. */
     private fun updateDistanceQuality(fraction: Float) {
         var steps = distanceQualitySteps
         while (steps < DISTANCE_STEP_THRESHOLDS.size && fraction >= DISTANCE_STEP_THRESHOLDS[steps]) steps++
@@ -317,12 +298,7 @@ class DisplayScreen(
     /** The active media player, or `null` between videos. */
     private val mediaPlayer: MediaPlayer? get() = media.player
 
-    /** True, while this display is parked warm out of render distance: not rendered and not advancing, but
-     *  its decoder and audio stay open, so walking back resumes instantly.
-     *
-     *  @see [goDormant]
-     *  @see [wake]
-     */
+    /** Warm-parked out of render distance: decoder + audio open, instant resume. */
     @Volatile
     var isDormant: Boolean = false; private set
 
@@ -342,12 +318,7 @@ class DisplayScreen(
     @Transient
     private var blockPos: BlockPos? = null
 
-    /**
-     * True once at least one decoded frame has been uploaded to the live texture. Keeps the screen
-     * showing its last frame (rather than the loading quad) across moments when the pipe has no ready
-     * frame — most importantly during a quality handoff, while the new-resolution pipe spins up.
-     * Reset by [createTexture] (full reallocation: new video, resize, backend restart).
-     */
+    /** True once a frame uploaded; holds last frame across quality handoff. Reset by [createTexture]. */
     @Transient
     @Volatile
     private var hasEverRendered = false
@@ -362,20 +333,12 @@ class DisplayScreen(
     @Volatile
     private var waitingForInitialTimeline = false
 
-    /**
-     * [System.nanoTime] [waitingForInitialTimeline] was last set; `0` while not waiting. Backs the
-     * self-heal timeout below — a [TimelineFollower] packet that never lands (dropped, superseded by a
-     * stale-generation guard, or simply never sent for this display) must not strand the picture behind
-     * "Waiting for video..." forever once decode is actually healthy.
-     */
+    /** Timeline wait timeout tracker (self-heals stranded "Waiting..." on stale packet). */
     @Transient
     @Volatile
     private var waitingSinceNanos = 0L
 
-    /**
-     * Re-checks [waitingForInitialTimeline], self-clearing it once it has outlasted the periodic
-     * server broadcast interval by a wide margin — see [waitingSinceNanos].
-     */
+    /** Re-checks initial timeline wait; self-clears on timeout. */
     private fun stillWaitingForInitialTimeline(): Boolean {
         if (waitingForInitialTimeline && waitingSinceNanos != 0L &&
             System.nanoTime() - waitingSinceNanos > WAITING_FOR_TIMELINE_TIMEOUT_NANOS
@@ -397,11 +360,7 @@ class DisplayScreen(
         hasEverRendered = true
     }
 
-    /**
-     * Eased 0..1 fade applied to the video on its first appearance, so it ramps up from black instead
-     * of snapping in. Returns 1 (no fade) before the first frame, once the ramp is over, and for a
-     * seamless replay reappearance (which must not dim its already-good picture).
-     */
+    /** First-frame fade-in progress (0..1 eased); 1 = no fade or replay reappear. */
     internal fun appearProgress(): Float {
         val start = firstFrameNanos
         if (start == 0L || mediaPlayer?.isResumingFromReplay() == true) return 1f
@@ -431,10 +390,7 @@ class DisplayScreen(
     /** Total duration of the current video in nanoseconds, or `0` if unknown / live. */
     val mediaPlayerDurationNanos: Long get() = mediaPlayer?.getDuration() ?: 0L
 
-    /**
-     * Raw (not yet redirect-resolved) URL of the current video's stream, for seek-bar scrub-preview
-     * frame extraction. Cheap to read; null for live streams or before a stream has resolved.
-     */
+    /** Raw stream URL for seek-bar scrub-preview frame extraction; null for live/unresolved. */
     val scrubPreviewRawUrl: String? get() = mediaPlayer?.capturedStreamRawUrl()
 
     /** Whether scrub previews for this display must seek by decoding forward; see `MediaStream.seekByDecoding`. */
@@ -470,11 +426,7 @@ class DisplayScreen(
         loadVideoInternal(videoUrl, lang, false)
     }
 
-    /**
-     * Re-attempts the current video after a load failure. Purely local: re-resolves and restarts the
-     * same URL (clearing [mediaError] via the controller), with no server packet and no URL-override
-     * change — so a transient resolve failure never costs the display.
-     */
+    /** Re-attempts current video after failure; purely local, no server packet. */
     fun retryVideo() {
         val url = videoUrl ?: return
         loadVideoInternal(url, lang ?: "", preservePausedState = true)
@@ -627,11 +579,7 @@ class DisplayScreen(
     private fun usesV2Timeline(): Boolean =
         ProtocolRouter.v2Negotiated || ClientPacketManager.serverSnapshot.hasFeature(ServerFeature.MODES)
 
-    /**
-     * Applies a watch-party snapshot: tracks the session for UI / permissions, loads the host's video
-     * when it changes, and (while `PLAYING` / `PAUSED`) follows the session timeline. An empty session id
-     * means the party closed — the display reverts to its base mode.
-     */
+    /** Applies watch-party snapshot: tracks session, loads host video, follows timeline. */
     fun updateWatchParty(packet: WatchPartyState) {
         if (packet.sessionId.isEmpty()) {
             watchParty = null
@@ -711,11 +659,7 @@ class DisplayScreen(
         frameUploader.upload(mp, textureResource, ::markRendered)
     }
 
-    /**
-     * Renders the current frame to the popout window.
-     * Must be called after all Minecraft / mod rendering for the frame is complete so that any
-     * GL-context switch (`GLFW` backend on macOS) does not corrupt in-flight command buffers.
-     */
+    /** Renders frame to popout; call after all Minecraft/mod rendering to avoid GL-context corruption. */
     fun renderPopout() {
         popoutManager.renderFrame()
     }
@@ -725,10 +669,7 @@ class DisplayScreen(
         mediaPlayer?.setVolume(volume)
     }
 
-    /**
-     * Applies the effective volume to the media player, which is 0 if either [muted] or [focusMuted] is true,
-     * otherwise the user's set [volume].
-     */
+    /** Applies effective volume (0 if muted/unfocused, else user volume). */
     internal fun applyEffectiveVolume() {
         setVideoVolume(if (muted || focusMuted) 0f else volume)
     }
@@ -755,12 +696,7 @@ class DisplayScreen(
     /** Whether the active fullscreen overlay should stay open (re-showing) past the video's end instead of auto-closing. */
     private var fullscreenLoop = false
 
-    /**
-     * The last [FullscreenState] [FullscreenController] actually applied to this screen. Lives and
-     * dies with this instance, so it naturally survives a carried-over server switch (same screen
-     * object, per [DisplayRegistry.unloadAllForServerSwitch]) but never leaks into a genuinely new
-     * screen for the same display id — that one starts with `null` and always applies fresh.
-     */
+    /** Last applied fullscreen state; survives server switch but not display re-creation. */
     @Volatile
     internal var lastFullscreenState: FullscreenState? = null
 
@@ -782,10 +718,7 @@ class DisplayScreen(
         popoutManager.deactivateFullscreen(mediaPlayer)
     }
 
-    /**
-     * Swaps the fullscreen overlay for a PiP corner overlay (forced-broadcast Esc behavior); the resulting PiP can't be
-     * clicked open to reconfigure, since a forced broadcast's settings are the caller's, not the viewer's.
-     */
+    /** Swaps fullscreen to non-interactive PiP (forced-broadcast Esc behavior). */
     fun minimizeFullscreenToPip() {
         popoutManager.minimizeFullscreenToPip(mediaPlayer, interactive = false)
     }
@@ -939,10 +872,7 @@ class DisplayScreen(
         textureResource.allocate(width, height, parseQualityOrDefault())
     }
 
-    /**
-     * Stages a new-resolution texture for a quality switch without dropping the current one, so the
-     * live frame keeps rendering until the first new frame arrives (see [fitTexture]). Render thread only.
-     */
+    /** Stages new-resolution texture; live frame renders until first new frame (render thread only). */
     fun beginQualityHandoff() {
         textureResource.allocatePending(width, height, parseQualityOrDefault())
     }
@@ -987,11 +917,7 @@ class DisplayScreen(
         if (savedTimeNanos > 0) mp.seekTo(savedTimeNanos, false)
     }
 
-    /**
-     * Applies the current effective volume (mute + distance attenuation) to [mp] up-front, before its
-     * reappearance-bridge prelude audio can be heard, so a returning display never blasts a moment of
-     * full-volume cached sound. Mirrors the per-tick logic in [tick] / [applyEffectiveVolume].
-     */
+    /** Primes player volume before prelude audio to avoid blast on return. */
     internal fun primeNewPlayerVolume(mp: MediaPlayer) {
         val player = Minecraft.getInstance().player ?: return
         val maxRadius = if (isPopoutActive) Double.MAX_VALUE else ClientStateManager.config.defaultDistance.toDouble()
@@ -1082,12 +1008,7 @@ class DisplayScreen(
         )
     }
 
-    /**
-     * Returns the display's current acoustic environment, re-running the (relatively costly) voxel
-     * raytrace only every [ENV_PROBE_INTERVAL_TICKS] ticks and reusing the cached result between probes;
-     * the DSP chain smooths across the gap so the cadence is inaudible. Skips the trace entirely when
-     * spatial acoustics can't use it (popout, per-display opt-out, or a tier below ADVANCED).
-     */
+    /** Acoustic environment (voxel raytrace cached every [ENV_PROBE_INTERVAL_TICKS] ticks). */
     private fun probeEnvironment(plane: SourcePlane): AcousticEnvironment {
         val tier = ClientStateManager.config.audioAcoustics
         if (isPopoutActive || !acousticsEnabled || (tier != AcousticQuality.ADVANCED && tier != AcousticQuality.ULTRA)) {
@@ -1131,17 +1052,10 @@ class DisplayScreen(
         /** Quality rungs [applyDistanceSteps] moves down through, highest to lowest. */
         private val QUALITY_LADDER = intArrayOf(2160, 1440, 1080, 720, 480, 360, 240, 144)
 
-        /**
-         * Down-thresholds (as a fraction of [renderDistance]) for each successive step: index 0 is
-         * where step 1 kicks in (66%), index 1 is where step 2 kicks in (75%), and so on if the
-         * ladder ever grows more steps.
-         */
+        /** Distance quality step down-thresholds as render-distance fraction. */
         private val DISTANCE_STEP_THRESHOLDS = floatArrayOf(0.66f, 0.75f)
 
-        /**
-         * Subtracted from a step's down-threshold to get its recovery (up) threshold, so a viewer
-         * oscillating right around a boundary doesn't flip the quality back and forth every tick.
-         */
+        /** Hysteresis to prevent quality flip-flop at step boundaries. */
         private const val DISTANCE_STEP_HYSTERESIS = 0.05f
 
         /** Skip the restore seek when already within this tolerance of the saved position. */
@@ -1150,12 +1064,7 @@ class DisplayScreen(
         /** Duration of the first-frame fade-in (see [appearProgress]). */
         private const val APPEAR_FADE_NANOS = 260_000_000L
 
-        /**
-         * Self-heal timeout for [waitingForInitialTimeline] (see [stillWaitingForInitialTimeline]):
-         * well over the server's periodic timeline-broadcast interval, so it never fires in the
-         * healthy case, but guarantees the picture isn't stranded forever behind "Waiting for video..."
-         * if that first packet is ever dropped, superseded, or simply never arrives.
-         */
+        /** Self-heal timeout for [waitingForInitialTimeline] (prevents stranded "Waiting for video..."). */
         private const val WAITING_FOR_TIMELINE_TIMEOUT_NANOS = 5_000_000_000L
 
         /** Maximum server-prescribed default volume accepted by the client (200% in the UI). */

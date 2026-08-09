@@ -10,13 +10,7 @@ import java.util.*
 /** Server-side policy for custom media URLs (non-platform links players paste). */
 @DreamDisplaysUnstableApi
 object CustomMediaPolicy {
-    /**
-     * The `[custom_media]` config section, in the shape the check needs.
-     *
-     * @property enabled false turns custom links off entirely; only platform URLs are accepted.
-     * @property allowedHosts when non-empty, an allowlist - every other host is refused.
-     * @property blockedHosts hosts always refused, checked before [allowedHosts].
-     */
+    /** The `[custom_media]` config section, in the shape the check needs. */
     data class Settings(
         val enabled: Boolean = true,
         val allowedHosts: List<String> = emptyList(),
@@ -46,13 +40,7 @@ object CustomMediaPolicy {
         MALFORMED,
     }
 
-    /**
-     * True when [url] is a custom link rather than a supported platform page. The first-party
-     * platforms (YouTube, Twitch, Vimeo, Kick) are never "custom" — they are always allowed, exactly
-     * like YouTube always was - so disabling custom media restricts only direct files and long-tail
-     * links, never a supported platform. A blank URL is not custom either: it clears the display,
-     * which no rule here has any business refusing.
-     */
+    /** True when [url] is a custom link rather than supported platforms (YouTube, Twitch, Vimeo, Kick). */
     fun isCustom(url: String): Boolean {
         if (url.isBlank()) return false
         return when (MediaSource.from(url).platform) {

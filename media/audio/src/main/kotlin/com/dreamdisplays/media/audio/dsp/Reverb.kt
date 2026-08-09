@@ -3,13 +3,8 @@ package com.dreamdisplays.media.audio.dsp
 import kotlin.math.roundToInt
 
 /**
- * Compact Schröder / Freeverb-style algorithmic reverb: eight damped feedback-comb filters in parallel
- * feeding four series all-pass filters, per channel, with the right channel's delays offset by
- * [STEREO_SPREAD] so a mono send decorrelates into an enveloping stereo tail. The classic comb / all-pass
- * tunings are quoted at 44.1 kHz and rescaled to the actual sample rate at construction.
- *
- * This renders the wet signal only (no dry blend); the render chain scales it by the environment's
- * wet-gain and adds it to the already-spatialized dry mix, so the reverb acts as an aux send.
+ * Compact Schröder / Freeverb-style algorithmic reverb: eight damped feedback-comb filters in parallel feeding four
+ * series all-pass filters.
  */
 class Reverb(sampleRate: Float) {
     private companion object {

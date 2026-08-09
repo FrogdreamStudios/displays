@@ -12,10 +12,8 @@ import net.minecraft.resources.Identifier
 /*import net.minecraft.resources.ResourceLocation as Identifier*/
 
 /**
- * Minecraft payload wrapper for the backend <-> proxy `dreamdisplays:proxy` channel (`Fabric` /
- * `NeoForge` only — `Paper` rides raw bytes over `Bukkit`'s plugin-messaging API instead, see
- * `ProxyBridge.kt`): opaque [ProxyPacketRegistry] envelope bytes, structurally identical to
- * [V2Payload] but on its own channel id so it can be registered independently.
+ * Minecraft payload wrapper for the backend <-> proxy `dreamdisplays:proxy` channel (`Fabric` / `NeoForge` on either end);
+ * carries the opaque envelope [bytes].
  */
 data class ProxyPayload(val bytes: ByteArray) : CustomPacketPayload {
     /** The payload type used by Minecraft's networking. */

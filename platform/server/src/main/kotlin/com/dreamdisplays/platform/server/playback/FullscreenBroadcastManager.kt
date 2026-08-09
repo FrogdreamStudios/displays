@@ -20,17 +20,7 @@ import java.util.concurrent.ConcurrentHashMap
 /** A player is targeted for radius-based fullscreen sessions when within [blocks] of (x, y, z) in [world]. */
 data class FullscreenRadiusTarget(val world: String, val x: Double, val y: Double, val z: Double, val blocks: Double)
 
-/**
- * Runs server-forced fullscreen broadcast sessions: an admin pushes a display (world-anchored or a
- * synthetic URL-only "virtual" one) to a set of players, chosen by name selector, by radius from a
- * point, or both (OR'd together). Real-display sessions ride the display's own `SYNCED` / `BROADCAST`
- * clock ([TimelineManager]); virtual sessions have no backing display, so this manager owns their
- * looping [Timeline] directly, mirroring [WatchPartyManager]'s owned-clock pattern.
- *
- * Non-`transient` sessions persist across restarts via [FullscreenSessionStore]; virtual sessions
- * are recreated as fresh synthetic displays on [restore], real ones are dropped if their display no
- * longer exists.
- */
+/** Manages server-forced fullscreen broadcast sessions targeting players by name or radius. */
 object FullscreenBroadcastManager {
     /** Logger. */
     private val logger = LoggerFactory.getLogger("DreamDisplays/FullscreenBroadcastManager")
@@ -87,15 +77,7 @@ object FullscreenBroadcastManager {
     fun sessionIdForDisplay(displayId: UUID): String? =
         sessions.values.firstOrNull { !it.virtual && it.display.id == displayId }?.sessionId
 
-    /**
-     * Resolves the `/display fullscreen start` target argument: a full display id, an unambiguous id
-     * prefix (matching `/display list`'s 8-char short id column), or only when [idOrUrl] looks like
-     * a URL - a synthetic virtual display for [ownerId] backed by it. The URL is normalized the same
-     * way `/display video` normalizes its argument ([MediaSource.from]), so `youtu.be/xyz` or a bare
-     * `youtube.com/watch?v=...` (no scheme) work exactly like they do there. Returns null when
-     * nothing matches a display and the input isn't URL-shaped (never silently treats a mistyped id
-     * as a URL), or when a virtual display is needed but no world is loaded yet.
-     */
+    /** Resolves a display by id/prefix or creates a virtual one if the string looks like a URL. */
     fun resolveOrCreateDisplay(
         idOrUrl: String,
         ownerId: UUID,
@@ -108,25 +90,14 @@ object FullscreenBroadcastManager {
         return virtual to true
     }
 
-    /**
-     * Resolves the `/display fullscreen start ... server <scope>` target argument to the actual URL
-     * to broadcast network-wide: an existing display's own currently-loaded video (by id or
-     * unambiguous id prefix, same as [resolveOrCreateDisplay]), or — only when [idOrUrl] looks like a
-     * URL — that URL itself, normalized the same way [resolveOrCreateDisplay] does.
-     */
+    /** Resolves a network fullscreen target to its URL for broadcasting. */
     fun resolveNetworkFullscreenUrl(idOrUrl: String): String? {
         displayUrlByIdOrPrefix(idOrUrl)?.let { return it }
         if (!looksLikeUrl(idOrUrl)) return null
         return MediaSource.from(idOrUrl).toResolvableUrl() ?: idOrUrl
     }
 
-    /**
-     * The video a display on this server is currently loaded with, by full id or unambiguous id
-     * prefix. Unlike [resolveNetworkFullscreenUrl] this never falls back to treating the token as a
-     * URL, so it can safely answer another backend's
-     * [com.dreamdisplays.core.protocol.proxy.ResolveDisplayToken] - only a backend that really hosts
-     * the display replies.
-     */
+    /** Gets the video URL of a display by full id or unambiguous prefix. */
     fun displayUrlByIdOrPrefix(idOrPrefix: String): String? =
         resolveDisplayByIdOrPrefix(idOrPrefix)?.url?.takeIf(String::isNotBlank)
 
@@ -134,23 +105,13 @@ object FullscreenBroadcastManager {
     private fun resolveDisplayByIdOrPrefix(idOrPrefix: String): DisplayData? =
         DisplayManager.resolveByIdOrPrefix(idOrPrefix)
 
-    /**
-     * True if [value] looks like a URL / link a viewer would paste — an absolute URL (`scheme://...`)
-     * or a bare domain (`youtu.be/xyz`, `youtube.com/watch?v=...`, no scheme), so a failed id lookup
-     * falls back to a virtual display instead of erroring. Deliberately excludes plain words/ids
-     * (no dot), so a mistyped id is never silently treated as a URL.
-     */
+    /** True if [value] looks like a URL (with scheme or domain-like format). */
     private fun looksLikeUrl(value: String): Boolean =
         Regex("^[a-zA-Z][a-zA-Z0-9+.-]*://").containsMatchIn(value) ||
                 Regex("""^[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?)+(?:[/?#].*)?$""")
                     .matches(value.trim())
 
-    /**
-     * Answers a client's `RequestSync` for [displayId] when a live session owns it, including a
-     * `virtual` one — those displays exist only inside this manager, so [DisplayManager] can't answer
-     * for them at all. Returns false when no session owns [displayId] and the caller should fall
-     * through to the display's own timeline.
-     */
+    /** Sends the current timeline to a player if a live session owns the display. */
     fun sendCurrentTo(displayId: UUID, playerId: UUID): Boolean {
         val session = sessions.values.firstOrNull { it.display.id == displayId } ?: return false
         sendTimeline(session, playerId, transport.nowMs())
@@ -237,12 +198,7 @@ object FullscreenBroadcastManager {
         )
     }
 
-    /**
-     * Applies a client's [FullscreenAckAction] for [sessionId]. Dismissing an unforced session drops
-     * the player from delivery and marks them dismissed so the next [tick] doesn't immediately
-     * re-deliver it to them — they're still in `namedTargets` / still in radius, so without this a
-     * dismiss would just be re-shown a second later.
-     */
+    /** Applies a client's [FullscreenAckAction] for [sessionId]. Dismissing an unforced session drops the player from its targets. */
     fun handleAck(sessionId: String, playerId: UUID, action: FullscreenAckAction) {
         val session = sessions[sessionId] ?: return
         when (action) {
@@ -269,9 +225,7 @@ object FullscreenBroadcastManager {
 
     /**
      * Fired when a viewer collapses a session to PiP or restores it, so
-     * [com.dreamdisplays.platform.server.proxy.ProxyBridge] can park the flag on the proxy — a
-     * network session's other backends never saw the ack, and the one that did forgets it the moment
-     * the player leaves it. Null on a single-server setup, where [Session.minimizedBy] is enough.
+     * [com.dreamdisplays.platform.server.proxy.NetworkFullscreenManager]-style listeners can track reach.
      */
     var onMinimizedChanged: ((sessionId: String, playerId: UUID, minimized: Boolean) -> Unit)? = null
 
@@ -299,11 +253,8 @@ object FullscreenBroadcastManager {
     }
 
     /**
-     * Adds [playerId] to [sessionId]'s frozen `named targets` and delivers immediately if they're
-     * online - `namedTargets` is a one-time snapshot (mirrors plain `target @a` on a single backend),
-     * so a network fullscreen session doesn't automatically pick up a player who joins *this* backend
-     * after the broadcast already started here; the proxy calls this on a seamless server switch so a
-     * player who was already watching keeps watching. Returns false if [sessionId] isn't live locally.
+     * Adds [playerId] to [sessionId]'s frozen `named targets` and delivers immediately if they're online —
+     * `named` sessions don't re-scan for new targets.
      */
     fun addTarget(sessionId: String, playerId: UUID, minimized: Boolean = false): Boolean {
         val session = sessions[sessionId] ?: return false

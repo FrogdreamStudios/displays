@@ -45,11 +45,8 @@ private const val PROXY_CHANNEL = "dreamdisplays:proxy"
 private const val PRUNE_INTERVAL_MS = 5L * 60L * 1000L
 
 /**
- * `BungeeCord` entry point for the thin-coordinator proxy plugin.
- *
- * Same responsibilities as [com.dreamdisplays.platform.proxy.velocity.DreamDisplaysVelocity]:
- * register the `dreamdisplays:proxy` plugin-message channel, track the configured backend roster,
- * and answer each backend's [BackendHello] with a [ProxyWelcome] naming it.
+ * `BungeeCord` entry point for the thin-coordinator proxy plugin. Same responsibilities as the `Velocity` equivalent:
+ * relay fullscreen / session packets between backends.
  */
 @BungeeOnly
 class DreamDisplaysBungee : Plugin(), Listener {
@@ -198,10 +195,8 @@ class DreamDisplaysBungee : Plugin(), Listener {
     }
 
     /**
-     * Fires on a whole-proxy disconnect (not a backend switch — that's [onServerConnect] followed by
-     * a normal connect, with no [PlayerDisconnectEvent] in between). Clears any [PlayerTransferring]
-     * mark the last backend might still be holding, so an interrupted transfer attempt can't mask a
-     * later real quit for the rest of its TTL.
+     * Fires on a whole-proxy disconnect (not a backend switch — that's [onServerConnect] followed by a normal connect),
+     * so it can notify the last server the player truly left the network.
      */
     @EventHandler
     fun onPlayerDisconnect(event: PlayerDisconnectEvent) {
@@ -230,11 +225,8 @@ class DreamDisplaysBungee : Plugin(), Listener {
     }
 
     /**
-     * Re-applies every live session [serverName] scope-matches, on a fresh [BackendHello] — broader
-     * than [retryPendingSessions]: a `BackendHello` means that backend's own process just started, so
-     * a session it already acked before a restart (crash, routine restart) needs reapplying too, since
-     * `ApplyFullscreen` sessions are never persisted locally and the proxy would otherwise never resend
-     * one it already believes succeeded.
+     * Re-applies every live session [serverName] scope-matches, on a fresh [BackendHello] — broader than the
+     * pending-retry path since it covers sessions the backend never even acked.
      */
     private fun resendLiveSessions(serverName: String) {
         NetworkFullscreenManager.liveSessionsApplicableTo(serverName, NetworkBackendRegistry.allServerNames()).forEach { session ->

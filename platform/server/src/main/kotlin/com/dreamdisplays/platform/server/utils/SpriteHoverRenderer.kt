@@ -10,12 +10,7 @@ import net.kyori.adventure.text.`object`.ObjectContents
 import org.bukkit.Material
 
 /**
- * Renders an inline item-sprite icon with an item tooltip using the Adventure object / sprite hover
- * API introduced in Minecraft 1.21.11 (`ObjectContents`, [HoverEvent.showItem]). [render] is only ever
- * called behind `ServerVersion.isAtLeast_1_21_11` (see `MessageUtil.materialSpriteComponent`), but the
- * symbol still has to compile on every version for that single cross-version jar, so the pre-1.21.11
- * branch below is dead code kept only to satisfy the compiler there — it mirrors the plain-text
- * fallback `materialSpriteComponent` uses directly on those versions.
+ * Renders an inline item-sprite icon with an item tooltip using the Adventure object / sprite hover API introduced in 1.21.11.
  */
 @PaperOnly
 internal object SpriteHoverRenderer {

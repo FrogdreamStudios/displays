@@ -94,14 +94,7 @@ data class DisplayDelete(
     @ProtoNumber(1) val id: @Serializable(UuidSerializer::class) UUID = ZERO_UUID,
 ) : DreamPacket
 
-/**
- * Authoritative playback timeline for a display, pushed by the server. [currentTimeMs] is the
- * position as of [serverTimeMs]; clients extrapolate `position + (estServerNow - serverTimeMs)`
- * (wrapping by [durationMs] when [loop]) and only seek when their drift exceeds tolerance.
- *
- * Still travels in both directions for frozen-v1 compatibility, but v2 clients no longer report
- * their own clock here — they send intents via [PlaybackCommand] and the server owns the timeline.
- */
+/** Authoritative playback timeline for a display, pushed by server; [currentTimeMs] is position anchor. */
 @Serializable
 data class DisplaySync(
     @ProtoNumber(1) val id: @Serializable(UuidSerializer::class) UUID = ZERO_UUID,

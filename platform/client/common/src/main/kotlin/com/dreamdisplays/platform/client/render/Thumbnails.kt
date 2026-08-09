@@ -32,12 +32,7 @@ import java.util.concurrent.TimeUnit
 import javax.imageio.ImageIO
 import kotlin.coroutines.cancellation.CancellationException
 
-/**
- * Thumbnail manager that handles downloading, caching, and registering YouTube video thumbnails as Minecraft textures.
- * Thumbnails are cached both in memory and on disk (in `config/dreamdisplays/thumb-cache`) with a TTL of 7 days.
- * The cache file names are derived by hashing the video ID, keeping case-sensitive IDs distinct. Thumbnail downloads and decodes
- * are performed asynchronously to avoid blocking the main thread.
- */
+/** Downloads, caches, and registers video thumbnails from YouTube and other sources as Minecraft textures. */
 object Thumbnails {
     /** Logger. */
     private val logger = LoggerFactory.getLogger("DreamDisplays/Thumbnails")
@@ -72,12 +67,7 @@ object Thumbnails {
         .expireAfterWrite(2, TimeUnit.MINUTES)
         .build()
 
-    /**
-     * Keys whose most recent fetch failed (bad CDN response, decode error, ...). [request] is called
-     * every frame a card is visible, so without this a dead URL (a Kick CDN 403, say) gets re-fetched
-     * on every single frame forever - hammering the remote host and never letting the UI fall back to
-     * placeholder art. Expires so a merely transient failure still gets retried eventually.
-     */
+    /** Keys whose most recent fetch failed (bad CDN response, decode error, etc). Rechecked every 5 minutes. */
     private val FAILED: Cache<String, Boolean> = Caffeine.newBuilder()
         .maximumSize(1_024)
         .expireAfterWrite(5, TimeUnit.MINUTES)
@@ -174,12 +164,7 @@ object Thumbnails {
         return bytes
     }
 
-    /**
-     * Fetches bytes for the requested tier. [Quality.LOW] pulls the compact 320x180 mqdefault (plenty
-     * for the small suggestion cards); [Quality.HIGH] tries the sharp maxresdefault and falls back to
-     * mqdefault when it's missing. hqdefault is deliberately avoided — it's 4:3 with black bars,
-     * unlike the clean 16:9 mq / maxres.
-     */
+    /** Fetches bytes for requested tier: [Quality.LOW] is 320 x 180 mqdefault, [Quality.HIGH] tries maxres then falls back. */
     private fun fetchForQuality(videoId: String, quality: Quality): ByteArray? = when (quality) {
         Quality.LOW -> fetch(YouTubeUrls.mqThumbnailUrl(videoId))
         Quality.HIGH -> {

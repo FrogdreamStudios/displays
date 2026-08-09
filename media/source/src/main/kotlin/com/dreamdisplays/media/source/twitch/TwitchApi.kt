@@ -47,20 +47,8 @@ data class TwitchClipPlayback(
 )
 
 /**
- * Resolves Twitch metadata and playback access tokens without any user-supplied credentials.
- *
- * Primary path is Twitch's public GQL endpoint using Twitch's own web-player client id (the same
- * one `yt-dlp` ships) — this is plain scraping of the public site API, not an API key a user must
- * register for.
- *
- * It is fast (~100ms) and, unlike `yt-dlp`'s info-dict, carries the real live stream
- * title, viewer count, category, and properly sized thumbnails.
- *
- * The same endpoint also issues the playback access tokens the usher playlist service requires, which is
- * what lets [TwitchResolver] skip the `yt-dlp` subprocess entirely.
- *
- * When GQL fails, the [YtDlp] stream list (whose generic info-dict fields work for VODs and clips) is used as the
- * metadata fallback.
+ * Resolves Twitch metadata and playback access tokens without any user-supplied credentials, using Twitch's public
+ * web-player client id via a GQL call.
  */
 object TwitchApi {
     /** Logger. */

@@ -103,10 +103,8 @@ object YouTubeInnerTube {
     }
 
     /**
-     * Returns the first page (up to [limit] videos) related to [videoId], plus a continuation token for
-     * [relatedMore]. Falls back to a title search when the related sidebar is empty (rare, but seen on
-     * videos with related recommendations disabled); that fallback batch has no continuation of its own
-     * since it's a one-shot substitute, not a real paginated list.
+     * Returns the first page (up to [limit] videos) related to [videoId], plus a continuation token for [relatedMore].
+     * Falls back to a title search if empty.
      */
     @Throws(IOException::class)
     fun relatedPage(videoId: String, limit: Int): MediaSearchPage {
@@ -317,10 +315,8 @@ object YouTubeInnerTube {
     }
 
     /**
-     * Walks the initial `next` response's related-video sidebar, collecting up to [limit] videos
-     * (including [selfId] — callers filter it out) plus the next-page token. YouTube's related sidebar
-     * has migrated from `compactVideoRenderer` to `lockupViewModel`; both are handled, [lockupViewModel]
-     * first since it's the current shape.
+     * Walks the initial `next` response's related-video sidebar, collecting up to [limit] videos (including [selfId] itself,
+     * filtered later) and a continuation token.
      */
     private fun extractRelatedPage(root: JsonObject, selfId: String, limit: Int): MediaSearchPage {
         val out = ArrayList<MediaSearchResult>()

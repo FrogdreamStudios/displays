@@ -9,14 +9,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload
 import net.minecraft.server.level.ServerPlayer
 import net.neoforged.neoforge.network.PacketDistributor
 
-/**
- * The one genuinely loader-specific seam left after merging the rest of `Fabric` / `NeoForge`
- * packet handling: how a v2 envelope and a frozen-v1 [CustomPacketPayload] actually get put on the
- * wire.
- *
- * [VanillaPacketUtil] and other shared vanilla code call through [VanillaNetworking.adapter]
- * instead of hardcoding either loader's send API, mirroring `ProviderScheduler`'s loader-select pattern.
- */
+/** The one genuinely loader-specific seam left after merging the rest of `Fabric` / `NeoForge` packet handling into shared code. */
 interface VanillaNetworkingAdapter {
     /** Sends a v2 envelope [packet] to [players] via this loader's v2 channel. */
     fun sendV2(players: List<ServerPlayer>, packet: DreamPacket)

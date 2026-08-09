@@ -14,14 +14,8 @@ import kotlin.math.max
 import kotlin.math.roundToInt
 
 /**
- * The popup that opens above the audio-track button, listing the current video's selectable audio
- * tracks. Same visual / interaction pattern as [PopoutDropdown], but its items are dynamic — the
- * track list is resolved per video — so it refreshes from [getTracks] every time it becomes visible
- * and highlights the currently playing track.
- *
- * @param getTracks supplies the audio tracks available for the current video.
- * @param currentUrl the resolved URL of the track currently playing (highlighted in the list).
- * @param onSelect invoked with the track the user picked.
+ * The popup that opens above the audio-track button, listing the current video's selectable audio tracks. Same
+ * visual / interaction style as the other menu dropdowns.
  */
 class AudioTrackDropdown(
     private val getTracks: () -> List<MediaStream>,

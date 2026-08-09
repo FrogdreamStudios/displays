@@ -190,16 +190,7 @@ data class CloseNetworkWatchParty(
     @ProtoNumber(1) val partyId: String = "",
 ) : ProxyPacket
 
-/**
- * Bidirectional: asks the rest of the network what video the display named by [token] (a full id or
- * the 8-character short id `/display list` shows) is playing, so `/display fullscreen start id <id>
- * server <scope>` works for a display that lives on a different backend — each backend's display
- * registry is local, so the backend running the command usually can't resolve it alone.
- *
- * Backend -> proxy with [originServer] empty; the proxy stamps the requesting backend's name in and
- * fans it out to every other backend. The proxy keeps no state of its own for this — the pending
- * request lives on [originServer]'s backend, which resumes on [DisplayTokenResolved].
- */
+/** Asks network what video the display named by [token] is playing (full id or 8-char abbreviation). */
 @Serializable
 data class ResolveDisplayToken(
     @ProtoNumber(1) val requestId: String = "",
@@ -207,13 +198,7 @@ data class ResolveDisplayToken(
     @ProtoNumber(3) val originServer: String = "",
 ) : ProxyPacket
 
-/**
- * Bidirectional: answers a [ResolveDisplayToken] from the backend that actually hosts the display,
- * carrying its currently loaded video [url]. Only backends that know the token reply at all, so a
- * request may draw no answer (unknown network-wide, or its backend has no players to carry the
- * plugin message); the requester expires it instead of waiting forever. The proxy routes the reply
- * back to [originServer] verbatim.
- */
+/** Answers [ResolveDisplayToken] from the backend hosting the display, with current video URL. */
 @Serializable
 data class DisplayTokenResolved(
     @ProtoNumber(1) val requestId: String = "",
@@ -221,12 +206,7 @@ data class DisplayTokenResolved(
     @ProtoNumber(3) val url: String = "",
 ) : ProxyPacket
 
-/**
- * Backend -> proxy: a viewer collapsed a network fullscreen session to PiP, or restored it. Only the
- * backend they were on at the time sees the client's `FullscreenAck`, and it forgets the moment they
- * leave — parking the flag on the proxy is what lets the *next* backend replay it (see
- * [ReplayForPlayer.minimizedSessionIds]).
- */
+/** Backend -> proxy: viewer collapsed/restored network fullscreen to/from PiP. */
 @Serializable
 data class PlayerFullscreenMinimized(
     @ProtoNumber(1) val sessionId: String = "",
@@ -241,13 +221,7 @@ data class DisplayIndexEntry(
     @ProtoNumber(2) val url: String = "",
 )
 
-/**
- * Backend -> proxy: everything this backend can play, so the proxy can answer a
- * [ResolveDisplayToken] from its own index instead of asking around. Plugin messages ride player
- * connections, so a backend with nobody on it can neither be asked nor answer — remembering what it
- * announced while it did have players is the only way `fullscreen start id <id>` works for a
- * display that lives on a currently empty server.
- */
+/** Backend advertises all displays it hosts, enabling proxy to answer [ResolveDisplayToken] queries. */
 @Serializable
 data class BackendDisplayIndex(
     @ProtoNumber(1) val displays: List<DisplayIndexEntry> = emptyList(),

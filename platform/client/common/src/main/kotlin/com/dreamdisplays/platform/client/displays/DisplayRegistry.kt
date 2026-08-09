@@ -82,15 +82,7 @@ object DisplayRegistry {
         DreamServices.registry.getOrNull(AudioAcousticsServices.ACOUSTICS)?.registerSource(displayScreen.uuid)
     }
 
-    /**
-     * Unregisters a display screen. A world-anchored display is cached for later distance-triggered
-     * re-registration; a `virtual` one (a network fullscreen broadcast's synthetic display, or a
-     * watch-party one) never gets a second life the same way — it has no real world position, so
-     * caching its [FullDisplayData] would let a later distance check resurrect it as a phantom
-     * floating display wherever the server happened to place it. Its [ClientSettingsStore] entry is
-     * dropped too, since a fresh network broadcast always gets a brand-new id — keeping it would
-     * leak one permanent orphaned entry per broadcast ever watched.
-     */
+    /** Unregisters a display; caches world-anchored ones for distance-triggered re-load. */
     fun unregisterScreen(displayScreen: DisplayScreen) {
         if (displayScreen.virtual) {
             ClientSettingsStore.remove(displayScreen.uuid)
@@ -121,17 +113,7 @@ object DisplayRegistry {
     /** Display id -> instant after which an unconfirmed carry-over is torn down. */
     private val awaitingReconfirm = ConcurrentHashMap<UUID, Long>()
 
-    /**
-     * Server-switch teardown. World-anchored displays go immediately — their geometry belongs to the
-     * old world — but a display the viewer is actively watching in a popout is a screen-space
-     * surface that has nothing to do with the world, so it keeps running: its media player, decoder
-     * and audio are left untouched and playback simply continues across the switch.
-     *
-     * Such a display is only provisional: the new server must re-announce it (the proxy pins one
-     * display id network-wide, so a `DisplayInfo` for the same id reuses this very screen). If it
-     * does not within [RECONFIRM_GRACE_MS], the viewer moved somewhere the broadcast does not reach
-     * and [tickReconfirm] drops it.
-     */
+    /** Server-switch teardown: world-anchored displays go immediately, popout-active ones held for reconfirm grace. */
     fun unloadAllForServerSwitch() {
         val now = System.currentTimeMillis()
         val carried = mutableSetOf<UUID>()

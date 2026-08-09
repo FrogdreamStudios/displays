@@ -98,12 +98,7 @@ object VanillaProxyBridge {
         }
     }
 
-    /**
-     * Called from the v2 hello handshake once a player is fully negotiated — on every join and every
-     * proxy-driven server switch, not just this backend's first-ever player. Announces the backend
-     * itself once per restart ([BackendHello]), then always reports this specific player as ready so
-     * the proxy can [ReplayForPlayer] any network state they should still see here.
-     */
+    /** Called from the v2 hello handshake when a player finishes negotiation; sends hello and display index. */
     fun onPlayerReady(player: ServerPlayer, server: MinecraftServer) {
         if (!enabled) return
         if (helloSent.compareAndSet(false, true)) {
@@ -147,12 +142,7 @@ object VanillaProxyBridge {
         send(rider, packet)
     }
 
-    /**
-     * Forwards `/display fullscreen start server <scope> ...` to the proxy for network-wide fan-out.
-     * Called from [com.dreamdisplays.platform.server.commands.subcommands.FullscreenCommand]'s
-     * `VanillaFullscreenCommand` instead of the local start path when the command carried a `server`
-     * scope.
-     */
+    /** Forwards a fullscreen start command with a server scope to the proxy for network-wide fan-out. */
     fun startNetworkFullscreen(
         player: ServerPlayer,
         scope: String,

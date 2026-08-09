@@ -3,17 +3,7 @@ package com.dreamdisplays.media.source.platform
 import com.dreamdisplays.media.source.ytdlp.YtDlp
 import org.slf4j.LoggerFactory
 
-/**
- * Metadata-only fallback for a [PlatformMetadataCache] whose fast in-process API call failed — a
- * Vimeo video with embedding restricted by its owner's privacy settings, a Kick lookup Cloudflare
- * turned away for looking like a datacenter IP, and so on. Playback already falls back to `yt-dlp`
- * in this situation ([com.dreamdisplays.media.source.ytdlp.YtDlpResolver] sits behind every
- * in-process resolver in the chain); this reuses the same subprocess purely for its title / uploader
- * / thumbnail, so a suggestion card or preview overlay isn't left blank just because the fast path
- * couldn't reach the platform's own API.
- *
- * @since 1.9.0
- */
+/** Metadata-only fallback when in-process API call fails: runs `yt-dlp` to fetch metadata. */
 object YtDlpMetadataFallback {
     /** Logger. */
     private val logger = LoggerFactory.getLogger("DreamDisplays/YtDlpMetadataFallback")
