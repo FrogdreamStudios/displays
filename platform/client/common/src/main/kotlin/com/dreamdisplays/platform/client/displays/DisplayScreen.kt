@@ -236,10 +236,28 @@ class DisplayScreen(
     var quality: VideoQuality = VideoQuality.parse(savedSettings.quality)
         set(value) {
             field = value
-            mediaPlayer?.setQuality(effectiveQuality(value))
+            mediaPlayer?.setQuality(effectiveQuality(value), userInitiated = qualityWriteIsViewerAction)
             ClientSettingsStore.updateSettings(uuid, volume, value, brightness, muted, paused)
             DisplayRegistry.recordScreen(this)
         }
+
+    /** Set only for the duration of a [setQualityByViewer] write; see that method. Main thread only. */
+    private var qualityWriteIsViewerAction = false
+
+    /**
+     * Applies a viewer-chosen [value]. Identical to assigning [quality], except the player is told the
+     * change was asked for, so the UI may report it as being applied. Settings restores, server echoes
+     * and the automatic distance ladder all assign [quality] directly and stay silent — otherwise every
+     * video swap would flash an "applying quality" hint the viewer never triggered.
+     */
+    fun setQualityByViewer(value: VideoQuality) {
+        qualityWriteIsViewerAction = true
+        try {
+            quality = value
+        } finally {
+            qualityWriteIsViewerAction = false
+        }
+    }
 
     /** Requested audio track (stream URL); respawns audio only, not persisted. */
     var audioTrack: String = ""

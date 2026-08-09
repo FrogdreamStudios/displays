@@ -114,7 +114,7 @@ class MinecraftDisplayCommands : DisplayCommandExecutor {
     /** Sets the requested video [quality]. */
     override fun setQuality(displayId: DisplayId, quality: VideoQuality): Display? {
         val screen = DisplayRegistry.screens[displayId.uuid] ?: return null
-        screen.quality = quality
+        screen.setQualityByViewer(quality)
         return screen.toDisplay()
     }
 

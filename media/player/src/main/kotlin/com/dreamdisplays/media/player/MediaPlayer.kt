@@ -474,8 +474,13 @@ class MediaPlayer(
             .distinct().sorted().toList()
     }
 
-    /** Switches to the closest available stream for [quality]. */
-    fun setQuality(quality: VideoQuality) = safeExecute { changeQuality(quality) }
+    /**
+     * Switches to [quality]. [userInitiated] only controls whether the change is worth reporting through
+     * [isApplyingQuality]: the automatic distance ladder and settings restores re-push quality on their
+     * own and must stay silent, since the viewer never asked for anything.
+     */
+    fun setQuality(quality: VideoQuality, userInitiated: Boolean = false) =
+        safeExecute { changeQuality(quality, userInitiated) }
 
     /**
      * Returns selectable audio tracks (deduped by language).
@@ -993,7 +998,7 @@ class MediaPlayer(
      * Picks the closest available stream to [desired] quality. Updates [streams] via copy
      * and restarts `FFmpeg` when playing, or repositions seek offset when paused.
      */
-    private fun changeQuality(desired: VideoQuality) {
+    private fun changeQuality(desired: VideoQuality, userInitiated: Boolean) {
         val ss = streams ?: return
         val target = desired.targetHeight ?: return
         if (target == lastQuality || target == lastRequestedQuality) {
@@ -1006,7 +1011,7 @@ class MediaPlayer(
         if (liveStream) {
             logger.debug("$debugLabel Live quality switch to ${target}p; re-resolving and restarting.")
             // Cleared once the restarted session reaches [startStreams].
-            beginQualityStatus()
+            if (userInitiated) beginQualityStatus()
             primedStartPositionNanos.set(0L)
             state.set(PlaybackState.RESTARTING)
             dispatchInitialize(coalesce = true)
@@ -1018,7 +1023,6 @@ class MediaPlayer(
         streams = newSs
         lastQuality = MediaStreamSelector.parseQuality(newSs.currentVideo)
         host.videoContentAspect = newSs.currentVideo.contentAspect()
-        beginQualityStatus()
         env.renderExecutor.execute {
             if (sessionManager.isPlaying && !sessionManager.isParked()) {
                 // Parallel quality switch: stage the new-resolution texture, but the live video keeps
@@ -1026,6 +1030,9 @@ class MediaPlayer(
                 // promotes both (channel + texture) on its first frame, so the picture never freezes.
                 // A genuine handoff failure rolls the metadata above back (see handleQualitySwitchAborted).
                 pendingQualityRollback = QualityRollback(ss, previousQuality, target)
+                // Announced only here: a real handoff outlives the click by seconds, whereas the direct
+                // swap below finishes inside this very block, so flagging it would only ever flicker.
+                if (userInitiated) beginQualityStatus()
                 host.beginQualityHandoff()
                 safeExecute { beginQualitySwitch(newSs, getCurrentTime()) }
             } else {
