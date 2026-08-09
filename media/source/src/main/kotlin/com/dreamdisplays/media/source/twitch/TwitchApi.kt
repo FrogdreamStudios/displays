@@ -38,6 +38,19 @@ data class TwitchVodPlayback(
 /** One downloadable clip rendition, as reported by the clip's `videoQualities` list. */
 data class TwitchClipQuality(val quality: String, val frameRate: Double?, val sourceUrl: String)
 
+/** One channel hit from a Twitch keyword channel search. */
+data class TwitchSearchItem(
+    val login: String,
+    val displayName: String?,
+    val isLive: Boolean,
+    val isVerified: Boolean,
+    val avatarUrl: String?,
+    val title: String?,
+    val viewCount: Long?,
+    val thumbnailUrl: String?,
+    val gameName: String?,
+)
+
 /** Clip playback lookup: metadata, the token that signs the mp4 URLs, duration, and renditions. */
 data class TwitchClipPlayback(
     val metadata: TwitchMetadata,
@@ -148,6 +161,39 @@ object TwitchApi {
                     """stream{viewersCount game{displayName} previewImageURL(width:640,height:360)}}}"""
         ).obj("user") ?: return null
         return channelMetadata(user, login)
+    }
+
+    /**
+     * Keyword channel search via the same `searchSuggestions` GQL field Twitch's own search box calls —
+     * used to mix Twitch channels into the free-text suggestions list. Category and plain-text
+     * suggestion entries (no channel payload) are filtered out.
+     */
+    fun searchChannels(keyword: String): List<TwitchSearchItem> {
+        val data = gql(
+            """{searchSuggestions(queryFragment:"${escape(keyword)}",withOfflineChannelContent:true){edges{node{""" +
+                    """content{__typename ... on SearchSuggestionChannel{login isLive isVerified """ +
+                    """profileImageURL(width:70) user{displayName broadcastSettings{title} """ +
+                    """stream{viewersCount previewImageURL(width:640,height:360) game{displayName}}}}}}}}"""
+        )
+        val edges = data.obj("searchSuggestions")?.array("edges")?.mapNotNull { it.asJsonObjectOrNull() } ?: return emptyList()
+        return edges.mapNotNull { edge ->
+            val content = edge.obj("node")?.obj("content") ?: return@mapNotNull null
+            if (content.optString("__typename") != "SearchSuggestionChannel") return@mapNotNull null
+            val login = content.optString("login") ?: return@mapNotNull null
+            val user = content.obj("user")
+            val stream = user?.obj("stream")
+            TwitchSearchItem(
+                login = login,
+                displayName = user?.optString("displayName"),
+                isLive = content.optBoolean("isLive"),
+                isVerified = content.optBoolean("isVerified"),
+                avatarUrl = content.optString("profileImageURL"),
+                title = user?.obj("broadcastSettings")?.optString("title"),
+                viewCount = stream?.optLong("viewersCount"),
+                thumbnailUrl = stream?.optString("previewImageURL"),
+                gameName = stream?.obj("game")?.optString("displayName"),
+            )
+        }
     }
 
     private fun queryVideo(id: String): TwitchMetadata? {

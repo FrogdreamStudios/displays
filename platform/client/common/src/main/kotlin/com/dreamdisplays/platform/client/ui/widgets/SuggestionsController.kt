@@ -12,10 +12,12 @@ import com.dreamdisplays.media.source.bilibili.BilibiliMetadataCache
 import com.dreamdisplays.media.source.bilibili.BilibiliSearchItem
 import com.dreamdisplays.media.source.kick.KickApi
 import com.dreamdisplays.media.source.kick.KickMetadataCache
+import com.dreamdisplays.media.source.kick.KickSearchItem
 import com.dreamdisplays.media.source.platform.PlatformVideoMetadata
 import com.dreamdisplays.media.source.twitch.TwitchApi
 import com.dreamdisplays.media.source.twitch.TwitchMetadata
 import com.dreamdisplays.media.source.twitch.TwitchMetadataCache
+import com.dreamdisplays.media.source.twitch.TwitchSearchItem
 import com.dreamdisplays.media.source.vimeo.VimeoMetadataCache
 import com.dreamdisplays.platform.client.core.DreamServices
 import com.dreamdisplays.platform.client.render.Thumbnails
@@ -258,12 +260,26 @@ class SuggestionsController {
                                 .getOrNull()
                                 ?.map(::bilibiliSearchResult)
                         }
+                        val kickSearchDeferred = async {
+                            runCatching { withContext(Dispatchers.IO) { KickApi.searchChannels(q) } }
+                                .onFailure { if (it is CancellationException) throw it; logger.debug("Kick search failed: ${it.message}") }
+                                .getOrNull()
+                                ?.map(::kickSearchResult)
+                        }
+                        val twitchSearchDeferred = async {
+                            runCatching { withContext(Dispatchers.IO) { TwitchApi.searchChannels(q) } }
+                                .onFailure { if (it is CancellationException) throw it; logger.debug("Twitch search failed: ${it.message}") }
+                                .getOrNull()
+                                ?.map(::twitchSearchResult)
+                        }
 
                         val youtubePage = ytDeferred.await()
                         val youtubeResults = youtubePage?.results
                         var liveTwitch = twitchDeferred.await()
                         val liveKick = kickDeferred.await()
                         val bilibiliResults = bilibiliDeferred.await()
+                        val kickSearchResults = kickSearchDeferred.await()
+                        val twitchSearchResults = twitchSearchDeferred.await()
 
                         if (liveTwitch == null) {
                             val fuzzyLogin = fuzzyTwitchLogin(q, youtubeResults)
@@ -272,14 +288,23 @@ class SuggestionsController {
                             }
                         }
 
-                        if (youtubeResults == null && liveTwitch == null && liveKick == null && bilibiliResults.isNullOrEmpty()) {
+                        if (youtubeResults == null && liveTwitch == null && liveKick == null &&
+                            bilibiliResults.isNullOrEmpty() && kickSearchResults.isNullOrEmpty() && twitchSearchResults.isNullOrEmpty()
+                        ) {
                             publish(seq, null, KEY_ERROR)
                             return@launchLoad
                         }
 
                         // On-demand results from every platform are interleaved so the list reads as a mix,
-                        // not a block of YouTube followed by a block of BIlibili. Live channels still lead.
-                        val onDemand = interleave(youtubeResults.orEmpty(), bilibiliResults.orEmpty().take(BILIBILI_RESULT_CAP))
+                        // not a block of YouTube followed by a block of everything else. Live channels still lead.
+                        val onDemand = interleave(
+                            listOf(
+                                youtubeResults.orEmpty(),
+                                bilibiliResults.orEmpty().take(BILIBILI_RESULT_CAP),
+                                kickSearchResults.orEmpty().take(KICK_RESULT_CAP),
+                                twitchSearchResults.orEmpty().take(TWITCH_RESULT_CAP),
+                            )
+                        )
                         val combined = ArrayList<MediaSearchResult>(2 + onDemand.size).apply {
                             liveTwitch?.let(::add)
                             liveKick?.let(::add)
@@ -344,26 +369,74 @@ class SuggestionsController {
         )
     }
 
+    /** Builds a search-result card for a Kick channel hit, keyed by its channel URL like other platform cards. */
+    private fun kickSearchResult(item: KickSearchItem): MediaSearchResult {
+        val url = "https://kick.com/${item.slug}"
+        return MediaSearchResult(
+            id = url,
+            title = item.title ?: item.username,
+            uploader = item.username,
+            durationSec = null,
+            viewCount = null,
+            watchUrlOverride = url,
+            thumbnailUrlOverride = item.thumbnailUrl ?: item.avatarUrl,
+            channelAvatarUrl = item.avatarUrl,
+            isVerified = item.isVerified,
+            isLive = item.isLive,
+            platform = MediaPlatform.KICK,
+        )
+    }
+
+    /** Builds a search-result card for a Twitch channel hit, keyed by its channel URL like other platform cards. */
+    private fun twitchSearchResult(item: TwitchSearchItem): MediaSearchResult {
+        val url = "https://www.twitch.tv/${item.login}"
+        return MediaSearchResult(
+            id = url,
+            title = item.title ?: item.displayName ?: item.login,
+            uploader = item.displayName ?: item.login,
+            durationSec = null,
+            viewCount = item.viewCount,
+            watchUrlOverride = url,
+            thumbnailUrlOverride = item.thumbnailUrl,
+            channelAvatarUrl = item.avatarUrl,
+            isVerified = item.isVerified,
+            isTwitch = true,
+            isLive = item.isLive,
+            platform = MediaPlatform.TWITCH,
+        )
+    }
+
     /**
-     * Spreads [secondary] evenly through [primary] instead of clustering it at either end, so a
-     * mixed-platform search reads as one shuffled list rather than "all YouTube, then all BIlibili".
+     * Spreads every non-empty list in [lists] proportionally through the combined output instead of
+     * clustering any one of them at either end, so a mixed-platform search reads as one shuffled list
+     * rather than "all YouTube, then all Bilibili, then all Kick...". Ties (two lists equally "due" for
+     * their next pick) favor the larger list, then the list's original position in [lists], so the
+     * merge order stays deterministic across calls with the same inputs.
      */
-    private fun interleave(
-        primary: List<MediaSearchResult>,
-        secondary: List<MediaSearchResult>,
-    ): List<MediaSearchResult> {
-        if (secondary.isEmpty()) return primary
-        if (primary.isEmpty()) return secondary
-        val result = ArrayList<MediaSearchResult>(primary.size + secondary.size)
-        val ratio = primary.size.toDouble() / secondary.size
-        var secondaryIdx = 0
-        for ((i, item) in primary.withIndex()) {
-            result.add(item)
-            while (secondaryIdx < secondary.size && (i + 1) >= (secondaryIdx + 1) * ratio) {
-                result.add(secondary[secondaryIdx++])
+    private fun interleave(lists: List<List<MediaSearchResult>>): List<MediaSearchResult> {
+        val sources = lists.filter { it.isNotEmpty() }
+        if (sources.isEmpty()) return emptyList()
+        if (sources.size == 1) return sources[0]
+
+        val totalSize = sources.sumOf { it.size }
+        val result = ArrayList<MediaSearchResult>(totalSize)
+        val taken = IntArray(sources.size)
+        repeat(totalSize) {
+            var bestIdx = -1
+            var bestFraction = Double.MAX_VALUE
+            for (i in sources.indices) {
+                if (taken[i] >= sources[i].size) continue
+                val fraction = taken[i].toDouble() / sources[i].size
+                val better = fraction < bestFraction - FRACTION_EPSILON ||
+                        (fraction < bestFraction + FRACTION_EPSILON && (bestIdx == -1 || sources[i].size > sources[bestIdx].size))
+                if (better) {
+                    bestFraction = fraction
+                    bestIdx = i
+                }
             }
+            result.add(sources[bestIdx][taken[bestIdx]])
+            taken[bestIdx]++
         }
-        while (secondaryIdx < secondary.size) result.add(secondary[secondaryIdx++])
         return result
     }
 
@@ -633,5 +706,14 @@ class SuggestionsController {
 
         /** Max BIlibili search hits mixed into a single results page, so it stays a mix rather than a takeover. */
         private const val BILIBILI_RESULT_CAP = 10
+
+        /** Max Kick channel hits mixed in; channel cards are heavier (whole-channel, not a single video) than a VOD card. */
+        private const val KICK_RESULT_CAP = 6
+
+        /** Max Twitch channel hits mixed in; same reasoning as [KICK_RESULT_CAP]. */
+        private const val TWITCH_RESULT_CAP = 6
+
+        /** Tolerance for comparing [interleave]'s fractional "how due" scores, avoiding float-equality flakiness. */
+        private const val FRACTION_EPSILON = 1e-9
     }
 }
