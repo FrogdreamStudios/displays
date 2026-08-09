@@ -4,15 +4,12 @@ import com.dreamdisplays.api.media.MediaServices
 import com.dreamdisplays.api.media.search.MediaSearchResult
 import com.dreamdisplays.api.media.search.YouTubeUrls
 import com.dreamdisplays.api.media.source.CustomMediaUrls
-import com.dreamdisplays.api.media.source.KickUrls
 import com.dreamdisplays.api.media.source.MediaPlatform
 import com.dreamdisplays.api.media.source.MediaSource
 import com.dreamdisplays.media.source.bilibili.BilibiliApi
 import com.dreamdisplays.media.source.bilibili.BilibiliMetadataCache
 import com.dreamdisplays.media.source.bilibili.BilibiliSearchItem
-import com.dreamdisplays.media.source.kick.KickApi
 import com.dreamdisplays.media.source.kick.KickMetadataCache
-import com.dreamdisplays.media.source.kick.KickSearchItem
 import com.dreamdisplays.media.source.platform.PlatformVideoMetadata
 import com.dreamdisplays.media.source.twitch.TwitchApi
 import com.dreamdisplays.media.source.twitch.TwitchMetadata
@@ -240,7 +237,6 @@ class SuggestionsController {
 
                     else -> {
                         val twitchLogin = twitchLoginCandidate(q)
-                        val kickSlug = KickUrls.channelSlugCandidate(q)
 
                         val ytDeferred = async {
                             runCatching { svc.searchPage(q, PAGE_SIZE, sortOption.networkSort) }
@@ -251,23 +247,22 @@ class SuggestionsController {
                         val twitchDeferred = async {
                             twitchLogin?.let { runCatching { liveTwitchResult(it) }.getOrNull() }
                         }
-                        val kickDeferred = async {
-                            kickSlug?.let { runCatching { liveKickResult(it) }.getOrNull() }
-                        }
-                        val bilibiliDeferred = async {
-                            runCatching { withContext(Dispatchers.IO) { BilibiliApi.searchVideos(q) } }
-                                .onFailure { if (it is CancellationException) throw it; logger.debug("Bilibili search failed: ${it.message}") }
-                                .getOrNull()
-                                ?.map(::bilibiliSearchResult)
-                        }
-                        val kickSearchDeferred = async {
-                            runCatching { withContext(Dispatchers.IO) { KickApi.searchChannels(q) } }
-                                .onFailure { if (it is CancellationException) throw it; logger.debug("Kick search failed: ${it.message}") }
-                                .getOrNull()
-                                ?.map(::kickSearchResult)
-                        }
+
+                        // Bilibili is overwhelmingly Chinese-language content; only worth searching (and even
+                        // then, only its truly popular hits) when the player is typing Chinese themselves.
+                        val bilibiliDeferred = if (looksChinese(q)) {
+                            async {
+                                runCatching { withContext(Dispatchers.IO) { BilibiliApi.searchVideos(q) } }
+                                    .onFailure { if (it is CancellationException) throw it; logger.debug("Bilibili search failed: ${it.message}") }
+                                    .getOrNull()
+                                    ?.filter { (it.viewCount ?: 0L) >= BILIBILI_MIN_VIEWS }
+                                    ?.map(::bilibiliSearchResult)
+                            }
+                        } else null
                         val twitchSearchDeferred = async {
-                            runCatching { withContext(Dispatchers.IO) { TwitchApi.searchChannels(q) } }
+                            runCatching {
+                                withContext(Dispatchers.IO) { TwitchApi.searchChannels(twitchSearchFragment(q)) }
+                            }
                                 .onFailure { if (it is CancellationException) throw it; logger.debug("Twitch search failed: ${it.message}") }
                                 .getOrNull()
                                 ?.map(::twitchSearchResult)
@@ -276,9 +271,7 @@ class SuggestionsController {
                         val youtubePage = ytDeferred.await()
                         val youtubeResults = youtubePage?.results
                         var liveTwitch = twitchDeferred.await()
-                        val liveKick = kickDeferred.await()
-                        val bilibiliResults = bilibiliDeferred.await()
-                        val kickSearchResults = kickSearchDeferred.await()
+                        val bilibiliResults = bilibiliDeferred?.await()
                         val twitchSearchResults = twitchSearchDeferred.await()
 
                         if (liveTwitch == null) {
@@ -288,26 +281,28 @@ class SuggestionsController {
                             }
                         }
 
-                        if (youtubeResults == null && liveTwitch == null && liveKick == null &&
-                            bilibiliResults.isNullOrEmpty() && kickSearchResults.isNullOrEmpty() && twitchSearchResults.isNullOrEmpty()
+                        if (youtubeResults == null && liveTwitch == null &&
+                            bilibiliResults.isNullOrEmpty() && twitchSearchResults.isNullOrEmpty()
                         ) {
                             publish(seq, null, KEY_ERROR)
                             return@launchLoad
                         }
 
-                        // On-demand results from every platform are interleaved so the list reads as a mix,
-                        // not a block of YouTube followed by a block of everything else. Live channels still lead.
-                        val onDemand = interleave(
+                        // YouTube stays the dominant source (~80%). Bilibili (gated to Chinese queries and
+                        // popular-only hits above) gets a strong share once it's competing at all, since a
+                        // Chinese query is exactly where it's most useful. Kick is not mixed in here at all
+                        // anymore. Twitch keeps its own unweighted mix-in below, untouched by this ratio.
+                        val youtubeAndMinor = weightedInterleave(
                             listOf(
-                                youtubeResults.orEmpty(),
-                                bilibiliResults.orEmpty().take(BILIBILI_RESULT_CAP),
-                                kickSearchResults.orEmpty().take(KICK_RESULT_CAP),
-                                twitchSearchResults.orEmpty().take(TWITCH_RESULT_CAP),
+                                youtubeResults.orEmpty() to YOUTUBE_WEIGHT,
+                                bilibiliResults.orEmpty().take(BILIBILI_RESULT_CAP) to BILIBILI_WEIGHT,
                             )
                         )
-                        val combined = ArrayList<MediaSearchResult>(2 + onDemand.size).apply {
+                        val onDemand = interleave(
+                            listOf(youtubeAndMinor, twitchSearchResults.orEmpty().take(TWITCH_RESULT_CAP))
+                        )
+                        val combined = ArrayList<MediaSearchResult>(1 + onDemand.size).apply {
                             liveTwitch?.let(::add)
-                            liveKick?.let(::add)
                             addAll(onDemand)
                         }
                         publish(
@@ -329,10 +324,26 @@ class SuggestionsController {
         }
     }
 
+    /** True when [query] contains a Han (Chinese-script) character, the gate for even trying a Bilibili search. */
+    private fun looksChinese(query: String): Boolean = CHINESE_CHAR_RE.containsMatchIn(query)
+
     /** Returns [query] lowercased when it looks like a Twitch login (letters/digits/underscore, 3-25 chars). */
     private fun twitchLoginCandidate(query: String): String? {
         val q = query.trim()
         return if (TWITCH_LOGIN_RE.matches(q)) q.lowercase() else null
+    }
+
+    /**
+     * Twitch's `searchSuggestions` matches channel/game names, not free text — a phrase like
+     * "cs:go stream" matches nothing, while "cs go" (punctuation and the generic word stripped) does.
+     * Strips punctuation and common filler words so a natural-language query still finds channels.
+     */
+    private fun twitchSearchFragment(query: String): String {
+        val cleaned = query.replace(NON_WORD_RE, " ")
+            .split(Regex("\\s+"))
+            .filter { it.isNotBlank() && it.lowercase() !in TWITCH_SEARCH_NOISE_WORDS }
+            .joinToString(" ")
+        return cleaned.ifBlank { query }
     }
 
     /** Looks up [login] on Twitch and, if it's live, builds the card shown ahead of the YouTube results. */
@@ -342,16 +353,6 @@ class SuggestionsController {
         }
     }.onFailure { e ->
         logger.debug("Twitch live-channel lookup failed for '$login': ${e.message}.")
-    }.getOrNull()
-
-    /** Looks up [slug] on Kick and, if it's live, builds the card shown ahead of the YouTube results. */
-    private fun liveKickResult(slug: String): MediaSearchResult? = runCatching {
-        val playback = KickApi.resolveLive(slug)?.takeIf { it.metadata.isLive } ?: return@runCatching null
-        val source = MediaSource.Kick(url = "https://kick.com/$slug", channel = slug)
-        KickMetadataCache.put(source, playback.metadata)
-        platformResult(source.url, MediaPlatform.KICK, playback.metadata, fallbackTitle = slug)
-    }.onFailure { e ->
-        logger.debug("Kick live-channel lookup failed for '$slug': ${e.message}.")
     }.getOrNull()
 
     /** Builds a search-result card for a BIlibili video hit, keyed by its watch URL like other platform cards. */
@@ -366,24 +367,6 @@ class SuggestionsController {
             watchUrlOverride = url,
             thumbnailUrlOverride = item.thumbnailUrl,
             platform = MediaPlatform.BILIBILI,
-        )
-    }
-
-    /** Builds a search-result card for a Kick channel hit, keyed by its channel URL like other platform cards. */
-    private fun kickSearchResult(item: KickSearchItem): MediaSearchResult {
-        val url = "https://kick.com/${item.slug}"
-        return MediaSearchResult(
-            id = url,
-            title = item.title ?: item.username,
-            uploader = item.username,
-            durationSec = null,
-            viewCount = null,
-            watchUrlOverride = url,
-            thumbnailUrlOverride = item.thumbnailUrl ?: item.avatarUrl,
-            channelAvatarUrl = item.avatarUrl,
-            isVerified = item.isVerified,
-            isLive = item.isLive,
-            platform = MediaPlatform.KICK,
         )
     }
 
@@ -435,6 +418,40 @@ class SuggestionsController {
                 }
             }
             result.add(sources[bestIdx][taken[bestIdx]])
+            taken[bestIdx]++
+        }
+        return result
+    }
+
+    /**
+     * Like [interleave], but each list is entitled to a share of the output proportional to its
+     * [weight] rather than its own size — e.g. weight 0.8 keeps claiming a slot roughly 4x as often as
+     * weight 0.1, regardless of how many items either list actually has. A list that runs out early
+     * just stops competing; it does not inflate the others' share.
+     */
+    private fun weightedInterleave(lists: List<Pair<List<MediaSearchResult>, Double>>): List<MediaSearchResult> {
+        val sources = lists.filter { it.first.isNotEmpty() }
+        if (sources.isEmpty()) return emptyList()
+        if (sources.size == 1) return sources[0].first
+
+        val totalSize = sources.sumOf { it.first.size }
+        val result = ArrayList<MediaSearchResult>(totalSize)
+        val taken = IntArray(sources.size)
+        repeat(totalSize) {
+            var bestIdx = -1
+            var bestKey = Double.MAX_VALUE
+            for (i in sources.indices) {
+                val (list, weight) = sources[i]
+                if (taken[i] >= list.size) continue
+                val key = (taken[i] + 1) / weight
+                val better = key < bestKey - FRACTION_EPSILON ||
+                        (key < bestKey + FRACTION_EPSILON && (bestIdx == -1 || weight > sources[bestIdx].second))
+                if (better) {
+                    bestKey = key
+                    bestIdx = i
+                }
+            }
+            result.add(sources[bestIdx].first[taken[bestIdx]])
             taken[bestIdx]++
         }
         return result
@@ -701,19 +718,39 @@ class SuggestionsController {
         /** Twitch login shape: letters, digits, underscore, 3-25 chars (real handles never contain spaces). */
         private val TWITCH_LOGIN_RE = Regex("^[A-Za-z0-9_]{3,25}$")
 
+        /** Matches any Han-script character (CJK Unified Ideographs); the sole signal for "this query is in Chinese" ([looksChinese]). */
+        private val CHINESE_CHAR_RE = Regex("[一-鿿]")
+
+        /** Anything that isn't a letter/digit/space, stripped when building a [twitchSearchFragment]. */
+        private val NON_WORD_RE = Regex("[^\\p{L}\\p{N}\\s]")
+
+        /** Generic words that defeat Twitch's channel-name matcher when left in a [twitchSearchFragment]. */
+        private val TWITCH_SEARCH_NOISE_WORDS = setOf(
+            "stream", "streaming", "streamer", "live", "gameplay", "gaming", "playing",
+            "highlights", "clips", "clip", "vod", "vods", "channel", "twitch",
+        )
+
         /** Max distinct uploader names scanned for a fuzzy Twitch-login match, so a big result page stays cheap. */
         private const val FUZZY_CANDIDATE_LIMIT = 8
 
-        /** Max BIlibili search hits mixed into a single results page, so it stays a mix rather than a takeover. */
+        /** Max BIlibili search hits mixed into a single results page — generous, since BIlibili only ever
+         *  competes at all on a Chinese query ([looksChinese]), where it should show up strongly. */
         private const val BILIBILI_RESULT_CAP = 10
 
-        /** Max Kick channel hits mixed in; channel cards are heavier (whole-channel, not a single video) than a VOD card. */
-        private const val KICK_RESULT_CAP = 6
+        /** Only BIlibili hits with at least this many views survive the popularity filter in [runSearch]. */
+        private const val BILIBILI_MIN_VIEWS = 50_000L
 
-        /** Max Twitch channel hits mixed in; same reasoning as [KICK_RESULT_CAP]. */
+        /** Max Twitch channel hits mixed in; channel cards are heavier (whole-channel, not a single video) than a VOD card. */
         private const val TWITCH_RESULT_CAP = 6
 
         /** Tolerance for comparing [interleave]'s fractional "how due" scores, avoiding float-equality flakiness. */
         private const val FRACTION_EPSILON = 1e-9
+
+        /** [weightedInterleave] share YouTube is entitled to against Bilibili. */
+        private const val YOUTUBE_WEIGHT = 0.8
+
+        /** BIlibili's share in [weightedInterleave]. It only ever competes at all on a Chinese query
+         *  ([looksChinese]) — and on those, it should show up strongly rather than as an afterthought. */
+        private const val BILIBILI_WEIGHT = 0.6
     }
 }
