@@ -66,6 +66,8 @@
   "dreamdisplays.button.report.tooltip.1": "Anzeige melden",
   "dreamdisplays.button.report.tooltip.2": "Inhalt melden, der unangemessen ist",
   "dreamdisplays.ui.waiting": "Warten auf Video...",
+  "dreamdisplays.ui.schedule_play": "Startet in %s",
+  "dreamdisplays.ui.schedule_pause": "Pausiert in %s",
   "dreamdisplays.ui.preview": "Vorschau",
   "dreamdisplays.ui.settings": "Anzeigeeinstellungen",
   "dreamdisplays.ui.error": "Anzeigefehler",

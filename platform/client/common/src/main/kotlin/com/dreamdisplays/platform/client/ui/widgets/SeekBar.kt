@@ -39,14 +39,18 @@ import net.minecraft.util.Mth
  * @param onSeek invoked with the target position in nanoseconds when a drag is committed.
  * @param previewFrame optionally supplies a scrub-preview texture for a hovered position in
  * nanoseconds; returning null (or leaving this unset) shows no preview.
- * @param waitingLabel optionally supplies a status string (e.g. "Waiting for video...") to show in
- * place of the time label while non-null; drawn in a dim grey.
+ * @param waitingLabel optionally supplies a status string (e.g. "Waiting for video..." or a
+ * scheduled-playback countdown) to show in place of the time label while non-null; drawn in a dim
+ * gray.
+ * @param scheduleLabel optionally supplies a scheduled-playback countdown string to append after
+ * the normal time label.
  */
 class SeekBar(
     private val current: () -> Long,
     private val duration: () -> Long,
     private val previewFrame: ((Long) -> Identifier?)? = null,
     private val waitingLabel: (() -> String?)? = null,
+    private val scheduleLabel: (() -> String?)? = null,
     private val onSeek: (Long) -> Unit,
 ) : UiWidget(Component.empty()) {
 
@@ -96,7 +100,14 @@ class SeekBar(
         if (waiting != null) {
             drawScrollingLabel(g, Component.literal(waiting).copy().withStyle { it.withColor(WAITING_COLOR) }, 4)
         } else {
-            drawScrollingLabel(g, timeLabel(cur, dur), 4)
+            val label = timeLabel(cur, dur)
+            val schedule = scheduleLabel?.invoke()
+            val shown = if (schedule != null) {
+                label.copy().append(Component.literal(" • $schedule").withStyle { it.withColor(WAITING_COLOR) })
+            } else {
+                label
+            }
+            drawScrollingLabel(g, shown, 4)
         }
 
         val previewTarget = if (previewFrame != null && active && dur > 0 && (isHovered || dragging)) 1f else 0f

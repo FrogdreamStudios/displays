@@ -92,6 +92,12 @@ class DisplayScreen(
     /** Server-reported lock state, or `null` until the server reports it. */
     var isLocked: Boolean? = null
 
+    /** Epoch millis of a pending scheduled play / pause, or `0` when none is set (see [com.dreamdisplays.core.protocol.DisplayInfo]). */
+    var scheduledStartEpochMillis: Long = 0
+
+    /** Wire ordinal of the scheduled [com.dreamdisplays.api.playback.PlaybackAction] (`PLAY`/`PAUSE`), or `-1` when none is set. */
+    var scheduledAction: Int = -1
+
     /** The last media failure on this display, or `null` when healthy. */
     @Volatile
     var mediaError: DreamMediaException? = null
@@ -567,6 +573,8 @@ class DisplayScreen(
 
         qualityCap = packet.qualityCap
         isLocked = packet.isLocked
+        scheduledStartEpochMillis = packet.scheduledStartEpochMillis
+        scheduledAction = packet.scheduledAction
         owner = Minecraft.getInstance().player?.gameProfile?.id?.toString() == packet.ownerId.toString()
 
         if (videoUrl != packet.url || lang != packet.lang) {

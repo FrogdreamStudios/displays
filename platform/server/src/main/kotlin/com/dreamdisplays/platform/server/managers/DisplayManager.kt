@@ -220,6 +220,8 @@ object DisplayManager {
             display.url, display.lang, display.facing, display.isSync, display.isLocked,
             display.mode, display.qualityCap, display.rotation,
             virtual = display.virtual, forced = forced,
+            scheduledStartEpochMillis = display.scheduledStart?.toEpochMilliseconds() ?: 0,
+            scheduledAction = display.scheduledAction?.wire ?: -1,
         )
     }
 

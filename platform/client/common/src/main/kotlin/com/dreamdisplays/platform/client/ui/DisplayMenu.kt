@@ -11,6 +11,7 @@ import com.dreamdisplays.api.media.audio.AcousticQuality
 import com.dreamdisplays.api.media.audio.AudioAcousticsServices
 import com.dreamdisplays.api.media.search.MediaSearchResult
 import com.dreamdisplays.api.playback.FullscreenMode
+import com.dreamdisplays.api.playback.PlaybackAction
 import com.dreamdisplays.api.playback.PlaybackMode
 import com.dreamdisplays.api.playback.PlaybackServices
 import com.dreamdisplays.api.runtime.get
@@ -26,6 +27,7 @@ import com.dreamdisplays.platform.client.render.ScrubPreview
 import com.dreamdisplays.platform.client.storage.CustomVideoStore
 import com.dreamdisplays.platform.client.ui.kit.UiRect
 import com.dreamdisplays.platform.client.ui.kit.UiScreenBase
+import com.dreamdisplays.platform.client.ui.kit.UiText
 import com.dreamdisplays.platform.client.ui.kit.UiTheme
 import com.dreamdisplays.platform.client.ui.kit.drawPanel
 import com.dreamdisplays.platform.client.ui.menu.*
@@ -288,7 +290,14 @@ class DisplayMenu private constructor(
                         key?.let { ScrubPreview.frameAt(it, nanos) }
                     }
                 },
-                waitingLabel = { if (!ds.isVideoStarted) Component.translatable("dreamdisplays.ui.waiting").string else null },
+                waitingLabel = {
+                    if (!ds.isVideoStarted) {
+                        scheduleCountdownText() ?: Component.translatable("dreamdisplays.ui.waiting").string
+                    } else {
+                        null
+                    }
+                },
+                scheduleLabel = { if (ds.isVideoStarted) scheduleCountdownText() else null },
             ) { nanos ->
                 if (ds.canSeek() && !ds.isLive && ds.canSeekHere) {
                     playback.seek(displayId, (nanos / 1_000_000L).milliseconds)
@@ -435,6 +444,23 @@ class DisplayMenu private constructor(
                 )
             },
         )
+    }
+
+    /**
+     * "Pause in 4:32" / "Play in 4:32" for [displayScreen]'s pending scheduled action (see
+     * [com.dreamdisplays.platform.server.playback.ScheduledPlaybackManager]), or null when none is
+     * pending / it has already elapsed. Re-evaluated every frame against the live wall clock.
+     */
+    private fun scheduleCountdownText(): String? {
+        val at = displayScreen.scheduledStartEpochMillis.takeIf { it > 0 } ?: return null
+        val remainingMs = at - System.currentTimeMillis()
+        if (remainingMs <= 0) return null
+        val key = if (displayScreen.scheduledAction == PlaybackAction.PAUSE.wire) {
+            "dreamdisplays.ui.schedule_pause"
+        } else {
+            "dreamdisplays.ui.schedule_play"
+        }
+        return Component.translatable(key, UiText.formatTime(remainingMs * 1_000_000L)).string
     }
 
     private fun tooltipTitle(key: String): Component =

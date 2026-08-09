@@ -13,7 +13,7 @@ object ProtocolVersion {
     const val MINIMUM_SUPPORTED = 2
 
     /** Current subversion of protocol. */
-    const val CURRENT = 9
+    const val CURRENT = 11
 
     /** Checks if the given protocol version is compatible with the current version. */
     fun isCompatible(version: Int): Boolean = version in MINIMUM_SUPPORTED..CURRENT

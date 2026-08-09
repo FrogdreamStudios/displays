@@ -88,6 +88,8 @@ data class DisplayInfo(
     @ProtoNumber(15) val rotation: Int = 0,
     @ProtoNumber(16) val virtual: Boolean = false,
     @ProtoNumber(17) val forced: Boolean = false,
+    @ProtoNumber(18) val scheduledStartEpochMillis: Long = 0,
+    @ProtoNumber(19) val scheduledAction: Int = -1,
 ) : DreamPacket
 
 /** Removes a display (server broadcast) or requests its deletion (client action). */

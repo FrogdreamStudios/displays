@@ -122,6 +122,10 @@ message DisplayInfo {
   optional bool virtual = 16;
   // WARNING: a default value decoded when value is missing
   optional bool forced = 17;
+  // WARNING: a default value decoded when value is missing
+  optional int64 scheduledStartEpochMillis = 18;
+  // WARNING: a default value decoded when value is missing
+  optional int32 scheduledAction = 19;
 }
 
 // serial name 'com.dreamdisplays.core.protocol.DisplayDelete'

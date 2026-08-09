@@ -41,6 +41,8 @@ object VanillaPacketUtil {
                 mode = display.mode.wire, qualityCap = display.qualityCap,
                 rotation = display.rotation.quarterTurns,
                 virtual = display.virtual, forced = forced,
+                scheduledStartEpochMillis = display.scheduledStart?.toEpochMilliseconds() ?: 0,
+                scheduledAction = display.scheduledAction?.wire ?: -1,
             ),
         )
         if (legacy.isEmpty()) return

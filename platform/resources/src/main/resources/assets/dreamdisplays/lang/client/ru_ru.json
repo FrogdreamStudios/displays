@@ -66,6 +66,8 @@
   "dreamdisplays.button.report.tooltip.1": "Пожаловаться на дисплей",
   "dreamdisplays.button.report.tooltip.2": "Пожаловаться на неподобающий контент",
   "dreamdisplays.ui.waiting": "Ожидание видео...",
+  "dreamdisplays.ui.schedule_play": "Запуск через %s",
+  "dreamdisplays.ui.schedule_pause": "Пауза через %s",
   "dreamdisplays.ui.preview": "Предпросмотр",
   "dreamdisplays.ui.settings": "Настройки дисплея",
   "dreamdisplays.ui.error": "Ошибка дисплея",
