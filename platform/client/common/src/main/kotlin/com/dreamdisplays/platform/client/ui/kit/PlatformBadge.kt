@@ -21,6 +21,7 @@ object PlatformBadge {
     private val TWITCH = Badge("dreamdisplays.ui.twitch", UiTheme.ACCENT_TWITCH_TAG, UiTheme.TEXT_PRIMARY)
     private val VIMEO = Badge("dreamdisplays.ui.vimeo", UiTheme.ACCENT_VIMEO_TAG, DARK_TEXT)
     private val KICK = Badge("dreamdisplays.ui.kick", UiTheme.ACCENT_KICK_TAG, DARK_TEXT)
+    private val BILIBILI = Badge("dreamdisplays.ui.bilibili", UiTheme.ACCENT_BILIBILI_TAG, DARK_TEXT)
     private val CUSTOM = Badge("dreamdisplays.ui.custom", UiTheme.ACCENT_CUSTOM_TAG, UiTheme.TEXT_PRIMARY)
 
     /** The badge for [platform], or null when it needs none (a plain YouTube / long-tail result). */
@@ -28,6 +29,7 @@ object PlatformBadge {
         MediaPlatform.TWITCH -> TWITCH
         MediaPlatform.VIMEO -> VIMEO
         MediaPlatform.KICK -> KICK
+        MediaPlatform.BILIBILI -> BILIBILI
         MediaPlatform.DIRECT -> CUSTOM
         MediaPlatform.YOUTUBE, MediaPlatform.OTHER -> null
     }

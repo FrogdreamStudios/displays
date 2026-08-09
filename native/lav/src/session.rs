@@ -40,6 +40,26 @@ pub const NO_PTS_NANOS: i64 = i64::MIN;
 const USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 \
                           (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
+/// Some CDNs 403 a correct URL unless `Referer` matches their own site (seen on Bilibili's
+/// `bilivideo.com`); mirrors the host mapping in the client's `Thumbnails.refererFor`.
+fn referer_for(url: &str) -> &'static str {
+    let host = url
+        .split("://")
+        .nth(1)
+        .and_then(|rest| rest.split('/').next())
+        .unwrap_or("")
+        .to_ascii_lowercase();
+    if host.ends_with("kick.com") {
+        "https://kick.com/"
+    } else if host.ends_with("vimeocdn.com") || host.ends_with("vimeo.com") {
+        "https://vimeo.com/"
+    } else if host.ends_with("bilibili.com") || host.ends_with("hdslb.com") || host.ends_with("bilivideo.com") {
+        "https://www.bilibili.com/"
+    } else {
+        "https://www.youtube.com/"
+    }
+}
+
 const SEEK_PREROLL_TOLERANCE_NANOS: i64 = 50_000_000;
 const PREROLL_FAST_CUTOFF_NANOS: i64 = 1_000_000_000;
 const SLOW_SEEK_WARN_MS: u128 = 1_000;
@@ -583,7 +603,7 @@ impl LavSession {
 
         let mut opts = Dictionary::new();
         opts.set("user_agent", USER_AGENT);
-        opts.set("headers", "Referer: https://www.youtube.com/\r\n");
+        opts.set("headers", &format!("Referer: {}\r\n", referer_for(url)));
 
         #[cfg(not(test))]
         opts.set("protocol_whitelist", "https,tls,tcp,crypto,data,http");

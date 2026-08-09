@@ -7,6 +7,7 @@ import com.dreamdisplays.api.media.source.CustomMediaUrls
 import com.dreamdisplays.api.media.source.KickUrls
 import com.dreamdisplays.api.media.source.MediaPlatform
 import com.dreamdisplays.api.media.source.MediaSource
+import com.dreamdisplays.media.source.bilibili.BilibiliMetadataCache
 import com.dreamdisplays.media.source.kick.KickApi
 import com.dreamdisplays.media.source.kick.KickMetadataCache
 import com.dreamdisplays.media.source.platform.PlatformVideoMetadata
@@ -165,9 +166,9 @@ class SuggestionsController {
         val source = MediaSource.from(q)
 
         // A direct / long-tail link needs no network to show its card, so publish it synchronously.
-        // Platform links (Twitch / Vimeo / Kick) instead resolve real metadata below.
+        // Platform links (Twitch / Vimeo / Kick / Bilibili) instead resolve real metadata below.
         if (maybeId == null && source !is MediaSource.Twitch &&
-            source !is MediaSource.Vimeo && source !is MediaSource.Kick
+            source !is MediaSource.Vimeo && source !is MediaSource.Kick && source !is MediaSource.Bilibili
         ) {
             customUrlOf(source)?.let {
                 publish(seq, listOf(customResult(it)), null)
@@ -218,6 +219,19 @@ class SuggestionsController {
                             .getOrNull()
                         val fallback = source.channel ?: source.videoUuid ?: "Kick"
                         listOf(platformResult(source.url, MediaPlatform.KICK, meta, fallbackTitle = fallback))
+                    }
+
+                    source is MediaSource.Bilibili -> {
+                        val meta = runCatching {
+                            withContext(Dispatchers.IO) { BilibiliMetadataCache.resolveBlocking(source) }
+                        }
+                            .onFailure {
+                                if (it is CancellationException) throw it
+                                logger.warn("Bilibili meta: ${it.message}.")
+                            }
+                            .getOrNull()
+                        val fallback = source.bvid ?: source.avid?.let { "av$it" } ?: source.roomId?.toString() ?: "Bilibili"
+                        listOf(platformResult(source.url, MediaPlatform.BILIBILI, meta, fallbackTitle = fallback))
                     }
 
                     else -> {

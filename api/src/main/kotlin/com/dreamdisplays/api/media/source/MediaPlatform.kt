@@ -22,6 +22,9 @@ enum class MediaPlatform {
     /** A Kick channel or VOD. */
     KICK,
 
+    /** A Bilibili video, live room, or `b23.tv` short link. */
+    BILIBILI,
+
     /** A direct media file or streaming manifest the player opens itself. */
     DIRECT,
 
@@ -29,5 +32,6 @@ enum class MediaPlatform {
     OTHER;
 
     /** True for the two platforms whose links are always live-or-VOD pages, never plain files. */
-    val isFirstPartyPlatform: Boolean get() = this == YOUTUBE || this == TWITCH || this == VIMEO || this == KICK
+    val isFirstPartyPlatform: Boolean
+        get() = this == YOUTUBE || this == TWITCH || this == VIMEO || this == KICK || this == BILIBILI
 }

@@ -40,6 +40,19 @@ sealed interface MediaSource {
         val videoUuid: String? = null,
     ) : MediaSource
 
+    /**
+     * BIlibili source: a VOD ([bvid] or legacy [avid], with optional multi-part [part]) or a live
+     * [roomId]. An unresolved `b23.tv` short link carries none of these — the resolver follows the
+     * redirect itself, since that needs a network call this synchronous parser cannot make.
+     */
+    data class Bilibili(
+        val url: String,
+        val bvid: String? = null,
+        val avid: Long? = null,
+        val part: Int? = null,
+        val roomId: Long? = null,
+    ) : MediaSource
+
     /** Direct playable stream URL or manifest; [kind] records what [CustomMediaUrls] recognized. */
     data class DirectStream(
         val streamUrl: String,
@@ -53,6 +66,7 @@ sealed interface MediaSource {
             is Twitch -> MediaPlatform.TWITCH
             is Vimeo -> MediaPlatform.VIMEO
             is Kick -> MediaPlatform.KICK
+            is Bilibili -> MediaPlatform.BILIBILI
             is DirectStream -> MediaPlatform.DIRECT
             is Remote -> MediaPlatform.OTHER
         }
@@ -65,6 +79,7 @@ sealed interface MediaSource {
         is Twitch -> url
         is Vimeo -> url
         is Kick -> url
+        is Bilibili -> url
     }
 
     companion object {
@@ -94,6 +109,7 @@ sealed interface MediaSource {
 
             VimeoUrls.parse(url)?.let { return it }
             KickUrls.parse(url)?.let { return it }
+            BilibiliUrls.parse(url)?.let { return it }
 
             val normalized = CustomMediaUrls.normalize(url)
             if (normalized != null) {

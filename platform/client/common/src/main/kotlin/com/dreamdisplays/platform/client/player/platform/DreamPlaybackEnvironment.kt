@@ -6,6 +6,7 @@ import com.dreamdisplays.api.media.source.MediaResolverRegistry
 import com.dreamdisplays.api.media.stream.StreamSelector
 import com.dreamdisplays.api.runtime.get
 import com.dreamdisplays.media.player.MediaPlayer
+import com.dreamdisplays.media.source.bilibili.BilibiliResolver
 import com.dreamdisplays.media.source.direct.DirectStreamResolver
 import com.dreamdisplays.media.source.kick.KickResolver
 import com.dreamdisplays.media.source.twitch.TwitchResolver
@@ -47,8 +48,8 @@ object DreamPlaybackEnvironment : PlaybackEnvironment {
     override val uploaderFactory: FrameUploaderFactory = FrameUploaderFactory { GpuFrameUploader() as FrameUploader }
 
     /**
-     * Invalidates every resolved-URL cache for a stream (`NewPipe`, `yt-dlp`, Twitch, Vimeo, Kick, direct), forcing a
-     * fresh resolve on next play.
+     * Invalidates every resolved-URL cache for a stream (`NewPipe`, `yt-dlp`, Twitch, Vimeo, Kick, Bilibili, direct),
+     * forcing a fresh resolve on next play.
      */
     override val cacheInvalidator: CacheInvalidator = CacheInvalidator { url ->
         NewPipeResolver.invalidate(url)
@@ -56,6 +57,7 @@ object DreamPlaybackEnvironment : PlaybackEnvironment {
         TwitchResolver.invalidate(url)
         VimeoResolver.invalidate(url)
         KickResolver.invalidate(url)
+        BilibiliResolver.invalidate(url)
         DirectStreamResolver.invalidate(url)
     }
 

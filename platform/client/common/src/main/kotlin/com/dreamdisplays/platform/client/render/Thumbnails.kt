@@ -344,6 +344,7 @@ object Thumbnails {
         return when {
             host.endsWith("kick.com") -> "https://kick.com/"
             host.endsWith("vimeocdn.com") || host.endsWith("vimeo.com") -> "https://vimeo.com/"
+            host.endsWith("bilibili.com") || host.endsWith("hdslb.com") -> "https://www.bilibili.com/"
             else -> null
         }
     }

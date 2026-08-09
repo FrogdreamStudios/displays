@@ -37,6 +37,21 @@ object MediaProcess {
         "Error opening input", "Unknown error", "I/O error", "HTTP error",
     )
 
+    /**
+     * Some CDNs 403 a correct URL unless `Referer` matches their own site (seen on Bilibili's
+     * `bilivideo.com`); mirrors the host mapping in the client's `Thumbnails.refererFor`.
+     */
+    private fun refererFor(url: String): String {
+        val host = runCatching { java.net.URI(url).host }.getOrNull()?.lowercase(Locale.ROOT) ?: ""
+        return when {
+            host.endsWith("kick.com") -> "https://kick.com/"
+            host.endsWith("vimeocdn.com") || host.endsWith("vimeo.com") -> "https://vimeo.com/"
+            host.endsWith("bilibili.com") || host.endsWith("hdslb.com") || host.endsWith("bilivideo.com") ->
+                "https://www.bilibili.com/"
+            else -> "https://www.youtube.com/"
+        }
+    }
+
     /** Wire format the video `FFmpeg` process writes to its stdout pipe. */
     enum class VideoTransport {
         /** PPM frames (header + RGB24), parsed by the JVM [VideoFramePipe]. */
@@ -206,7 +221,7 @@ object MediaProcess {
             }
             hwAccel.hwOutputFormat?.let { addAll(listOf("-hwaccel_output_format", it)) }
             if (trimmed == null) {
-                addHttpOptions()
+                addHttpOptions(safeUrl)
             } else {
                 // Every option below belongs to the http protocol, and the input here is a data:
                 // URI, so none of them has a context to be applied to: FFmpeg reports the first one
@@ -245,8 +260,8 @@ object MediaProcess {
     }
 
     /** Connection options for an `http(s)` input; see [baseCommand] for why they are conditional. */
-    private fun MutableList<String>.addHttpOptions() {
-        addAll(listOf("-headers", "User-Agent: $USER_AGENT\r\nReferer: https://www.youtube.com/\r\n"))
+    private fun MutableList<String>.addHttpOptions(url: String) {
+        addAll(listOf("-headers", "User-Agent: $USER_AGENT\r\nReferer: ${refererFor(url)}\r\n"))
         addAll(
             listOf(
                 "-reconnect", "1",

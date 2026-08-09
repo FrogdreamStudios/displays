@@ -11,6 +11,7 @@ import com.dreamdisplays.api.media.MediaServices
 import com.dreamdisplays.api.media.source.CustomMediaUrls
 import com.dreamdisplays.api.media.source.MediaPlatform
 import com.dreamdisplays.api.media.source.MediaSource
+import com.dreamdisplays.media.source.bilibili.BilibiliMetadataCache
 import com.dreamdisplays.media.source.kick.KickMetadataCache
 import com.dreamdisplays.media.source.platform.PlatformVideoMetadata
 import com.dreamdisplays.media.source.twitch.TwitchMetadataCache
@@ -340,6 +341,12 @@ class PreviewSection(
                 return platformOverlayInfo(source.url, MediaPlatform.KICK, meta)
             }
 
+            is MediaSource.Bilibili -> {
+                val meta = BilibiliMetadataCache.cacheKey(source)?.let { BilibiliMetadataCache.get(it) }
+                if (meta == null) BilibiliMetadataCache.requestAsync(source)
+                return platformOverlayInfo(source.url, MediaPlatform.BILIBILI, meta)
+            }
+
             // A custom / long-tail link carries no metadata anywhere: its file name and host are all
             // there is to show, and both are derivable from the URL without a single request.
             is MediaSource.DirectStream -> return customOverlayInfo(source.streamUrl)
@@ -506,6 +513,7 @@ class PreviewSection(
         is MediaSource.Twitch -> TwitchMetadataCache.cacheKey(source)
         is MediaSource.Vimeo -> VimeoMetadataCache.cacheKey(source)
         is MediaSource.Kick -> KickMetadataCache.cacheKey(source)
+        is MediaSource.Bilibili -> BilibiliMetadataCache.cacheKey(source)
         is MediaSource.YouTube -> source.videoId
         else -> null
     }
@@ -534,6 +542,13 @@ class PreviewSection(
                 val key = KickMetadataCache.cacheKey(source) ?: return
                 val meta = KickMetadataCache.get(key)
                 if (meta == null) KickMetadataCache.requestAsync(source)
+                else meta.thumbnailUrl?.let { Thumbnails.request(key, it) }
+            }
+
+            is MediaSource.Bilibili -> {
+                val key = BilibiliMetadataCache.cacheKey(source) ?: return
+                val meta = BilibiliMetadataCache.get(key)
+                if (meta == null) BilibiliMetadataCache.requestAsync(source)
                 else meta.thumbnailUrl?.let { Thumbnails.request(key, it) }
             }
 
