@@ -45,8 +45,8 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 /**
- * `dreamdisplays:proxy` channel id, shared verbatim by the `Bungee` sibling
- * ([com.dreamdisplays.platform.proxy.bungee.DreamDisplaysBungee]) — both sides must agree on the
+ * `dreamdisplays:proxy` channel id, shared verbatim by the `BungeeCord` sibling
+ * ([com.dreamdisplays.platform.proxy.bungeecord.DreamDisplaysBungeecord]) — both sides must agree on the
  * literal string, plugin-messaging channel ids are not otherwise unified across the two proxy APIs.
  */
 private const val PROXY_CHANNEL = "dreamdisplays:proxy"
