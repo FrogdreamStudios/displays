@@ -29,17 +29,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 
 /**
- * Owns and manages the lifecycle of one `FFmpeg` video + audio session: processes, reader threads,
- * stop flags, [AudioSink], and the video pipe(s).
- *
- * A quality switch runs a **second video channel in parallel** ([beginQualitySwitch]): the live
- * channel keeps decoding and rendering the current resolution while the incoming channel warms up
- * the new one against the same audio clock. The render thread promotes the incoming channel the
- * instant its first frame lands ([promoteIncoming]), so the picture never freezes — the old video
- * keeps moving right up to the swap. Audio and the clock are never touched by a quality switch.
- *
- * `MediaPlayer` calls [start] / [stop] and delegates rendering queries here. The [StreamWatchdog]
- * is coordinated by `MediaPlayer` externally.
+ * Manages `FFmpeg` session (processes, threads, pipes). Quality switch runs parallel video channel.
  */
 internal class PlaybackSessionManager(
     private val debugLabel: String,
@@ -54,19 +44,10 @@ internal class PlaybackSessionManager(
     /** Invoked by the live video channel when the stream ends or errors. Called on the reader thread. */
     private val onStreamEnd: (stderr: String, normalEos: Boolean) -> Unit,
 
-    /**
-     * Invoked when an in-flight quality switch fails before promotion, so the caller can drop the
-     * staged texture. [appliedAnyway] is true when the target quality still takes effect through a
-     * different path (a full restart using the same new stream set) despite the parallel handoff
-     * itself failing — callers must not roll back quality metadata in that case.
-     */
+    /** Invoked when quality switch fails before promotion (can drop staged texture) */
     private val onQualitySwitchAborted: (appliedAnyway: Boolean) -> Unit = {},
 
-    /**
-     * nvoked when the live audio process ends on its own (crash / broken pipe) instead of via a
-     * deliberate [stop]. Unlike video, an audio failure alone doesn't stop frames from arriving, so
-     * nothing else would ever notice the session went silent. Called on the audio reader thread.
-     */
+    /** Invoked when live audio process ends unexpectedly (called on audio reader thread). */
     private val onAudioFailure: (stderr: String) -> Unit = {},
 
     /** Runs render-thread (GL) cleanup work. */
@@ -91,12 +72,7 @@ internal class PlaybackSessionManager(
         /** How many silent-source verdicts to remember; well past any one player's stream ladder. */
         const val SILENT_MEMO_LIMIT = 64
 
-        /**
-         * Audio URLs `FFmpeg` has proven carry no audio track (see
-         * [MediaProcess.indicatesNoAudioStream]). Process-wide and insertion-bounded: a source
-         * without sound never grows one, and remembering saves a doomed process spawn on every
-         * subsequent seek, quality switch, and session restart of the same stream.
-         */
+        /** Audio URLs proven to carry no audio track (process-wide, insertion-bounded). */
         val SILENT_SOURCES: MutableSet<String> = Collections.newSetFromMap(
             object : LinkedHashMap<String, Boolean>(16, 0.75f, false) {
                 override fun removeEldestEntry(eldest: Map.Entry<String, Boolean>): Boolean =
@@ -105,14 +81,11 @@ internal class PlaybackSessionManager(
         )
     }
 
-    /** The audio half of a session: process, reader thread, and stop flag. The process is null while a
-     *  reappearance bridge is still playing its cached prelude (no live process attached yet). */
+    /** Audio half of session: process, thread, stop flag. */
     private class AudioHalf(val process: Process?, val thread: Thread, val stop: AtomicBoolean)
 
     /**
-     * One decode channel: its own video pipe (native or JVM) plus the process / thread / stop driving it.
-     * The live channel and the incoming (quality-switch) channel are independent instances, so two
-     * resolutions can decode at once during a handoff.
+     * One decode channel: video pipe + process/thread/stop (independent instances per channel).
      */
     private inner class VideoChannel {
         val nativePipe: NativeVideoFramePipe? =
@@ -127,18 +100,16 @@ internal class PlaybackSessionManager(
         @Volatile
         var thread: Thread? = null
 
-        /** True when this channel decodes via the in-process libav path — the only path that supports a
-         *  warm park (the others use an external `FFmpeg` process / pipe). */
+        /**
+         * True when decoding via in-process libav (only path that supports warm park).
+         */
         @Volatile
         var inProcess = false
             private set
         val stop = AtomicBoolean()
 
         /**
-         * Launches the video decode (in-process libav, native `FFmpeg`, or pure-JVM `FFmpeg`, in that
-         * order of preference) into this channel's pipe. Throws [IOException] when the native session
-         * cannot be opened. Never touches audio or the clock. [parkFlag] is honored on every path: the
-         * in-process decoder idles in place, and the process paths park via pipe back-pressure.
+         * Launches video decode into channel's pipe (in-process libav, native, or JVM FFmpeg).
          */
         fun launch(
             ffmpeg: String, streamSet: ActiveStreams, w: Int, h: Int, offsetNanos: Long,
@@ -228,13 +199,7 @@ internal class PlaybackSessionManager(
     @Volatile
     private var audioFeeder: HlsAudioFeeder? = null
 
-    /**
-     * Spawns the audio `FFmpeg` process for [streamSet]. Live HLS audio is fetched by an
-     * [HlsAudioFeeder] on the JVM and piped into FFmpeg's stdin — the bundled binary's own TLS
-     * stalls for 25-30 s on live HLS hosts before delivering any PCM (and keeps stalling
-     * mid-stream), while the JVM HTTP stack reaches the same hosts instantly. Everything else
-     * (VOD, progressive URLs) keeps the direct-URL invocation with FFmpeg's own `-ss` seeking.
-     */
+    /** Spawns audio `FFmpeg` process (live HLS via JVM feeder, everything else via direct URL). */
     @Throws(IOException::class)
     private fun buildAudioProcess(
         ffmpeg: String, streamSet: ActiveStreams, offsetNanos: Long, stopFlag: AtomicBoolean,
@@ -260,40 +225,24 @@ internal class PlaybackSessionManager(
         )
     }
 
-    /**
-     * Whether the audio process just built by [buildAudioProcess] starts at a content position this
-     * side actually knows (a real `-ss` seek into seekable media), as opposed to wherever the server
-     * chose to hand over the first sample (a live HLS join). Only the former can drive the master
-     * clock on its own; the latter has to be anchored onto the video timeline ([AudioMasterClock]).
-     */
+    /** True if audio starts at known position (real -ss seek, not live HLS join). */
     private fun audioOriginKnown(): Boolean = !liveSession && audioFeeder == null
 
-    /**
-     * True once this session has established that its source carries no audio at all, so it plays
-     * silently on the wall clock. Kept separate from `audioHalf == null` (which also covers a
-     * transient gap between audio processes) because a silent session is a complete, healthy one.
-     */
+    /** True once source has no audio (separate from transient gap between processes). */
     @Volatile
     private var silentSession = false
 
-    /**
-     * Records that [audioUrl] has no audio track, so no further process is spawned for it. Returns
-     * true the first time a given URL is marked, for callers that want to say so exactly once.
-     */
+    /** Marks URL as silent source (no process spawned, returns true on first mark). */
     fun markSourceSilent(audioUrl: String): Boolean {
         silentSession = true
         return SILENT_SOURCES.add(audioUrl)
     }
 
-    /**
-     * The single-line reappearance bridge audio session (cached prelude -> live PCM on one line) while it
-     * is still playing its prelude, before the live process is attached and it moves into [audioHalf].
-     */
+    /** Single-line bridge audio session while prelude plays (before live process attached) */
     @Volatile
     private var bridgeAudio: AudioHalf? = null
 
-    /** When true, the live video + audio reader threads idle in place, keeping their decoder / line open
-     *  so a returning display resumes instantly ([suspend] / [resume]). Reset false on every fresh start. */
+    /** When true, threads idle in place keeping decoder / line open for instant resume. */
     private val parkFlag = AtomicBoolean(false)
 
     init {

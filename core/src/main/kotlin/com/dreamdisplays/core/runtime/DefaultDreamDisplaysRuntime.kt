@@ -6,11 +6,7 @@ import com.dreamdisplays.api.runtime.ModuleContext
 import com.dreamdisplays.api.runtime.ServiceRegistry
 
 /**
- * Default module host for Dream Displays.
- *
- * The host owns only construction concerns: module registration, dependency ordering, and
- * teardown. Feature implementations still live in their dedicated `core`, `media`, or platform
- * modules and are exposed through API contracts.
+ * Default module host: registration, dependency ordering, lifecycle.
  */
 class DefaultDreamDisplaysRuntime(
     private val context: ModuleContext = DefaultModuleContext(DefaultServiceRegistry()),
