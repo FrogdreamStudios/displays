@@ -77,6 +77,8 @@ class PaperServer : JavaPlugin() {
         FullscreenBroadcastManager.restore()
         PipPinManager.init(PaperPlaybackTransport)
         PipPinManager.restore()
+        ScheduledPlaybackManager.init(PaperPlaybackTransport)
+        ScheduledPlaybackManager.restoreOnStartup()
 
         ProxyBridge.init(Companion.config.proxy.enabled, Companion.config.proxy.clock_sync_interval)
 

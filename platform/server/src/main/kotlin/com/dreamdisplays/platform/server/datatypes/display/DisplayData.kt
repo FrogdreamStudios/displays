@@ -1,9 +1,11 @@
 package com.dreamdisplays.platform.server.datatypes.display
 
 import com.dreamdisplays.api.display.model.ContentRotation
+import com.dreamdisplays.api.playback.PlaybackAction
 import com.dreamdisplays.api.playback.PlaybackMode
 import com.dreamdisplays.api.playback.PlaybackPermissions
 import java.util.*
+import kotlin.time.Instant
 
 /**
  * Shared display data.
@@ -48,6 +50,12 @@ interface DisplayData {
     /** Duration of the video. */
     var duration: Long?
 
+    /** Pending scheduled-playback start; null when no schedule is set. One-shot, cleared once it fires. */
+    var scheduledStart: Instant?
+
+    /** The action ([PlaybackAction.PLAY] / [PlaybackAction.PAUSE]) [scheduledStart] will apply. */
+    var scheduledAction: PlaybackAction?
+
     /** Legacy mirror of [mode] for frozen-v1 peers; true only when the mode is [PlaybackMode.SYNCED]. */
     val isSync: Boolean get() = mode == PlaybackMode.SYNCED
 
@@ -83,4 +91,10 @@ abstract class BaseDisplayData(override val virtual: Boolean = false) : DisplayD
 
     /** Duration of the video. */
     override var duration: Long? = null
+
+    /** Pending scheduled-playback start; null when no schedule is set. */
+    override var scheduledStart: Instant? = null
+
+    /** The action [scheduledStart] will apply. */
+    override var scheduledAction: PlaybackAction? = null
 }

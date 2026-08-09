@@ -7,6 +7,7 @@ import com.dreamdisplays.platform.server.playback.FullscreenBroadcastManager
 import com.dreamdisplays.platform.server.proxy.ProxyNetwork
 import com.dreamdisplays.platform.server.registrar.CommandRegistrar.fullscreenFlagsNode
 import com.dreamdisplays.platform.server.utils.MessageUtil
+import com.dreamdisplays.platform.server.utils.ScheduleTimeUtil
 import com.mojang.brigadier.Command
 import com.mojang.brigadier.LiteralMessage
 import com.mojang.brigadier.StringReader
@@ -75,6 +76,7 @@ object CommandRegistrar {
         .then(simple("reload", ReloadCommand()) { it.sender.hasPermission(PaperServer.config.permissions.reload) })
         .then(videoSubCommand())
         .then(nameSubCommand())
+        .then(scheduleSubCommand())
         .then(listSubCommand())
         .then(toggleSubCommand("on", OnCommand()))
         .then(toggleSubCommand("off", OffCommand()))
@@ -207,6 +209,109 @@ object CommandRegistrar {
                 )
                 Command.SINGLE_SUCCESS
             }
+
+    /**
+     * Builds the `/display schedule this|<id> [play|pause|cancel] [<HH:mm[:ss]>]` subcommand.
+     */
+    private fun scheduleSubCommand() = Commands.literal("schedule")
+        .requires { it.sender is Player && it.sender.hasPermission(PaperServer.config.permissions.schedule) }
+        .then(
+            Commands.literal("this")
+                .executes { ctx ->
+                    ScheduleCommand().execute(ctx.source.sender, arrayOf("this", null, null))
+                    Command.SINGLE_SUCCESS
+                }
+                .then(
+                    Commands.literal("cancel").executes { ctx ->
+                        ScheduleCommand().execute(ctx.source.sender, arrayOf("this", "cancel", null))
+                        Command.SINGLE_SUCCESS
+                    }
+                )
+                .then(scheduleActionNode("play") { "this" })
+                .then(scheduleActionNode("pause") { "this" })
+        )
+        .then(
+            Commands.argument("id", PaperBareTokenArgumentType)
+                .suggests { _, b ->
+                    FullscreenBroadcastManager.displayIdSuggestions().forEach { b.suggest(it) }
+                    b.buildFuture()
+                }
+                .executes { ctx ->
+                    ScheduleCommand().execute(
+                        ctx.source.sender,
+                        arrayOf(StringArgumentType.getString(ctx, "id"), null, null),
+                    )
+                    Command.SINGLE_SUCCESS
+                }
+                .then(
+                    Commands.literal("cancel").executes { ctx ->
+                        ScheduleCommand().execute(
+                            ctx.source.sender,
+                            arrayOf(StringArgumentType.getString(ctx, "id"), "cancel", null),
+                        )
+                        Command.SINGLE_SUCCESS
+                    }
+                )
+                .then(scheduleActionNode("play") { ctx -> StringArgumentType.getString(ctx, "id") })
+                .then(scheduleActionNode("pause") { ctx -> StringArgumentType.getString(ctx, "id") })
+        )
+
+    /**
+     * The `play`/`pause` literal under `/display schedule this|<id>`: bare (no time yet) reveals the
+     * player's current local time so they have an anchor to schedule against, and offers the
+     * `<HH:mm[:ss]>` argument to actually set it.
+     */
+    private fun scheduleActionNode(action: String, token: (CommandContext<CommandSourceStack>) -> String) =
+        Commands.literal(action)
+            .executes { ctx ->
+                ScheduleCommand().execute(ctx.source.sender, arrayOf(token(ctx), action, null))
+                Command.SINGLE_SUCCESS
+            }
+            .then(scheduleTimeArgument(action, token))
+
+    /**
+     * The `<HH:mm[:ss]>` argument under `/display schedule this|<id> play|pause <HH:mm[:ss]>`,
+     * suggesting every minute of the player's local day.
+     */
+    private fun scheduleTimeArgument(action: String, token: (CommandContext<CommandSourceStack>) -> String) =
+        Commands.argument("time", PaperBareTokenArgumentType)
+            .suggests { ctx, builder -> scheduleTimeSuggestions(ctx.source.sender as? Player, builder) }
+            .executes { ctx ->
+                ScheduleCommand().execute(
+                    ctx.source.sender,
+                    arrayOf(token(ctx), action, StringArgumentType.getString(ctx, "time")),
+                )
+                Command.SINGLE_SUCCESS
+            }
+
+    /**
+     * Suggests every minute-of-day as `HH:mm`, player-local (via [ScheduleTimeUtil]). With nothing
+     * typed yet, the first entry is "now" (rounded to the next minute) followed by a rolling window
+     * of the next two hours.
+     */
+    private fun scheduleTimeSuggestions(player: Player?, builder: SuggestionsBuilder): CompletableFuture<Suggestions> {
+        val offset = player?.let { ScheduleTimeUtil.offsetMinutesOf(it.uniqueId) } ?: 0
+        val nowMinute = ScheduleTimeUtil.minuteOfDay(ScheduleTimeUtil.currentSecondOfDay(offset))
+        val firstMinute = (nowMinute + 1) % 1440
+        val prefix = builder.remaining
+
+        val candidateMinutes = if (prefix.isBlank()) {
+            (0 until 120).map { (firstMinute + it) % 1440 }
+        } else {
+            (0 until 1440)
+                .map { (firstMinute + it) % 1440 }
+                .filter { ScheduleTimeUtil.format(it * 60).startsWith(prefix, ignoreCase = true) }
+                .take(150)
+        }
+
+        candidateMinutes.forEach { minute ->
+            val text = ScheduleTimeUtil.format(minute * 60)
+            val secondsAhead = ScheduleTimeUtil.secondsUntil(minute * 60, offset)
+            val tooltip = if (minute == firstMinute) "now" else ScheduleTimeUtil.compactCountdown(secondsAhead)
+            builder.suggest(text, LiteralMessage(tooltip))
+        }
+        return builder.buildFuture()
+    }
 
     /** Builds an on / off toggle subcommand that optionally targets another player. */
     private fun toggleSubCommand(name: String, cmd: SubCommand) = Commands.literal(name)
