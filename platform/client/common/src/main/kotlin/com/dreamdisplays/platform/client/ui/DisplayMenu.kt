@@ -293,6 +293,7 @@ class DisplayMenu private constructor(
                 waitingLabel = {
                     when {
                         !ds.isVideoStarted -> Component.translatable("dreamdisplays.ui.waiting").string
+                        ds.isApplyingQuality -> Component.translatable("dreamdisplays.ui.quality_applying").string
                         ds.isSwitchingAudioTrack -> Component.translatable("dreamdisplays.ui.audio_track_loading").string
                         else -> null
                     }

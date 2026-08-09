@@ -67,6 +67,7 @@
   "dreamdisplays.button.report.tooltip.2": "Zgłoś o nieodpowiednie treści",
   "dreamdisplays.ui.waiting": "Czekanie na wideo...",
   "dreamdisplays.ui.audio_track_loading": "Ładowanie ścieżki audio...",
+  "dreamdisplays.ui.quality_applying": "Stosowanie jakości...",
   "dreamdisplays.ui.schedule_play": "Uruchomi się za %s",
   "dreamdisplays.ui.schedule_pause": "Wstrzyma się za %s",
   "dreamdisplays.ui.preview": "Podgląd",

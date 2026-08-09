@@ -425,6 +425,10 @@ class DisplayScreen(
     val isSwitchingAudioTrack: Boolean
         get() = mediaPlayer?.isSwitchingAudioTrack() == true
 
+    /** True while a quality change is still being applied; the new resolution lands a few seconds later. */
+    val isApplyingQuality: Boolean
+        get() = mediaPlayer?.isApplyingQuality() == true
+
     init {
         // Ask the server for the current timeline / session; it replies only if it has one
         sendRequestSyncPacket()

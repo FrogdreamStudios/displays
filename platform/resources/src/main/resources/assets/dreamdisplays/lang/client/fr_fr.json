@@ -67,6 +67,7 @@
   "dreamdisplays.button.report.tooltip.2": "Signaler un contenu inapproprié",
   "dreamdisplays.ui.waiting": "En attente de la vidéo...",
   "dreamdisplays.ui.audio_track_loading": "Chargement de la piste audio...",
+  "dreamdisplays.ui.quality_applying": "Application de la qualité...",
   "dreamdisplays.ui.schedule_play": "Démarre dans %s",
   "dreamdisplays.ui.schedule_pause": "Se met en pause dans %s",
   "dreamdisplays.ui.preview": "Aperçu",

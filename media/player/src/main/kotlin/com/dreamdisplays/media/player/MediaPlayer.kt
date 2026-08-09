@@ -83,6 +83,9 @@ class MediaPlayer(
         /** Hwaccel failures show up within the first few seconds, past this window assume the stream is just unreliable. */
         private const val HWACCEL_FAIL_WINDOW_NS = 5_000_000_000L
 
+        /** How long the "applying quality" hint may stay up before it expires on its own. */
+        private const val QUALITY_STATUS_MAX_NS = 30_000_000_000L
+
         /**
          * A second stall within this window of the previous one means a plain restart isn't helping (most likely
          * a stale / throttled resolved URL rather than a transient hiccup), so escalate to a fresh re-resolve.
@@ -135,6 +138,12 @@ class MediaPlayer(
 
     /** True from [changeAudioTrack] until the swap settles (promoted or gave up); drives a UI "loading" hint. */
     private val audioTrackSwitching = AtomicBoolean(false)
+
+    /** True from [changeQuality] until the handoff settles (promoted, aborted, or restarted). */
+    private val qualitySwitching = AtomicBoolean(false)
+
+    /** When the in-flight quality switch began, so a missed settle path cannot pin the hint forever. */
+    private val qualitySwitchStartedNanos = AtomicLong(0L)
 
     /** Clock for the current playback session; paused / parked sessions freeze the clock at the last position. */
     private val clock = PlaybackClock()
@@ -418,7 +427,10 @@ class MediaPlayer(
     /** Promotes the warmed-up quality-switch channel to live; returns false if it was already aborted. */
     fun promoteIncomingVideo(): Boolean {
         val promoted = sessionManager.promoteIncoming()
-        if (promoted) pendingQualityRollback = null // The staged quality switch committed successfully
+        if (promoted) {
+            pendingQualityRollback = null // The staged quality switch committed successfully
+            qualitySwitching.set(false)
+        }
         return promoted
     }
 
@@ -427,6 +439,7 @@ class MediaPlayer(
      */
     private fun handleQualitySwitchAborted(appliedAnyway: Boolean) {
         host.cancelQualityHandoff()
+        qualitySwitching.set(false)
         val rollback = pendingQualityRollback
         pendingQualityRollback = null
         if (rollback == null || appliedAnyway) return
@@ -491,6 +504,27 @@ class MediaPlayer(
 
     /** True while a [setAudioTrack] switch is in flight; the actual audio can lag the UI selection by a few seconds. */
     fun isSwitchingAudioTrack(): Boolean = audioTrackSwitching.get()
+
+    /**
+     * True while a [setQuality] change is still being applied: the new resolution decodes in a second
+     * channel and only replaces the picture once its first frame lands, so the switch outlives the click.
+     */
+    fun isApplyingQuality(): Boolean {
+        if (!qualitySwitching.get()) return false
+        // Every settle path below clears the flag, but a hint stuck on forever would be worse than one
+        // that disappears early, so it also expires on its own.
+        if (System.nanoTime() - qualitySwitchStartedNanos.get() > QUALITY_STATUS_MAX_NS) {
+            qualitySwitching.set(false)
+            return false
+        }
+        return true
+    }
+
+    /** Marks a quality change as in flight (see [isApplyingQuality]). */
+    private fun beginQualityStatus() {
+        qualitySwitchStartedNanos.set(System.nanoTime())
+        qualitySwitching.set(true)
+    }
 
     /** Reopens the current stream without changing URL/quality; used when render backend requirements change. */
     fun restartVideoPipeline() = safeExecute {
@@ -649,6 +683,8 @@ class MediaPlayer(
             state.set(PlaybackState.PLAYING)
             watchdog.start()
             refreshWarmAudioTracks()
+            // Settles the live quality path, which applies by restarting the whole session.
+            qualitySwitching.set(false)
         }
     }
 
@@ -969,6 +1005,8 @@ class MediaPlayer(
         lastRequestedQuality = target
         if (liveStream) {
             logger.debug("$debugLabel Live quality switch to ${target}p; re-resolving and restarting.")
+            // Cleared once the restarted session reaches [startStreams].
+            beginQualityStatus()
             primedStartPositionNanos.set(0L)
             state.set(PlaybackState.RESTARTING)
             dispatchInitialize(coalesce = true)
@@ -980,6 +1018,7 @@ class MediaPlayer(
         streams = newSs
         lastQuality = MediaStreamSelector.parseQuality(newSs.currentVideo)
         host.videoContentAspect = newSs.currentVideo.contentAspect()
+        beginQualityStatus()
         env.renderExecutor.execute {
             if (sessionManager.isPlaying && !sessionManager.isParked()) {
                 // Parallel quality switch: stage the new-resolution texture, but the live video keeps
@@ -995,6 +1034,8 @@ class MediaPlayer(
                 pendingQualityRollback = null
                 host.reloadTexture()
                 safeExecute { clock.moveTo(getCurrentTime()) }
+                // A direct swap is done the moment it returns: there is no handoff to wait out.
+                qualitySwitching.set(false)
             }
         }
     }

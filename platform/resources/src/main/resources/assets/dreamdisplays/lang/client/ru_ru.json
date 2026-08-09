@@ -67,6 +67,7 @@
   "dreamdisplays.button.report.tooltip.2": "Пожаловаться на неподобающий контент",
   "dreamdisplays.ui.waiting": "Ожидание видео...",
   "dreamdisplays.ui.audio_track_loading": "Загрузка аудиодорожки...",
+  "dreamdisplays.ui.quality_applying": "Применение качества...",
   "dreamdisplays.ui.schedule_play": "Запуск через %s",
   "dreamdisplays.ui.schedule_pause": "Пауза через %s",
   "dreamdisplays.ui.preview": "Предпросмотр",
