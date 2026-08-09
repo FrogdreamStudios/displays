@@ -312,6 +312,10 @@ fun parseServerConfig(t: TomlTable?): ParsedServerConfig = ParsedServerConfig(
             fullscreen_network = t?.getString("permissions.fullscreen_network") ?: "dreamdisplays.fullscreen.network",
             remote = t?.getString("permissions.remote") ?: "dreamdisplays.remote",
             custom = t?.getString("permissions.custom") ?: "dreamdisplays.custom",
+            name = t?.getString("permissions.name") ?: "dreamdisplays.name",
+            name_others = t?.getString("permissions.name_others") ?: "dreamdisplays.name.others",
+            schedule = t?.getString("permissions.schedule") ?: "dreamdisplays.schedule",
+            schedule_others = t?.getString("permissions.schedule_others") ?: "dreamdisplays.schedule.others",
         )
     ),
     proxy = ProxySection(

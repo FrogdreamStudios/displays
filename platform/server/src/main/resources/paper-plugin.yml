@@ -62,3 +62,7 @@ permissions:
     default: true
   dreamdisplays.name.others:
     default: op
+  dreamdisplays.schedule:
+    default: true
+  dreamdisplays.schedule.others:
+    default: op
