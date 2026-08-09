@@ -66,6 +66,7 @@
   "dreamdisplays.button.report.tooltip.1": "Reportar pantalla",
   "dreamdisplays.button.report.tooltip.2": "Reportar contenido inapropiado",
   "dreamdisplays.ui.waiting": "Esperando el video...",
+  "dreamdisplays.ui.audio_track_loading": "Cargando pista de audio...",
   "dreamdisplays.ui.schedule_play": "Se inicia en %s",
   "dreamdisplays.ui.schedule_pause": "Se pausa en %s",
   "dreamdisplays.ui.preview": "Vista previa",
