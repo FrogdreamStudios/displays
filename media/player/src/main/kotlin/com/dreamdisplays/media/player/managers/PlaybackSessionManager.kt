@@ -248,6 +248,21 @@ internal class PlaybackSessionManager(
     /** When true, threads idle in place keeping decoder / line open for instant resume. */
     private val parkFlag = AtomicBoolean(false)
 
+    /** Pre-warmed shadow processes for the audio tracks that are not playing; see [AudioTrackWarmPool]. */
+    private val audioWarmPool = AudioTrackWarmPool(
+        debugLabel = debugLabel,
+        terminated = terminated,
+        positionNanos = { clock.currentTime() },
+        eligible = { isPlaying && !terminated.get() && !parkFlag.get() && audioOriginKnown() },
+    )
+
+    /** Declares the audio tracks to keep pre-warmed; the one currently playing must not be among them. */
+    fun setWarmAudioTracks(tracks: List<WarmTrack>) =
+        audioWarmPool.setTracks(tracks.filter { it.url !in SILENT_SOURCES })
+
+    /** Drops every pre-warmed audio shadow, whose spawn positions no longer relate to the playhead. */
+    fun invalidateWarmAudio() = audioWarmPool.invalidateAll()
+
     init {
         audio.setParkFlag(parkFlag)
         audio.setDspStage(audioStage)
@@ -406,6 +421,8 @@ internal class PlaybackSessionManager(
     /** Seamless in-place seek: silences old audio, freezes picture on last frame, warms new stream at offset. */
     fun beginSeek(streamSet: ActiveStreams, offsetNanos: Long, lastQuality: Int, hwAccel: HwAccelBackend): Boolean {
         if (!isPlaying || terminated.get() || parkFlag.get()) return false
+        // The shadows hold PCM for the position we are leaving; the refresh pass re-warms at the new one.
+        audioWarmPool.invalidateAll()
         if (bridgeCeilingNanos != Long.MAX_VALUE) return false
         synchronized(switchLock) { if (incoming != null) return false }
         val old = active ?: return false
@@ -567,21 +584,41 @@ internal class PlaybackSessionManager(
     private fun audioSwitchStillCurrent(generation: Long): Boolean =
         audioSwitchGeneration.get() == generation && !terminated.get() && isPlaying && !parkFlag.get()
 
-    /** Background body of [beginAudioTrackSwitch]: warm up the replacement, then swap lines. */
-    private fun runAudioTrackSwitch(ffmpeg: String, streamSet: ActiveStreams, generation: Long) {
+    /** A replacement audio line ready to promote: its process, stop flag, and where its PCM begins. */
+    private class PreparedAudioLine(
+        val process: Process,
+        val stop: AtomicBoolean,
+        val contentStartNanos: Long,
+    )
+
+    /**
+     * Claims the pre-warmed line for the target track, or null when none is pooled. Its PCM starts at
+     * the position it was spawned at rather than at the playhead, which is exactly what the catch-up
+     * skip in [AudioSink.startSwitch] exists to absorb — so this only applies where that skip runs
+     * ([audioOriginKnown]); a live join anchors on its own PES PTS and must always start fresh.
+     */
+    private fun takeWarmAudioLine(streamSet: ActiveStreams): PreparedAudioLine? {
+        if (!audioOriginKnown()) return null
+        val w = audioWarmPool.take(streamSet.currentAudio.url) ?: return null
+        logger.debug(
+            "$debugLabel Audio-track switch served from the warm pool " +
+                    "(spawned at ${w.contentStartNanos / 1_000_000} ms)."
+        )
+        return PreparedAudioLine(w.process, w.stop, w.contentStartNanos)
+    }
+
+    /** Spawns a replacement line at the playhead and waits for its first PCM, the un-warmed path. */
+    private fun coldStartAudioLine(
+        ffmpeg: String, streamSet: ActiveStreams, generation: Long,
+    ): PreparedAudioLine? {
         val seekNanos = clock.currentTime().coerceAtLeast(0L)
         val aStop = AtomicBoolean()
         val ap = try {
             buildAudioProcess(ffmpeg, streamSet, seekNanos, aStop)
         } catch (e: IOException) {
             logger.error("$debugLabel Failed to start replacement audio-track process.", e)
-            onAudioTrackSwitchSettled()
-            return
-        }
-        if (ap == null) {
-            onAudioTrackSwitchSettled()
-            return
-        }
+            return null
+        } ?: return null
         // Old track keeps playing while the replacement warms up; wait for its first stdout bytes
         val deadline = System.nanoTime() + audioSwitchWarmupTimeoutNanos
         var ready = false
@@ -602,15 +639,31 @@ internal class PlaybackSessionManager(
                 break
             }
         }
-        if (!ready || !audioSwitchStillCurrent(generation)) {
+        if (!ready) {
             aStop.set(true)
             MediaProcess.gracefulDestroy(ap)
-            if (!ready && audioSwitchGeneration.get() == generation) {
+            if (audioSwitchGeneration.get() == generation) {
                 logger.warn("$debugLabel Audio-track switch delivered no PCM in time; keeping the current track.")
+            }
+            return null
+        }
+        return PreparedAudioLine(ap, aStop, seekNanos)
+    }
+
+    /** Background body of [beginAudioTrackSwitch]: warm up the replacement, then swap lines. */
+    private fun runAudioTrackSwitch(ffmpeg: String, streamSet: ActiveStreams, generation: Long) {
+        val line = takeWarmAudioLine(streamSet) ?: coldStartAudioLine(ffmpeg, streamSet, generation)
+        if (line == null || !audioSwitchStillCurrent(generation)) {
+            line?.let {
+                it.stop.set(true)
+                MediaProcess.gracefulDestroy(it.process)
             }
             onAudioTrackSwitchSettled()
             return
         }
+        val ap = line.process
+        val aStop = line.stop
+        val seekNanos = line.contentStartNanos
         // Seamless swap: the replacement line pre-buffers (silent) while the OLD one keeps playing,
         // then flips in with no audible gap (see [AudioSink.startSwitch]) — this removes the silence
         // the old stop-then-start swap left while the new line opened and filled. A catch-up skip
@@ -856,6 +909,8 @@ internal class PlaybackSessionManager(
     fun suspend(allowExternalProcess: Boolean = false): Boolean {
         if (!(if (allowExternalProcess) canHoldWarm() else canPark()) || parkFlag.get()) return false
         parkFlag.set(true)
+        // Nothing may switch tracks while dormant, so holding idle FFmpeg processes would be pure cost.
+        audioWarmPool.invalidateAll()
         audio.pauseForPark()
         active?.pipe?.trimForPark()
         frozenPositionNanos = pacingClockNanos().takeIf { it >= 0L } ?: clock.currentTime()
@@ -1070,6 +1125,7 @@ internal class PlaybackSessionManager(
      */
     fun stop() {
         isPlaying = false
+        audioWarmPool.invalidateAll()
         bridgeCeilingNanos = Long.MAX_VALUE
         audioFeeder = null
         masterClock.reset()
@@ -1107,6 +1163,7 @@ internal class PlaybackSessionManager(
      * discarded (the owning `MediaPlayer` is stopping for good). [stop] normally clears channels first.
      */
     fun cleanup() {
+        audioWarmPool.close()
         synchronized(switchLock) { incoming.also { incoming = null } }?.let { discardChannelBlocking(it) }
         active?.let { ch ->
             active = null

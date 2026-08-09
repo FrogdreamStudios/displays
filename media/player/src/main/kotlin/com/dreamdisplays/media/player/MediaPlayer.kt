@@ -14,6 +14,7 @@ import com.dreamdisplays.media.player.events.PlayerEvents
 import com.dreamdisplays.media.player.managers.PlaybackSessionManager
 import com.dreamdisplays.media.player.managers.StatsReporter
 import com.dreamdisplays.media.player.managers.StreamWatchdog
+import com.dreamdisplays.media.player.managers.WarmTrack
 import com.dreamdisplays.media.player.pipeline.PlaybackClock
 import com.dreamdisplays.media.player.policy.RetryPolicy
 import com.dreamdisplays.media.player.preparation.MediaPreparationService
@@ -647,6 +648,7 @@ class MediaPlayer(
         if (sessionManager.isPlaying) {
             state.set(PlaybackState.PLAYING)
             watchdog.start()
+            refreshWarmAudioTracks()
         }
     }
 
@@ -1007,11 +1009,31 @@ class MediaPlayer(
         val newSs = MediaStreamSelector.switchAudioTrack(ss, trackUrl) ?: return
         streams = newSs
         audioTrackSwitching.set(true)
-        if (sessionManager.beginAudioTrackSwitch(newSs)) return
+        val seamless = sessionManager.beginAudioTrackSwitch(newSs)
+        refreshWarmAudioTracks()
+        if (seamless) return
         env.renderExecutor.execute {
             safeExecute { sessionManager.restartAudio(newSs, getCurrentTime()) }
             audioTrackSwitching.set(false)
         }
+    }
+
+    /**
+     * Re-declares which dubs the session keeps pre-warmed: every selectable track except the playing
+     * one. Live sources are excluded — they have no seekable spawn position a shadow could hold.
+     */
+    private fun refreshWarmAudioTracks() {
+        val ss = streams
+        if (ss == null || liveStream) {
+            sessionManager.setWarmAudioTracks(emptyList())
+            return
+        }
+        val playing = ss.currentAudio.url
+        sessionManager.setWarmAudioTracks(
+            getAvailableAudioTracks()
+                .filter { it.url != playing }
+                .map { WarmTrack(it.url, it.seekByDecoding) },
+        )
     }
 
     /** Is warm session paused? */
