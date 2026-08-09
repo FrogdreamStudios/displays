@@ -315,6 +315,36 @@ jobs:
           loaders: neoforge
           game-versions: ${{ steps.versions.outputs.mc_versions }}
 
+      - name: Publish Velocity to Modrinth
+        if: needs.build.outputs.is_marketplace_publishable == 'true' && matrix.task.kind == 'velocity'
+        uses: Kir-Antipov/mc-publish@v3.3
+        with:
+          name: 'Dream Displays ${{ needs.build.outputs.pretty_version }} — Velocity'
+          version: ${{ needs.build.outputs.version }}
+          version-type: ${{ needs.build.outputs.is_preview == 'true' && 'alpha' || 'release' }}
+          files: build/libs/dreamdisplays-velocity-${{ needs.build.outputs.version }}.jar
+          changelog-file: changelog.md
+          modrinth-id: dreamdisplays
+          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+          loaders: velocity
+          game-versions: ${{ steps.versions.outputs.paper_versions }}
+          game-version-filter: none
+
+      - name: Publish BungeeCord to Modrinth
+        if: needs.build.outputs.is_marketplace_publishable == 'true' && matrix.task.kind == 'bungeecord'
+        uses: Kir-Antipov/mc-publish@v3.3
+        with:
+          name: 'Dream Displays ${{ needs.build.outputs.pretty_version }} — BungeeCord'
+          version: ${{ needs.build.outputs.version }}
+          version-type: ${{ needs.build.outputs.is_preview == 'true' && 'alpha' || 'release' }}
+          files: build/libs/dreamdisplays-bungeecord-${{ needs.build.outputs.version }}.jar
+          changelog-file: changelog.md
+          modrinth-id: dreamdisplays
+          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+          loaders: bungeecord
+          game-versions: ${{ steps.versions.outputs.paper_versions }}
+          game-version-filter: none
+
       - name: Download all build artifacts for GitHub Release
         if: needs.build.outputs.is_marketplace_publishable == 'true' && needs.build.outputs.is_release == 'true' && matrix.task.kind == 'paper'
         uses: actions/download-artifact@v8.0.1

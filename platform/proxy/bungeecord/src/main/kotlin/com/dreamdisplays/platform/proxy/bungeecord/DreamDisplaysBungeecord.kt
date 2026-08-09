@@ -1,4 +1,4 @@
-package com.dreamdisplays.platform.proxy.bungee
+package com.dreamdisplays.platform.proxy.bungeecord
 
 import com.dreamdisplays.core.protocol.proxy.ApplyNetworkWatchParty
 import com.dreamdisplays.core.protocol.proxy.BackendDisplayIndex
@@ -23,7 +23,7 @@ import com.dreamdisplays.core.protocol.proxy.ResolveDisplayToken
 import com.dreamdisplays.core.protocol.proxy.StartNetworkFullscreen
 import com.dreamdisplays.core.protocol.proxy.StartNetworkWatchParty
 import com.dreamdisplays.core.protocol.proxy.StopNetworkFullscreen
-import com.dreamdisplays.platform.proxy.BungeeOnly
+import com.dreamdisplays.platform.proxy.BungeecordOnly
 import com.dreamdisplays.platform.proxy.NetworkBackendRegistry
 import com.dreamdisplays.platform.proxy.NetworkDisplayIndex
 import com.dreamdisplays.platform.proxy.NetworkFullscreenManager
@@ -48,8 +48,8 @@ private const val PRUNE_INTERVAL_MS = 5L * 60L * 1000L
  * `BungeeCord` entry point for the thin-coordinator proxy plugin. Same responsibilities as the `Velocity` equivalent:
  * relay fullscreen / session packets between backends.
  */
-@BungeeOnly
-class DreamDisplaysBungee : Plugin(), Listener {
+@BungeecordOnly
+class DreamDisplaysBungeecord : Plugin(), Listener {
     override fun onEnable() {
         proxy.registerChannel(PROXY_CHANNEL)
         proxy.pluginManager.registerListener(this, this)
@@ -65,7 +65,7 @@ class DreamDisplaysBungee : Plugin(), Listener {
         )
     }
 
-    /** `Bungee`'s server roster is config-driven and static at runtime, unlike `Velocity`'s — resynced on enable and on every hello for consistency with the `Velocity` sibling. */
+    /** `BungeeCord`'s server roster is config-driven and static at runtime, unlike `Velocity`'s — resynced on enable and on every hello for consistency with the `Velocity` sibling. */
     private fun refreshKnownServers() {
         NetworkBackendRegistry.updateKnownServers(proxy.servers.keys)
     }

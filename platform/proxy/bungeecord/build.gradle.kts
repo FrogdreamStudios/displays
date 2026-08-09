@@ -10,7 +10,7 @@ sourceSets.main {
 }
 
 platformweaver {
-    target = "bungee"
+    target = "bungeecord"
     chameleonsDir = null
 }
 
@@ -39,7 +39,7 @@ tasks.jar {
 }
 
 tasks.shadowJar {
-    archiveBaseName.set("dreamdisplays-bungee")
+    archiveBaseName.set("dreamdisplays-bungeecord")
     val prefix = "com.dreamdisplays.libs"
     listOf(
         "kotlin",

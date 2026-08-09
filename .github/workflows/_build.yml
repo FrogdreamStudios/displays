@@ -99,7 +99,9 @@ jobs:
           tasks = (
               [{"kind": "fabric", "mc": version} for version in versions] +
               [{"kind": "neoforge", "mc": version} for version in versions] +
-              [{"kind": "paper", "mc": paper_build_version}]
+              [{"kind": "paper", "mc": paper_build_version}] +
+              [{"kind": "velocity", "mc": paper_build_version}] +
+              [{"kind": "bungeecord", "mc": paper_build_version}]
           )
 
           native_matrix = [
@@ -595,6 +597,17 @@ jobs:
         env:
           DREAMDISPLAYS_REQUIRE_NATIVES: "true"
           DREAMDISPLAYS_REQUIRED_NATIVE_PLATFORMS: ${{ needs.metadata.outputs.required_native_platforms }}
+          GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Xmx4G
+
+      - name: Build proxy plugins with Gradle
+        if: matrix.mc == needs.metadata.outputs.paper_build_version
+        run: |
+          ./gradlew \
+            :platform:proxy:shadowJar \
+            :platform:proxy:bungeecord:shadowJar \
+            --no-daemon \
+            --parallel
+        env:
           GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Xmx4G
 
       - name: Verify jar native bundle

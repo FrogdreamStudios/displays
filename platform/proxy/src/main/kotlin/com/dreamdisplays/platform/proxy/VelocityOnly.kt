@@ -5,7 +5,7 @@ import io.github.arnodoelinger.platformweaver.PlatformOnly
 /**
  * Marks a declaration as `Velocity`-specific.
  *
- * @see BungeeOnly
+ * @see BungeecordOnly
  */
 @PlatformOnly("velocity")
 @Target(

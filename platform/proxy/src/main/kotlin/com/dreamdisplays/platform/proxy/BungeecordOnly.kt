@@ -7,7 +7,7 @@ import io.github.arnodoelinger.platformweaver.PlatformOnly
  *
  * @see VelocityOnly
  */
-@PlatformOnly("bungee")
+@PlatformOnly("bungeecord")
 @Target(
     AnnotationTarget.CLASS,
     AnnotationTarget.FUNCTION,
@@ -17,4 +17,4 @@ import io.github.arnodoelinger.platformweaver.PlatformOnly
     AnnotationTarget.PROPERTY_SETTER,
 )
 @Retention(AnnotationRetention.SOURCE)
-annotation class BungeeOnly
+annotation class BungeecordOnly
