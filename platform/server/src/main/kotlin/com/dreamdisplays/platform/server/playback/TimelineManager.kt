@@ -100,6 +100,21 @@ object TimelineManager {
         return true
     }
 
+    /**
+     * Server-initiated play / pause for [display], bypassing the sender / nearby checks [onCommand]
+     * applies to client intents — used by [ScheduledPlaybackManager] when a scheduled action fires.
+     */
+    fun applyScheduled(display: DisplayData, action: PlaybackAction): Boolean {
+        if (display.mode != PlaybackMode.SYNCED && display.mode != PlaybackMode.BROADCAST) return false
+        if (action != PlaybackAction.PLAY && action != PlaybackAction.PAUSE) return false
+        val now = transport.nowMs()
+        val current = ensureTimeline(display) ?: Timeline.start(now, durationMs = durationMsOf(display), loop = true)
+        val updated = current.withPaused(action == PlaybackAction.PAUSE, now)
+        timelines[display.id] = updated
+        broadcast(display, updated)
+        return true
+    }
+
     /** Sends the current timeline to one player (RequestSync reply / late-join catch-up). */
     fun sendCurrent(display: DisplayData, playerId: UUID) {
         val timeline = ensureTimeline(display) ?: return

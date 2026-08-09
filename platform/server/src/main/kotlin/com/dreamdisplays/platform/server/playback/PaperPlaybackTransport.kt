@@ -83,6 +83,17 @@ object PaperPlaybackTransport : PlaybackTransport {
         DisplayManager.sendUpdate(paper, listOf(player), forced)
     }
 
+    /** Runs [task] on the main / global region thread. */
+    override fun runOnMainThread(task: () -> Unit) {
+        Scheduler.runSync(task)
+    }
+
+    /** Persists [display] via the `Paper` storage backend. */
+    override fun saveDisplay(display: DisplayData) {
+        val paper = display as? PaperDisplayData ?: return
+        Scheduler.runAsync { PaperServer.getInstance().storage.saveDisplay(paper) }
+    }
+
     /** Builds a synthetic 1x1 [PaperDisplayData] at the origin of the first loaded world. */
     override fun createVirtualDisplay(id: UUID, ownerId: UUID): DisplayData? {
         val world = PaperServer.getInstance().server.worlds.firstOrNull() ?: return null

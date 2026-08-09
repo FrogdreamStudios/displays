@@ -19,6 +19,7 @@ import com.dreamdisplays.platform.server.meta.Scheduler.runSync
 import com.dreamdisplays.platform.server.meta.ServerCoroutines
 import com.dreamdisplays.platform.server.playback.FullscreenBroadcastManager
 import com.dreamdisplays.platform.server.playback.PipPinManager
+import com.dreamdisplays.platform.server.playback.ScheduledPlaybackManager
 import com.dreamdisplays.platform.server.playback.TimelineManager
 import com.dreamdisplays.platform.server.playback.WatchPartyManager
 import com.dreamdisplays.platform.server.utils.MessageUtil
@@ -132,6 +133,7 @@ object DisplayManager {
             WatchPartyManager.remove(display.id)
             FullscreenBroadcastManager.onDisplayRemoved(display.id)
             PipPinManager.onDisplayRemoved(display.id)
+            ScheduledPlaybackManager.onDisplayRemoved(display.id)
             StateManager.remove(display.id)
             delete(display)
             display.id
@@ -218,6 +220,8 @@ object DisplayManager {
             display.url, display.lang, display.facing, display.isSync, display.isLocked,
             display.mode, display.qualityCap, display.rotation,
             virtual = display.virtual, forced = forced,
+            scheduledStartEpochMillis = display.scheduledStart?.toEpochMilliseconds() ?: 0,
+            scheduledAction = display.scheduledAction?.wire ?: -1,
         )
     }
 

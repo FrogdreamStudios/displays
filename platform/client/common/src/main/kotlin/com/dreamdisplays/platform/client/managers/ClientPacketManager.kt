@@ -54,6 +54,7 @@ object ClientPacketManager {
             }
 
             is FullscreenState -> FullscreenController.handle(packet)
+            is RemotePlaybackToggle -> DisplayRegistry.screens[packet.id]?.setPaused(packet.paused)
             is DisplayDelete -> handleDelete(packet)
             is ClearCache -> handleClearCache(packet)
             else -> logger.debug("Ignoring non-clientbound packet {}.", packet::class.simpleName)

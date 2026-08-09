@@ -3,12 +3,15 @@ package com.dreamdisplays.platform.server.playback
 import com.dreamdisplays.core.protocol.DreamPacket
 import com.dreamdisplays.platform.server.datatypes.display.DisplayData
 import com.dreamdisplays.platform.server.datatypes.display.VanillaDisplayData
+import com.dreamdisplays.platform.server.VanillaServerState
 import com.dreamdisplays.platform.server.managers.DisplayManager
+import com.dreamdisplays.platform.server.meta.ServerCoroutines
 import com.dreamdisplays.platform.server.utils.RegionUtil
 import com.dreamdisplays.platform.server.utils.net.V2PlayerTracker
 import com.dreamdisplays.platform.server.utils.net.VanillaDisplayActions
 import com.dreamdisplays.platform.server.utils.net.VanillaNetworking
 import com.dreamdisplays.platform.server.utils.net.VanillaPacketUtil
+import kotlinx.coroutines.launch
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.server.MinecraftServer
@@ -80,6 +83,17 @@ object VanillaPlaybackTransport : PlaybackTransport {
         val vanilla = display as? VanillaDisplayData ?: return
         val player = server?.playerList?.getPlayer(playerId) ?: return
         VanillaPacketUtil.sendDisplayInfo(listOf(player), vanilla, forced)
+    }
+
+    /** Runs [task] on the main server thread. */
+    override fun runOnMainThread(task: () -> Unit) {
+        server?.execute(task)
+    }
+
+    /** Persists [display] via the vanilla storage backend. */
+    override fun saveDisplay(display: DisplayData) {
+        val vanilla = display as? VanillaDisplayData ?: return
+        ServerCoroutines.io.launch { VanillaServerState.storage?.saveDisplay(vanilla) }
     }
 
     /** Builds a synthetic 1x1 [VanillaDisplayData] at the origin of the first loaded level. */

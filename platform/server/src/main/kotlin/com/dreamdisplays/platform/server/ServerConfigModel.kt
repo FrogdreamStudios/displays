@@ -179,6 +179,8 @@ data class PermissionsSection(
     val custom get() = permissions.custom
     val name get() = permissions.name
     val nameOthers get() = permissions.name_others
+    val schedule get() = permissions.schedule
+    val scheduleOthers get() = permissions.schedule_others
 
     data class PermissionsConfig(
         val create: String = "dreamdisplays.create",
@@ -207,6 +209,8 @@ data class PermissionsSection(
         val custom: String = "dreamdisplays.custom",
         val name: String = "dreamdisplays.name",
         val name_others: String = "dreamdisplays.name.others",
+        val schedule: String = "dreamdisplays.schedule",
+        val schedule_others: String = "dreamdisplays.schedule.others",
     )
 }
 

@@ -33,7 +33,8 @@ enum class ProtocolPacketType(
     FULLSCREEN_ACK(18, FullscreenAck::class, PacketDirection.CLIENT_TO_SERVER),
     RADIUS_PREVIEW(19, RadiusPreview::class, PacketDirection.SERVER_TO_CLIENT),
     PIP_PIN(20, PipPin::class, PacketDirection.CLIENT_TO_SERVER),
-    REPORT_DURATION(21, ReportDuration::class, PacketDirection.CLIENT_TO_SERVER);
+    REPORT_DURATION(21, ReportDuration::class, PacketDirection.CLIENT_TO_SERVER),
+    REMOTE_PLAYBACK_TOGGLE(22, RemotePlaybackToggle::class, PacketDirection.SERVER_TO_CLIENT);
 
     companion object {
         private val byId = entries.associateBy { it.id }

@@ -7,8 +7,10 @@ import com.dreamdisplays.platform.server.playback.FullscreenBroadcastManager
 import com.dreamdisplays.platform.server.proxy.ProxyNetwork
 import com.dreamdisplays.platform.server.registrar.VanillaCommandTree.fullscreenFlagsNode
 import com.dreamdisplays.platform.server.utils.MessageUtil
+import com.dreamdisplays.platform.server.utils.ScheduleTimeUtil
 import com.dreamdisplays.platform.server.utils.VanillaPermissions
 import com.mojang.brigadier.Command
+import com.mojang.brigadier.LiteralMessage
 import com.mojang.brigadier.arguments.DoubleArgumentType
 import com.mojang.brigadier.arguments.StringArgumentType
 import com.mojang.brigadier.builder.ArgumentBuilder
@@ -52,6 +54,7 @@ object VanillaCommandTree {
             .then(reloadNode())
             .then(videoNode())
             .then(nameNode())
+            .then(scheduleNode())
             .then(toggleNode("on"))
             .then(toggleNode("off"))
             .then(fullscreenNode())
@@ -194,6 +197,83 @@ object VanillaCommandTree {
             .executes { ctx ->
                 VanillaNameCommand.execute(ctx, token(ctx), StringArgumentType.getString(ctx, "name"))
             }
+
+    /**
+     * Builds the `/display schedule this|<id> [play|pause|cancel] [<HH:mm[:ss]>]` subcommand.
+     */
+    private fun scheduleNode() = Commands.literal("schedule")
+        .requires { requiresNode(it, { p -> p.schedule }, VanillaPermissions.Fallback.EVERYONE) }
+        .then(
+            Commands.literal("this")
+                .executes { ctx -> VanillaScheduleCommand.execute(ctx, "this", null, null) }
+                .then(Commands.literal("cancel").executes { ctx -> VanillaScheduleCommand.execute(ctx, "this", "cancel", null) })
+                .then(scheduleActionNode("play") { "this" })
+                .then(scheduleActionNode("pause") { "this" })
+        )
+        .then(
+            Commands.argument("id", BareTokenArgumentType)
+                .suggests { _, b ->
+                    FullscreenBroadcastManager.displayIdSuggestions().forEach { b.suggest(it) }
+                    b.buildFuture()
+                }
+                .executes { ctx -> VanillaScheduleCommand.execute(ctx, StringArgumentType.getString(ctx, "id"), null, null) }
+                .then(
+                    Commands.literal("cancel").executes { ctx ->
+                        VanillaScheduleCommand.execute(ctx, StringArgumentType.getString(ctx, "id"), "cancel", null)
+                    }
+                )
+                .then(scheduleActionNode("play") { ctx -> StringArgumentType.getString(ctx, "id") })
+                .then(scheduleActionNode("pause") { ctx -> StringArgumentType.getString(ctx, "id") })
+        )
+
+    /**
+     * The `play` / `pause` literal under `schedule this|<id>`: bare (no time yet) reveals the player's
+     * current local time so they have an anchor to schedule against, and offers the `<HH:mm[:ss]>`
+     * argument to actually set it.
+     */
+    private fun scheduleActionNode(action: String, token: (CommandContext<CommandSourceStack>) -> String) =
+        Commands.literal(action)
+            .executes { ctx -> VanillaScheduleCommand.execute(ctx, token(ctx), action, null) }
+            .then(scheduleTimeArgument(action, token))
+
+    /**
+     * The `<HH:mm[:ss]>` argument under `schedule this|<id> play|pause <HH:mm[:ss]>`, suggesting
+     * every minute of the player's local day. Uses [BareTokenArgumentType] (not
+     * [StringArgumentType.word]) since `:` isn't in `word()`'s allowed unquoted charset.
+     */
+    private fun scheduleTimeArgument(action: String, token: (CommandContext<CommandSourceStack>) -> String) =
+        Commands.argument("time", BareTokenArgumentType)
+            .suggests { ctx, builder -> scheduleTimeSuggestions(ctx.source.entity as? ServerPlayer, builder) }
+            .executes { ctx ->
+                VanillaScheduleCommand.execute(ctx, token(ctx), action, StringArgumentType.getString(ctx, "time"))
+            }
+
+    /**
+     * Suggests every minute-of-day as `HH:mm`, player-local (via [ScheduleTimeUtil]).
+     */
+    private fun scheduleTimeSuggestions(player: ServerPlayer?, builder: SuggestionsBuilder): CompletableFuture<Suggestions> {
+        val offset = player?.let { ScheduleTimeUtil.offsetMinutesOf(it.uuid) } ?: 0
+        val nowMinute = ScheduleTimeUtil.minuteOfDay(ScheduleTimeUtil.currentSecondOfDay(offset))
+        val firstMinute = (nowMinute + 1) % 1440
+        val prefix = builder.remaining
+
+        val candidateMinutes = if (prefix.isBlank()) {
+            (0 until 120).map { (firstMinute + it) % 1440 }
+        } else {
+            (0 until 1440)
+                .map { (firstMinute + it) % 1440 }
+                .filter { ScheduleTimeUtil.format(it * 60).startsWith(prefix, ignoreCase = true) }
+                .take(150)
+        }
+
+        candidateMinutes.forEach { minute ->
+            val text = ScheduleTimeUtil.format(minute * 60)
+            val secondsAhead = ScheduleTimeUtil.secondsUntil(minute * 60, offset)
+            val tooltip = if (minute == firstMinute) "now" else ScheduleTimeUtil.compactCountdown(secondsAhead)
+            builder.suggest(text, LiteralMessage(tooltip))
+        }
+        return builder.buildFuture()
+    }
 
     /** Builds the `/display list [filter] [value] [page]` subcommand. */
     private fun listNode(): LiteralArgumentBuilder<CommandSourceStack> {

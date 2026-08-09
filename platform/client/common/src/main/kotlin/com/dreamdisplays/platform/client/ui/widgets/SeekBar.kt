@@ -39,14 +39,18 @@ import net.minecraft.util.Mth
  * @param onSeek invoked with the target position in nanoseconds when a drag is committed.
  * @param previewFrame optionally supplies a scrub-preview texture for a hovered position in
  * nanoseconds; returning null (or leaving this unset) shows no preview.
- * @param waitingLabel optionally supplies a status string (e.g. "Waiting for video...") to show in
- * place of the time label while non-null; drawn in a dim grey.
+ * @param waitingLabel optionally supplies a status string (e.g. "Waiting for video..." or a
+ * scheduled-playback countdown) to show in place of the time label while non-null; drawn in a dim
+ * gray.
+ * @param scheduleLabel optionally supplies a scheduled-playback countdown string to append after
+ * the normal time label.
  */
 class SeekBar(
     private val current: () -> Long,
     private val duration: () -> Long,
     private val previewFrame: ((Long) -> Identifier?)? = null,
     private val waitingLabel: (() -> String?)? = null,
+    private val scheduleLabel: (() -> String?)? = null,
     private val onSeek: (Long) -> Unit,
 ) : UiWidget(Component.empty()) {
 
@@ -55,6 +59,15 @@ class SeekBar(
     private var dragTargetNanos = 0L
     private var hoverFade = 0f
     private var previewFade = 0f
+
+    /** The last non-null [scheduleLabel] text, kept around so the suffix has something to shrink away from. */
+    private var lastScheduleText: String? = scheduleLabel?.invoke()
+
+    /**
+     * 0..1 reveal progress for the [scheduleLabel] suffix — grows / shrinks it in character by
+     * character.
+     */
+    private var scheduleReveal = if (lastScheduleText != null) 1f else 0f
 
     override fun handlesWholeWidgetCursor(): Boolean = false
 
@@ -92,12 +105,28 @@ class SeekBar(
             /*g.blitSprite(HANDLE, hoverX, y, 8, height)*/
         }
 
+        val scheduleNow = scheduleLabel?.invoke()
+        if (scheduleNow != null) lastScheduleText = scheduleNow
+        val scheduleTarget = if (scheduleNow != null) 1f else 0f
+        scheduleReveal += (scheduleTarget - scheduleReveal) * FADE_SPEED
+        if (scheduleReveal < 0.01f) scheduleReveal = 0f
+        if (scheduleReveal > 0.99f) scheduleReveal = 1f
+
         val waiting = waitingLabel?.invoke()
-        if (waiting != null) {
-            drawScrollingLabel(g, Component.literal(waiting).copy().withStyle { it.withColor(WAITING_COLOR) }, 4)
+        val base = if (waiting != null) {
+            Component.literal(waiting).copy().withStyle { it.withColor(WAITING_COLOR) }
         } else {
-            drawScrollingLabel(g, timeLabel(cur, dur), 4)
+            timeLabel(cur, dur)
         }
+
+        val shown = if (scheduleReveal > 0f && lastScheduleText != null) {
+            val full = " • $lastScheduleText"
+            val chars = (full.length * scheduleReveal).toInt().coerceIn(0, full.length)
+            base.copy().append(Component.literal(full.substring(0, chars)).withStyle { it.withColor(WAITING_COLOR) })
+        } else {
+            base
+        }
+        drawScrollingLabel(g, shown, 4)
 
         val previewTarget = if (previewFrame != null && active && dur > 0 && (isHovered || dragging)) 1f else 0f
         previewFade += (previewTarget - previewFade) * FADE_SPEED

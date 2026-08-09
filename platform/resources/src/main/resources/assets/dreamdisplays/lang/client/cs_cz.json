@@ -66,6 +66,8 @@
   "dreamdisplays.button.report.tooltip.1": "Nahlásit displej",
   "dreamdisplays.button.report.tooltip.2": "Nahlásit nevhodný obsah",
   "dreamdisplays.ui.waiting": "Čekání na video...",
+  "dreamdisplays.ui.schedule_play": "Spustí se za %s",
+  "dreamdisplays.ui.schedule_pause": "Pozastaví se za %s",
   "dreamdisplays.ui.preview": "Náhled",
   "dreamdisplays.ui.settings": "Nastavení displeje",
   "dreamdisplays.ui.error": "Chyba displeje",

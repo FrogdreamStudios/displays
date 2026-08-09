@@ -66,6 +66,8 @@
   "dreamdisplays.button.report.tooltip.1": "Reportar pantalla",
   "dreamdisplays.button.report.tooltip.2": "Reportar contenido inapropiado",
   "dreamdisplays.ui.waiting": "Esperando el video...",
+  "dreamdisplays.ui.schedule_play": "Se inicia en %s",
+  "dreamdisplays.ui.schedule_pause": "Se pausa en %s",
   "dreamdisplays.ui.preview": "Vista previa",
   "dreamdisplays.ui.settings": "Configuración de pantalla",
   "dreamdisplays.ui.error": "Error de pantalla",

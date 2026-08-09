@@ -49,6 +49,7 @@ data class ClientHello(
     @ProtoNumber(24) val warmDisplayLimit: Int = 0,
     @ProtoNumber(25) val nativeUnavailableReason: String = "",
     @ProtoNumber(26) val lavUnavailableReason: String = "",
+    @ProtoNumber(27) val timeZoneOffsetMinutes: Int = 0,
 ) : DreamPacket
 
 /**
@@ -87,6 +88,8 @@ data class DisplayInfo(
     @ProtoNumber(15) val rotation: Int = 0,
     @ProtoNumber(16) val virtual: Boolean = false,
     @ProtoNumber(17) val forced: Boolean = false,
+    @ProtoNumber(18) val scheduledStartEpochMillis: Long = 0,
+    @ProtoNumber(19) val scheduledAction: Int = -1,
 ) : DreamPacket
 
 /** Removes a display (server broadcast) or requests its deletion (client action). */
@@ -286,4 +289,17 @@ data class RadiusPreview(
 data class ReportDuration(
     @ProtoNumber(1) val id: @Serializable(UuidSerializer::class) UUID = ZERO_UUID,
     @ProtoNumber(2) val durationMs: Long = 0,
+) : DreamPacket
+
+/**
+ * Server tells a client to pause / resume its own player for a `LOCAL`-mode display in place (no
+ * seek) — the network side of what the display's own pause button does locally. Used by
+ * `ScheduledPlaybackManager` to best-effort apply a scheduled play/pause to a `LOCAL` display's
+ * currently-nearby viewers; non-authoritative and not re-sent on reconnect, unlike `SYNCED`/
+ * `BROADCAST`'s server-owned timeline.
+ */
+@Serializable
+data class RemotePlaybackToggle(
+    @ProtoNumber(1) val id: @Serializable(UuidSerializer::class) UUID = ZERO_UUID,
+    @ProtoNumber(2) val paused: Boolean = true,
 ) : DreamPacket

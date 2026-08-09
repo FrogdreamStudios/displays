@@ -1,5 +1,6 @@
 package com.dreamdisplays.platform.server.managers
 
+import com.dreamdisplays.api.playback.PlaybackAction
 import com.dreamdisplays.api.playback.PlaybackMode
 import com.dreamdisplays.api.security.MediaUrlPolicy
 import com.dreamdisplays.platform.server.datatypes.display.DisplayData
@@ -39,6 +40,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.util.*
+import kotlin.time.Instant
 
 /**
  * Exposed table definition for persistent display rows. Positions and dimensions are packed to keep
@@ -86,6 +88,12 @@ class DisplaysTable(prefix: String = "") : Table("${prefix}displays") {
 
     /** Optional, space-free alias usable anywhere a display id is accepted; unique across displays. */
     val name = varchar("name", 32).nullable()
+
+    /** Epoch millis of a pending scheduled-playback start, or null when no schedule is set. */
+    val scheduledStart = long("scheduledStart").nullable()
+
+    /** Wire ordinal of the [com.dreamdisplays.api.playback.PlaybackAction] [scheduledStart] will apply, or null. */
+    val scheduledAction = integer("scheduledAction").nullable()
 
     /** Primary key for the displays table, which is the unique identifier of the display. */
     override val primaryKey = PrimaryKey(id)
@@ -239,6 +247,8 @@ class StorageManager(
                 it[isLocked] = data.isLocked
                 it[mode] = data.mode.wire
                 it[name] = data.name
+                it[scheduledStart] = data.scheduledStart?.toEpochMilliseconds()
+                it[scheduledAction] = data.scheduledAction?.wire
             }
         }
     }
@@ -258,5 +268,7 @@ class StorageManager(
         lang = row[table.lang]
         isLocked = row[table.isLocked]
         name = row[table.name]
+        scheduledStart = row[table.scheduledStart]?.let(Instant::fromEpochMilliseconds)
+        scheduledAction = row[table.scheduledAction]?.let(PlaybackAction::fromWire)
     }
 }

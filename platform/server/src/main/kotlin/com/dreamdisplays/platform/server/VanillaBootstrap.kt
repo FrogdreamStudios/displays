@@ -40,6 +40,8 @@ object VanillaBootstrap {
         FullscreenBroadcastManager.restore()
         PipPinManager.init(VanillaPlaybackTransport)
         PipPinManager.restore()
+        ScheduledPlaybackManager.init(VanillaPlaybackTransport)
+        ScheduledPlaybackManager.restoreOnStartup()
         VanillaProxyBridge.init(VanillaServerState.config.proxy.enabled, VanillaServerState.config.proxy.clock_sync_interval)
         startRepeatingTasks(server)
     }

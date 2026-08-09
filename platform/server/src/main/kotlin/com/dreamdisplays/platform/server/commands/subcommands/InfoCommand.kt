@@ -1,9 +1,11 @@
 package com.dreamdisplays.platform.server.commands.subcommands
 
+import com.dreamdisplays.api.playback.PlaybackAction
 import com.dreamdisplays.platform.server.PaperServer
 import com.dreamdisplays.platform.server.datatypes.display.PaperDisplayData
 import com.dreamdisplays.platform.server.datatypes.display.VanillaDisplayData
 import com.dreamdisplays.platform.server.utils.MessageUtil
+import com.dreamdisplays.platform.server.utils.ScheduleTimeUtil
 import com.mojang.brigadier.context.CommandContext
 import io.github.arnodoelinger.platformweaver.PaperOnly
 import net.minecraft.commands.CommandSourceStack
@@ -82,6 +84,19 @@ class InfoCommand : SubCommand {
                 displayUrl
             )
         )
+        data.scheduledStart?.let { at ->
+            val localSecond = ScheduleTimeUtil.localSecondOfDay(at, ScheduleTimeUtil.offsetMinutesOf(player.uniqueId))
+            val actionKey = if (data.scheduledAction == PlaybackAction.PAUSE) "scheduleActionPause" else "scheduleActionPlay"
+            MessageUtil.sendColoredMessage(
+                player,
+                MessageUtil.formatIndexed(
+                    player,
+                    "displayInfoScheduleLine",
+                    MessageUtil.messageFor(player, actionKey),
+                    ScheduleTimeUtil.format(localSecond, withSeconds = true),
+                )
+            )
+        }
     }
 }
 
@@ -140,6 +155,19 @@ object VanillaInfoCommand {
             player,
             MessageUtil.formatIndexed(player, "displayInfoMediaLine", displayLang, duration, displayUrl)
         )
+        data.scheduledStart?.let { at ->
+            val localSecond = ScheduleTimeUtil.localSecondOfDay(at, ScheduleTimeUtil.offsetMinutesOf(player.uuid))
+            val actionKey = if (data.scheduledAction == PlaybackAction.PAUSE) "scheduleActionPause" else "scheduleActionPlay"
+            MessageUtil.sendColoredMessage(
+                player,
+                MessageUtil.formatIndexed(
+                    player,
+                    "displayInfoScheduleLine",
+                    MessageUtil.messageFor(player, actionKey),
+                    ScheduleTimeUtil.format(localSecond, withSeconds = true),
+                )
+            )
+        }
         return 1
     }
 }

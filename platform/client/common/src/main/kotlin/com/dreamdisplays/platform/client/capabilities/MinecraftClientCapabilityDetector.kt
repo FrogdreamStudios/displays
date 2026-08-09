@@ -12,6 +12,8 @@ import com.dreamdisplays.platform.client.render.AsyncTextureUploader
 import com.dreamdisplays.platform.client.render.RenderBackendCompat
 import com.dreamdisplays.platform.client.render.ShaderPackCompat
 import com.dreamdisplays.platform.client.ui.VideoPopoutWindow
+import java.time.Instant
+import java.time.ZoneId
 
 /**
  * Probes the running client for [ClientHello] capabilities. Popout support comes from the `GLFW`
@@ -63,8 +65,12 @@ object MinecraftClientCapabilityDetector : ClientCapabilityDetector {
             maxJvmMemoryMb = memory.maxJvmMemoryMb,
             dedicatedVramMb = memory.dedicatedVramMb,
             warmDisplayLimit = WarmParkPolicy.maxFullWarmDisplays,
+            timeZoneOffsetMinutes = safeInt { ZoneId.systemDefault().rules.getOffset(Instant.now()).totalSeconds / 60 },
         )
     }
+
+    /** Runs [block] and returns `0` on any exception. */
+    private fun safeInt(block: () -> Int): Int = runCatching(block).getOrDefault(0)
 
     /** Runs [block] and returns `false` on any exception. */
     private fun safeBool(block: () -> Boolean): Boolean = runCatching(block).getOrDefault(false)

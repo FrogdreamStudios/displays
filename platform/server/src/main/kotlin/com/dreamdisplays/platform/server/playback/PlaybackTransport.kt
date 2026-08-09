@@ -40,4 +40,13 @@ interface PlaybackTransport {
 
     /** Builds a synthetic 1 x 1 [DisplayData] anchored in a loaded world, backing a URL-only fullscreen broadcast; null if no world is loaded. */
     fun createVirtualDisplay(id: UUID, ownerId: UUID): DisplayData?
+
+    /** Runs [task] on the main / global region thread, e.g. before touching `Bukkit` / NMS state from a background coroutine. */
+    fun runOnMainThread(task: () -> Unit)
+
+    /**
+     * Persists [display] to the platform's [com.dreamdisplays.platform.server.managers.StorageManager],
+     * dispatching to the platform-typed `saveDisplay` overload.
+     */
+    fun saveDisplay(display: DisplayData)
 }

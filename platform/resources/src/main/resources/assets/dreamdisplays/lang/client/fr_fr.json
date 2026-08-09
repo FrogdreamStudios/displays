@@ -66,6 +66,8 @@
   "dreamdisplays.button.report.tooltip.1": "Signaler l'affichage",
   "dreamdisplays.button.report.tooltip.2": "Signaler un contenu inapproprié",
   "dreamdisplays.ui.waiting": "En attente de la vidéo...",
+  "dreamdisplays.ui.schedule_play": "Démarre dans %s",
+  "dreamdisplays.ui.schedule_pause": "Se met en pause dans %s",
   "dreamdisplays.ui.preview": "Aperçu",
   "dreamdisplays.ui.settings": "Paramètres d'affichage",
   "dreamdisplays.ui.error": "Erreur d'affichage",

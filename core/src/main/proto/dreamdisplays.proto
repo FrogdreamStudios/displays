@@ -64,6 +64,8 @@ message ClientHello {
   optional string nativeUnavailableReason = 25;
   // WARNING: a default value decoded when value is missing
   optional string lavUnavailableReason = 26;
+  // WARNING: a default value decoded when value is missing
+  optional int32 timeZoneOffsetMinutes = 27;
 }
 
 // serial name 'com.dreamdisplays.core.protocol.ServerHello'
@@ -120,6 +122,10 @@ message DisplayInfo {
   optional bool virtual = 16;
   // WARNING: a default value decoded when value is missing
   optional bool forced = 17;
+  // WARNING: a default value decoded when value is missing
+  optional int64 scheduledStartEpochMillis = 18;
+  // WARNING: a default value decoded when value is missing
+  optional int32 scheduledAction = 19;
 }
 
 // serial name 'com.dreamdisplays.core.protocol.DisplayDelete'
@@ -324,6 +330,14 @@ message ReportDuration {
   optional Uuid id = 1;
   // WARNING: a default value decoded when value is missing
   optional int64 durationMs = 2;
+}
+
+// serial name 'com.dreamdisplays.core.protocol.RemotePlaybackToggle'
+message RemotePlaybackToggle {
+  // WARNING: a default value decoded when value is missing
+  optional Uuid id = 1;
+  // WARNING: a default value decoded when value is missing
+  optional bool paused = 2;
 }
 
 message Uuid {

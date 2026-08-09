@@ -64,6 +64,7 @@ object PacketRegistry {
         Entry(ProtocolPacketType.RADIUS_PREVIEW, RadiusPreview::class, RadiusPreview.serializer()),
         Entry(ProtocolPacketType.PIP_PIN, PipPin::class, PipPin.serializer()),
         Entry(ProtocolPacketType.REPORT_DURATION, ReportDuration::class, ReportDuration.serializer()),
+        Entry(ProtocolPacketType.REMOTE_PLAYBACK_TOGGLE, RemotePlaybackToggle::class, RemotePlaybackToggle.serializer()),
     )
 
     private val byId = entries.associateBy { it.id }
