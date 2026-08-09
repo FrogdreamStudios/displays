@@ -132,6 +132,9 @@ class MediaPlayer(
     /** Ended at the end of the stream? (used to avoid a stall recovery when the video side reaches EOS first). */
     private val endedAtEnd = AtomicBoolean(false)
 
+    /** True from [changeAudioTrack] until the swap settles (promoted or gave up); drives a UI "loading" hint. */
+    private val audioTrackSwitching = AtomicBoolean(false)
+
     /** Clock for the current playback session; paused / parked sessions freeze the clock at the last position. */
     private val clock = PlaybackClock()
 
@@ -208,6 +211,7 @@ class MediaPlayer(
         onStreamEnd = ::handleStreamEnd,
         onQualitySwitchAborted = { appliedAnyway -> handleQualitySwitchAborted(appliedAnyway) },
         onAudioFailure = { stderr -> handleAudioFailure(stderr) },
+        onAudioTrackSwitchSettled = { audioTrackSwitching.set(false) },
         renderExecutor = env.renderExecutor,
         uploaderFactory = env.uploaderFactory,
         gpuYuvActive = env.config.gpuYuvActive,
@@ -483,6 +487,9 @@ class MediaPlayer(
 
     /** Switches the active audio track to the one identified by [trackUrl]. */
     fun setAudioTrack(trackUrl: String) = safeExecute { changeAudioTrack(trackUrl) }
+
+    /** True while a [setAudioTrack] switch is in flight; the actual audio can lag the UI selection by a few seconds. */
+    fun isSwitchingAudioTrack(): Boolean = audioTrackSwitching.get()
 
     /** Reopens the current stream without changing URL/quality; used when render backend requirements change. */
     fun restartVideoPipeline() = safeExecute {
@@ -999,9 +1006,11 @@ class MediaPlayer(
         if (trackUrl == ss.currentAudio.url) return
         val newSs = MediaStreamSelector.switchAudioTrack(ss, trackUrl) ?: return
         streams = newSs
+        audioTrackSwitching.set(true)
         if (sessionManager.beginAudioTrackSwitch(newSs)) return
         env.renderExecutor.execute {
             safeExecute { sessionManager.restartAudio(newSs, getCurrentTime()) }
+            audioTrackSwitching.set(false)
         }
     }
 

@@ -421,6 +421,10 @@ class DisplayScreen(
     val currentAudioTrackUrl: String
         get() = mediaPlayer?.getCurrentAudioTrack() ?: ""
 
+    /** True while an audio-track switch is in flight; the audio can lag the picked track by a few seconds. */
+    val isSwitchingAudioTrack: Boolean
+        get() = mediaPlayer?.isSwitchingAudioTrack() == true
+
     init {
         // Ask the server for the current timeline / session; it replies only if it has one
         sendRequestSyncPacket()

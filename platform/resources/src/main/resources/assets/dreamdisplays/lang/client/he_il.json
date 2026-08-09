@@ -66,6 +66,7 @@
   "dreamdisplays.button.report.tooltip.1": "דווח על תצוגה",
   "dreamdisplays.button.report.tooltip.2": "דווח על תוכן לא הולם",
   "dreamdisplays.ui.waiting": "מחכה לווידאו...",
+  "dreamdisplays.ui.audio_track_loading": "טוען רצועת שמע...",
   "dreamdisplays.ui.schedule_play": "יתחיל בעוד %s",
   "dreamdisplays.ui.schedule_pause": "יושהה בעוד %s",
   "dreamdisplays.ui.preview": "תצוגה מקדימה",

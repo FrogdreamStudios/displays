@@ -290,7 +290,13 @@ class DisplayMenu private constructor(
                         key?.let { ScrubPreview.frameAt(it, nanos) }
                     }
                 },
-                waitingLabel = { if (!ds.isVideoStarted) Component.translatable("dreamdisplays.ui.waiting").string else null },
+                waitingLabel = {
+                    when {
+                        !ds.isVideoStarted -> Component.translatable("dreamdisplays.ui.waiting").string
+                        ds.isSwitchingAudioTrack -> Component.translatable("dreamdisplays.ui.audio_track_loading").string
+                        else -> null
+                    }
+                },
                 scheduleLabel = { scheduleCountdownText() },
             ) { nanos ->
                 if (ds.canSeek() && !ds.isLive && ds.canSeekHere) {

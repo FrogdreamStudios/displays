@@ -50,6 +50,9 @@ internal class PlaybackSessionManager(
     /** Invoked when live audio process ends unexpectedly (called on audio reader thread). */
     private val onAudioFailure: (stderr: String) -> Unit = {},
 
+    /** Invoked once an in-flight [beginAudioTrackSwitch] settles, either way (promoted or gave up). */
+    private val onAudioTrackSwitchSettled: () -> Unit = {},
+
     /** Runs render-thread (GL) cleanup work. */
     private val renderExecutor: RenderThreadExecutor,
 
@@ -572,8 +575,13 @@ internal class PlaybackSessionManager(
             buildAudioProcess(ffmpeg, streamSet, seekNanos, aStop)
         } catch (e: IOException) {
             logger.error("$debugLabel Failed to start replacement audio-track process.", e)
+            onAudioTrackSwitchSettled()
             return
-        } ?: return
+        }
+        if (ap == null) {
+            onAudioTrackSwitchSettled()
+            return
+        }
         // Old track keeps playing while the replacement warms up; wait for its first stdout bytes
         val deadline = System.nanoTime() + audioSwitchWarmupTimeoutNanos
         var ready = false
@@ -600,6 +608,7 @@ internal class PlaybackSessionManager(
             if (!ready && audioSwitchGeneration.get() == generation) {
                 logger.warn("$debugLabel Audio-track switch delivered no PCM in time; keeping the current track.")
             }
+            onAudioTrackSwitchSettled()
             return
         }
         // Seamless swap: the replacement line pre-buffers (silent) while the OLD one keeps playing,
@@ -628,11 +637,13 @@ internal class PlaybackSessionManager(
                     audio.stop()
                     MediaProcess.gracefulDestroy(ap)
                 }
+                onAudioTrackSwitchSettled()
             },
             onAborted = {
                 // The replacement never went live; keep the current track and drop the new process
                 aStop.set(true)
                 MediaProcess.gracefulDestroy(ap)
+                onAudioTrackSwitchSettled()
             },
             onUnexpectedEnd = onAudioFailure,
         )
