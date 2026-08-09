@@ -290,15 +290,12 @@ class DisplayMenu private constructor(
                         key?.let { ScrubPreview.frameAt(it, nanos) }
                     }
                 },
-                waitingLabel = {
-                    when {
-                        !ds.isVideoStarted -> Component.translatable("dreamdisplays.ui.waiting").string
-                        ds.isApplyingQuality -> Component.translatable("dreamdisplays.ui.quality_applying").string
-                        ds.isSwitchingAudioTrack -> Component.translatable("dreamdisplays.ui.audio_track_loading").string
-                        else -> null
-                    }
-                },
+                waitingLabel = { if (!ds.isVideoStarted) Component.translatable("dreamdisplays.ui.waiting").string else null },
                 scheduleLabel = { scheduleCountdownText() },
+                statusLabels = listOf(
+                    { Component.translatable("dreamdisplays.ui.quality_applying").string.takeIf { ds.isApplyingQuality } },
+                    { Component.translatable("dreamdisplays.ui.audio_track_loading").string.takeIf { ds.isSwitchingAudioTrack } },
+                ),
             ) { nanos ->
                 if (ds.canSeek() && !ds.isLive && ds.canSeekHere) {
                     playback.seek(displayId, (nanos / 1_000_000L).milliseconds)

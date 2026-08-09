@@ -39,6 +39,7 @@ class SeekBar(
     private val previewFrame: ((Long) -> Identifier?)? = null,
     private val waitingLabel: (() -> String?)? = null,
     private val scheduleLabel: (() -> String?)? = null,
+    statusLabels: List<() -> String?> = emptyList(),
     private val onSeek: (Long) -> Unit,
 ) : UiWidget(Component.empty()) {
 
@@ -48,14 +49,47 @@ class SeekBar(
     private var hoverFade = 0f
     private var previewFade = 0f
 
-    /** The last non-null [scheduleLabel] text, kept around so the suffix has something to shrink away from. */
-    private var lastScheduleText: String? = scheduleLabel?.invoke()
+    /**
+     * A suffix behind the time label that grows in and shrinks away character by character. Its text
+     * is sampled every frame from [source]; a null sample retracts it rather than cutting it away, so
+     * the last text is kept around to shrink from.
+     */
+    private class RevealingSuffix(private val source: (() -> String?)?) {
+        private var lastText: String? = source?.invoke()
+
+        /** 0..1 reveal progress, eased toward the presence of a current sample in [advance]. */
+        private var reveal = if (lastText != null) 1f else 0f
+
+        /** Samples the source for this frame and eases the reveal toward it. */
+        fun advance() {
+            val now = source?.invoke()
+            if (now != null) lastText = now
+            reveal += ((if (now != null) 1f else 0f) - reveal) * FADE_SPEED
+            if (reveal < 0.01f) reveal = 0f
+            if (reveal > 0.99f) reveal = 1f
+        }
+
+        /** Appends however much of the suffix is revealed this frame to [base], which it may return as-is. */
+        fun appendTo(base: MutableComponent): MutableComponent {
+            val text = lastText
+            if (reveal <= 0f || text == null) return base
+            val full = " • $text"
+            val chars = (full.length * reveal).toInt().coerceIn(0, full.length)
+            return base.append(
+                Component.literal(full.substring(0, chars)).withStyle { it.withColor(WAITING_COLOR) },
+            )
+        }
+    }
+
+    /** Countdown to a scheduled start / pause. */
+    private val scheduleSuffix = RevealingSuffix(scheduleLabel)
 
     /**
-     * 0..1 reveal progress for the [scheduleLabel] suffix — grows / shrinks it in character by
-     * character.
+     * Transient "applying..." hints for changes that outlive the click that started them. One suffix
+     * per source rather than one shared slot, so concurrent changes stack up instead of hiding each
+     * other — several of these can genuinely be in flight at once.
      */
-    private var scheduleReveal = if (lastScheduleText != null) 1f else 0f
+    private val statusSuffixes = statusLabels.map { RevealingSuffix(it) }
 
     override fun handlesWholeWidgetCursor(): Boolean = false
 
@@ -93,12 +127,8 @@ class SeekBar(
             /*g.blitSprite(HANDLE, hoverX, y, 8, height)*/
         }
 
-        val scheduleNow = scheduleLabel?.invoke()
-        if (scheduleNow != null) lastScheduleText = scheduleNow
-        val scheduleTarget = if (scheduleNow != null) 1f else 0f
-        scheduleReveal += (scheduleTarget - scheduleReveal) * FADE_SPEED
-        if (scheduleReveal < 0.01f) scheduleReveal = 0f
-        if (scheduleReveal > 0.99f) scheduleReveal = 1f
+        scheduleSuffix.advance()
+        statusSuffixes.forEach { it.advance() }
 
         val waiting = waitingLabel?.invoke()
         val base = if (waiting != null) {
@@ -107,13 +137,8 @@ class SeekBar(
             timeLabel(cur, dur)
         }
 
-        val shown = if (scheduleReveal > 0f && lastScheduleText != null) {
-            val full = " • $lastScheduleText"
-            val chars = (full.length * scheduleReveal).toInt().coerceIn(0, full.length)
-            base.copy().append(Component.literal(full.substring(0, chars)).withStyle { it.withColor(WAITING_COLOR) })
-        } else {
-            base
-        }
+        var shown = scheduleSuffix.appendTo(base.copy())
+        statusSuffixes.forEach { shown = it.appendTo(shown) }
         drawScrollingLabel(g, shown, 4)
 
         val previewTarget = if (previewFrame != null && active && dur > 0 && (isHovered || dragging)) 1f else 0f
