@@ -248,7 +248,8 @@ class PreviewSection(
             texH
         )
         //?} else
-        /*g.blit(id, x, y, w, h, content.x.toFloat(), content.y.toFloat(), content.w, content.h, texW, texH)*/
+        /*g.blit(id, x, y, w, h, content.x.toFloat(), content.y.toFloat(), content.w, content.h, texW, texH)
+        g.flush()*/
     }
 
     /** Draws the dimmed thumbnail (or shimmer, or plain backdrop) while no frame is ready yet. The

@@ -268,6 +268,15 @@ class SuggestionsPanel(
         sortDropdown.draw(g, sortButton.x + sortButton.width / 2, sortButton.y + sortButton.height, mouseX, mouseY)
     }
 
+    /**
+     * Re-issues the sort dropdown's own draw call after the whole screen has finished its normal
+     * widget pass.
+     */
+    fun redrawSortDropdownOnTop(g: GuiGraphicsCompat, mouseX: Int, mouseY: Int) {
+        if (!visible) return
+        drawSortDropdown(g, mouseX, mouseY)
+    }
+
     /** Draws the thin scrollbar along the scroll axis when content overflows. */
     private fun drawScrollbar(
         g: GuiGraphicsCompat,
