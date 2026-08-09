@@ -126,7 +126,7 @@ class DisplayMenu private constructor(
                 ds.renderDistance = fractionToChunks(it) * CHUNK_BLOCKS
                 DisplayRegistry.saveScreenData(ds)
             })
-        renderD.enabledWhen = { videoReady() && !ds.isPopoutActive }
+        renderD.enabledWhen = { !ds.isPopoutActive }
         renderD.visibleWhen = notErrored
 
         quality = addUi(
@@ -151,7 +151,7 @@ class DisplayMenu private constructor(
                     VideoQuality.parse(qualityFromFraction(it))
                 )
             })
-        quality.enabledWhen = { videoReady() && ds.qualityList.isNotEmpty() && ds.canChangeQualityHere }
+        quality.enabledWhen = { ds.qualityList.isNotEmpty() && ds.canChangeQualityHere }
         quality.visibleWhen = notErrored
 
         brightness = addUi(
@@ -160,7 +160,7 @@ class DisplayMenu private constructor(
                 label = { Component.literal("${floor(it * 100).toInt()}%") },
                 step = 0.05,
             ) { playback.setBrightness(displayId, it.toFloat()) })
-        brightness.enabledWhen = { videoReady() && (!ds.isSync || ds.canEdit) }
+        brightness.enabledWhen = { !ds.isSync || ds.canEdit }
         brightness.visibleWhen = notErrored
 
         audio3d = addUi(
@@ -198,7 +198,7 @@ class DisplayMenu private constructor(
                 }
             })
         sync.enabledWhen = {
-            videoReady() && (ds.canSetModeHere || (ds.watchParty != null && ds.canCloseWatchPartyHere))
+            ds.canSetModeHere || (ds.watchParty != null && ds.canCloseWatchPartyHere)
         }
         sync.visibleWhen = notErrored
 
@@ -214,7 +214,7 @@ class DisplayMenu private constructor(
                 MIN_CHUNKS,
                 MAX_CHUNKS
             ) * CHUNK_BLOCKS
-            videoReady() && !ds.isPopoutActive && ds.renderDistance != defaultBlocks
+            !ds.isPopoutActive && ds.renderDistance != defaultBlocks
         }
         renderDReset.visibleWhen = notErrored
 
@@ -222,14 +222,14 @@ class DisplayMenu private constructor(
             playback.setQuality(displayId, VideoQuality.DEFAULT)
             quality.value = qualityFraction(VideoQuality.DEFAULT.serialize())
         })
-        qualityReset.enabledWhen = { videoReady() && ds.canChangeQualityHere && ds.quality != VideoQuality.DEFAULT }
+        qualityReset.enabledWhen = { ds.canChangeQualityHere && ds.quality != VideoQuality.DEFAULT }
         qualityReset.visibleWhen = notErrored
 
         val brightnessReset = addUi(IconButton("refresh") {
             playback.setBrightness(displayId, 1.0f)
             brightness.value = 1.0
         })
-        brightnessReset.enabledWhen = { videoReady() && abs(brightness.value - 1.0) > 0.01 }
+        brightnessReset.enabledWhen = { abs(brightness.value - 1.0) > 0.01 }
         brightnessReset.visibleWhen = notErrored
 
         val audio3dReset = addUi(IconButton("refresh") {
@@ -243,7 +243,7 @@ class DisplayMenu private constructor(
         val syncReset = addUi(IconButton("refresh") {
             if (ds.canSetModeHere) playback.setMode(displayId, PlaybackMode.LOCAL)
         })
-        syncReset.enabledWhen = { videoReady() && ds.canSetModeHere && ds.effectiveMode != PlaybackMode.LOCAL }
+        syncReset.enabledWhen = { ds.canSetModeHere && ds.effectiveMode != PlaybackMode.LOCAL }
         syncReset.visibleWhen = notErrored
 
         val muteButton = addUi(
