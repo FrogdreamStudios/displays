@@ -24,13 +24,7 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
 
-/**
- * Platform-side voxel raytracer that turns the blocks around a display into an [AcousticEnvironment]
- * (occlusion + reverb) for the DSP chain. It only ever reads the world through the same
- * [Level.clip] primitive the block-interaction code already uses, plus a per-hit sound-type lookup for
- * material coloring, so it stays robust across the versions the mod targets and degrades to
- * [AcousticEnvironment.OPEN_AIR] on any failure.
- */
+/** Platform-side voxel raytracer that turns blocks around a display into an AcousticEnvironment with occlusion and reverb. */
 object VoxelAcousticsProbe {
     /** Number of Fibonacci-sphere rays used to sample the enclosing space for reverb. */
     private const val REVERB_RAYS = 24
@@ -56,12 +50,7 @@ object VoxelAcousticsProbe {
     /** Cap on how many transparent blocks a single reverb ray pierces before giving up on that ray. */
     private const val MAX_REVERB_PIERCE_STEPS = 6
 
-    /**
-     * Blocks tagged under any of these are ignored entirely by the raytracer — treated as open air for
-     * both occlusion and reverb, as if they weren't there. This is the "excluder": add a tag here to make
-     * a whole block family (foliage, thin decorations, ...) acoustically invisible without touching the
-     * material table above.
-     */
+    /** Blocks tagged under these are ignored by raytracer — treated as open air for occlusion and reverb. */
     private val TRANSPARENT_TAGS: Set<TagKey<Block>> = setOf(BlockTags.LEAVES)
 
     /** True if [state] is tagged as acoustically transparent (see [TRANSPARENT_TAGS]). */
@@ -98,12 +87,7 @@ object VoxelAcousticsProbe {
         AcousticEnvironment(occlusion, decay, wet, damping)
     }.getOrDefault(AcousticEnvironment.OPEN_AIR)
 
-    /**
-     * Averages the occlusion of several rays fanned from [ear] to a spread of points across the screen
-     * ([center] plus four points inset toward the edges along the plane axes), and normalizes to `0..1`.
-     * Fanning is what keeps the result smooth: a single centre ray flips hard between clear and blocked
-     * as the listener steps one block, whereas averaged partial coverage ramps gradually instead.
-     */
+    /** Averages occlusion of rays fanned from listener ear to spread of points across screen. */
     private fun traceOcclusion(level: Level, entity: Entity, ear: Vec3, plane: SourcePlane, center: Vec3): Float {
         val u = Vec3(plane.uAxisX, plane.uAxisY, plane.uAxisZ).scale(plane.width * OCCLUSION_SAMPLE_INSET)
         val v = Vec3(plane.vAxisX, plane.vAxisY, plane.vAxisZ).scale(plane.height * OCCLUSION_SAMPLE_INSET)
@@ -167,12 +151,7 @@ object VoxelAcousticsProbe {
         return Triple(decay, wet, damping)
     }
 
-    /**
-     * Casts one reverb ray from [origin] along unit [dir], passing straight through any acoustically
-     * transparent block (see [TRANSPARENT_TAGS]) instead of stopping there — so a leafy canopy doesn't
-     * read as a wall. Returns `(distanceFromOrigin, reflectivity)` of the first solid hit, or null if the
-     * ray escaped to open air within [REVERB_MAX_DISTANCE] (or pierced too many transparent blocks).
-     */
+    /** Casts one reverb ray from origin, passing straight through acoustically transparent blocks. */
     private fun castReverbRay(level: Level, entity: Entity, origin: Vec3, dir: Vec3): Pair<Double, Float>? {
         var start = origin
         var traveled = 0.0

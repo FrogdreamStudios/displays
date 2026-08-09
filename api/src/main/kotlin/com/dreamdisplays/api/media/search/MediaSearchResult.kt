@@ -40,21 +40,13 @@ data class MediaSearchResult(
     /** Overrides [getThumbnailUrl] for non-YouTube results, which have no derivable thumbnail URL. */
     val thumbnailUrlOverride: String? = null,
 
-    /** True when this result comes from Twitch, so the UI can show a "Twitch" tag instead of/alongside "New". */
+    /** True when this result comes from Twitch. */
     val isTwitch: Boolean = false,
 
-    /**
-     * True when this result is a custom link the player pasted rather than a platform search hit.
-     * Such results have no thumbnail or channel to fetch, so the UI draws its own card art and
-     * stops waiting for metadata that is never going to arrive.
-     */
+    /** True when this result is a custom link pasted by the player (no platform metadata). */
     val isCustom: Boolean = false,
 
-    /**
-     * Which service this result comes from, for the card / preview badge. Defaults to
-     * [MediaPlatform.YOUTUBE] since the overwhelming majority of results are YouTube search hits;
-     * the Twitch / Vimeo / Kick / custom builders set it explicitly.
-     */
+    /** Service this result comes from; defaults to YOUTUBE. */
     val platform: MediaPlatform = MediaPlatform.YOUTUBE,
 
     /** The uploader / channel's avatar image URL, or null when unavailable. */
@@ -66,12 +58,7 @@ data class MediaSearchResult(
     /** True when this result is a currently-live broadcast. */
     val isLive: Boolean = false,
 ) {
-    /**
-     * True when this result's thumbnail can be derived from its [id] as a YouTube image. Only real
-     * YouTube results qualify: every other platform (Twitch / Vimeo / Kick) carries its thumbnail in
-     * [thumbnailUrlOverride] and its [id] is a URL or a platform key, so deriving a `ytimg` URL from
-     * it would fetch a broken image.
-     */
+    /** True when thumbnail can be derived from [id] as YouTube image (real YouTube results only). */
     val isYouTubeResult: Boolean get() = !isCustom && !isTwitch && platform == MediaPlatform.YOUTUBE
 
     /** Returns true if the video was published within the last [daysWindow] days. */
@@ -95,7 +82,7 @@ data class MediaSearchResult(
         else String.format("%d:%02d", m, sec)
     }
 
-    /** Returns a formatted view count string (e.g. "1.2M views"), or empty if unavailable. */
+    /** Returns formatted view count (e.g. "1.2M views"), or empty if unavailable. */
     fun formatViews(): String {
         val v = viewCount ?: return ""
         if (v <= 0) return ""

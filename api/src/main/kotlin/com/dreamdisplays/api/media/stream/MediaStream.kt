@@ -39,12 +39,7 @@ data class MediaStream(
     /** True when the provider marks this stream as the default track. */
     val isDefault: Boolean = false,
 
-    /**
-     * True when this stream must be seeked by decoding forward from the start rather than by asking
-     * the demuxer to jump. Set by resolvers for containers whose demuxer gets a seek wrong — a
-     * fragmented-MP4 HLS rendition, where seeking past the first segments loses the initialization
-     * segment and yields nothing decodable at all. Costs seek latency, so it stays off by default.
-     */
+    /** True when seeking requires decoding from start instead of seeking via demuxer. */
     val seekByDecoding: Boolean = false,
 ) {
     /** Compact quality label for UI display, preferring video height over bitrate. */

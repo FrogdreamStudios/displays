@@ -38,17 +38,8 @@ import java.nio.ByteOrder
 import java.util.*
 
 /**
- * In-game Picture-in-Picture overlay for one display screen.
- *
- *  - Click on body (no drag) – `DisplayMenu`
- *  - Click + drag the body – free move; on release snaps smoothly to nearest free anchor
- *  - Click + drag the resize grip – resize (grip is in the corner of the PiP facing screen center)
- *  - Click the close ("cross") button – closes this PiP directly (grip is in the outer corner,
- *    opposite the resize grip)
- *
- * Both the body-click menu and the close button are suppressed when [interactive] is false (a
- * forced broadcast minimized from fullscreen) – the viewer can move and resize it, but can't
- * reconfigure or dismiss settings that aren't theirs.
+ * In-game Picture-in-Picture overlay for one display screen. Click on the body (no drag) opens `DisplayMenu`;
+ * click-and-drag moves or resizes the overlay.
  */
 class PipOverlay(
     val displayScreen: DisplayScreen,
@@ -427,6 +418,7 @@ class PipOverlay(
                     resizing = false
                     persistGeometry()
                 }
+
                 pressedInClose -> {
                     val s = SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK.value(), 1.0f)
                     Minecraft.getInstance().soundManager.play(s)

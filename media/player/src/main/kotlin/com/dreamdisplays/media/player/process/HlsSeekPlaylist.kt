@@ -40,11 +40,8 @@ internal object HlsSeekPlaylist {
     private val URI_ATTRIBUTE = Regex("""URI="([^"]*)"""")
 
     /**
-     * A playlist trimmed to a seek target.
-     *
-     * @property url `data:` URI holding the trimmed playlist; hand it to `FFmpeg` with `-f hls`.
-     * @property residualNanos how far into the first retained segment the target actually is. Left
-     * for the caller to discard on the output side, which is cheap over one segment.
+     * A playlist trimmed to a seek target: [url] to feed the process, plus [residualNanos] left over for the caller to
+     * discard on the output side, which is cheap over one segment's worth of data.
      */
     class Trimmed(@JvmField val url: String, @JvmField val residualNanos: Long)
 

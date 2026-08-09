@@ -19,12 +19,8 @@ import net.minecraft.resources.Identifier
 /*import net.minecraft.resources.ResourceLocation as Identifier*/
 
 /**
- * Slider-styled boolean toggle: the handle sits at the left or right end of the track. Label and
- * apply action are constructor lambdas, matching [ValueSlider]'s declarative style.
- *
- * @param initial starting state.
- * @param label formats the on-toggle text for a given state.
- * @param onApply invoked when the user (or [set]) changes the state.
+ * Slider-styled boolean toggle: the handle sits at the left or right end of the track. Label and apply action are
+ * consumer-supplied.
  */
 class ToggleSwitch(
     initial: Boolean,

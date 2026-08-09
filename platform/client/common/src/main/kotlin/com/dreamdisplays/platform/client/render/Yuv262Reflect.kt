@@ -14,11 +14,6 @@ import net.minecraft.resources.Identifier
  * Reflective GPU-YUV backend for the 26.2+ Blaze3D API. It rebuilds the same pipeline through
  * reflection over the new `BindGroupLayout` / `GpuFormat` API, so one binary serves every loader
  * and version.
- *
- * Reflection only runs once per session (pipeline and texture-method handles are resolved on
- * first use); the per-frame hot path is untouched. The layout chain mirrors vanilla's fogged
- * snippet (GLOBALS, MATRICES_PROJECTION, FOG, samplers), widened to the three video planes, so
- * the `display_fog` vertex shader can feed vanilla distance fog without any lightmap or normals.
  */
 internal object Yuv262Reflect {
     /** True when the 26.2+ API classes are present at runtime. */

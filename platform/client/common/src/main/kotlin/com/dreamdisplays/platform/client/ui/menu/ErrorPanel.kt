@@ -16,10 +16,8 @@ import net.minecraft.network.chat.Component
 import kotlin.math.min
 
 /**
- * The centered "video failed to load" panel shown instead of the normal menu content. It now states
- * what actually went wrong — a per-kind headline plus the underlying failure message — and offers
- * Retry / Report / Delete. Retry re-resolves the same URL in place, so a transient failure no longer
- * forces the player to delete a display they want to keep.
+ * The centered "video failed to load" panel shown instead of the normal menu content; states what actually failed and
+ * offers retry / delete / report actions.
  */
 class ErrorPanel(
     private val retryButton: IconButton,

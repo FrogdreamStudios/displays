@@ -71,14 +71,7 @@ object DisplayManager {
     /** Number of displays currently owned by [ownerId], across every registered display. */
     fun countOwnedBy(ownerId: UUID): Int = displays.values.count { it.ownerId == ownerId }
 
-    /**
-     * Resolves [idOrPrefix] against every registered display: an exact id match first, then an exact
-     * case-insensitive [DisplayData.name] match (set via `/display name`), then an unambiguous
-     * case-insensitive id prefix (>= 4 chars, same short-id shape `/display list` shows). An ambiguous
-     * prefix resolves to nothing rather than guessing. Shared by remote id-targeting
-     * (`/display info|delete|video|name <id>`) and [com.dreamdisplays.platform.server.playback.FullscreenBroadcastManager]'s
-     * own id-or-url resolution, so both agree on exactly what counts as "found".
-     */
+    /** Resolves [idOrPrefix] against every registered display: an exact id match first, then an exact case-insensitive name match. */
     fun resolveByIdOrPrefix(idOrPrefix: String): DisplayData? {
         runCatching { UUID.fromString(idOrPrefix) }.getOrNull()?.let { exact ->
             getDisplayData(exact)?.let { return it }
@@ -177,12 +170,7 @@ object DisplayManager {
     fun getReceivers(display: PaperDisplayData): List<Player> =
         display.pos1.world?.players?.filter { it.isInRange(display) } ?: emptyList()
 
-    /**
-     * True if [player] is currently within render range of [display] — the same predicate that
-     * decides who receives its broadcasts. Used to reject a client-originated mutation for a display
-     * id the sender was never actually shown; otherwise any known display id could be targeted from
-     * anywhere else in the world, bypassing the physical-proximity gate the in-game menu enforces.
-     */
+    /** True if [player] is currently within render range of [display] — the same predicate that decides who receives its frames. */
     @PaperOnly
     fun isPlayerInRange(player: Player, display: PaperDisplayData): Boolean = player.isInRange(display)
 
@@ -353,12 +341,7 @@ object DisplayManager {
         displays.values.filterIsInstance<PaperDisplayData>().forEach(saveDisplay)
     }
 
-    /**
-     * Scans every display's bounding box for the configured base material; displays with none
-     * are removed from disk and memory, and every online player is told to forget them (matching
-     * what a normal [delete] does — [removeDisplays] alone only updates storage and the registry).
-     * Returns the UUIDs of removed displays.
-     */
+    /** Scans every display's bounding box for the configured base material; displays with none are removed from disk and registry. */
     @PaperOnly
     fun validateDisplaysAndCleanup(): List<UUID> {
         val baseMaterial = config.settings.baseMaterial
@@ -433,12 +416,7 @@ object DisplayManager {
         }
     }
 
-    /**
-     * True if [player] is currently within render range of [display] — the same predicate that
-     * decides who receives its broadcasts. Used to reject a client-originated mutation for a display
-     * id the sender was never actually shown; otherwise any known display id could be targeted from
-     * anywhere else in the world, bypassing the physical-proximity gate the in-game menu enforces.
-     */
+    /** True if [player] is currently within render range of [display] — the same predicate that decides who receives its frames. */
     fun isPlayerInRange(player: ServerPlayer, display: VanillaDisplayData): Boolean =
         RegionUtil.getPlayerLevelKey(player) == display.worldKey && player.blockPosition().isInRange(display)
 
@@ -516,12 +494,7 @@ object DisplayManager {
         displays.values.filterIsInstance<VanillaDisplayData>().forEach(saveDisplay)
     }
 
-    /**
-     * Scans every display's bounding box for the configured base material; displays with none
-     * are removed from disk and memory, and every online player is told to forget them (matching
-     * what a normal [delete] does — [removeDisplays] alone only updates storage and the registry).
-     * Returns the UUIDs of removed displays.
-     */
+    /** Scans every display's bounding box for the configured base material; displays with none are removed from disk and registry. */
     fun validateDisplaysAndCleanup(server: MinecraftServer): List<UUID> {
         val cfg = VanillaServerState.config
         val baseMaterialKey = cfg.settings.baseMaterialId

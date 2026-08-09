@@ -16,9 +16,21 @@ class ProxyRoundTripTest {
     @Test
     fun handshakePackets() {
         roundTrip(BackendHello(pluginVersion = "1.9.0", mcVersion = "1.21.11", platform = "paper"))
-        roundTrip(ProxyWelcome(yourServerName = "lobby", allServerNames = listOf("lobby", "survival"), proxyNowMs = 1_700_000_000_000))
+        roundTrip(
+            ProxyWelcome(
+                yourServerName = "lobby",
+                allServerNames = listOf("lobby", "survival"),
+                proxyNowMs = 1_700_000_000_000
+            )
+        )
         roundTrip(ClockProbe(backendSendMs = 1_700_000_000_000))
-        roundTrip(ClockReply(backendSendMs = 1_700_000_000_000, proxyRecvMs = 1_700_000_000_050, proxySendMs = 1_700_000_000_055))
+        roundTrip(
+            ClockReply(
+                backendSendMs = 1_700_000_000_000,
+                proxyRecvMs = 1_700_000_000_050,
+                proxySendMs = 1_700_000_000_055
+            )
+        )
     }
 
     @Test
@@ -45,19 +57,42 @@ class ProxyRoundTripTest {
         roundTrip(
             NetworkSessionList(
                 listOf(
-                    NetworkSessionInfo(sessionId = "a1b2c3d4", scope = "global", url = "https://youtu.be/abc", totalReach = 12),
+                    NetworkSessionInfo(
+                        sessionId = "a1b2c3d4",
+                        scope = "global",
+                        url = "https://youtu.be/abc",
+                        totalReach = 12
+                    ),
                     NetworkSessionInfo(),
                 )
             )
         )
         roundTrip(PlayerReady(playerId = "01234567-89ab-cdef-0123-456789abcdef"))
-        roundTrip(ReplayForPlayer(playerId = "01234567-89ab-cdef-0123-456789abcdef", sessionIds = listOf("a1b2c3d4", "e5f6a7b8"), minimizedSessionIds = listOf("e5f6a7b8")))
-        roundTrip(PlayerFullscreenMinimized(sessionId = "a1b2c3d4", playerId = "01234567-89ab-cdef-0123-456789abcdef", minimized = true))
+        roundTrip(
+            ReplayForPlayer(
+                playerId = "01234567-89ab-cdef-0123-456789abcdef",
+                sessionIds = listOf("a1b2c3d4", "e5f6a7b8"),
+                minimizedSessionIds = listOf("e5f6a7b8")
+            )
+        )
+        roundTrip(
+            PlayerFullscreenMinimized(
+                sessionId = "a1b2c3d4",
+                playerId = "01234567-89ab-cdef-0123-456789abcdef",
+                minimized = true
+            )
+        )
     }
 
     @Test
     fun transferAndIndexPackets() {
-        roundTrip(PlayerTransferring(playerId = "01234567-89ab-cdef-0123-456789abcdef", from = "lobby", to = "survival"))
+        roundTrip(
+            PlayerTransferring(
+                playerId = "01234567-89ab-cdef-0123-456789abcdef",
+                from = "lobby",
+                to = "survival"
+            )
+        )
         roundTrip(PlayerLeftNetwork(playerId = "01234567-89ab-cdef-0123-456789abcdef", server = "lobby"))
         roundTrip(
             BackendDisplayIndex(
@@ -73,7 +108,13 @@ class ProxyRoundTripTest {
 
     @Test
     fun networkWatchPartyPackets() {
-        roundTrip(StartNetworkWatchParty(hostId = "01234567-89ab-cdef-0123-456789abcdef", url = "https://youtu.be/abc", lang = "en"))
+        roundTrip(
+            StartNetworkWatchParty(
+                hostId = "01234567-89ab-cdef-0123-456789abcdef",
+                url = "https://youtu.be/abc",
+                lang = "en"
+            )
+        )
         roundTrip(
             ApplyNetworkWatchParty(
                 partyId = "p1p2p3p4", sharedDisplayId = "11111111-2222-3333-4444-555555555555",

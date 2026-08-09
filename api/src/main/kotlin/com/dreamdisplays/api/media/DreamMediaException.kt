@@ -3,11 +3,7 @@ package com.dreamdisplays.api.media
 import com.dreamdisplays.api.DreamDisplaysUnstableApi
 
 /**
- * Typed exception hierarchy for media failures. Every subclass carries a machine-readable
- * [kind] and an [isFatal] flag; fatal errors cannot recover without user intervention.
- *
- * @property kind machine-readable failure category
- * @property isFatal true when the failure is unrecoverable without user intervention
+ * Typed exception hierarchy for media failures; every subclass carries [kind] and [isFatal].
  *
  * @since 1.8.0
  */

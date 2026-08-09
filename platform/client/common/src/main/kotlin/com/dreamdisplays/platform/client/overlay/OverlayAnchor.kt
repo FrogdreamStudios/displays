@@ -2,10 +2,7 @@ package com.dreamdisplays.platform.client.overlay
 
 /**
  * Where an overlay docks within its viewport. [snapX] / [snapY] are normalized anchor coordinates
- * (0 = left/top, 1 = right/bottom); [FREE] opts out of snapping and uses the negative sentinel.
- *
- * @property snapX normalized horizontal anchor, 0..1, or -1 for [FREE].
- * @property snapY normalized vertical anchor, 0..1, or -1 for [FREE].
+ * (0 = left / top, 1 = right / bottom).
  */
 enum class OverlayAnchor(val snapX: Float, val snapY: Float) {
     /** Docked to the top-left corner. */

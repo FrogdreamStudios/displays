@@ -184,9 +184,7 @@ object ClientTickManager {
 
     /**
      * Ensures there is budget for [candidate], evicting parked displays into snapshots when needed.
-     * Prefers a display already past [WarmParkPolicy.demoteAfterNanos] (a grace period recently-parked
-     * displays get before being sacrificed for a newcomer); falls back to the oldest parked display
-     * overall when none have aged past it yet, so eviction never stalls under pressure.
+     * Prefers the display furthest from the viewer as the eviction target.
      */
     private fun reserveWarmSlot(candidate: DisplayScreen): Boolean {
         if (WarmParkPolicy.maxFullWarmDisplays <= 0) return false

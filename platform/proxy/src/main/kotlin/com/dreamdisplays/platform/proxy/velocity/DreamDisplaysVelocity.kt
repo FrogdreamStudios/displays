@@ -54,13 +54,7 @@ private const val PROXY_CHANNEL = "dreamdisplays:proxy"
 /** How often the stale-session sweep ([NetworkFullscreenManager.pruneStale]) runs. */
 private const val PRUNE_INTERVAL_MS = 5L * 60L * 1000L
 
-/**
- * `Velocity` entry point for the thin-coordinator proxy plugin.
- *
- * Registers the `dreamdisplays:proxy` plugin-message channel, tracks the configured backend
- * roster, and answers each backend's [BackendHello] with a [ProxyWelcome] telling it its own
- * configured server name — the backend never needs to be told its own name in its own config.
- */
+/** `Velocity` proxy coordinator plugin entry point; manages plugin messages and network state. */
 @VelocityOnly
 @Plugin(
     id = "dreamdisplays-proxy",
@@ -90,12 +84,7 @@ class DreamDisplaysVelocity @Inject constructor(
             .schedule()
     }
 
-    /**
-     * Velocity's server roster can change at runtime (config reload, plugin-registered servers).
-     * This `velocity-api` version has no dedicated server-(un)registration event to hook, so the
-     * roster is instead re-synced on every [BackendHello] - cheap, and it's the same fallback the
-     * Bungee sibling always uses (BungeeCord's roster is config-static, but re-syncing costs nothing).
-     */
+    /** Updates the known server list when Velocity's roster changes. */
     private fun refreshKnownServers() {
         NetworkBackendRegistry.updateKnownServers(proxyServer.allServers.map { it.serverInfo.name })
     }
@@ -137,29 +126,49 @@ class DreamDisplaysVelocity @Inject constructor(
 
             is StartNetworkFullscreen -> {
                 val session = NetworkFullscreenManager.start(packet, System.currentTimeMillis())
-                val targets = NetworkFullscreenManager.targetServers(session.scope, NetworkBackendRegistry.allServerNames())
+                val targets =
+                    NetworkFullscreenManager.targetServers(session.scope, NetworkBackendRegistry.allServerNames())
                 if (targets.isEmpty()) {
-                    logger.warn("Network fullscreen '{}' from '{}' matched no backends for scope '{}'", session.sessionId, serverName, session.scope)
+                    logger.warn(
+                        "Network fullscreen '{}' from '{}' matched no backends for scope '{}'",
+                        session.sessionId,
+                        serverName,
+                        session.scope
+                    )
                 }
                 NetworkFullscreenManager.markPending(session.sessionId, targets)
                 val apply = NetworkFullscreenManager.toApplyPacket(session)
                 targets.forEach { name -> sendTo(name, apply) }
             }
 
-            is NetworkFullscreenAck -> NetworkFullscreenManager.onAck(packet.sessionId, serverName, packet.reach, packet.pending)
+            is NetworkFullscreenAck -> NetworkFullscreenManager.onAck(
+                packet.sessionId,
+                serverName,
+                packet.reach,
+                packet.pending
+            )
 
             is StopNetworkFullscreen -> {
                 val session = NetworkFullscreenManager.stop(packet.sessionId)
-                val targets = session?.let { NetworkFullscreenManager.targetServers(it.scope, NetworkBackendRegistry.allServerNames()) }
+                val targets = session?.let {
+                    NetworkFullscreenManager.targetServers(
+                        it.scope,
+                        NetworkBackendRegistry.allServerNames()
+                    )
+                }
                     ?: NetworkBackendRegistry.allServerNames() // unknown locally - fan out anyway, a no-op stop() is harmless
                 targets.forEach { name -> sendTo(name, packet) }
             }
 
-            is ListNetworkSessions -> source.server.sendPluginMessage(channel, ProxyPacketRegistry.encode(NetworkSessionList(NetworkFullscreenManager.list())))
+            is ListNetworkSessions -> source.server.sendPluginMessage(
+                channel,
+                ProxyPacketRegistry.encode(NetworkSessionList(NetworkFullscreenManager.list()))
+            )
 
             is PlayerReady -> {
                 retryPendingSessions(serverName)
-                val applicable = NetworkFullscreenManager.sessionIdsApplicableTo(serverName, NetworkBackendRegistry.allServerNames())
+                val applicable =
+                    NetworkFullscreenManager.sessionIdsApplicableTo(serverName, NetworkBackendRegistry.allServerNames())
                 val minimized = NetworkFullscreenManager.minimizedSessionIdsFor(packet.playerId, applicable)
                 sendTo(serverName, ReplayForPlayer(packet.playerId, applicable, minimized))
             }
@@ -168,7 +177,13 @@ class DreamDisplaysVelocity @Inject constructor(
                 val party = NetworkWatchPartyManager.start(packet, hostServer = serverName)
                 sendTo(
                     serverName,
-                    ApplyNetworkWatchParty(party.partyId, party.sharedDisplayId.toString(), party.hostId, party.url, party.lang),
+                    ApplyNetworkWatchParty(
+                        party.partyId,
+                        party.sharedDisplayId.toString(),
+                        party.hostId,
+                        party.url,
+                        party.lang
+                    ),
                 )
             }
 
@@ -206,12 +221,7 @@ class DreamDisplaysVelocity @Inject constructor(
         }
     }
 
-    /**
-     * Fires while the player's connection to their current backend is still open, before the switch
-     * actually happens — tells that backend "this quit is a transfer" so it doesn't start any
-     * host-disconnect grace timer for them. A same-server reconnect (rare, but possible) is not a
-     * transfer, so it's excluded.
-     */
+    /** Notifies the old backend when a player switches servers. */
     @Subscribe
     fun onServerPreConnect(event: ServerPreConnectEvent) {
         val fromServer = event.player.currentServer.orElse(null)?.serverInfo?.name ?: return
@@ -220,12 +230,7 @@ class DreamDisplaysVelocity @Inject constructor(
         sendTo(fromServer, PlayerTransferring(event.player.uniqueId.toString(), fromServer, toServer.serverInfo.name))
     }
 
-    /**
-     * Fires on a whole-proxy disconnect (not a backend switch — that's [onServerPreConnect] followed
-     * by a normal connect, with no [DisconnectEvent] in between). Clears any [PlayerTransferring]
-     * mark the last backend might still be holding, so an interrupted transfer attempt can't mask a
-     * later real quit for the rest of its TTL.
-     */
+    /** Notifies the last backend when a player leaves the proxy entirely. */
     @Subscribe
     fun onDisconnect(event: DisconnectEvent) {
         val lastServer = event.player.currentServer.orElse(null)?.serverInfo?.name ?: return
@@ -234,7 +239,8 @@ class DreamDisplaysVelocity @Inject constructor(
 
     /** Sends [packet] to backend [serverName], if it's currently registered on this proxy. */
     private fun sendTo(serverName: String, packet: ProxyPacket) {
-        proxyServer.getServer(serverName).ifPresent { it.sendPluginMessage(channel, ProxyPacketRegistry.encode(packet)) }
+        proxyServer.getServer(serverName)
+            .ifPresent { it.sendPluginMessage(channel, ProxyPacketRegistry.encode(packet)) }
     }
 
     /** Closes a [ResolveDisplayToken] fan-out window and forwards the answer, if [NetworkTokenResolutions.settle] found exactly one. */
@@ -251,17 +257,12 @@ class DreamDisplaysVelocity @Inject constructor(
         }
     }
 
-    /**
-     * Re-applies every live session [serverName] scope-matches, on a fresh [BackendHello] — broader
-     * than [retryPendingSessions]: a `BackendHello` means that backend's own process just started, so
-     * a session it already acked before a restart (crash, routine restart) needs reapplying too, since
-     * `ApplyFullscreen` sessions are never persisted locally and the proxy would otherwise never resend
-     * one it already believes succeeded.
-     */
+    /** Re-applies all live sessions that match the server's scope to a newly-connected backend. */
     private fun resendLiveSessions(serverName: String) {
-        NetworkFullscreenManager.liveSessionsApplicableTo(serverName, NetworkBackendRegistry.allServerNames()).forEach { session ->
-            NetworkFullscreenManager.markPending(session.sessionId, setOf(serverName))
-            sendTo(serverName, NetworkFullscreenManager.toApplyPacket(session))
-        }
+        NetworkFullscreenManager.liveSessionsApplicableTo(serverName, NetworkBackendRegistry.allServerNames())
+            .forEach { session ->
+                NetworkFullscreenManager.markPending(session.sessionId, setOf(serverName))
+                sendTo(serverName, NetworkFullscreenManager.toApplyPacket(session))
+            }
     }
 }

@@ -45,7 +45,8 @@ class ScheduleCommand : SubCommand {
             return
         }
 
-        val localize = { key: String, values: List<String> -> MessageUtil.formatIndexed(player, key, *values.toTypedArray()) }
+        val localize =
+            { key: String, values: List<String> -> MessageUtil.formatIndexed(player, key, *values.toTypedArray()) }
         val text = respond(data, args.getOrNull(1), args.getOrNull(2), player.uniqueId, localize)
         MessageUtil.sendColoredMessage(player, text)
     }
@@ -66,7 +67,8 @@ object VanillaScheduleCommand {
             return 0
         }
 
-        val localize = { key: String, values: List<String> -> MessageUtil.formatIndexed(player, key, *values.toTypedArray()) }
+        val localize =
+            { key: String, values: List<String> -> MessageUtil.formatIndexed(player, key, *values.toTypedArray()) }
         val text = respond(data, action, time, player.uuid, localize)
         MessageUtil.sendColoredMessage(player, text)
         return 1
@@ -133,8 +135,16 @@ private fun onAction(
     ScheduledPlaybackManager.schedule(data, target, action)
 
     val countdown = when {
-        secondsAhead >= 3600 -> localize("scheduleCountdownHours", listOf((secondsAhead / 3600).toString(), ((secondsAhead % 3600) / 60).toString()))
-        secondsAhead >= 60 -> localize("scheduleCountdownMinutes", listOf((secondsAhead / 60).toString(), (secondsAhead % 60).toString()))
+        secondsAhead >= 3600 -> localize(
+            "scheduleCountdownHours",
+            listOf((secondsAhead / 3600).toString(), ((secondsAhead % 3600) / 60).toString())
+        )
+
+        secondsAhead >= 60 -> localize(
+            "scheduleCountdownMinutes",
+            listOf((secondsAhead / 60).toString(), (secondsAhead % 60).toString())
+        )
+
         else -> localize("scheduleCountdownSeconds", listOf(secondsAhead.toString()))
     }
     return localize(

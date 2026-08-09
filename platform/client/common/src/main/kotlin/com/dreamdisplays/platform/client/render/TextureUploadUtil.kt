@@ -15,12 +15,7 @@ import java.nio.ByteOrder
 
 /** Uploads raw video frames to Minecraft textures on `OpenGL` and backend-neutral renderers. */
 object TextureUploadUtil {
-    /**
-     * Switches [tex] from Minecraft's default nearest-neighbor sampling to bilinear. Video frames
-     * and thumbnails are almost always scaled to fit their on-screen box, so without this they
-     * look blocky rather than smooth. No-op on backends where the raw GL texture id isn't
-     * reachable (e.g. VulkanMod).
-     */
+    /** Enables bilinear filtering on a texture (default is nearest-neighbor). */
     fun applyBilinearFilter(tex: DynamicTexture) {
         if (!RenderBackendCompat.canUseDirectOpenGl()) return
         //? if >=1.21.11 {

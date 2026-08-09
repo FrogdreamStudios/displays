@@ -7,11 +7,6 @@ import kotlin.time.Duration.Companion.nanoseconds
  * Subprocess-backed [MediaResolver] wrapping the [YtDlp] orchestrator. This is the slow, robust
  * fallback behind [NewPipeResolver]: a lower [priority] means [MediaResolverRegistry]
  * only reaches it after the in-process fast path has declined or failed.
- *
- * Unlike [NewPipeResolver], this path can resolve any HTTP(S) URL `yt-dlp`'s extractors understand,
- * not just YouTube. `yt-dlp`'s generic info-dict schema exposes title / uploader / thumbnail / view
- * count for every extractor (Twitch included), so those are carried on the streams and surfaced here
- * too, not just duration and live / seekable flags.
  */
 object YtDlpResolver : MediaResolver {
 

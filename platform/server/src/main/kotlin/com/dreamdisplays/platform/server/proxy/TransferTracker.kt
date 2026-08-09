@@ -4,14 +4,8 @@ import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Tracks players the proxy has told this backend are mid-transfer to another backend (via
- * [com.dreamdisplays.core.protocol.proxy.PlayerTransferring]), so `PlayerQuitEvent`-driven cleanup
- * that assumes "they left" — currently [com.dreamdisplays.platform.server.playback.WatchPartyManager]'s
- * host-disconnect grace timer - can tell a proxy switch apart from a real quit.
- *
- * Entries expire on their own after [TTL_MS] so a transfer that never completes (player disconnected
- * mid-switch, or the [com.dreamdisplays.core.protocol.proxy.PlayerLeftNetwork] correction never
- * arrives) can't mask a later real quit forever. Platform-neutral: no Bukkit/Minecraft types.
+ * Tracks players the proxy has told this backend are mid-transfer to another backend, so their disconnect isn't mistaken
+ * for a real leave.
  */
 object TransferTracker {
     private const val TTL_MS = 60_000L

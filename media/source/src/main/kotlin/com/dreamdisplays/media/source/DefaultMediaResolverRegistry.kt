@@ -13,26 +13,12 @@ import kotlinx.coroutines.sync.withPermit
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 
-/**
- * Default [MediaResolverRegistry]: tries registered [MediaResolver]s highest-[MediaResolver.priority]
- * first, skipping any whose [MediaResolver.canResolve] returns false. A resolver that throws is
- * treated as a soft failure and the chain falls through to the next candidate; the last error is
- * rethrown only if every candidate fails.
- *
- * Registration is backed by a [CopyOnWriteArrayList], so [register] / [unregister] are safe to call
- * concurrently with [resolve].
- */
+/** Default [MediaResolverRegistry]: tries registered resolvers in priority order, returning the first success. */
 class DefaultMediaResolverRegistry : MediaResolverRegistry {
 
     private val backing = CopyOnWriteArrayList<MediaResolver>()
 
-    /**
-     * Prefetch is a best-effort hint that opens with a blocking DNS lookup (the SSRF guard) and then
-     * does real network work, so it must never run on the caller's thread - [prefetch] is invoked
-     * from the client / render thread on every URL change. Permits bound how much of it runs at once
-     * without serializing unrelated displays behind each other: a single permit meant the fourth
-     * screen to come into view waited out three full probes before its own even started.
-     */
+    /** Limits concurrent prefetch hints to avoid network/process flooding. */
     private val prefetchPermit = Semaphore(PREFETCH_CONCURRENCY)
 
     /**
@@ -55,16 +41,7 @@ class DefaultMediaResolverRegistry : MediaResolverRegistry {
         backing.remove(resolver)
     }
 
-    /**
-     * Warms [source] through the capable resolvers in priority order, stopping at the first one that
-     * reports it warmed a usable result. The SSRF host check and the dispatch run on
-     * [DreamCoroutines.clientIo] so the blocking DNS lookup never stalls the caller.
-     *
-     * Stopping early matters: [MediaResolver.canResolve] is true for every source on the universal
-     * `yt-dlp` fallback, so warming the whole chain spawned a doomed subprocess for every Twitch,
-     * Vimeo, Kick and direct link — competing for CPU and bandwidth with the resolver that was
-     * actually about to serve the video.
-     */
+    /** Prefetches [source] through capable resolvers, stopping at the first success (best-effort). */
     override fun prefetch(source: MediaSource) {
         val key = source.toResolvableUrl() ?: source.toString()
         if (!inFlight.add(key)) return
@@ -83,12 +60,7 @@ class DefaultMediaResolverRegistry : MediaResolverRegistry {
         }
     }
 
-    /**
-     * Resolves [source] against each capable resolver in priority order, returning the first success.
-     * @throws DreamMediaException.Unknown if no resolver is registered for [source].
-     * @throws DreamMediaException.Unknown if [source] targets a non-public host (SSRF guard).
-     * @throws Throwable the last resolver's failure if every capable resolver threw.
-     */
+    /** Resolves [source] against each capable resolver in priority order, returning the first success. */
     override fun resolve(source: MediaSource): ResolvedMedia {
         if (isBlockedHost(source)) {
             throw DreamMediaException.Unknown("Refusing to resolve a media URL on a non-public host.", isFatal = true)
@@ -108,13 +80,7 @@ class DefaultMediaResolverRegistry : MediaResolverRegistry {
         throw lastError ?: DreamMediaException.Unknown("All resolvers failed for source: $source")
     }
 
-    /**
-     * SSRF guard: true when [source] carries a client-supplied URL whose host resolves to a
-     * non-public address. Only [MediaSource.Remote] / [MediaSource.DirectStream] are checked here;
-     * the platform sources ([MediaSource.YouTube], [MediaSource.Twitch], [MediaSource.Vimeo],
-     * [MediaSource.Kick]) are constrained to their own fixed, trusted hosts by [MediaSource.from]
-     * itself, and their resolvers validate the CDN URLs they mint through the same guard at playback.
-     */
+    /** SSRF guard: blocks non-public addresses like localhost, 192.168.*, etc. */
     private fun isBlockedHost(source: MediaSource): Boolean {
         val url = when (source) {
             is MediaSource.Remote -> source.url

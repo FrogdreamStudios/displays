@@ -14,12 +14,8 @@ import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
 
 /**
- * Render-facing half of a frame pipe, shared by [VideoFramePipe] and [NativeVideoFramePipe]:
- * the reusable direct-buffer pool, the ready-frame swap slot, and the GPU upload path.
- *
- * The reader thread fills a "spare" buffer and [publish]es it; the render thread consumes it
- * via [updateFrame] without ever blocking the reader. The actual GPU upload is delegated to a
- * platform-supplied [FrameUploader] so this class stays free of any rendering API.
+ * Render-facing half of a frame pipe, shared by [VideoFramePipe] and [NativeVideoFramePipe]: the reusable direct-buffer
+ * pool and GPU upload plumbing.
  */
 internal class FrameSurface(
     private val debugLabel: String,
@@ -59,15 +55,8 @@ internal class FrameSurface(
     fun textureFilled(): Boolean = textureReady.get() || readyBufferRef.get() != null
 
     /**
-     * Uploads the ready frame to [target] if one is available.
-     * [actualW] / [actualH] must match [expectedW] / [expectedH] the pipe was started with.
-     *
-     * Returns true when a frame was actually uploaded to [target] (used by the dual-texture
-     * quality handoff to detect when the new-resolution texture has received its first frame).
-     *
-     * Warning: this is one of the most expensive operations in the pipeline. It's critical to call this as soon as
-     * possible after [textureFilled] returns true, to minimize the chance of the reader thread overwriting the ready
-     * buffer before upload.
+     * Uploads the ready frame to [target] if one is available. [actualW] / [actualH] must match [expectedW] / [expectedH]
+     * or the frame is dropped.
      */
     fun updateFrame(target: GpuTextureRef, actualW: Int, actualH: Int, expectedW: Int, expectedH: Int): Boolean {
         val buf = readyBufferRef.getAndSet(null) ?: return false

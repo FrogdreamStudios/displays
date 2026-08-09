@@ -19,15 +19,8 @@ data class VimeoPlayback(
 )
 
 /**
- * Resolves Vimeo videos through the public player config endpoint — the same JSON Vimeo's own
- * embedded player fetches, needing no API key.
- *
- * One request to `player.vimeo.com/video/<id>/config` returns both the metadata (title, owner,
- * thumbnails, duration) and the playable files: a ladder of progressive MP4s (ideal — the player
- * opens them directly and seeks by byte range) plus an HLS master as the fallback for videos Vimeo
- * only streams adaptively. This is why [VimeoResolver] can skip the `yt-dlp` subprocess.
- *
- * @since 1.9.0
+ * Resolves Vimeo videos through the public player config endpoint — the same JSON Vimeo's own embedded player fetches,
+ * so no API key or auth is needed.
  */
 object VimeoApi {
     /** Logger. */
@@ -64,7 +57,8 @@ object VimeoApi {
         val hlsUrl = files?.obj("hls")?.let { hls ->
             val cdns = hls.obj("cdns")
             val defaultCdn = hls.optString("default_cdn")
-            val chosen = defaultCdn?.let { cdns?.obj(it) } ?: cdns?.values?.firstNotNullOfOrNull { it.asJsonObjectOrNull() }
+            val chosen =
+                defaultCdn?.let { cdns?.obj(it) } ?: cdns?.values?.firstNotNullOfOrNull { it.asJsonObjectOrNull() }
             chosen?.optString("url") ?: chosen?.optString("avc_url")
         }
 
@@ -123,7 +117,7 @@ object VimeoApi {
     private fun bestThumbnail(video: JsonObject?): String? {
         val thumbs = video?.obj("thumbs")
         return thumbs?.optString("1280") ?: thumbs?.optString("960") ?: thumbs?.optString("640")
-            ?: thumbs?.optString("base") ?: video?.optString("thumbnail_url")
+        ?: thumbs?.optString("base") ?: video?.optString("thumbnail_url")
     }
 
     /** Picks the largest owner-portrait size from the numeric-keyed `portrait` map. */

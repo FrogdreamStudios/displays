@@ -3,8 +3,7 @@ package com.dreamdisplays.api.media.audio
 import com.dreamdisplays.api.DreamDisplaysUnstableApi
 
 /**
- * World-space listener pose: position plus a forward / up orthonormal basis, used to compute azimuth
- * and directivity for every registered [SourcePlane].
+ * World-space listener pose (position + forward / up basis) for azimuth and directivity.
  *
  * @since 1.9.0
  */

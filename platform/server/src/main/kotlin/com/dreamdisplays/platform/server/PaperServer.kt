@@ -20,16 +20,8 @@ import org.jspecify.annotations.NullMarked
 import org.slf4j.LoggerFactory
 
 /**
- * Entry point of `Dream Displays` server-side plugin.
- *
- * `@PaperOnly` annotation is used when code relies on `Paper` APIs or server-side logic, and will not be loaded on
- * `Fabric` servers. The `Server` class (see `FabricServer.kt`) is annotated with `@FabricOnly` to indicate that it
- * is only used on `Fabric` servers; `NeoForgeServer` (see `NeoForgeServerMod.kt`) mirrors it for `NeoForge`.
- *
- * These annotations are used to prevent code duplication and ensure that the plugin is only loaded
- * on the correct platform.
- *
- * @see <a href="https://github.com/arnodoelinger/PlatformWeaver">Platform Weaver</a>
+ * Entry point of `Dream Displays` server-side plugin. `@PaperOnly` annotation is used when code relies on `Paper`-specific
+ * API not present on vanilla loaders.
  */
 @PaperOnly
 @NullMarked

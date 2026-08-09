@@ -193,7 +193,11 @@ object VanillaCreateCommand {
 
         val maxDisplays = VanillaServerState.config.settings.maxDisplaysPerPlayer
         if (maxDisplays > 0 &&
-            !VanillaPermissions.has(player, VanillaServerState.config.permissions.createBypass, VanillaPermissions.Fallback.OP) &&
+            !VanillaPermissions.has(
+                player,
+                VanillaServerState.config.permissions.createBypass,
+                VanillaPermissions.Fallback.OP
+            ) &&
             DisplayManager.countOwnedBy(player.uuid) >= maxDisplays
         ) {
             MessageUtil.sendMessage(player, "displayLimitReached", maxDisplays)

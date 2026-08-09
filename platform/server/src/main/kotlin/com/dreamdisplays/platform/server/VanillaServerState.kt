@@ -5,11 +5,8 @@ import net.minecraft.server.MinecraftServer
 import org.slf4j.LoggerFactory
 
 /**
- * Shared runtime state for the vanilla Minecraft API loaders (`Fabric` and `NeoForge`).
- *
- * Both loaders populate this at startup instead of keeping their own copies, so shared code (managers,
- * packet handling, playback transport) can read [config] / [storage] / [server] directly without
- * reflection, regardless of which of the two loaders is actually running.
+ * Shared runtime state for the vanilla Minecraft API loaders (`Fabric` and `NeoForge`). Both loaders populate the same
+ * fields so shared code never needs a loader check.
  */
 object VanillaServerState {
     /** Logger shared by both vanilla loaders. */
@@ -26,10 +23,8 @@ object VanillaServerState {
     var serverVersion: String? = null
 
     /**
-     * Which loader is actually running (`"fabric"` or `"neoforge"`), set once by that loader's own
-     * entrypoint — used to report [com.dreamdisplays.core.protocol.proxy.BackendHello.platform] from
-     * the shared [com.dreamdisplays.platform.server.proxy.VanillaProxyBridge], which has no other way
-     * to tell the two loaders apart.
+     * Which loader is actually running (`"fabric"` or `"neoforge"`), set once by that loader's own entrypoint — used
+     * wherever behavior must branch by loader.
      */
     var platformName: String = ""
 

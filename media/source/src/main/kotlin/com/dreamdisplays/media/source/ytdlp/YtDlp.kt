@@ -10,8 +10,6 @@ import com.dreamdisplays.media.source.ytdlp.YtDlp.FALLBACK_CLIENTS
 import com.dreamdisplays.media.source.ytdlp.YtDlp.HEDGE_DELAY_MS
 import com.dreamdisplays.media.source.ytdlp.YtDlp.PRIMARY_CLIENT
 import com.dreamdisplays.media.source.ytdlp.YtDlp.bestResult
-import com.dreamdisplays.media.source.ytdlp.YtDlp.formatMemo
-import com.dreamdisplays.media.source.ytdlp.YtDlp.offersFullResult
 import com.dreamdisplays.media.source.ytdlp.YtDlp.raceClients
 import com.dreamdisplays.util.AsyncMemo
 import com.dreamdisplays.util.DreamCoroutines
@@ -30,8 +28,7 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 /**
- * One-shot "has the race been abandoned" flag shared between [YtDlp.fetchUncached]'s hedge coroutine
- * and its abort path.
+ * "Has race been abandoned" flag shared between hedge coroutine and abort path.
  */
 private class AbandonFlag {
     private val flag = atomic(false)
@@ -41,74 +38,46 @@ private class AbandonFlag {
     }
 }
 
-/**
- * Same rationale as [AbandonFlag]: a per-race countdown that must survive capture across the
- * parallel client coroutines in [YtDlp.raceParallel].
- */
+/** Per-race countdown surviving capture across parallel client coroutines. */
 private class RemainingCountdown(initial: Int) {
     private val remaining = atomic(initial)
     fun decrementAndGet(): Int = remaining.decrementAndGet()
 }
 
 /**
- * `yt-dlp` orchestrator: caching and request deduplication around the NewPipe fast path and the
- * `yt-dlp` subprocess. Binary provisioning lives in [YtDlpBinary], cookies in [YtCookieManager],
- * and `-J` output parsing in [YtDlpOutputParser].
+ * `yt-dlp` orchestrator: caching and dedup around `NewPipeExtractor` and subprocess.
  */
 object YtDlp {
     private val logger = LoggerFactory.getLogger("DreamDisplays/yt-dlp")
     private const val CACHE_TTL_MS: Long = FormatDiskCache.DEFAULT_TTL_MS
     private const val INFO_CACHE_TTL_MS: Long = 30L * 60L * 1_000L
 
-    /** Per-invocation yt-dlp wait. With cookies off + token-free clients a warm fetch is sub-second,
-     *  so this only bounds genuine failures; keep it short so they surface fast. */
+    /** Per-invocation `yt-dlp` wait (keep short to surface failures fast). */
     private const val FETCH_TIMEOUT_SECONDS: Long = 25L
 
-    /**
-     * The client tried first, alone: in practice it is the only one YouTube still serves a full
-     * downloadable adaptive ladder to, so a single fast request usually settles resolution.
-     */
+    /** Client tried first (only one YouTube serves full ladder to). */
     private const val PRIMARY_CLIENT = "android_vr"
 
-    /**
-     * Token-free, non-DRM clients raced (one subprocess each) in parallel only when [PRIMARY_CLIENT]
-     * yields nothing usable — these currently hit the PO-token / SABR wall ("requested format is not
-     * available"), but stay here so resolution recovers automatically if they start working again.
-     */
+    /** Token-free clients raced in parallel (hit PO-token wall, but auto-recover if working). */
     private val FALLBACK_CLIENTS: List<String?> = listOf("ios", "tv", "android")
 
-    /**
-     * Head start (ms) the in-process NewPipeExtractor path gets before the parallel `yt-dlp` subprocess is
-     * launched: if NewPipeExtractor yields a full ladder within it, `yt-dlp` is skipped entirely (no spawn).
-     * Default 0 launches both at once — `yt-dlp` reaches the PO-token / SABR wall for most videos
-     * today, so it runs on nearly every resolve anyway and overlapping it is a pure win. Raise it via
-     * `-Ddreamdisplays.ytdlpHedgeMs` where NewPipeExtractor more often ladders and the wasted spawn matters.
-     */
+    /** Head start (ms) for `NewPipeExtractor` before `yt-dlp` subprocess (skips spawn if full ladder). */
     private val HEDGE_DELAY_MS: Long =
         System.getProperty("dreamdisplays.ytdlpHedgeMs")?.toLongOrNull()?.coerceAtLeast(0L) ?: 0L
 
-    /** All yt-dlp background work (prewarm, fetch, per-client races, search) runs on the shared
-     *  [DreamCoroutines.clientIo] scope's elastic [kotlinx.coroutines.Dispatchers.IO] pool. */
+    /** All `yt-dlp` background work runs on [DreamCoroutines.clientIo] scope. */
     private val cookies = YtCookieManager()
 
     private val formatMemo = AsyncMemo<String, List<YtStream>>(200, CACHE_TTL_MS, DreamCoroutines.clientIo, "fetch")
 
-    /**
-     * When each URL's streams were resolved (or disk-promoted), so live entries — whose playlist
-     * URLs carry expiring tokens — can be refreshed after [FormatDiskCache.LIVE_TTL_MS] instead of
-     * sitting in [formatMemo] for the full 5h TTL.
-     */
+    /** When each URL's streams were resolved (for live TTL refresh). */
     private val fetchedAtMs: Cache<String, Long> = Caffeine.newBuilder().maximumSize(300).build()
     private val searchMemo =
         AsyncMemo<String, List<MediaSearchResult>>(100, INFO_CACHE_TTL_MS, DreamCoroutines.clientIo, "search")
     private val relatedMemo =
         AsyncMemo<String, List<MediaSearchResult>>(200, INFO_CACHE_TTL_MS, DreamCoroutines.clientIo, "related")
 
-    /**
-     * Returns the stream list for [videoUrl], hitting the in-memory cache, then disk cache, then running `yt-dlp`.
-     * Blocks the calling thread until the result is available.
-     * @throws IOException on `yt-dlp` failure or timeout.
-     */
+    /** Returns stream list for videoUrl (in-memory -> disk -> `yt-dlp`). */
     @Throws(IOException::class)
     fun fetch(videoUrl: String): List<YtStream> {
         if (!MediaUrlPolicy.isAllowed(videoUrl)) {
@@ -123,32 +92,21 @@ object YtDlp {
         return streams
     }
 
-    /**
-     * Whether a cached live result for [videoUrl] has outlived [FormatDiskCache.LIVE_TTL_MS]: live
-     * playlist URLs carry expiring tokens (Twitch usher, YouTube live manifests), so serving one
-     * from the 5h memo hands the player a dead URL.
-     */
+    /** Whether cached live result is stale (playlist URLs have expiring tokens). */
     private fun isStaleLive(videoUrl: String, streams: List<YtStream>): Boolean {
         if (streams.none { it.isLive }) return false
         val at = fetchedAtMs.getIfPresent(videoUrl) ?: return true
         return System.currentTimeMillis() - at > FormatDiskCache.LIVE_TTL_MS
     }
 
-    /**
-     * Whether a cached partial (non-ladder) result for [videoUrl] has outlived
-     * [FormatDiskCache.PARTIAL_TTL_MS]. Videos hitting the PO-token / SABR wall are re-checked on this
-     * cadence instead of every single call — see [offersFullResult].
-     */
+    /** Whether cached partial result is stale (re-check PO-token wall on cadence). */
     private fun isStalePartial(videoUrl: String, streams: List<YtStream>): Boolean {
         if (streams.isEmpty() || offersFullResult(streams)) return false
         val at = fetchedAtMs.getIfPresent(videoUrl) ?: return true
         return System.currentTimeMillis() - at > FormatDiskCache.PARTIAL_TTL_MS
     }
 
-    /**
-     * Whether [streams] is a result worth caching at the full TTL: a real quality ladder, or a live
-     * stream (which legitimately exposes a single height and must not be re-resolved every play).
-     */
+    /** Whether streams is worth caching at full TTL (quality ladder or live). */
     private fun offersFullResult(streams: List<YtStream>): Boolean =
         streams.any { it.isLive } || YtStreams.offersQualityLadder(streams)
 
@@ -187,12 +145,7 @@ object YtDlp {
         return immutable
     }
 
-    /**
-     * Resolves streams for [videoUrl] and mirrors the result into the disk cache. Partial (non-ladder)
-     * results are persisted too — [FormatDiskCache.load] caps their effective age at
-     * [FormatDiskCache.PARTIAL_TTL_MS] on its own, so this does not risk serving a stale wall result
-     * past its recheck window.
-     */
+    /** Resolves streams and mirrors to disk cache (partial results persisted too). */
     @Throws(IOException::class)
     private suspend fun fetchAndPersist(videoUrl: String): List<YtStream> {
         val streams = fetchUncached(videoUrl).toList()
@@ -269,12 +222,8 @@ object YtDlp {
     fun getPublicCookieHeader(): String? = cookies.header()
 
     /**
-     * Resolves streams for [videoUrl]. Runs the in-process [NewPipeResolver] fast path and the
-     * `yt-dlp` subprocess ([raceClients]) concurrently, so resolution costs max(NewPipe, yt-dlp)
-     * instead of their sum. NewPipe still wins outright when it yields a full ladder (cheaper, no
-     * subprocess), in which case the in-flight `yt-dlp` is aborted; otherwise the `yt-dlp` result is
-     * awaited, falling back to a NewPipe muxed-only result if every client failed. `yt-dlp` only
-     * starts after [HEDGE_DELAY_MS], so a fast NewPipe ladder can skip it entirely.
+     * Resolves streams for [videoUrl]: races the in-process [NewPipeResolver] fast path against the `yt-dlp` subprocess
+     * and returns whichever first offers a full quality ladder.
      */
     @Throws(IOException::class)
     private suspend fun fetchUncached(videoUrl: String): List<YtStream> {
@@ -342,10 +291,8 @@ object YtDlp {
     }
 
     /**
-     * Resolves [videoUrl] via `yt-dlp`. Tries [PRIMARY_CLIENT] alone first (one request, fast, the
-     * only client that currently yields a ladder); only if it produces nothing usable does it fall
-     * back to racing [FALLBACK_CLIENTS] in parallel. With browser cookies configured, a single
-     * cookie-backed invocation is run instead (no client arg, no race). Returns null on total failure.
+     * Resolves [videoUrl] via `yt-dlp`. Tries [PRIMARY_CLIENT] alone first (one request, fast, the only client that
+     * isn't PO-token gated), then races [FALLBACK_CLIENTS] in parallel if that fails.
      */
     private suspend fun raceClients(videoUrl: String, onProcess: (Process) -> Unit): List<YtStream>? {
         if (!cookies.disabledByConfig()) {

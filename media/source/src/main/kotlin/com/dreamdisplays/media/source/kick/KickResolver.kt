@@ -11,11 +11,8 @@ import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
 
 /**
- * In-process Kick resolver: one site-API call (see [KickApi]) instead of a `yt-dlp` subprocess,
- * mirroring [com.dreamdisplays.media.source.twitch.TwitchResolver]. `yt-dlp` remains the fallback
- * for when Cloudflare turns the direct call away.
- *
- * @since 1.9.0
+ * In-process Kick resolver: one site-API call (see [KickApi]) instead of a `yt-dlp` subprocess, mirroring the other
+ * first-party resolvers.
  */
 object KickResolver : MediaResolver {
     /** Logger. */

@@ -5,13 +5,8 @@ import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.Camera
 
 /**
- * Minecraft-backed [RenderContext]. The platform adapter that lets the platform-agnostic
- * [ClientRenderService] contract drive the existing world renderer:
- * the contract's `renderAll(RenderContext)` receives this, casts it back, and reaches the live
- * [PoseStack] and [Camera].
- *
- * [cameraX]/[cameraY]/[cameraZ] are derived straight from [camera] so the contract surface stays
- * Minecraft-free while the concrete render path keeps the rich types it needs.
+ * Minecraft-backed [RenderContext]. The platform adapter that lets the platform-agnostic [ClientRenderService] draw
+ * against the current pose stack and camera.
  */
 class MinecraftRenderContext(
     /** The live pose stack for the current frame. */

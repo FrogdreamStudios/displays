@@ -23,13 +23,8 @@ import net.minecraft.util.ARGB
 import kotlin.math.min
 
 /**
- * Vanilla-styled button with a centered mod icon. The icon is a per-frame lambda so stateful buttons
- * (play / pause, mute, lock) re-skin themselves declaratively instead of call sites swapping textures.
- *
- * @param icon resolves the current icon sprite each frame.
- * @param sprites button background sprites; defaults to the vanilla grey button set.
- * @param margin inner padding between the button edge and the icon.
- * @param onPress click action.
+ * Vanilla-styled button with a centered mod icon. The icon is a per-frame lambda so stateful buttons (play / pause)
+ * can swap it live.
  */
 class IconButton(
     private val icon: () -> Identifier,

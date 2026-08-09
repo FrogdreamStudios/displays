@@ -14,13 +14,8 @@ import java.nio.file.StandardCopyOption
 import java.util.concurrent.TimeUnit
 
 /**
- * Everything cookie-related for YouTube access: resolving which browser to export from (opt-in via
- * config), materializing `cookies.txt` under a cross-process lock, periodic re-export, and the
- * parsed cookie header for plain HTTP clients (InnerTube).
- *
- * On any export failure the manager disables itself for the session ([unavailableThisSession])
- * instead of letting every fetch hang on a broken browser export. Background prewarm / refresh work
- * runs on [DreamCoroutines.clientIo].
+ * Everything cookie-related for YouTube access: resolving which browser to export from (opt-in via config),
+ * maintaining the exported cookie file.
  */
 class YtCookieManager {
     private val logger = LoggerFactory.getLogger("DreamDisplays/yt-dlp")

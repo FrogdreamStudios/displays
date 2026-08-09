@@ -67,10 +67,8 @@ object FullscreenOverlayManager {
     }
 
     /**
-     * Per-tick Esc handling: pressing Esc during gameplay opens the vanilla pause screen, so a
-     * `null -> pause screen` transition while an overlay is active is treated as "Esc pressed on
-     * the fullscreen overlay" — the pause screen is dismissed and the overlay closes (or minimizes
-     * to PiP when forced).
+     * Per-tick Esc handling: pressing Esc during gameplay opens the vanilla pause screen, so a `null -> pause screen`
+     * transition while an overlay is active is treated as the user's Esc-close intent.
      */
     fun onClientTick(mc: Minecraft) {
         val screen = MinecraftScreenUtil.currentScreen(mc)

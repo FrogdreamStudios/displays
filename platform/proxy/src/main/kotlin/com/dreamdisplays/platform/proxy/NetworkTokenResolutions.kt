@@ -3,10 +3,8 @@ package com.dreamdisplays.platform.proxy
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Proxy-side collection window for a [com.dreamdisplays.core.protocol.proxy.ResolveDisplayToken]
- * fan-out. More than one backend can plausibly answer the same short token — different backends'
- * display ids are independent id spaces, so a short prefix that's unambiguous on each individual
- * backend can still collide across the network.
+ * Proxy-side collection window for a [com.dreamdisplays.core.protocol.proxy.ResolveDisplayToken] fan-out. More than
+ * one backend may reply; [settle] picks the winner once the window closes.
  */
 object NetworkTokenResolutions {
     /** How long a fan-out waits for backend replies before [settle] decides. */

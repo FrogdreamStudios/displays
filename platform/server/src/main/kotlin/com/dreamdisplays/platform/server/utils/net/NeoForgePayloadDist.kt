@@ -25,10 +25,8 @@ val isClientDist: Boolean by lazy {
 }
 
 /**
- * Wraps [handler] so it only ever runs on a genuine client process; a no-op everywhere else.
- * Building the lambda passed in is always safe (creating a Kotlin lambda never resolves classes
- * referenced only inside its body) - it's invoking it that would need `Initializer`'s class,
- * and this wrapper only invokes it when [isClientDist] is true.
+ * Wraps [handler] so it only ever runs on a genuine client process; a no-op everywhere else. Building the lambda this
+ * way keeps server jars from touching client-only classes.
  */
 @NeoForgeOnly
 fun <T : CustomPacketPayload> clientHandler(handler: (T, IPayloadContext) -> Unit): (T, IPayloadContext) -> Unit =

@@ -30,20 +30,8 @@ import net.minecraft.util.ARGB
 import net.minecraft.util.Mth
 
 /**
- * Playback progress bar with drag-to-seek. Position and duration are pulled from lambdas every
- * frame; the seek is only committed when the drag ends (via [commitDragIfActive] from the screen's
- * `mouseReleased`), so scrubbing doesn't spam seeks.
- *
- * @param current supplies the current playback position in nanoseconds.
- * @param duration supplies the total duration in nanoseconds (`<= 0` while unknown).
- * @param onSeek invoked with the target position in nanoseconds when a drag is committed.
- * @param previewFrame optionally supplies a scrub-preview texture for a hovered position in
- * nanoseconds; returning null (or leaving this unset) shows no preview.
- * @param waitingLabel optionally supplies a status string (e.g. "Waiting for video..." or a
- * scheduled-playback countdown) to show in place of the time label while non-null; drawn in a dim
- * gray.
- * @param scheduleLabel optionally supplies a scheduled-playback countdown string to append after
- * the normal time label.
+ * Playback progress bar with drag-to-seek. Position and duration are pulled from lambdas every frame; the seek only
+ * commits on release.
  */
 class SeekBar(
     private val current: () -> Long,
@@ -142,12 +130,8 @@ class SeekBar(
     }
 
     /**
-     * Draws the scrub-preview thumbnail above the bar, centered on [mouseX] and clamped to the
-     * screen. The on-screen box stays at [DISPLAY_WIDTH] x [DISPLAY_HEIGHT] regardless of the
-     * texture's actual (larger) resolution — vanilla `blit`'s `(u, v, width, height, textureWidth,
-     * textureHeight)` overload samples 1:1 texel-for-pixel rather than scaling to fit, so shrinking
-     * the box is done with a pose-stack scale around a full-resolution blit instead (GPU bilinear
-     * downsample, keeping the extra source detail instead of just cropping to the box size).
+     * Draws the scrub-preview thumbnail above the bar, centered on [mouseX] and clamped to the screen.
+     * The on-screen timestamp tracks the hover position.
      */
     private fun drawPreview(
         g: GuiGraphicsCompat,

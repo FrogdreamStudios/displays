@@ -16,19 +16,7 @@ import net.minecraft.resources.Identifier
 /*import net.minecraft.resources.ResourceLocation as Identifier*/
 
 /**
- * Single space-delimited token, unquoted, for `Fabric` / `NeoForge`'s raw vanilla command tree
- * (`VanillaCommandTree.kt`; `Paper` uses a `CustomArgumentType` wrapper instead — see
- * `CommandRegistrar.kt` — since `Paper` substitutes an already-registered native type when building
- * the per-player sync packet, so it never needs any of this). `Brigadier`'s stock
- * `StringArgumentType.word()` / `.string()` only allow `@` / `%` / `:` / `/` etc. when the whole token is
- * quoted; this type just reads up to the next space so selectors (`@a`, `%group`) and raw URLs work
- * bare. Used for `/display fullscreen`'s `target` (player / selector list) and `id` (display id or
- * video URL) arguments.
- *
- * Warning: [FabricBareTokenArgumentType.register] must run from `Server.onInitialize()`.
- * [NeoForgeBareTokenArgumentType.register] must run later, from a `RegisterEvent` listener for
- * `Registries.COMMAND_ARGUMENT_TYPE` — `BuiltInRegistries.COMMAND_ARGUMENT_TYPE` is still frozen at
- * mod-construction time and only unfreezes for that event (see `NeoForgeServerMod.kt`).
+ * Space-delimited unquoted token for bare selectors, URLs in `/display fullscreen` commands.
  */
 object BareTokenArgumentType : ArgumentType<String> {
     private val MISSING = SimpleCommandExceptionType(LiteralMessage("Expected a value."))
@@ -61,13 +49,7 @@ object FabricBareTokenArgumentType {
 }
 
 /**
- * Registers [BareTokenArgumentType]'s sync info by reflectively populating
- * `ArgumentTypeInfos.BY_CLASS`. `NeoForge` actually patches a public `registerByClass` method onto
- * that class at runtime for exactly this purpose, but the patch isn't present on the `universal`
- * jar this module compiles against (only applied by `NeoForge`'s installer to the game jar), so it
- * can't be referenced statically here. Unlike `Fabric`, `NeoForge` ships mods built directly
- * against Mojang's official names with no separate remap-to-obfuscated step, so — unlike the
- * `Fabric` case this replaced — this field-name string literal does resolve correctly at runtime.
+ * Registers [BareTokenArgumentType]'s sync via `NeoForge` reflection.
  */
 @NeoForgeOnly
 object NeoForgeBareTokenArgumentType {

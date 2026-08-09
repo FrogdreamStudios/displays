@@ -3,14 +3,7 @@ package com.dreamdisplays.api.storage
 import com.dreamdisplays.api.DreamDisplaysUnstableApi
 import kotlinx.serialization.Serializable
 
-/**
- * One custom link the player has played, as persisted in their local link list.
- *
- * Client-only and never sent over the wire: a pasted link exists nowhere but the message it was
- * typed into, so this is the only record of it that survives the session.
- *
- * @since 1.9.0
- */
+/** Custom link persisted in local link list; client-only and never sent over network. */
 @DreamDisplaysUnstableApi
 @Serializable
 data class CustomVideoRecord(

@@ -13,12 +13,8 @@ import java.nio.ByteOrder
 import java.util.*
 
 /**
- * Holds the display menu's RGBA preview texture for one display, fed by [updateFrame] (decode thread)
- * and uploaded to the GPU by [uploadFrame] (render thread). Owned by `DisplayScreen` rather than the
- * menu screen itself, so the last decoded frame — and the GPU texture holding it — survive closing and
- * reopening the display menu: a paused (or otherwise frame-starved) video would otherwise show the
- * "waiting" placeholder on reopen instead of its frozen picture, since nothing re-pushes a frame until
- * playback resumes. Released only in `DisplayScreen.unregister()`.
+ * Holds the display menu's RGBA preview texture for one display, fed by [updateFrame] (decode thread) and uploaded to the
+ * GPU on the render thread.
  */
 class PreviewFrameTexture(private val uuid: UUID) {
     @Volatile

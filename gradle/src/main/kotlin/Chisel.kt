@@ -1,26 +1,4 @@
-/**
- * Minimal, deterministic processor for the `Stonecutter`-style version directives used in this
- * project's shared Kotlin source.
- *
- * Conditions use the Stonecutter shape already present in source:
- *
- * ```
- * //? if >=26 {
- * active branch
- * //?} else
- * /*fallback branch*/
- * ```
- *
- * The checked-in branch (between `{` and `//?}`) is the true branch for the newest target; the else
- * branch is stored in a block comment. Unlike a plain "comment the if / uncomment the else" flip,
- * this evaluates the directive's condition (`>=26`, `>=1.21.11`, ...) against the target Minecraft
- * version, so more than two targets can be expressed by stacking or nesting directives. For the
- * newest target every condition holds and the output equals the checked-in source verbatim.
- *
- * `Stonecutter` cannot process these comments here because the plugin is only applied to the root
- * project while the code lives in subprojects; this helper performs the equivalent transform into
- * a generated source directory that the Kotlin source set points at.
- */
+/** Process `Stonecutter`-style version directives (`//? if >=26 {...}`), evaluating conditions per target. */
 fun chiselSource(lines: List<String>, minecraftVersion: String): String {
     val out = StringBuilder()
     var i = 0

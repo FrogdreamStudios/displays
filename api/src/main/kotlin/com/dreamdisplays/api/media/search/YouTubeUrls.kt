@@ -33,28 +33,17 @@ object YouTubeUrls {
     /** Returns the compact (320x180) thumbnail URL for [videoId]; clean 16:9 and always available. */
     fun mqThumbnailUrl(videoId: String): String = mqThumbnailUrl(YouTubeVideoId.require(videoId))
 
-    /**
-     * Returns the max-resolution (up to 1920x1080) thumbnail URL for [videoId]. Not every video has
-     * one: when it's missing, YouTube serves `HTTP 200` with a tiny grey placeholder image instead of
-     * a `404`, so callers must verify the response (e.g. by size) before trusting it and fall back to
-     * [thumbnailUrl] otherwise.
-     */
+    /** Returns max-res thumbnail URL; verify response since YouTube 200s with placeholder if missing. */
     fun maxResThumbnailUrl(videoId: YouTubeVideoId): String =
         "https://i.ytimg.com/vi/${videoId.value}/maxresdefault.jpg"
 
     /** Returns the max-resolution thumbnail URL for [videoId]; see the [YouTubeVideoId] overload for caveats. */
     fun maxResThumbnailUrl(videoId: String): String = maxResThumbnailUrl(YouTubeVideoId.require(videoId))
 
-    /**
-     * Extracts the 11-character video ID from a full URL (`youtube.com/watch`, `youtu.be`, shorts,
-     * embed, live) or a bare ID. Returns null when the input is not recognizable.
-     */
+    /** Extracts video ID from URL (youtube.com/watch, youtu.be, shorts, embed, live) or bare ID. */
     fun extractVideoId(url: String?): String? = extractVideoIdTyped(url)?.value
 
-    /**
-     * Extracts a typed YouTube video ID from a full URL (`youtube.com/watch`, `youtu.be`, shorts,
-     * embed, live), a schemeless YouTube URL, or a bare ID.
-     */
+    /** Extracts typed video ID from full/schemeless URL or bare ID. */
     fun extractVideoIdTyped(input: String?): YouTubeVideoId? {
         val value = input?.trim() ?: return null
         if (value.isEmpty()) return null
@@ -100,7 +89,7 @@ object YouTubeUrls {
     private fun isHost(host: String, root: String): Boolean =
         host == root || host.endsWith(".$root")
 
-    /** Returns the value of the first query parameter with the given [name], or null if not found. */
+    /** Returns first query parameter value with [name], or null if not found. */
     private fun queryParameter(rawQuery: String?, name: String): String? =
         rawQuery
             ?.split('&')

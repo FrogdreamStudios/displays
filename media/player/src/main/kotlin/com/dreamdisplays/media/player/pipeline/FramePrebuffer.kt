@@ -10,21 +10,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
- * Optional jitter buffer that decouples decoding from playout, eliminating the cold-start / network-stall
- * freeze. Without it both video pipes run a single thread that decodes one frame, paces it (sleeping), and
- * publishes it into the one-slot [FrameSurface]; while that thread is blocked waiting for the next frame
- * (network stall, cold seek) there is nothing new to show and the picture freezes.
- *
- * With a prebuffer the reader thread becomes a pure producer (decode -> [submit], blocking when full so
- * it never runs unbounded), and a dedicated consumer thread paces frames against the audio clock and
- * presents them into the same ready slot. A stall now blocks only the producer; the consumer keeps
- * presenting from the queue, so playback stays smooth until the cushion drains. The audio master clock
- * ([onFirstFrame]) is started only once the queue has pre-filled, so playback begins with a head start.
- * The very first decoded frame is presented immediately as a preview (before the prefill completes),
- * so starts and seeks show the target picture as soon as one frame exists.
- *
- * Enabled by default ([prefillFrames] is derived from `dreamdisplays.playback.prebufferMs`, default 400 ms);
- * set the property to 0 to keep the original inline pace-and-publish path.
+ * Optional jitter buffer that decouples decoding from playout, eliminating the cold-start / network-stall freeze by
+ * prefilling frames before playout begins.
  */
 internal class FramePrebuffer(
     private val surface: FrameSurface,
@@ -70,12 +57,8 @@ internal class FramePrebuffer(
     private var flushRequested = false
 
     /**
-     * Monotonic seek counter. Every [resetForSeek] bumps it; frames are tagged with the current
-     * value at submit time. A queued frame whose tag lags the current generation belongs to a
-     * superseded timeline and must be recycled without pacing — this is the definitive stale
-     * signal, independent of the transient [flushRequested] flag (which is cleared before the
-     * new-timeline frames replace the old ones, leaving a small window where a tail queue entry
-     * would otherwise slip through against the new audio clock).
+     * Monotonic seek counter. Every [resetForSeek] bumps it; frames are tagged with the current value at submit time so
+     * stale ones can be dropped.
      */
     private val generation = AtomicInteger(0)
 
@@ -83,10 +66,8 @@ internal class FramePrebuffer(
     private var consumer: Thread? = null
 
     /**
-     * Invoked on the consumer thread for each frame right after it passes pacing and before it is
-     * presented, with the ready buffer (position 0, limit = frame size). Used to feed paced copies
-     * such as the PiP / popout sink so they stay in sync with the in-world display instead of being
-     * fed at the faster decode rate. The callback must leave the buffer ready for presentation.
+     * Invoked on the consumer thread for each frame right after it passes pacing and before it is presented, with the raw
+     * decoded buffer (e.g. to feed a popout).
      */
     @Volatile
     var onPresent: ((ByteBuffer) -> Unit)? = null
@@ -140,10 +121,8 @@ internal class FramePrebuffer(
     }
 
     /**
-     * Called from the control thread the moment a seek is requested: drops queued pre-seek frames and
-     * unblocks both a producer stuck in [submit] and the consumer parked in pacing, so the reader
-     * thread reaches its seek check immediately instead of finishing playout of the stale cushion
-     * first (which turned every backward seek into a multi-second freeze).
+     * Called from the control thread the moment a seek is requested: drops queued pre-seek frames and unblocks both a
+     * stuck producer and consumer.
      */
     fun requestFlush() {
         flushRequested = true
@@ -250,11 +229,8 @@ internal class FramePrebuffer(
     }
 
     /**
-     * Consumer-thread-only A / V health counters. Pacing guarantees a *presented* frame is within
-     * [FramePacing]'s drop threshold of the audio clock, so a lip-sync complaint never shows up as a
-     * bad offset here — it shows up as frames being dropped to stay there. A sustained drop rate is
-     * therefore the signal worth surfacing: it means decode / upload can't hold the source's cadence,
-     * and the picture is stuttering to keep step with the sound.
+     * Consumer-thread-only A / V health counters. Pacing guarantees a *presented* frame is within [FramePacing]'s tolerance;
+     * these track how often that fails.
      */
     private var statPresented = 0L
     private var statDroppedLate = 0L

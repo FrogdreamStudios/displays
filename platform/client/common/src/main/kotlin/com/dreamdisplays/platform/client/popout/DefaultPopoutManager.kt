@@ -15,12 +15,8 @@ import com.dreamdisplays.platform.client.storage.ClientSettingsStore
 import java.util.concurrent.CopyOnWriteArrayList
 
 /**
- * Global [PopoutManager] facade. Delegates per-display window and PiP operations to the
- * [DisplayPopoutManager] embedded in each [DisplayScreen]
- * (looked up via [DisplayRegistry]), and queries [OverlayManager] for PiP status.
- *
- * Frame-sink wiring remains internal to [DisplayPopoutManager]; [openWindow] and
- * [openPip] return null because the sink is set directly on the player, not surfaced here.
+ * Global [PopoutManager] facade. Delegates per-display window and PiP operations to the [DisplayPopoutManager] owned by
+ * each [DisplayScreen], fanning out their events to subscribers.
  */
 class DefaultPopoutManager : PopoutManager {
     /** Thread-safe list of subscribers to [PopoutEvent]s, which are emitted by the per-screen popout managers and fanned out here. */

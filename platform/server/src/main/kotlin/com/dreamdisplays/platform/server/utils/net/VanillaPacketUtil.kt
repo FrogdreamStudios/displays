@@ -15,10 +15,8 @@ import org.joml.Vector3i
 import java.util.*
 
 /**
- * Dual-protocol send facade for the vanilla Minecraft API flavor (`Fabric` / `NeoForge`):
- * v2-negotiated players receive envelope payloads, everyone else gets the frozen v1 payloads.
- * The only genuinely loader-specific bit — which networking API actually puts bytes on the wire —
- * is delegated to [VanillaNetworking.adapter].
+ * Dual-protocol send facade for the vanilla Minecraft API flavor (`Fabric` / `NeoForge`): v2-negotiated players
+ * get the v2 envelope, everyone else gets legacy plugin messages.
  */
 object VanillaPacketUtil {
     /** Splits the recipients into (v2-negotiated, legacy) lists. */

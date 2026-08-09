@@ -4,12 +4,7 @@ import com.dreamdisplays.platform.server.utils.net.VanillaDisplayActions
 import net.minecraft.server.level.ServerPlayer
 import java.util.*
 
-/**
- * Permission-node resolution for the `Fabric` / `NeoForge` servers, giving parity with the Paper
- * plugin's `hasPermission` checks. Nodes are resolved through the `LuckPerms` API when the `LuckPerms`
- * mod is installed; otherwise (or when `LuckPerms` leaves the node undefined) each check falls back
- * to its documented `config.toml` default: everyone, or operator level 2.
- */
+/** Permission-node resolution for the `Fabric` / `NeoForge` servers, giving parity with the Paper plugin's `hasPermission` checks. */
 object VanillaPermissions {
     /**
      * Fallback applied when LuckPerms is absent or leaves the node undefined. [NOBODY] is for literal membership checks

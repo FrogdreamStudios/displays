@@ -3,12 +3,7 @@ package com.dreamdisplays.api.media.audio
 import com.dreamdisplays.api.DreamDisplaysUnstableApi
 
 /**
- * World-space planar sound source: a rectangle centered at ([centerX], [centerY], [centerZ]) spanning
- * [width] blocks along the unit [uAxisX] / [uAxisY] / [uAxisZ] and [height] blocks along the unit
- * [vAxisX] / [vAxisY] / [vAxisZ], facing along the outward unit normal
- * [normalX] / [normalY] / [normalZ].
- *
- * One block is treated as one meter for acoustic purposes.
+ * World-space planar sound source (rectangle with center, axes, and normal); one block = one meter.
  *
  * @since 1.9.0
  */

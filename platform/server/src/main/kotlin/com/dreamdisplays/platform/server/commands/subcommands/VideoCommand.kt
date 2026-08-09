@@ -125,10 +125,8 @@ class VideoCommand : SubCommand {
 }
 
 /**
- * Canonical URL for [raw] as typed on the command line, or null when it is not something the mod
- * could ever play. A YouTube id or watch URL is rewritten to the canonical watch URL as before;
- * anything else is accepted as a custom link once it passes the URL-shape policy, so the command
- * and the menu agree on what a valid video is.
+ * Canonical URL for [raw] as typed on the command line, or null when it is not something the mod could ever play or is
+ * blocked by [MediaUrlPolicy].
  */
 private fun canonicalUrl(raw: String): String? {
     val input = raw.trim()

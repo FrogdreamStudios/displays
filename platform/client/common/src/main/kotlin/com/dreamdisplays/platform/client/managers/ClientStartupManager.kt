@@ -39,10 +39,8 @@ object ClientStartupManager {
     private val qualityRefreshInterval = 2500.milliseconds
 
     /**
-     * Owns every background maintenance coroutine. Runs on [Dispatchers.IO] (a pool of daemon
-     * threads), so a hung refresh / sweep can never block JVM shutdown; [stop] still cancels it
-     * cleanly on a normal exit. [SupervisorJob] keeps the quality-refresh loop and the cache sweep
-     * independent, so one failing doesn't cancel the other.
+     * Owns every background maintenance coroutine. Runs on [Dispatchers.IO] (a pool of daemon threads), so a hung task
+     * never blocks the client's main thread.
      */
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 

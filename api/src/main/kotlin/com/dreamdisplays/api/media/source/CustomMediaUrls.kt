@@ -7,24 +7,10 @@ import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 import java.util.*
 
-/**
- * Everything the mod knows about "custom" media URLs: the links players paste by hand rather than
- * pick from the suggestions panel.
- *
- * Three jobs, in the order they run:
- * 1. [normalize] repairs what people actually paste - chat decorations, a missing scheme - and
- *    rewrites the share URL of a file host into the direct URL of the file behind it, so a
- *    Google Drive or Dropbox link works without the player knowing anything about those services.
- * 2. [classify] labels the result, which is what [MediaSource.from] uses to decide between the
- *    direct player path and the extractor chain.
- * 3. [displayName] gives the UI something human to show while no metadata exists, since a direct
- *    file has no title, uploader, or thumbnail anywhere to look them up from.
- *
- * @since 1.9.0
- */
+/** Normalize, classify, and name-for-display custom media URLs (direct links, not platform URLs). */
 @DreamDisplaysUnstableApi
 object CustomMediaUrls {
-    /** Containers the player opens directly; everything here is muxed or video-only, never audio-only. */
+    /** Video containers (muxed or video-only). */
     private val VIDEO_EXTENSIONS = setOf(
         "mp4", "m4v", "webm", "mkv", "mov", "ogv", "avi", "ts", "mts", "m2ts",
         "flv", "3gp", "3g2", "wmv", "asf", "mpg", "mpeg", "m2v", "mxf",
@@ -51,13 +37,7 @@ object CustomMediaUrls {
     /** Google Drive file id: the opaque segment in `/file/d/<id>/` or the `id=` query parameter. */
     private val DRIVE_PATH_ID = Regex("/file/d/([A-Za-z0-9_-]{8,})")
 
-    /**
-     * Cleans up [raw] and rewrites it to something playable, or returns null when it is not an
-     * `http(s)` URL at all. The result is always a valid [MediaHttpUrl] value.
-     *
-     * Applied in order: strip chat wrappers and whitespace, add the implicit `https://` scheme so a
-     * bare `example.com/v.mp4` works, then run the share-link rewrites in [rewriteShareLink].
-     */
+    /** Cleans and rewrites [raw] to playable HTTP(S) URL; applies wrappers, scheme, share-link rewrites. */
     fun normalize(raw: String): String? {
         var value = raw.trim().trim { it in WRAPPERS }.trim()
         if (value.isEmpty()) return null
@@ -76,13 +56,7 @@ object CustomMediaUrls {
         return rewriteShareLink(parsed.uri) ?: parsed.value
     }
 
-    /**
-     * Rewrites a known file host's *share page* URL into the direct URL of the file it hosts, or
-     * returns null when [uri] is not one of them (the overwhelmingly common case).
-     *
-     * These are the hosts players actually use to share a clip with their server, where the link
-     * copied from the browser points at an HTML viewer rather than the video.
-     */
+    /** Rewrites file host share-page URLs to direct files (Drive, Dropbox, GitHub, etc.); null otherwise. */
     private fun rewriteShareLink(uri: URI): String? {
         val host = uri.host?.lowercase(Locale.ROOT)?.removePrefix("www.") ?: return null
         val segments = uri.path?.split('/')?.filter { it.isNotBlank() } ?: emptyList()
@@ -119,14 +93,7 @@ object CustomMediaUrls {
         }
     }
 
-    /**
-     * Classifies [url] by the extension of its last path segment, ignoring the query string (signed
-     * CDN URLs carry the real name in the path and a signature in the query).
-     *
-     * Returns [CustomMediaKind.UNKNOWN] for anything without a recognized extension, including the
-     * extension-less URLs some CDNs hand out — those still reach the direct resolver through
-     * [MediaSource.Remote], where the HTTP probe can settle it.
-     */
+    /** Classifies [url] by extension of last path segment (ignoring query); returns UNKNOWN if unrecognized. */
     fun classify(url: String): CustomMediaKind {
         val extension = extensionOf(url) ?: return CustomMediaKind.UNKNOWN
         MANIFEST_EXTENSIONS[extension]?.let { return it }
@@ -154,13 +121,7 @@ object CustomMediaUrls {
             .getOrNull()
             ?.takeIf { it.isNotEmpty() }
 
-    /**
-     * The best human label for [url]: its percent-decoded file name without the extension, falling
-     * back to the host when the path carries no name (a bare domain, or a query-only endpoint).
-     *
-     * This is what the UI shows as the title of a custom video, since a direct file has no metadata
-     * to look one up from.
-     */
+    /** Best human label for [url]: decoded file name (no extension) or host; used for custom video title. */
     fun displayName(url: String): String {
         val uri = runCatching { URI(url.trim()) }.getOrNull()
         val name = uri?.path?.substringAfterLast('/').orEmpty()
@@ -168,11 +129,7 @@ object CustomMediaUrls {
         return cleanFileName(name).ifBlank { hostOf(url) ?: url }
     }
 
-    /**
-     * Turns a raw file name into a readable title: percent-decoded, extension dropped, and
-     * separator characters (`_`, `+`) turned into spaces. Shared by [displayName] and the
-     * `Content-Disposition` filename path so both read the same way.
-     */
+    /** Turns file name into readable title: decode, drop extension, replace `_` and `+` with spaces. */
     fun cleanFileName(name: String): String {
         val decoded = runCatching { URLDecoder.decode(name.trim(), StandardCharsets.UTF_8) }.getOrDefault(name.trim())
         val withoutExtension = if (decoded.contains('.')) decoded.substringBeforeLast('.') else decoded

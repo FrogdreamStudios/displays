@@ -60,10 +60,8 @@ class ProtectionListener : Listener {
     }
 
     /**
-     * Handles blocks that explode on their own (beds and respawn anchors used in the wrong
-     * dimension), removing protected blocks from the destruction list and cancelling outright when
-     * the exploding block itself sits inside a protected area — it has no `blockList` entry for
-     * itself, so trimming the list alone wouldn't stop it from being removed.
+     * Handles blocks that explode on their own (beds and respawn anchors used in the wrong dimension), removing
+     * protected blocks from the blast list.
      */
     @EventHandler
     fun onBlockExplode(event: BlockExplodeEvent) {

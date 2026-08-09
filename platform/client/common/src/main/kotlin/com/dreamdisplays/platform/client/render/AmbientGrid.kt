@@ -49,10 +49,8 @@ object AmbientGrid {
     }
 
     /**
-     * Downsamples a raw RGB24 / RGBA32 frame in [buf] (from its current position, [bytesPerPixel] per
-     * texel) into a smooth [Grid]. Sparse-samples on a coarse stride rather than visiting every
-     * pixel — plenty accurate for a handful of picture cells, and far cheaper for large (e.g.
-     * 1920x1080) frames sampled periodically during playback.
+     * Downsamples a raw RGB24 / RGBA32 frame in [buf] (from its current position, [bytesPerPixel] per texel) into
+     * a smooth [Grid].
      */
     fun fromFrameBuffer(buf: ByteBuffer, w: Int, h: Int, bytesPerPixel: Int): Grid {
         val rSums = LongArray(PIC_W * PIC_H)

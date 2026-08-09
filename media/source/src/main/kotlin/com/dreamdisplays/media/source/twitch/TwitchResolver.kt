@@ -19,14 +19,8 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 /**
- * In-process Twitch stream resolver: one GQL round trip for the playback access token (plus
- * metadata), then the usher master playlist — ~300ms total, no subprocess. This replaces the
- * `yt-dlp` path for Twitch the same way `NewPipeResolver` does for YouTube; [YtDlpResolver]
- * remains the fallback when GQL or usher changes shape.
- *
- * Being this cheap matters beyond first open: every live restart (stall recovery, pause-resume at
- * the live edge, quality reopen) re-enters the resolver chain, and with `yt-dlp` each of those
- * paid a multi-second subprocess spawn — the single biggest source of "Twitch feels laggy".
+ * In-process Twitch stream resolver: one GQL round trip for the playback access token (plus metadata), then a direct
+ * usher request for the stream URLs, no `yt-dlp` subprocess.
  */
 object TwitchResolver : MediaResolver {
     private val logger = LoggerFactory.getLogger("DreamDisplays/TwitchResolver")
@@ -34,12 +28,7 @@ object TwitchResolver : MediaResolver {
     /** Above [YtDlpResolver] (0) so the subprocess is only reached when this path fails. */
     override val priority: Int = 10
 
-    /**
-     * Live results are cached just long enough to absorb the prefetch->resolve double call and a
-     * quick pause-resume. The player re-enters the resolver on *every* live restart (pause-resume,
-     * quality switch, stall recovery), and weaver playlist URLs are session-bound — so anything
-     * beyond seconds risks re-serving a dying URL, while a fresh GQL+usher round trip is ~300ms.
-     */
+    /** Live results are cached just long enough to absorb the prefetch->resolve double call and a quick pause-resume. */
     private const val LIVE_TTL_NANOS = 25_000_000_000L // 25 s
 
     /** VOD / clip URLs are token-signed too but stable for much longer. */

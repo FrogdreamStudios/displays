@@ -33,21 +33,11 @@ import javax.imageio.ImageIO
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Duration.Companion.seconds
 
-/**
- * Generates and caches seek-bar scrub-preview thumbnails: a sparse set of downscaled frames sampled
- * across a VOD's duration, extracted via the bundled `FFmpeg` binary (one process per sample, `-ss`
- * seek + single-frame JPEG output). In-memory only (regenerated each session); a key's frames are
- * evicted together and their textures released when the key falls out of the cache.
- */
+/** Generates and caches seek-bar scrub-preview thumbnails: sparse frames sampled across video duration via `FFmpeg`. */
 object ScrubPreview {
     private val logger = LoggerFactory.getLogger("DreamDisplays/ScrubPreview")
 
-    /**
-     * Fixed frame dimensions (16:9, letterboxed) every sample is encoded to. Vanilla `blit`'s
-     * `(u, v, width, height, textureWidth, textureHeight)` overload samples `width x height` texels
-     * 1:1 starting at `(u, v)` — it does not scale to fit, so a caller (e.g. [SeekBar]) that wants a
-     * pixel-accurate, uncropped preview must draw at exactly this size, not an arbitrary box size.
-     */
+    /** Fixed frame dimensions (16:9, letterboxed) every sample is encoded to. Used by Vanilla blit rendering. */
     const val FRAME_WIDTH = 256
     const val FRAME_HEIGHT = 144
 
@@ -57,32 +47,15 @@ object ScrubPreview {
     /** Never sample closer together than this, so short videos don't spawn a process per second. */
     private const val MIN_SAMPLE_SPACING_NANOS = 5_000_000_000L
 
-    /**
-     * Max simultaneous `FFmpeg` extractions — each opens its own connection to the source, so this
-     * is capped well below [SAMPLE_COUNT] to avoid hammering the host while still finishing well
-     * under a minute instead of running fully sequentially. Also bounds how much CPU a burst of these
-     * can take from the real-time audio pipeline: generation kicks off right as a video's duration
-     * becomes known, i.e. right as its own audio session is starting up too.
-     */
+    /** Max simultaneous FFmpeg extractions: each opens its own connection, so concurrency is capped conservatively. */
     private const val EXTRACT_CONCURRENCY = 2
 
-    /**
-     * Budget for one sample. Each extraction is its own connection that must range-seek deep into a
-     * file whose index may sit at the far end, on a host that is simultaneously serving the video
-     * being watched — the previous 10 s was routinely short of that on ordinary archives, and a
-     * timeout costs the whole sample.
-     */
+    /** Budget for one sample: extraction requires deep range-seek into file with unknown codec/container overhead. */
     private val EXTRACT_TIMEOUT = 25.seconds
 
     private class Frame(val timestampNanos: Long, val texture: Identifier)
 
-    /**
-     * Sorted (ascending timestamp) frames per video key, once generation has produced at least one.
-     * Generation republishes this key's value incrementally as each new frame lands (a growing list
-     * built from the same [Frame] instances each time), so only a true eviction (size / expiry / explicit
-     * invalidate) should release textures — a same-key [RemovalCause.REPLACED] must not, or every new
-     * frame would tear down the texture of every frame published before it.
-     */
+    /** Sorted (ascending timestamp) frames per video key; generation retries until all samples are extracted. */
     private val FRAMES: Cache<String, List<Frame>> = Caffeine.newBuilder()
         .maximumSize(8)
         .expireAfterAccess(30, TimeUnit.MINUTES)
@@ -97,13 +70,7 @@ object ScrubPreview {
         .expireAfterWrite(10, TimeUnit.MINUTES)
         .build()
 
-    /**
-     * Schedules background generation of scrub-preview frames for [key] (typically the video URL) if
-     * not already generated or in flight. [rawUrl] is the current video's un-resolved stream URL (as
-     * returned by `MediaPlayer.capturedStreamRawUrl()` — cheap, no I / O) and [durationNanos] the known
-     * total duration; both must be valid (non-live, resolved) before calling. Redirect resolution and
-     * host-safety checks run in the background, never on the calling (render) thread.
-     */
+    /** Schedules background generation of scrub-preview frames for [key] if not already generated or in flight. */
     fun request(key: String, rawUrl: String, durationNanos: Long, seekByDecoding: Boolean = false) {
         if (durationNanos <= 0 || FRAMES.getIfPresent(key) != null) return
         if (IN_FLIGHT.asMap().putIfAbsent(key, true) != null) return
@@ -138,12 +105,7 @@ object ScrubPreview {
         return frames[lo].texture
     }
 
-    /**
-     * Extracts sample frames via `FFmpeg`, up to [EXTRACT_CONCURRENCY] at a time, publishing to
-     * [FRAMES] after every completed frame — so [frameAt] can return whatever's ready long before
-     * the full sample set finishes (a full sequential pass across ~20 samples can take well over a
-     * minute; a hovering user shouldn't wait for the very last one).
-     */
+    /** Extracts sample frames via `FFmpeg` at [EXTRACT_CONCURRENCY] limit, publishing to [FRAMES] as each completes. */
     private suspend fun generate(key: String, sourceUrl: String, durationNanos: Long, seekByDecoding: Boolean) {
         val ffmpeg = FFmpegBinary.getPath()
         if (ffmpeg == null) {

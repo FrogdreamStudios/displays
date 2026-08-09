@@ -4,15 +4,8 @@ import com.dreamdisplays.core.protocol.proxy.BackendDisplayIndex
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * What every backend can play, as last advertised by each of them.
- *
- * Exists because plugin messages ride player connections: a backend with nobody on it can neither be
- * asked what it hosts nor answer, so `fullscreen start id <id> server ...` for a display living on a
- * currently empty server had no way to resolve. Remembering each backend's index from when it did
- * have players makes that lookup instant and independent of who is online right now.
- *
- * Entries are replaced wholesale per backend and deliberately outlive that backend going empty; a
- * stale url is corrected the moment anyone joins it again.
+ * What every backend can play, as last advertised by each of them. Exists because plugin messages ride player connections,
+ * so the proxy needs its own cross-backend view.
  */
 object NetworkDisplayIndex {
     /** Backend name -> (display id -> url). */

@@ -100,12 +100,7 @@ class VideoPopoutWindow(
         fun close()
     }
 
-    /**
-     * Thread model:
-     *  - [open] / [close] dispatch to Minecraft's render thread (= main thread on macOS).
-     *  - [updateFrame] copies the frame on the video-reader thread via a double buffer.
-     *  - [renderFrame] is called from the Minecraft render thread; briefly switches GL context.
-     */
+    /** GLFW backend: [open] / [close] go to render thread, [updateFrame] is thread-safe. */
     private class GlfwBackend(private val onClose: () -> Unit) : PopoutBackend {
 
         @Volatile
@@ -313,12 +308,7 @@ class VideoPopoutWindow(
         }
     }
 
-    /**
-     * Thread model:
-     *  - [open] / [close] dispatch to the AWT Event Dispatch Thread via [SwingUtilities.invokeLater].
-     *  - [updateFrame] copies the frame on the video-reader thread and schedules a repaint.
-     *  - [renderFrame] is a no-op: AWT drives its own repaints independently.
-     */
+    /** Thread model: [open] / [close] dispatch to AWT Event Dispatch Thread via [SwingUtilities.invokeLater]. */
     private class AwtBackend(private val onClose: () -> Unit) : PopoutBackend {
 
         @Volatile
@@ -452,13 +442,7 @@ class VideoPopoutWindow(
     companion object {
         private val IS_MACOS = System.getProperty("os.name", "").lowercase().startsWith("mac")
 
-        /**
-         * True when a popout window can be opened.
-         * Always true on macOS (GLFW backend needs no extra preconditions).
-         * On Windows / Linux, false only in headless environments (servers, CI).
-         * Evaluated lazily so the AWT check sees the correct [java.awt.headless] value
-         * set by [Initializer] during mod init.
-         */
+        /** True when a popout window can be opened. Always true on macOS; AWT checks for headless mode. */
         val isAvailable: Boolean by lazy {
             IS_MACOS || try {
                 !GraphicsEnvironment.isHeadless()

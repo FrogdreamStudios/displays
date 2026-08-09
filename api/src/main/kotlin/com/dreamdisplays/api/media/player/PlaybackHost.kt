@@ -7,9 +7,7 @@ import com.dreamdisplays.api.playback.PlaybackMode
 import java.util.*
 
 /**
- * The display a [com.dreamdisplays.media.player.MediaPlayer] drives, abstracted away from the Minecraft
- * `DisplayScreen`. The platform layer implements this; the player reads playback-relevant state and
- * signals render-side transitions through it.
+ * Display abstraction for [com.dreamdisplays.media.player.MediaPlayer]; platform-side implementation.
  *
  * @since 1.8.0
  */

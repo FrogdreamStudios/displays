@@ -11,14 +11,8 @@ import net.minecraft.client.resources.sounds.SimpleSoundInstance
 import net.minecraft.sounds.SoundEvents
 
 /**
- * The small popup ("Window" / "In-game" / "Fullscreen" / "Borderless") that opens above the popout
- * button. Owns its visibility, hit-testing, and drawing; the menu only toggles it and forwards
- * clicks.
- *
- * @param onWindow invoked when the user picks the GLFW window mode.
- * @param onPip invoked when the user picks the in-game PiP mode.
- * @param onFullscreen invoked when the user picks the standard fullscreen mode.
- * @param onBorderless invoked when the user picks the immersive (borderless) fullscreen mode.
+ * The small popup ("Window" / "In-game" / "Fullscreen" / "Borderless") that opens above the popout button.
+ * Owns its item actions and visibility.
  */
 class PopoutDropdown(
     onWindow: () -> Unit,

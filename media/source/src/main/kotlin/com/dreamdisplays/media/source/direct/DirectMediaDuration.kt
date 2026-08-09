@@ -6,20 +6,8 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 /**
- * Reads the duration of a remote media file out of its container header, using a handful of small
- * ranged `GET`s instead of downloading anything.
- *
- * The player learns duration only from the resolver ([com.dreamdisplays.api.media.source.ResolvedMedia]),
- * and a plain file URL carries no metadata anywhere to look it up from. Without this, every custom
- * video would play with a dead seek bar and no scrub preview — so the two container families
- * players actually paste are parsed here directly:
- *
- * - ISO-BMFF (`.mp4`, `.m4v`, `.mov`): walk the top-level box list to `moov`, read `mvhd`.
- * - Matroska (`.webm`, `.mkv`): find `Segment Info` in the head of the file and read its
- *   `Duration` scaled by `TimecodeScale`.
- *
- * Any failure — unsupported container, unreadable header, a server that refuses ranges — returns
- * null, which costs the seek bar but never playback.
+ * Reads the duration of a remote media file out of its container header, using a handful of small ranged `GET` requests
+ * instead of downloading the whole file.
  */
 internal object DirectMediaDuration {
 
@@ -217,12 +205,8 @@ internal object DirectMediaDuration {
     }
 
     /**
-     * Fetches bytes [first]..[last] of [url], or null when the server would not serve the range.
-     *
-     * The read is hard-capped at the requested window: a server that ignores `Range` answers `200`
-     * with the whole file, and reading that into memory to look at 16 bytes of it would be a way to
-     * turn a pasted link into an out-of-memory error. A `200` is still usable at offset 0 (the
-     * prefix is what we asked for) and useless anywhere else.
+     * Fetches bytes [first]..[last] of [url], or null when the server would not serve the range. The read is hard-capped
+     * to the requested window size.
      */
     private fun range(url: String, first: Long, last: Long): ByteArray? = runCatching {
         val window = (last - first + 1).coerceAtMost(Int.MAX_VALUE.toLong()).toInt()

@@ -14,10 +14,8 @@ import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Applies incoming [FullscreenState] snapshots to the matching [DisplayScreen], opening or closing
- * the fullscreen overlay and acknowledging the transition back to the server. A state that arrives
- * before its display's `DisplayInfo` (same delivery, but over the network) is retried for a few
- * seconds via [onClientTick] rather than dropped.
+ * Applies incoming [FullscreenState] snapshots to the matching [DisplayScreen], opening or closing the fullscreen overlay
+ * as sessions start and stop.
  */
 object FullscreenController {
     private val logger = LoggerFactory.getLogger("DreamDisplays/FullscreenController")
@@ -55,14 +53,7 @@ object FullscreenController {
         apply(screen, state)
     }
 
-    /**
-     * Retries pending states whose display has since loaded, and gives up on ones that timed out.
-     * Called once per client tick.
-     *
-     * The give-up clock only runs while the client could actually have shown the overlay: right
-     * after a proxy server switch the terrain load alone can outlast [PENDING_TIMEOUT_MS], and
-     * expiring during it would drop a perfectly live broadcast on the floor.
-     */
+    /** Retries pending states whose display has since loaded, and gives up on ones that timed out. Called once per client tick. */
     fun onClientTick() {
         if (pending.isEmpty()) return
         val ready = isClientReady()
@@ -88,10 +79,8 @@ object FullscreenController {
     }
 
     /**
-     * Whether the world around the viewer is actually up. A fullscreen delivery that lands
-     * mid-terrain-load would start playing before the server's position could be applied, showing a
-     * few seconds of the wrong part of the video before snapping — so nothing is shown at all until
-     * the chunk the player stands in exists.
+     * Whether the world around the viewer is actually up. A fullscreen delivery that lands mid-terrain-load would fail
+     * silently, so pending states wait until the player's chunk is loaded.
      */
     private fun isClientReady(): Boolean = runCatching {
         val mc = Minecraft.getInstance()

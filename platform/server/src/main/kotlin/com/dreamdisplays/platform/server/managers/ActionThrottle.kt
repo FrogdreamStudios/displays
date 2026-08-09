@@ -8,11 +8,6 @@ import java.util.concurrent.TimeUnit
  * Generic per-key cooldown gate for client-triggered actions that are cheap individually but costly
  * in aggregate — a disk write, a broadcast to every viewer, or work pushed onto every other client
  * (e.g. re-resolving a new video URL).
- *
- * A spamming client can send packets far faster than any legitimate user interaction would, so gating
- * admission by key bounds the amplification independent of any receiver-facing rebroadcast throttle
- * (see [StateManager]'s sync rebroadcast rate limit, which only limits fan-out, not how often the sender's
- * action itself may run).
  */
 internal class ActionThrottle(maxEntries: Long = 20_000L) {
     /** Last-acted timestamp (ms) per key. */

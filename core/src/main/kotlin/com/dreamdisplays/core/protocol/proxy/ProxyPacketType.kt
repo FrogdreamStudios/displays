@@ -3,11 +3,8 @@ package com.dreamdisplays.core.protocol.proxy
 import kotlin.reflect.KClass
 
 /**
- * Append-only `dreamdisplays:proxy` packet type ids carried by [ProxyEnvelope.type]. A disjoint id
- * space from [com.dreamdisplays.core.protocol.ProtocolPacketType] — the two channels never mix, so
- * starting back at 1 here is intentional, not a collision.
- *
- * These ids are part of the wire protocol. Never reuse or renumber existing entries; only append.
+ * Append-only `dreamdisplays:proxy` packet type ids (disjoint from ProtocolPacketType).
+ * Wire-protocol stable; never reuse or renumber, only append.
  */
 enum class ProxyPacketType(
     val id: Int,

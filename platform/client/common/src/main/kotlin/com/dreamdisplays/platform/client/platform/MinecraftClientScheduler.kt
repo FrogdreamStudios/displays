@@ -8,10 +8,8 @@ import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
 /**
- * Client [PlatformScheduler]. Main-thread work goes through [Minecraft]'s task queue; async and
- * timed work runs on a shared daemon [ScheduledExecutorService], with tick counts converted at the
- * fixed 50 ms/tick rate. Timed tasks hop back to the main thread before running, matching the
- * "ticks" vocabulary of the contract.
+ * Client [PlatformScheduler]. Main-thread work goes through [Minecraft]'s task queue; async and timed work runs on a
+ * dedicated [ScheduledExecutorService].
  */
 object MinecraftClientScheduler : PlatformScheduler {
 

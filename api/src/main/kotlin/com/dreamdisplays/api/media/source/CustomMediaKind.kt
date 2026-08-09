@@ -3,12 +3,7 @@ package com.dreamdisplays.api.media.source
 import com.dreamdisplays.api.DreamDisplaysUnstableApi
 
 /**
- * What a user-pasted "custom" URL points at, as far as it can be told from the URL alone.
- *
- * Classification is deliberately syntactic (extension / known host shapes): it decides which
- * resolver gets the first attempt, never whether playback will actually succeed. The authoritative
- * answer comes from the resolver's HTTP probe, so an [UNKNOWN] URL still reaches the extractor
- * chain and a mislabelled [PROGRESSIVE] one still falls through when the probe disagrees.
+ * Syntactic classification of a custom URL (by extension/host); probe-validated by resolver.
  *
  * @since 1.9.0
  */

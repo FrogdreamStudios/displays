@@ -103,12 +103,7 @@ object ProxyBridge : PluginMessageListener {
         }
     }
 
-    /**
-     * Called from the join handshake once a player is fully v2-negotiated — on every join and
-     * every proxy-driven server switch, not just this backend's first-ever player. Announces the
-     * backend itself once per restart ([BackendHello]), then always reports this specific player as
-     * ready so the proxy can [ReplayForPlayer] any network state they should still see here.
-     */
+    /** Called from the v2 handshake when a player finishes negotiation; sends hello and display index. */
     fun onPlayerReady(player: Player) {
         if (!enabled) return
         if (helloSent.compareAndSet(false, true)) {
@@ -184,12 +179,7 @@ object ProxyBridge : PluginMessageListener {
         )
     }
 
-    /**
-     * Same as [startNetworkFullscreen], but for a `<id>` this backend doesn't know: asks the network
-     * which backend hosts it ([ResolveDisplayToken]) and starts once the answer arrives. Displays are
-     * registered per backend, so an id that means nothing here is routinely valid one server over.
-     * Silently expires after [RESOLVE_TIMEOUT_MS] if nothing claims the id.
-     */
+    /** Starts a network fullscreen for an unknown id; asks the network to resolve it first. */
     fun startNetworkFullscreenByDisplayId(
         player: Player,
         scope: String,
@@ -262,7 +252,9 @@ object ProxyBridge : PluginMessageListener {
         return targetsRaw.split(",").map { it.trim() }.filter { it.isNotEmpty() }.flatMapTo(mutableSetOf()) { token ->
             when {
                 token.equals("@a", true) || token.equals("@e", true) -> online.map { it.uniqueId }
-                token.startsWith("%") -> online.filter { it.hasPermission($$"group.${token.substring(1)}") }.map { it.uniqueId }
+                token.startsWith("%") -> online.filter { it.hasPermission($$"group.${token.substring(1)}") }
+                    .map { it.uniqueId }
+
                 else -> listOfNotNull(Bukkit.getPlayerExact(token)?.uniqueId)
             }
         }
@@ -279,7 +271,10 @@ object ProxyBridge : PluginMessageListener {
         val sharedId = runCatching { UUID.fromString(packet.sharedDisplayId) }.getOrNull()
         val resolved = FullscreenBroadcastManager.resolveOrCreateDisplay(packet.url, ownerId, sharedId)
         if (resolved == null) {
-            logger.warn("Could not create a virtual display for network fullscreen '{}' (no world loaded yet?)", packet.sessionId)
+            logger.warn(
+                "Could not create a virtual display for network fullscreen '{}' (no world loaded yet?)",
+                packet.sessionId
+            )
             sendViaAnyPlayer(NetworkFullscreenAck(packet.sessionId, reach = 0, pending = true))
             return
         }
@@ -364,7 +359,10 @@ object ProxyBridge : PluginMessageListener {
                 val displayId = runCatching { UUID.fromString(packet.sharedDisplayId) }.getOrNull() ?: return
                 val hostId = runCatching { UUID.fromString(packet.hostId) }.getOrNull() ?: return
                 if (!WatchPartyManager.startVirtual(displayId, hostId, packet.url, packet.lang)) {
-                    logger.warn("Could not start network watch party '{}' (no world loaded yet, or already live?)", packet.partyId)
+                    logger.warn(
+                        "Could not start network watch party '{}' (no world loaded yet, or already live?)",
+                        packet.partyId
+                    )
                 }
             }
 

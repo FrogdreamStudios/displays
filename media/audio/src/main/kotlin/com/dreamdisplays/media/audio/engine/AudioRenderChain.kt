@@ -119,7 +119,13 @@ internal class AudioRenderChain(
         val advanced = tier == AcousticQuality.ADVANCED || tier == AcousticQuality.ULTRA
         val userGain = if (st.muted) 0f else st.userVolume
         val makeup = if (advanced) {
-            loudness.makeupGain(TARGET_LUFS, MAX_LOUDNESS_BOOST_DB, MAX_LOUDNESS_CUT_DB, MAX_LOUDNESS_SLEW_DB_PER_SEC, dtBlock)
+            loudness.makeupGain(
+                TARGET_LUFS,
+                MAX_LOUDNESS_BOOST_DB,
+                MAX_LOUDNESS_CUT_DB,
+                MAX_LOUDNESS_SLEW_DB_PER_SEC,
+                dtBlock
+            )
         } else 1f
 
         val env = st.environment

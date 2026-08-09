@@ -3,7 +3,9 @@
   "name": "Dream Displays Proxy",
   "version": "${version}",
   "description": "Network coordinator for Dream Displays.",
-  "authors": ["arnodoelinger"],
+  "authors": [
+    "arnodoelinger"
+  ],
   "dependencies": [],
   "main": "com.dreamdisplays.platform.proxy.velocity.DreamDisplaysVelocity"
 }

@@ -1,14 +1,8 @@
 package com.dreamdisplays.media.player.pipeline
 
 /**
- * Playback position as a seek origin plus the wall time elapsed since the first frame. Thread-safe
- * for reads.
- *
- * The origin is deliberately read-only from the outside. Assigning it on a *running* clock shifts
- * the reported position by the whole elapsed interval instead of replacing it (elapsed time is
- * measured from [startWallNanos], so a new origin stacks on top of it), which is never what a caller
- * means. Use [reset] (stop and re-origin), [rebaseTo] (keep running, re-origin as of now) or
- * [moveTo] (whichever of the two matches the current state).
+ * Playback position as a seek origin plus the wall time elapsed since the first frame. Thread-safe for reads;
+ * writes assume a single control thread.
  */
 internal class PlaybackClock {
     companion object {
@@ -64,11 +58,8 @@ internal class PlaybackClock {
     }
 
     /**
-     * Moves the reported position to [offsetNanos] whatever the current state: a running clock is
-     * rebased (so [currentTime] returns exactly [offsetNanos] right now and keeps advancing), a
-     * stopped one is re-originned. This is what callers that merely want to "correct the position"
-     * need — assigning the origin directly used to double-count the elapsed interval on a running
-     * clock, jumping the position (and everything paced against it) forward by minutes.
+     * Moves the reported position to [offsetNanos] whatever the current state: a running clock is rebased
+     * (so [currentTime] stays continuous), a stopped one is simply reset.
      */
     fun moveTo(offsetNanos: Long) {
         if (isRunning) rebaseTo(offsetNanos) else reset(offsetNanos)

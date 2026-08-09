@@ -5,11 +5,7 @@ import com.dreamdisplays.api.security.MediaHttpUrl
 import java.util.*
 
 /**
- * Recognizes and dissects Vimeo URLs, in every shape players actually paste.
- *
- * A Vimeo link is a numeric video id, sometimes followed by an unlisted-video hash that the
- * player config endpoint needs to authorize playback. Both are pulled out here so [MediaSource]
- * stays declarative and the parsing has its own tests.
+ * Recognizes and dissects Vimeo URLs, extracting video id and optional unlisted-video hash.
  *
  * @since 1.9.0
  */
@@ -29,11 +25,7 @@ object VimeoUrls {
     /** True when [url] points at a Vimeo video (`vimeo.com` or `player.vimeo.com`). */
     fun isVimeo(url: String): Boolean = parse(url) != null
 
-    /**
-     * Parses [url] into its `(videoId, hash?)`, or null when it is not a recognizable Vimeo video
-     * link. The hash is only reported when it directly follows the id, matching how Vimeo signs
-     * unlisted videos (`vimeo.com/<id>/<hash>`).
-     */
+    /** Parses [url] into `(videoId, hash?)` or null if unrecognizable; hash must directly follow id. */
     fun parse(url: String): MediaSource.Vimeo? {
         val parsed = MediaHttpUrl.parse(url) ?: MediaHttpUrl.parse("https://${url.trim()}") ?: return null
         val host = parsed.uri.host?.lowercase(Locale.ROOT)?.removePrefix("www.") ?: return null

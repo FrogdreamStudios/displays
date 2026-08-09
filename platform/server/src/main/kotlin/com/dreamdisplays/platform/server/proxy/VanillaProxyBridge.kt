@@ -98,12 +98,7 @@ object VanillaProxyBridge {
         }
     }
 
-    /**
-     * Called from the v2 hello handshake once a player is fully negotiated — on every join and every
-     * proxy-driven server switch, not just this backend's first-ever player. Announces the backend
-     * itself once per restart ([BackendHello]), then always reports this specific player as ready so
-     * the proxy can [ReplayForPlayer] any network state they should still see here.
-     */
+    /** Called from the v2 hello handshake when a player finishes negotiation; sends hello and display index. */
     fun onPlayerReady(player: ServerPlayer, server: MinecraftServer) {
         if (!enabled) return
         if (helloSent.compareAndSet(false, true)) {
@@ -147,12 +142,7 @@ object VanillaProxyBridge {
         send(rider, packet)
     }
 
-    /**
-     * Forwards `/display fullscreen start server <scope> ...` to the proxy for network-wide fan-out.
-     * Called from [com.dreamdisplays.platform.server.commands.subcommands.FullscreenCommand]'s
-     * `VanillaFullscreenCommand` instead of the local start path when the command carried a `server`
-     * scope.
-     */
+    /** Forwards a fullscreen start command with a server scope to the proxy for network-wide fan-out. */
     fun startNetworkFullscreen(
         player: ServerPlayer,
         scope: String,
@@ -277,7 +267,10 @@ object VanillaProxyBridge {
         val sharedId = runCatching { UUID.fromString(packet.sharedDisplayId) }.getOrNull()
         val resolved = FullscreenBroadcastManager.resolveOrCreateDisplay(packet.url, ownerId, sharedId)
         if (resolved == null) {
-            logger.warn("Could not create a virtual display for network fullscreen '{}' (no world loaded yet?)", packet.sessionId)
+            logger.warn(
+                "Could not create a virtual display for network fullscreen '{}' (no world loaded yet?)",
+                packet.sessionId
+            )
             sendViaAnyPlayer(NetworkFullscreenAck(packet.sessionId, reach = 0, pending = true))
             return
         }
@@ -363,7 +356,10 @@ object VanillaProxyBridge {
                 val displayId = runCatching { UUID.fromString(packet.sharedDisplayId) }.getOrNull() ?: return
                 val hostId = runCatching { UUID.fromString(packet.hostId) }.getOrNull() ?: return
                 if (!WatchPartyManager.startVirtual(displayId, hostId, packet.url, packet.lang)) {
-                    logger.warn("Could not start network watch party '{}' (no world loaded yet, or already live?)", packet.partyId)
+                    logger.warn(
+                        "Could not start network watch party '{}' (no world loaded yet, or already live?)",
+                        packet.partyId
+                    )
                 }
             }
 

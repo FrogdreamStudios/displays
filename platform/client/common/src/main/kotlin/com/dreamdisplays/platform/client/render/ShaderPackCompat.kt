@@ -2,13 +2,7 @@ package com.dreamdisplays.platform.client.render
 
 import com.dreamdisplays.api.render.ShaderBackend
 
-/**
- * Shader-pack detector. The mod must not depend on `Iris` / `OptiFine` / `Canvas`,
- * but the renderer needs to avoid custom video fragment shaders while another renderer owns the
- * world pass.
- *
- * The only thing that we can accept from shaders is fog (it's clear why).
- */
+/** Shader-pack detector: checks for `Iris`, `OptiFine`, or `Canvas` shader packs without adding hard dependencies. */
 internal object ShaderPackCompat {
     /** True when any supported shader pack is currently in use. */
     val isShaderPackActive: Boolean get() = shaderBackend() != ShaderBackend.NONE

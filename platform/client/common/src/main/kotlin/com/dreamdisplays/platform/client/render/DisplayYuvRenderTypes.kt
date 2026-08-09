@@ -20,18 +20,13 @@ import net.minecraft.client.renderer.rendertype.RenderType
 import net.minecraft.client.renderer.texture.DynamicTexture
 //? if >=1.21.11 {
 import net.minecraft.resources.Identifier
+
 //?} else
 /*import net.minecraft.resources.ResourceLocation as Identifier*/
 
 /**
- * GPU-side YUV -> RGB path: a custom [RenderPipeline] that samples the three I420 planes
- * (Y / U / V as RED8 textures) and converts them to RGB in the fragment shader, plus the
- * [RenderType] factories that bind a display's plane textures to it.
- *
- * The vertex stage uses the mod's unlit `core/display_fog` (it emits the spherical/cylindrical
- * vertex distances so the fragment shader can apply vanilla distance fog without any lightmap or
- * normals); the fragment shader is `assets/dreamdisplays/shaders/core/display_yuv.fsh`. Brightness
- * rides in on the vertex color using the same 0..1 contract as Minecraft's normal textured pipelines.
+ * GPU-side YUV -> RGB path: a custom [RenderPipeline] that samples the three I420 planes (Y / U / V as RED8 textures)
+ * and converts to RGB in the fragment shader.
  */
 object DisplayYuvRenderTypes {
     //? if >=1.21.11 {
@@ -39,10 +34,8 @@ object DisplayYuvRenderTypes {
     private var sharedPlaneSampler: GpuSampler? = null
 
     /**
-     * Lazily creates the shared linear/clamp sampler used by all video planes. The device does
-     * not cache samplers, so one instance is shared and intentionally never closed. The
-     * `createSampler` signature is binary-stable across 26.1 and 26.2, so this lives here
-     * rather than in the version-specific texture classes.
+     * Lazily creates the shared linear / clamp sampler used by all video planes. The device does not cache samplers
+     * itself, so this avoids allocating one per texture.
      */
     fun planeSampler(): GpuSampler =
         sharedPlaneSampler ?: com.mojang.blaze3d.systems.RenderSystem.getDevice().createSampler(
@@ -71,10 +64,8 @@ object DisplayYuvRenderTypes {
     }
 
     /**
-     * Single decision point for the GPU-YUV mode: the native library must produce planar
-     * frames and the runtime must expose a usable pipeline API (built-in 26.1-era, or 26.2+
-     * via [Yuv262Reflect]). Both the texture allocation and the frame pipe read this so they
-     * can never disagree.
+     * Single decision point for the GPU-YUV mode: the native library must produce planar frames and the runtime must
+     * support the YUV pipeline, with no active shader pack.
      */
     val active: Boolean
         get() = !ShaderPackCompat.isShaderPackActive

@@ -9,18 +9,8 @@ import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
 
 /**
- * A reusable metadata cache for a single platform, keyed by a stable string.
- *
- * Factored out of what Twitch hand-rolled ([com.dreamdisplays.media.source.twitch.TwitchMetadataCache])
- * so Vimeo and Kick get the same behavior - async warm on the client thread, blocking resolve on a
- * background thread, live entries expiring quickly while VOD entries stay — from one class instead
- * of three copies. The platform supplies only the [name] (for logs) and the [fetch] function.
- *
- * @param liveTtlSeconds how long a live entry stays fresh; viewer counts and titles move fast.
- * @param staticTtlMinutes how long a VOD / on-demand entry stays fresh.
- * @param fetch blocking metadata lookup for a key; returns null when the video does not exist.
- *
- * @since 1.9.0
+ * A reusable metadata cache for a single platform, keyed by a stable string. Factored out of Twitch's original per-video
+ * cache so Vimeo and others can share it.
  */
 class PlatformMetadataCache(
     private val name: String,

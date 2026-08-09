@@ -84,15 +84,9 @@ internal class AudioMasterClock(
     private var lastResyncRequestNanos = Long.MIN_VALUE / 2
 
     /**
-     * Returns the master clock position in content nanos, or -1 when neither the audio line nor the
-     * wall clock can say where playback is.
-     *
-     * @param sample atomic snapshot of the audio line clock (see [AudioSink.sampleClock]).
-     * @param wallNanos the wall-clock playback position, or -1 when the wall clock isn't running yet.
-     * @param suspended true while the session is deliberately frozen (parked / warm-paused), where a
-     * line clock that stops advancing is expected and must not be mistaken for a stall.
-     * @param exactBias exact audio-vs-video content offset from shared stream PTS, when both sides
-     * have observed theirs; consulted once per session and only for an unknown origin.
+     * Returns the master clock position in content nanos, or -1 when neither the audio line nor the wall clock
+     * has a known origin. The returned value is guaranteed to be non-decreasing, even if the line clock
+     * jumps backwards or stalls. The caller must hold [lock] while calling this.
      */
     fun nanos(
         sample: AudioSink.ClockSample,
@@ -134,14 +128,7 @@ internal class AudioMasterClock(
         }
     }
 
-    /**
-     * Starts driving the clock from wall time because it has stopped moving on its own. Caller holds
-     * [lock].
-     *
-     * Two different faults land here and both freeze the picture the same way, so both are answered
-     * the same way: a line clock that has died outright, and one that is alive but sitting below the
-     * position the clock already reported (which the monotonic guard has to hold flat).
-     */
+    /** Starts driving the clock from wall time because it has stopped moving on its own. Caller holds [lock]. */
     private fun beginTakeover(sample: AudioSink.ClockSample, now: Long) {
         val stalledForMs = (now - lastOutAdvanceNanos) / 1_000_000
         takeover = true
@@ -154,16 +141,7 @@ internal class AudioMasterClock(
         )
     }
 
-    /**
-     * Leaves the wall-time takeover now that the line clock is moving again. Caller holds [lock].
-     *
-     * The takeover ran the clock forward while the line stood still, so the line is now behind by
-     * however long the stall lasted. Snapping the clock back to it would rewind the master clock
-     * mid-session — every queued frame then sits "in the future", waits out the pacing budget and is
-     * dropped, which is a far worse symptom than the stall itself. Instead the clock holds where the
-     * takeover left it (the monotonic guard does that on its own) and the *audio* is asked to skip
-     * the gap, so the sound catches up to the picture rather than the picture waiting on the sound.
-     */
+    /** Leaves the wall-time takeover now that the line clock is moving again. Caller holds [lock]. */
     private fun reconcileTakeover(sample: AudioSink.ClockSample, now: Long) {
         val ramp = takeoverAnchorOut + (now - takeoverAnchorWall)
         val behind = ramp - (sample.nanos + bias)

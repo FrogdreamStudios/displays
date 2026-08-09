@@ -32,15 +32,10 @@ import java.util.*
 import net.minecraft.network.chat.Component as NmsComponent
 //? if >=1.21.11 {
 import net.minecraft.network.chat.contents.ObjectContents as NmsObjectContents
+
 //?}
 
-/**
- * Message utilities. Provides methods for sending localized and formatted messages to players and command senders,
- * abstracting away the differences between `Adventure Components`, legacy color-coded strings, and JSON objects.
- *
- * Also handles localization by looking up message keys in the config and substituting player-specific values.
- * Used throughout the plugin for consistent message formatting and localization support.
- */
+/** Message utilities. Provides methods for sending localized and formatted messages to players and command senders. */
 object MessageUtil {
     /** Legacy and JSON serializers for legacy color-coded strings. */
     @PaperOnly
@@ -134,12 +129,7 @@ object MessageUtil {
         sender.sendMessage(builder.asComponent())
     }
 
-    /**
-     * Block items live in the `minecraft:blocks` atlas (`block/<name>`); pure items live in
-     * `minecraft:items` (`item/<name>`). The sprite / object hover form needs the Adventure API added
-     * in 1.21.11, so it is delegated to [SpriteHoverRenderer] behind a runtime version gate; older
-     * servers fall back to a plain hover-text label so the single jar links on every version.
-     */
+    /** Block items live in the `minecraft:blocks` atlas (`block/<name>`); pure items live in `minecraft:items` (`item/<name>`). */
     @PaperOnly
     private fun materialSpriteComponent(mat: Material): Component {
         if (ServerVersion.isAtLeast_1_21_11) return SpriteHoverRenderer.render(mat)

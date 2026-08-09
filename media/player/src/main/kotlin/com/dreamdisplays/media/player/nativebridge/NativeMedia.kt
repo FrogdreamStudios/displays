@@ -10,40 +10,27 @@ import java.lang.invoke.MethodHandle
 import java.nio.ByteBuffer
 
 /**
- * Java FFM (Project Panama) bridge to the optional `dreamdisplays_native` Rust library.
- *
- * The library owns the FFmpeg video process and its pipe: it reads raw frames in large
- * blocks, converts NV12 -> RGB24 and applies brightness in a single fused native pass,
- * writing straight into the direct `ByteBuffer` that is later uploaded to the GPU.
- *
- * Availability is decided once, lazily: requires Java 21+ (FFM API exists since 21),
- * a loadable library for the current platform, and a matching ABI version. When any of
- * that fails the media pipeline silently falls back to the pure-JVM [VideoFramePipe].
+ * Java FFM bridge to optional `dreamdisplays_native` Rust library (`FFmpeg`, NV12 -> RGB, brightness).
  */
 object NativeMedia {
+    /** Logger. */
     private val logger = LoggerFactory.getLogger("DreamDisplays/NativeMedia")
 
     /** Must match `ABI_VERSION` in `native/src/lib.rs`. */
     private const val ABI_VERSION = 1
 
-    /** Result codes of [videoReadFrame]; mirror `native/src/session.rs`. */
+    /** Must match `LAV_ABI_VERSION` in `native/lav/src/lib.rs`. */
+    private const val LAV_ABI_VERSION = 5
+
     const val READ_OK = 0
     const val READ_EOF = 1
     const val READ_INTERRUPTED = 2
-
-    /**
-     * The frame is the post-seek keyframe delivered ahead of the pre-roll: show it immediately
-     * as a preview, but never start the playback clock from it (its PTS is before the target).
-     */
     const val READ_PREVIEW = 3
     const val READ_UNSUPPORTED = -4
     const val LAV_NO_PTS_NANOS = Long.MIN_VALUE
 
     private const val LIB_BASE_NAME = "dreamdisplays_native"
     private const val LAV_BASE_NAME = "dreamdisplays_lav"
-
-    /** Must match `LAV_ABI_VERSION` in `native/lav/src/lib.rs`. */
-    private const val LAV_ABI_VERSION = 5
     private const val LAV_SURFACE_ABI_VERSION = 1
     private const val LAV_SURFACE_DESC_BYTES = 80L
     private const val CACHE_ROOT = "./dreamdisplays/native"
@@ -63,7 +50,6 @@ object NativeMedia {
     private var videoReadFrameRgbaHandle: MethodHandle? = null
     private var videoReadFrameI420Handle: MethodHandle? = null
     private var i420ToRgbaHandle: MethodHandle? = null
-
     private var lavOpenHandle: MethodHandle? = null
     private var lavOpenReplayHandle: MethodHandle? = null
     private var lavReadFrameHandle: MethodHandle? = null
@@ -86,12 +72,7 @@ object NativeMedia {
     /** True once the library has been located, loaded, bound, and ABI-checked. */
     val isAvailable: Boolean by lazy { runCatching { init() }.getOrDefault(false) }
 
-    /**
-     * Short machine-readable cause of [isAvailable] being false (empty when true), e.g.
-     * `disabled_by_config`, `java_too_old`, `library_not_found`, `abi_mismatch`, or
-     * `error_<ExceptionSimpleName>`. Reported in telemetry so unavailability causes can actually be
-     * broken down instead of only seeing the aggregate unavailable percentage.
-     */
+    /** Machine-readable cause of unavailability (empty when available). */
     @Volatile
     var unavailableReason: String = ""; private set
 
@@ -105,11 +86,7 @@ object NativeMedia {
                 && System.getProperty("dreamdisplays.native.rgba", "true").toBoolean()
                 && videoReadFrameRgbaHandle != null
 
-    /**
-     * Keeps frames as raw I420 planes all the way to the GPU: the YUV -> RGB conversion and
-     * brightness both move into the fragment shader, removing the per-pixel CPU pass entirely.
-     * Requires the NV12 pipe and a native library exporting the I420 entry points.
-     */
+    /** Keeps frames as raw I420 planes to GPU (YUV -> RGB in shader). */
     val yuvGpuEnabled: Boolean
         get() = isAvailable
                 && nv12Enabled
@@ -117,22 +94,13 @@ object NativeMedia {
                 && videoReadFrameI420Handle != null
                 && i420ToRgbaHandle != null
 
-    /**
-     * Experimental in-process decode: libavformat/libavcodec run inside `dreamdisplays_lav`
-     * instead of a separate FFmpeg process, removing the process spawn and the stdout pipe.
-     * Requires the separate lav library (which links the system FFmpeg shared libraries)
-     * and the planar GPU path. Disable with `-Ddreamdisplays.native.libav=false`.
-     */
+    /** In-process decode (libavformat / libavcodec in `dreamdisplays_lav`). */
     val lavInProcessEnabled: Boolean
         get() = yuvGpuEnabled
                 && System.getProperty("dreamdisplays.native.libav", "true").toBoolean()
                 && lavAvailable
 
-    /**
-     * True when the optional LAV surface ABI is present and explicitly enabled. This is the
-     * zero-copy hardware-surface contract; it is gated separately because it needs a matching
-     * platform renderer (NV12/rectangle on macOS, WGL/EGL interop on other platforms).
-     */
+    /** True when LAV surface ABI is present and enabled (zero-copy hardware-surface). */
     val lavZeroCopyEnabled: Boolean
         get() = lavInProcessEnabled
                 && lavSurfaceInteropAvailable
@@ -171,10 +139,7 @@ object NativeMedia {
 
     data class LavSurfaceReadResult(val code: Int, val descriptor: LavSurfaceDescriptor?)
 
-    /**
-     * Reusable native out-param slot for [lavReadFrameI420WithPts], one per live session handle so the
-     * per-frame read loop never allocates. Freed in [lavClose].
-     */
+    /** Reusable native out-param slot for lavReadFrameI420WithPts (per session, freed in lavClose). */
     private class PtsScratch {
         val arena: Arena = Arena.ofShared()
         val segment: MemorySegment = arena.allocate(ValueLayout.JAVA_LONG)
@@ -187,10 +152,7 @@ object NativeMedia {
         Thread({ isAvailable; lavAvailable }, "NativeMedia-prewarm").apply { isDaemon = true }.start()
     }
 
-    /**
-     * Spawns an FFmpeg session in the native library. [args] is the full argv including
-     * the binary path. Returns an opaque handle, or 0 on failure.
-     */
+    /** Spawns `FFmpeg` session in native library (returns opaque handle, or 0 on failure). */
     fun videoOpen(args: List<String>, w: Int, h: Int, nv12: Boolean): Long {
         val blob = buildString { args.forEach { append(it); append('\u0000') } }.toByteArray(Charsets.UTF_8)
         Arena.ofConfined().use { arena ->
@@ -200,17 +162,11 @@ object NativeMedia {
         }
     }
 
-    /**
-     * Blocking read of the next frame into [dst] (a direct buffer) as RGB24 with
-     * brightness pre-applied. Returns [READ_OK], [READ_EOF], or a negative error code.
-     */
+    /** Blocking read of next frame as RGB24 with brightness ([READ_OK], [READ_EOF], or error). */
     fun videoReadFrame(handle: Long, dst: ByteBuffer, frameBytes: Int, brightnessMilli: Int): Int =
         videoReadFrame!!.invoke(handle, MemorySegment.ofBuffer(dst), frameBytes.toLong(), brightnessMilli) as Int
 
-    /**
-     * Blocking read of the next frame into [dst] as RGBA32 with brightness pre-applied.
-     * Available only when [rgbaFramesEnabled] is true.
-     */
+    /** Blocking read of next frame as RGBA32 with brightness (when [rgbaFramesEnabled]). */
     fun videoReadFrameRgba(handle: Long, dst: ByteBuffer, frameBytes: Int, brightnessMilli: Int): Int =
         videoReadFrameRgbaHandle!!.invoke(
             handle,
@@ -219,30 +175,18 @@ object NativeMedia {
             brightnessMilli
         ) as Int
 
-    /**
-     * Blocking read of the next frame into [dst] as raw I420 planes (Y, then U, then V) with
-     * no conversion or brightness. Available only when [yuvGpuEnabled] is true.
-     */
+    /** Blocking read of next frame as raw I420 planes (when yuvGpuEnabled) */
     fun videoReadFrameI420(handle: Long, dst: ByteBuffer, frameBytes: Int): Int =
         videoReadFrameI420Handle!!.invoke(handle, MemorySegment.ofBuffer(dst), frameBytes.toLong()) as Int
 
-    /**
-     * Converts an I420 frame in [src] into RGBA32 in [dst] (alpha 255, no brightness).
-     * Both must be direct buffers. Used to feed the popout window in GPU-YUV mode.
-     */
+    /** Converts I420 frame to RGBA32 (both direct buffers, for popout in GPU-YUV mode). */
     fun i420ToRgba(src: ByteBuffer, srcBytes: Int, dst: ByteBuffer, w: Int, h: Int): Int =
         i420ToRgbaHandle!!.invoke(
             MemorySegment.ofBuffer(src), srcBytes.toLong(),
             MemorySegment.ofBuffer(dst), dst.capacity().toLong(), w, h,
         ) as Int
 
-    /**
-     * Opens an in-process decode session for [url] at the target [w] x [h], starting at
-     * [startMicros]. [hwAccelCode] is a stable [HwAccelBackend.lavCode].
-     * The native side validates that the decoder actually supports the requested hardware path
-     * and falls back to software when it cannot be opened.
-     * Returns an opaque handle, or 0 on failure.
-     */
+    /** Opens in-process decode session (returns opaque handle, or 0 on failure) */
     fun lavOpen(url: String, w: Int, h: Int, startMicros: Long, hwAccelCode: Int): Long {
         val bytes = url.toByteArray(Charsets.UTF_8)
         Arena.ofConfined().use { arena ->

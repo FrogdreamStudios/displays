@@ -30,8 +30,6 @@ import java.nio.ByteBuffer
  *
  * On contexts without it (e.g. macOS GL 4.1) the classic map-with-`GL_MAP_UNSYNCHRONIZED_BIT` path is used,
  * which the fences also make safe.
- *
- * @param stateCache If true, cached `GlStateManager` methods are used for state optimization.
  */
 class AsyncTextureUploader(private val stateCache: Boolean) : TextureUploader {
     /** One ring entry: a PBO with its allocated size, guarding fence and optional persistent mapping. */
@@ -124,13 +122,8 @@ class AsyncTextureUploader(private val stateCache: Boolean) : TextureUploader {
     }
 
     /**
-     * Uploads one decoded frame from [src] into the next `PBO` in the ring, then schedules an async
-     * copy from that PBO into [textureId] at mipmap level 0.
-     *
-     * [src] should be a direct `ByteBuffer` whose position points to the start of the pixel data.
-     * Position and limit are restored on return.
-     *
-     * This call never blocks the GPU!
+     * Uploads one decoded frame from [src] into the next `PBO` in the ring, then schedules an async copy from the PBO
+     * to the texture.
      */
     fun upload(textureId: Int, src: ByteBuffer, w: Int, h: Int, format: UploadPixelFormat = UploadPixelFormat.RGB24) {
         val size = w * h * format.bytesPerPixel
@@ -170,12 +163,7 @@ class AsyncTextureUploader(private val stateCache: Boolean) : TextureUploader {
         bindBuffer(GL21.GL_PIXEL_UNPACK_BUFFER, 0)
     }
 
-    /**
-     * Uploads one packed I420 frame (Y plane, then U, then V) from [src] into three plane textures
-     * in a single PBO pass: one ring slot, one fence wait, one memcpy of the whole frame, then three
-     * `texSubImage2D` calls sourcing from plane offsets inside the same PBO. Compared to three
-     * independent [upload] calls this pays the fixed per-call cost (bind / map / fence) once.
-     */
+    /** Uploads one packed I420 frame (Y plane, then U, then V) from [src] into three plane textures in a single PBO. */
     fun uploadPlanar(
         yId: Int, yW: Int, yH: Int,
         uId: Int, uW: Int, uH: Int,

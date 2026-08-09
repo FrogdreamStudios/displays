@@ -35,14 +35,8 @@ class SuggestionsController {
     val cards = ArrayList<MediaSearchResult>()
 
     /**
-     * [cards] after applying [sortOption]'s client-side effect: [SortOption.POPULARITY] / [SortOption.NEWEST]
-     * re-sort (a no-op when the network already sorted them, a genuine sort as a related-videos
-     * fallback, since the `next` endpoint has no server-side sort), [SortOption.STREAMS] filters to
-     * live results, and [SortOption.UNWATCHED] / [SortOption.WATCHED] filter by [WatchedVideoStore] —
-     * a pure function of already-loaded data, so it needs no network round-trip.
-     *
-     * [SortOption.MY_LINKS] is the exception: it ignores [cards] and shows the player's own custom
-     * links from [CustomVideoStore], which are local and need no request at all.
+     * [cards] after applying [sortOption]'s client-side effect: [SortOption.POPULARITY] / [SortOption.NEWEST] re-sort,
+     * [SortOption.STREAMS] filters to live.
      */
     val visibleCards: List<MediaSearchResult>
         get() = when (sortOption) {
@@ -123,11 +117,8 @@ class SuggestionsController {
     }
 
     /**
-     * Changes the active sort / filter. [SortOption.UNWATCHED]/[SortOption.WATCHED] take effect purely
-     * through [visibleCards] and need no network call. The other options carry their own `YouTube` sort
-     * order, so if a text search is currently active it's re-run to fetch results in that order —
-     * related-video lists (no active query) have no server-side sort, so [visibleCards] falls back to
-     * a client-side re-sort of what's already loaded instead of re-fetching.
+     * Changes the active sort / filter. [SortOption.UNWATCHED]/[SortOption.WATCHED] take effect purely through [visibleCards];
+     * others may re-fetch.
      */
     fun setSort(option: SortOption) {
         if (option == sortOption) return
@@ -149,12 +140,8 @@ class SuggestionsController {
     }
 
     /**
-     * Runs a free-text or URL search for [query]; an empty query falls back to the current related
-     * list. URL queries resolve metadata for the single referenced video.
-     *
-     * A pasted link never means "search for this text": a YouTube or Twitch URL resolves to that
-     * one video, and any other http(s) URL becomes a single custom-link card
-     * ([customResult]) the player can click to play it directly.
+     * Runs a free-text or URL search for [query]; an empty query falls back to the current related list.
+     * URL queries resolve directly instead of searching.
      */
     fun runSearch(query: String) {
         val q = query.trim()
@@ -213,7 +200,14 @@ class SuggestionsController {
                         }
                             .onFailure { if (it is CancellationException) throw it; logger.warn("Vimeo meta: ${it.message}") }
                             .getOrNull()
-                        listOf(platformResult(source.url, MediaPlatform.VIMEO, meta, fallbackTitle = "Vimeo ${source.videoId}"))
+                        listOf(
+                            platformResult(
+                                source.url,
+                                MediaPlatform.VIMEO,
+                                meta,
+                                fallbackTitle = "Vimeo ${source.videoId}"
+                            )
+                        )
                     }
 
                     source is MediaSource.Kick -> {
@@ -266,7 +260,13 @@ class SuggestionsController {
                             liveKick?.let(::add)
                             youtubeResults?.let(::addAll)
                         }
-                        publish(seq, combined, null, nextToken = youtubePage?.continuationToken, mode = MoreMode.Search(q))
+                        publish(
+                            seq,
+                            combined,
+                            null,
+                            nextToken = youtubePage?.continuationToken,
+                            mode = MoreMode.Search(q)
+                        )
                         return@launchLoad
                     }
                 }
@@ -488,12 +488,7 @@ class SuggestionsController {
         else -> null
     }
 
-    /**
-     * The single card shown for a pasted link. Built purely from the URL - file name as the title,
-     * host as the uploader - so the card appears the instant the player hits Enter; whether the
-     * link actually plays is settled by the resolver, which reports failures through the menu's
-     * error panel rather than an empty result list.
-     */
+    /** The single card shown for a pasted link. Built purely from the URL: file name as the title, host as the uploader. */
     private fun customResult(url: String): MediaSearchResult = MediaSearchResult(
         id = url,
         title = CustomMediaUrls.displayName(url),

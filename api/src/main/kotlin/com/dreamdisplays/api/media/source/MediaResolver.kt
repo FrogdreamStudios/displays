@@ -18,11 +18,6 @@ interface MediaResolver {
     /** Resolves [source] into stream URLs and metadata, or throws a media exception on failure. */
     fun resolve(source: MediaSource): ResolvedMedia
 
-    /**
-     * Pre-warms this resolver's caches for [source] before playback starts, returning true when it
-     * actually warmed a usable result. [MediaResolverRegistry.prefetch] stops at the first resolver
-     * that reports true, so a universal fallback is not made to speculatively warm sources a
-     * dedicated fast path already owns. No-op returning false by default.
-     */
+    /** Pre-warms resolver caches for [source]; return true if a usable result was warmed. */
     fun prefetch(source: MediaSource): Boolean = false
 }

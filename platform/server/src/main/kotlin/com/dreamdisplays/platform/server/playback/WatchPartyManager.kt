@@ -14,14 +14,8 @@ import com.dreamdisplays.platform.server.proxy.TransferTracker
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
-/**
- * Runs the ephemeral watch-party state machine, one session per display. Only the host drives
- * playback; nearby participants may only mark themselves ready. The display is forced-locked for
- * the whole session (even admins can't unlock), and the session freezes at [ENDED] until the host
- * or owner closes it. All wire traffic is the [WatchPartyState] snapshot, rebroadcast on every
- * transition and once per second while live.
- */
-// TODO: release in 1.9.0
+/** Runs the ephemeral watch-party state machine, one session per display. Only the host drives playback; nearby players just receive updates. */
+// TODO: release in 1.10.0
 object WatchPartyManager {
     private const val COUNTDOWN_MS = 3_000L
     private const val HOST_GRACE_MS = 30_000L
@@ -33,13 +27,7 @@ object WatchPartyManager {
     private lateinit var transport: PlaybackTransport
     private val sessions = ConcurrentHashMap<UUID, Session>()
 
-    /**
-     * Fired whenever a `virtual` (network) session's state changes, with the up-to-date snapshot —
-     * the seam [com.dreamdisplays.platform.server.proxy.ProxyBridge] hooks to relay host-driven state
-     * to every other backend hosting members of the same network party. Never fired for ordinary
-     * single-backend sessions. Kept as a callback (like [PlaybackTransport]) so this manager stays
-     * proxy-agnostic - it has no idea a proxy exists, only that *something* wants to know.
-     */
+    /** Fired whenever a `virtual` (network) session's state changes, with the up-to-date snapshot — the seam the proxy uses to fan updates out network-wide. */
     var onVirtualBroadcast: ((displayId: UUID, snapshot: WatchPartyState) -> Unit)? = null
 
     /** Fired when a `virtual` session is closed, with its `sessionId` (the network party id) - the seam that lets [com.dreamdisplays.platform.server.proxy.ProxyBridge] fan a `CloseNetworkWatchParty` out. */
@@ -73,16 +61,7 @@ object WatchPartyManager {
     /** True if [playerId] hosts the live session on [displayId]. */
     fun isHost(displayId: UUID, playerId: UUID): Boolean = sessions[displayId]?.hostId == playerId
 
-    /**
-     * Starts a session on [display] with [hostId] as host. Returns false if a session already
-     * exists or the player isn't allowed to start one (locked display and not owner / admin).
-     *
-     * [virtual] marks this as the host's own backend's half of a network-wide watch party: the
-     * session tracks members explicitly (via [addMember]) instead of deriving "nearby" from world
-     * position, and the base-mode [TimelineManager] hookup is skipped since there's no real display
-     * for it to drive. Every other backend hosting members of the same party runs no session of its
-     * own at all — it's a passive relay of whatever this one broadcasts, forwarded by the proxy.
-     */
+    /** Starts a session on [display] with [hostId] as host. Returns false if a session already exists or the player lacks permission. */
     fun start(display: DisplayData, hostId: UUID, url: String, lang: String, virtual: Boolean = false): Boolean {
         if (hasSession(display.id)) return false
         val ctx = PlaybackContexts.of(display, hostId, transport.isAdmin(hostId))
@@ -107,13 +86,7 @@ object WatchPartyManager {
         return true
     }
 
-    /**
-     * Adds [playerId] as a member of the `virtual` network party on [displayId] (the host's own
-     * backend session only — other backends' local members are tracked by
-     * [com.dreamdisplays.platform.server.proxy.NetworkWatchPartyRelay] instead, since they have no
-     * session of their own to add to). Delivers `DisplayInfo` + the current snapshot if they're
-     * online now. Returns false if [displayId] isn't a live virtual session here.
-     */
+    /** Adds [playerId] as a member of the `virtual` network party on [displayId] (the host's own backend session only). */
     fun addMember(displayId: UUID, playerId: UUID): Boolean {
         val session = sessions[displayId] ?: return false
         if (!session.virtual) return false
@@ -206,13 +179,7 @@ object WatchPartyManager {
     /** Whether [displayId] hosts a `virtual` (network-party host side) session. */
     fun isVirtual(displayId: UUID): Boolean = sessions[displayId]?.virtual == true
 
-    /**
-     * Starts the host side of a network watch party: creates the shared virtual display for
-     * [displayId] and starts a `virtual` session on it. Called by
-     * [com.dreamdisplays.platform.server.proxy.ProxyBridge] on the backend that requested the
-     * party, once the proxy has minted [displayId]. Returns false if the virtual display couldn't
-     * be created (no world loaded yet) or a session already exists there.
-     */
+    /** Starts the host side of a network watch party: creates the shared virtual display for [displayId] and starts the local session on it. */
     fun startVirtual(displayId: UUID, hostId: UUID, url: String, lang: String): Boolean {
         val display = transport.createVirtualDisplay(displayId, hostId) ?: return false
         return start(display, hostId, url, lang, virtual = true)
@@ -225,14 +192,9 @@ object WatchPartyManager {
         return true
     }
 
-    /**
-     * Creates (or, if already made, returns) the local virtual display a follower backend needs
-     * for a network party it isn't hosting — just enough for
-     * [com.dreamdisplays.platform.server.proxy.NetworkWatchPartyRelay] to hand its members a
-     * `DisplayInfo` and pass through the host's relayed [WatchPartyState]. This backend never starts
-     * an actual [Session] for it; [close]/[control]/[tick] never touch a follower's copy.
-     */
-    fun createFollowerDisplay(displayId: UUID, hostId: UUID): DisplayData? = transport.createVirtualDisplay(displayId, hostId)
+    /** Creates (or, if already made, returns) the local virtual display a follower backend needs for a network party. */
+    fun createFollowerDisplay(displayId: UUID, hostId: UUID): DisplayData? =
+        transport.createVirtualDisplay(displayId, hostId)
 
     /** Delivers `DisplayInfo` for a follower's virtual [display] to one [playerId]. */
     fun sendFollowerDisplayInfo(display: DisplayData, playerId: UUID) {
@@ -325,12 +287,7 @@ object WatchPartyManager {
         }
     }
 
-    /**
-     * Players currently "nearby" the session: for a `virtual` network party, the proxy-assigned
-     * [Session.members] intersected with who's actually online on this backend right now (a
-     * virtual display has no world position, so there's nothing to derive proximity from); for an
-     * ordinary session, real world proximity to the display as usual.
-     */
+    /** Players currently "nearby" the session: for a `virtual` network party, the proxy-assigned [Session.members] filtered to who's online. */
     private fun nearbyIds(session: Session): List<UUID> {
         if (session.virtual) return session.members.filter { it in transport.onlinePlayerIds() }
         val display = DisplayManager.getDisplayData(session.displayId) ?: return emptyList()

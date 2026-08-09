@@ -136,10 +136,8 @@ object ScreenRenderer : ClientRenderService {
     private const val OVERLAY_LIFT = 0.01f
 
     /**
-     * Loading / error placeholder. Loading is a faintly breathing dark backdrop with an indeterminate
-     * progress bar near the bottom — a track plus an accent segment that sweeps left to right; error is
-     * a dark red backdrop with a static red bar. Each element sits on its own depth layer so they read
-     * cleanly instead of z-fighting or blinking in place.
+     * Loading / error placeholder. Loading is a faintly breathing dark backdrop with an indeterminate progress bar;
+     * error swaps in a static red tint.
      */
     private fun renderPlaceholder(
         stack: PoseStack, drawQuad: QuadRenderer, type: RenderType,

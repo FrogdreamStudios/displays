@@ -14,10 +14,7 @@ import org.slf4j.LoggerFactory
 import java.nio.ByteBuffer
 
 /**
- * Owns windowed, Picture-in-Picture, and fullscreen popout state for one display screen. All active
- * surfaces are fed through a single fan-out sink on the player so they can coexist. Lifecycle
- * changes are published as [PopoutEvent]s through the registered [PopoutManager] so external
- * subscribers see popouts open and close.
+ * Manages window, PiP, and fullscreen popout surfaces for one display; wires frames to all sinks.
  */
 class DisplayPopoutManager(
     private val displayScreen: DisplayScreen,

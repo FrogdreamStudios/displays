@@ -47,10 +47,8 @@ internal interface FramePipe {
 }
 
 /**
- * Caches the most recent frame handed to a pipe's raw-frame sink (popout / menu preview) so a
- * sink that attaches while playback is paused or parked - and so won't see a new decoded frame
- * for a while, possibly ever if playback stays paused - gets an immediate picture instead of
- * waiting indefinitely for the next one.
+ * Caches the most recent frame handed to a pipe's raw-frame sink (popout / menu preview) so a sink that attaches late
+ * gets an immediate first frame instead of a blank one.
  */
 internal class LastFrameCache {
     @Volatile
@@ -102,29 +100,13 @@ internal object FramePacing {
     private const val SUSPICIOUS_WAIT_NS = 2_000_000_000L
 
     /**
-     * Any diff larger than this, for a caller that has no independent way to tell a stale-timeline
-     * frame from real ongoing lag ([dropStaleTimeline] = true), is treated as the frame belonging to
-     * a different timeline than the current audio clock (typical after back-to-back seeks: video
-     * comes back on the new timeline before the previous seek's audio line has been torn down and
-     * replaced, so the queued cushion carries pre-seek PTS while the new line drives the clock).
-     * Waiting for the clock to catch up is pointless in that case because it never will on the
-     * frame's timeline; drop the frame immediately. The bound is tight: normal steady-state diff at
-     * the head of the queue is one frame period (~33 ms), post-seek/cold-start transient tops out
-     * near the prebuffer cushion (400 ms default) while the audio line is warming up — but a genuine
-     * same-timeline stall (e.g. a game-thread hitch delaying the audio line) can just as easily push
-     * the real audio clock a second or more behind, which this heuristic can't distinguish from a
-     * dead timeline; [FramePrebuffer] passes `dropStaleTimeline = false` because it already filters
-     * true stale frames by their own generation tag before calling [pace], so any diff it hands in
-     * is guaranteed same-timeline and should be waited out, not dropped outright.
+     * Any diff larger than this, for a caller that has no independent way to tell a stale-timeline frame from real drift,
+     * is treated as a stale-timeline frame.
      */
     private const val STALE_TIMELINE_DIFF_NS = 1_000_000_000L
 
     /**
-     * Give up on a frame after actually waiting this long: either it belongs to a dead timeline
-     * (survived a seek's clock reset) or the clock is stuck — both are watchdog territory, and
-     * holding the consumer any longer would freeze playout behind one frame. Tightened from the
-     * original 8 s because the queue backs up quickly under a stuck head — one blocked head means
-     * every subsequent frame waits behind it, so at 30 fps the producer is stalled within 400 ms.
+     * Give up on a frame after actually waiting this long: either it belongs to a dead timeline (survived a seek's flush) or the clock is stuck.
      */
     private const val MAX_PACING_WAIT_NS = 1_500_000_000L
 
@@ -144,19 +126,8 @@ internal object FramePacing {
     fun pace(videoPts: Long, audioClock: Long): Boolean = pace(videoPts, { audioClock })
 
     /**
-     * Paces the reader thread against the audio clock: parks/spins until [videoPts] is due, then
-     * re-samples the clock so an overslept frame is dropped instead of being presented late.
-     * [audioClock] may return -1 when no audio line is open yet, and is re-sampled on every park
-     * slice, so a clock reset (seek) or a late-starting clock takes effect immediately instead of
-     * being baked into a one-shot park. When [abort] turns true mid-wait (seek flush, teardown)
-     * the wait ends early and the frame is reported as a drop; a frame still not due after
-     * [MAX_PACING_WAIT_NS] of real waiting is dropped too (stale timeline / dead clock).
-     *
-     * @param dropStaleTimeline Whether a diff past [STALE_TIMELINE_DIFF_NS] is assumed to mean the
-     * frame is from a dead timeline and gets dropped without waiting. Only safe when the caller has
-     * no cheaper/exact way to tell that apart from real lag; [FramePrebuffer] already does (its own
-     * generation tag), so it passes false and lets a same-timeline stall resolve through the normal
-     * wait / [MAX_PACING_WAIT_NS] give-up path instead of being misread as a stale frame forever.
+     * Paces the reader thread against the audio clock: parks/spins until [videoPts] is due, then re-samples the clock to
+     * decide whether to present or drop the frame.
      */
     fun pace(
         videoPts: Long,

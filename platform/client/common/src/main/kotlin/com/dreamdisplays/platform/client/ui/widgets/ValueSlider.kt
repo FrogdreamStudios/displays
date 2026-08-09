@@ -21,21 +21,7 @@ import net.minecraft.resources.Identifier
 /*import net.minecraft.resources.ResourceLocation as Identifier*/
 import net.minecraft.util.Mth
 
-/**
- * Vanilla-styled horizontal slider over a fractional value in [0, 1]. The label and the apply action
- * are constructor lambdas, so call sites configure sliders declaratively instead of subclassing.
- *
- * @param initial starting fraction.
- * @param label formats the on-slider text for a given fraction.
- * @param live when true (default) [onApply] fires continuously as the user drags; when false it
- *   fires only once the drag/click is released. Use `live = false` for expensive actions (e.g. a
- *   quality switch that restarts the video) so a single drag across levels doesn't fire a burst.
- * @param step when set, clicks/drags snap the value to the nearest multiple of [step] instead of
- *   following the cursor continuously (e.g. `0.05` for 5% increments, or `1.0 / (positions - 1)`
- *   for a fixed number of evenly spaced stops). Settable from outside since some sliders (e.g.
- *   quality) have a stop count that only becomes known after construction.
- * @param onApply invoked when the user changes the value (after clamping).
- */
+/** Vanilla-styled horizontal slider over a fractional value in [0, 1]. The label and the apply action are consumer-supplied. */
 class ValueSlider(
     initial: Double,
     private val label: (Double) -> Component,

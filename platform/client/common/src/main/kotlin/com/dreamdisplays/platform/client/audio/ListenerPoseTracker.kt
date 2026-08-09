@@ -25,12 +25,7 @@ internal object ListenerPoseTracker {
         )
     }
 
-    /**
-     * Resolves the main camera. `getMainCamera()` was renamed to `mainCamera()` in 26.2, resolved via
-     * a direct, version-gated call so loom remaps it — a reflective by-name lookup silently fails in
-     * the remapped jar (the method is intermediary `method_19418` there, not the literal name), which
-     * would pin the listener at [ListenerPose.IDENTITY] and mis-render every source's spatial mix.
-     */
+    /** Resolves the main camera. */
     private fun mainCameraOf(minecraft: Minecraft): Camera {
         //? if >=26.2 {
         return minecraft.gameRenderer.mainCamera()

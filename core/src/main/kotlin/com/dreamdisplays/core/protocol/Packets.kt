@@ -52,11 +52,7 @@ data class ClientHello(
     @ProtoNumber(27) val timeZoneOffsetMinutes: Int = 0,
 ) : DreamPacket
 
-/**
- * Server -> client capability snapshot; folds the legacy `premium`, `is_admin` and
- * `report_enabled` flags. Re-sent in full whenever any flag changes — the client replaces its
- * snapshot wholesale. Field number 5 is retired (was `displaysEnabled`, now [SetDisplaysEnabled]).
- */
+/** Server -> client capability snapshot (premium, admin, reporting); field 5 retired. */
 @Serializable
 data class ServerHello(
     @ProtoNumber(1) val protocolVersion: Int = ProtocolVersion.CURRENT,
@@ -98,14 +94,7 @@ data class DisplayDelete(
     @ProtoNumber(1) val id: @Serializable(UuidSerializer::class) UUID = ZERO_UUID,
 ) : DreamPacket
 
-/**
- * Authoritative playback timeline for a display, pushed by the server. [currentTimeMs] is the
- * position as of [serverTimeMs]; clients extrapolate `position + (estServerNow - serverTimeMs)`
- * (wrapping by [durationMs] when [loop]) and only seek when their drift exceeds tolerance.
- *
- * Still travels in both directions for frozen-v1 compatibility, but v2 clients no longer report
- * their own clock here — they send intents via [PlaybackCommand] and the server owns the timeline.
- */
+/** Authoritative playback timeline for a display, pushed by server; [currentTimeMs] is position anchor. */
 @Serializable
 data class DisplaySync(
     @ProtoNumber(1) val id: @Serializable(UuidSerializer::class) UUID = ZERO_UUID,
@@ -145,10 +134,7 @@ data class ReportDisplay(
     @ProtoNumber(1) val id: @Serializable(UuidSerializer::class) UUID = ZERO_UUID,
 ) : DreamPacket
 
-/**
- * Display rendering toggle: client -> server persists the player's preference; server -> client
- * forces the toggle (admin `/display on|off` commands), mirroring the legacy `display_enabled` channel.
- */
+/** Display rendering toggle: bidirectional preference / admin control. */
 @Serializable
 data class SetDisplaysEnabled(
     @ProtoNumber(1) val enabled: Boolean = true,
@@ -160,11 +146,7 @@ data class ClearCache(
     @ProtoNumber(1) val ids: List<@Serializable(UuidSerializer::class) UUID> = emptyList(),
 ) : DreamPacket
 
-/**
- * Client playback intent for a server-authoritative timeline (a `SYNCED` display the client may
- * edit, or a watch-party host). The server validates permission, updates its clock, and rebroadcasts
- * the new [DisplaySync]. [action] is a [PlaybackAction.wire]; [positionMs] is used by `SEEK`.
- */
+/** Client playback intent for server-authoritative timeline (SYNCED or WATCH_PARTY). */
 @Serializable
 data class PlaybackCommand(
     @ProtoNumber(1) val id: @Serializable(UuidSerializer::class) UUID = ZERO_UUID,
@@ -188,10 +170,7 @@ data class WatchPartyStart(
     @ProtoNumber(3) val lang: String = "",
 ) : DreamPacket
 
-/**
- * Participant readiness ([WatchPartyAction.READY]/[WatchPartyAction.UNREADY], any nearby player) or
- * host control (everything else) for an active session. [positionMs] is used by `SEEK`.
- */
+/** Watch-party participant readiness or host control. */
 @Serializable
 data class WatchPartyControl(
     @ProtoNumber(1) val id: @Serializable(UuidSerializer::class) UUID = ZERO_UUID,
@@ -199,11 +178,7 @@ data class WatchPartyControl(
     @ProtoNumber(3) val positionMs: Long = 0,
 ) : DreamPacket
 
-/**
- * Server snapshot of a watch-party session, broadcast to nearby clients on every transition.
- * [state] is a [WatchPartySessionState.wire]; [positionMs] is the timeline position as of
- * [serverTimeMs]; [countdownStartEpochMs] is the shared instant `COUNTDOWN` resolves to `PLAYING`.
- */
+/** Server snapshot of watch-party session, broadcast on every transition. */
 @Serializable
 data class WatchPartyState(
     @ProtoNumber(1) val id: @Serializable(UuidSerializer::class) UUID = ZERO_UUID,
@@ -222,13 +197,7 @@ data class WatchPartyState(
     @ProtoNumber(14) val paused: Boolean = true,
 ) : DreamPacket
 
-/**
- * Server snapshot of a fullscreen broadcast targeting the receiving player. Idempotent: re-sent in
- * full on reconnect / target-set changes; [active] = false tears the overlay down. [displayId]
- * references a [DisplayInfo] the server has already delivered (a world display or a virtual one).
- * [mode] is a [FullscreenMode] wire ordinal (0 standard, 1 immersive); [volume] < 0 keeps the
- * client's own volume.
- */
+/** Server snapshot of fullscreen broadcast targeting receiving player. */
 @Serializable
 data class FullscreenState(
     @ProtoNumber(1) val sessionId: String = "",
@@ -243,33 +212,21 @@ data class FullscreenState(
     @ProtoNumber(10) val minimized: Boolean = false,
 ) : DreamPacket
 
-/**
- * Client acknowledges a [FullscreenState] transition: 0 = shown, 1 = dismissed (unforced close),
- * 2 = minimized to PiP. Lets the server report broadcast reach and stop re-sending to players who
- * dismissed an unforced broadcast.
- */
+/** Client ack for [FullscreenState]: shown (0), dismissed (1), minimized (2). */
 @Serializable
 data class FullscreenAck(
     @ProtoNumber(1) val sessionId: String = "",
     @ProtoNumber(2) val action: Int = 0,
 ) : DreamPacket
 
-/**
- * Client pins (or unpins) a display to its Picture-in-Picture overlay. The server persists this per
- * player so a pinned display's [DisplayInfo] gets re-sent (bypassing render distance, like a forced
- * fullscreen broadcast) on the next [ClientHello] handshake, letting the client re-open the overlay
- * even if the display is far outside normal render distance - otherwise PiP is lost on every rejoin.
- */
+/** Client pins/unpins display to PiP overlay; server persists per player. */
 @Serializable
 data class PipPin(
     @ProtoNumber(1) val id: @Serializable(UuidSerializer::class) UUID = ZERO_UUID,
     @ProtoNumber(2) val pinned: Boolean = true,
 ) : DreamPacket
 
-/**
- * Server asks the issuing admin's client to render (or hide) a translucent radius-preview dome at
- * a world position, visualizing a fullscreen-broadcast radius while it is being configured.
- */
+/** Server asks admin's client to render / hide fullscreen-broadcast radius preview. */
 @Serializable
 data class RadiusPreview(
     @ProtoNumber(1) val x: Double = 0.0,
@@ -280,24 +237,14 @@ data class RadiusPreview(
     @ProtoNumber(6) val colorArgb: Int = 0,
 ) : DreamPacket
 
-/**
- * Client reports the resolved media duration for a display's current video, once, after its
- * player finishes initializing. Only meaningful for a SYNCED/BROADCAST display whose server-owned
- * Timeline needs a known duration to loop; applied first-report-wins per video.
- */
+/** Client reports media duration after player initializes. */
 @Serializable
 data class ReportDuration(
     @ProtoNumber(1) val id: @Serializable(UuidSerializer::class) UUID = ZERO_UUID,
     @ProtoNumber(2) val durationMs: Long = 0,
 ) : DreamPacket
 
-/**
- * Server tells a client to pause / resume its own player for a `LOCAL`-mode display in place (no
- * seek) — the network side of what the display's own pause button does locally. Used by
- * `ScheduledPlaybackManager` to best-effort apply a scheduled play/pause to a `LOCAL` display's
- * currently-nearby viewers; non-authoritative and not re-sent on reconnect, unlike `SYNCED`/
- * `BROADCAST`'s server-owned timeline.
- */
+/** Server tells client to pause / resume LOCAL-mode display player (no seek). */
 @Serializable
 data class RemotePlaybackToggle(
     @ProtoNumber(1) val id: @Serializable(UuidSerializer::class) UUID = ZERO_UUID,

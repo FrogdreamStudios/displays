@@ -14,10 +14,8 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
- * [MediaSession] view onto a display, expressed purely over the core services: transport calls
- * delegate to [PlaybackService], state and events come from [DisplayService] (snapshots + event bus),
- * filtered to this display. No Minecraft view object is referenced, so the session is platform-agnostic.
- * Closing the session only detaches listeners; playback is unaffected.
+ * [MediaSession] view onto a display, expressed purely over the core services: transport calls delegate to [PlaybackService] and
+ * state to [DisplayService].
  */
 internal class DisplayMediaSession(
     override val displayId: DisplayId,

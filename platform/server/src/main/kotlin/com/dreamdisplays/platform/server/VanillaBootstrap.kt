@@ -15,10 +15,8 @@ import java.io.File
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
- * Shared `Fabric` / `NeoForge` server-lifecycle bootstrap: storage bring-up, display registration,
- * playback transport bind, and the repeating display-update / update-check coroutines. `Server`
- * (see `FabricServer.kt`) and `NeoForgeServer` (see `NeoForgeServerMod.kt`) only adapt their
- * loader's lifecycle-event API and hand off here.
+ * Shared `Fabric` / `NeoForge` server-lifecycle bootstrap: storage bring-up, display registration, playback transport wiring,
+ * and the repeating background tasks.
  */
 object VanillaBootstrap {
     /** Connects storage, loads displays, binds playback, and starts the repeating tasks. */
@@ -42,7 +40,10 @@ object VanillaBootstrap {
         PipPinManager.restore()
         ScheduledPlaybackManager.init(VanillaPlaybackTransport)
         ScheduledPlaybackManager.restoreOnStartup()
-        VanillaProxyBridge.init(VanillaServerState.config.proxy.enabled, VanillaServerState.config.proxy.clock_sync_interval)
+        VanillaProxyBridge.init(
+            VanillaServerState.config.proxy.enabled,
+            VanillaServerState.config.proxy.clock_sync_interval
+        )
         startRepeatingTasks(server)
     }
 

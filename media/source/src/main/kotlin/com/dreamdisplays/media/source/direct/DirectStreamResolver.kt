@@ -14,16 +14,6 @@ import kotlin.time.Duration.Companion.nanoseconds
 
 /**
  * Plays a URL that already is the media: a video file, an HLS playlist, or a DASH manifest.
- *
- * This is the resolver behind custom videos. Where the platform resolvers turn a page into
- * streams, this one confirms that a link is media and hands it to the player unchanged — no
- * subprocess, no extractor, one HTTP probe. That makes a pasted file play about as fast as the
- * decoder can open it, instead of paying a `yt-dlp` spawn for a URL that needed no extraction.
- *
- * It also claims [MediaSource.Remote], which is what makes "paste anything" work: a URL with no
- * recognizable extension is probed first, played directly when the server says it is media, and
- * otherwise refused so the chain falls through to `yt-dlp` exactly as before. The probe costs one
- * round trip on a path that was about to spawn a subprocess anyway.
  */
 object DirectStreamResolver : MediaResolver {
     /** Logger. */
@@ -73,14 +63,7 @@ object DirectStreamResolver : MediaResolver {
      */
     override fun prefetch(source: MediaSource): Boolean = runCatching { resolve(source) }.isSuccess
 
-    /**
-     * Probes [source] and builds its streams.
-     *
-     * @throws DreamMediaException.NotFound when the URL is reachable but is not playable video -
-     * a web page, or an audio-only file - which is the common "that is not the link you think it
-     * is" mistake and deserves to be said out loud rather than surfaced as a decode failure.
-     * @throws DreamMediaException.Network when the URL could not be reached at all.
-     */
+    /** Probes [source] and builds its streams. */
     override fun resolve(source: MediaSource): ResolvedMedia {
         val url = source.toResolvableUrl()
             ?: throw UnsupportedOperationException("$source has no resolvable URL.")
@@ -97,7 +80,10 @@ object DirectStreamResolver : MediaResolver {
         // hole where a public URL 302s to an internal address.
         val safeUrl = runCatching { MediaHostGuard.resolveSafeUrl(url) }.getOrElse { e ->
             if (declaredKind.isDirect) {
-                throw DreamMediaException.Network("Could not reach this link. Check that it is public and still valid.", e)
+                throw DreamMediaException.Network(
+                    "Could not reach this link. Check that it is public and still valid.",
+                    e
+                )
             }
             notDirect.put(url, true)
             throw DreamMediaException.NotFound("Not a direct media URL: $url.", e)
@@ -141,11 +127,6 @@ object DirectStreamResolver : MediaResolver {
     /**
      * Refuses everything that is reachable but cannot become a picture on a display, with the
      * reason spelled out. Each of these is a mistake a player can act on, unlike a decode error.
-     *
-     * [declared] is what the URL looked like and [effective] what the server actually served; the
-     * two answer different questions. Whether this URL was a guess in the first place — and so may
-     * quietly fall through to the extractors — depends on the former, while what the response is
-     * depends on the latter.
      */
     private fun rejectNonVideo(
         probe: DirectMediaProbe.Result, declared: CustomMediaKind, effective: CustomMediaKind,
@@ -283,17 +264,7 @@ object DirectStreamResolver : MediaResolver {
         ).bodyString()
     }.getOrNull()
 
-    /**
-     * Turns a master playlist into the stream list the selector works on.
-     *
-     * The `AUDIO` attribute decides the shape. Without it the variants carry their own sound and
-     * each one is a single muxed stream, exactly as before. With it the variants are video only —
-     * their sound lives in the `#EXT-X-MEDIA` playlists — so the audio renditions become their own
-     * [MediaStreamType.AUDIO] streams and the variants are typed [MediaStreamType.VIDEO]. Getting
-     * this wrong is not a cosmetic mismatch: pointing the audio process at a video-only variant made
-     * `FFmpeg` exit with "Output file does not contain any stream" on every attempt, which the player
-     * read as a dying session and answered with an endless re-resolve loop.
-     */
+    /** * Turns a master playlist into the stream list the selector works on. */
     private fun masterStreams(parsed: DirectHlsPlaylist.Parsed, seekByDecoding: Boolean): List<MediaStream> {
         // Every rendition with its own playlist, not just the group of the variant that survived
         // de-duplication — otherwise a master that lists its languages as separate groups would keep

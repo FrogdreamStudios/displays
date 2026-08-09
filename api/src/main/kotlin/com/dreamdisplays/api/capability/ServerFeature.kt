@@ -5,10 +5,7 @@ import com.dreamdisplays.api.util.WireEnum
 import com.dreamdisplays.api.util.wireEnumValueOfOrNull
 
 /**
- * Server capabilities advertised to clients during negotiation.
- *
- * Wire protocols may keep these as strings for compatibility; runtime code should build and query
- * features through this enum so feature tokens remain centralized.
+ * Server capabilities advertised during negotiation; string tokens stay centralized in this enum.
  *
  * @since 1.8.4
  */

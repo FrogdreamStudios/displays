@@ -3,15 +3,8 @@ package com.dreamdisplays.media.source.direct
 import java.net.URI
 
 /**
- * Minimal HLS playlist reader for user-pasted `.m3u8` URLs.
- *
- * Only what the resolver actually needs: split master from media playlist, read the variant ladder
- * so quality selection works on a custom HLS link the same way it does on a platform stream, and
- * tell a live playlist from a finished one. Segment parsing stays with the decoder, which reads the
- * playlist itself anyway.
- *
- * Unlike the Twitch playlists (always absolute URLs from usher), a third-party master playlist
- * usually lists its variants as relative paths, so every URI is resolved against the playlist URL.
+ * Minimal HLS playlist reader for user-pasted `.m3u8` URLs. Only what the resolver actually needs: split master / media
+ * playlists, variant and audio-rendition parsing.
  */
 internal object DirectHlsPlaylist {
     /** One `#EXT-X-STREAM-INF` entry of a master playlist. */
@@ -28,10 +21,7 @@ internal object DirectHlsPlaylist {
 
     /**
      * One `#EXT-X-MEDIA:TYPE=AUDIO` rendition that lives in its own playlist.
-     *
-     * A master playlist that declares these has *video-only* variants: the sound is a separate
-     * playlist the player is expected to fetch alongside. Renditions without a `URI` describe audio
-     * already muxed into the variants and are not represented here.
+     * A master playlist that declares this must be fetched separately from its video variant.
      */
     data class AudioRendition(
         val url: String,
@@ -41,32 +31,12 @@ internal object DirectHlsPlaylist {
         val isDefault: Boolean,
     )
 
-    /**
-     * A parsed playlist.
-     *
-     * @property variants the master playlist's renditions; empty for a media playlist.
-     * @property audioRenditions separate audio playlists referenced by [Variant.audioGroupId].
-     * @property isLive true when the playlist can still grow — a media playlist with no
-     * `#EXT-X-ENDLIST`, which is exactly the shape a live stream has.
-     */
+    /** A parsed playlist. [isLive] is true when it has no `#EXT-X-ENDLIST` tag, which is exactly the shape a live stream has. */
     data class Parsed(
         val variants: List<Variant>,
         val audioRenditions: List<AudioRendition>,
         val isLive: Boolean,
-        /**
-         * True when the playlist declares an `#EXT-X-MAP` initialization segment, i.e. it is
-         * fragmented MP4 rather than MPEG-TS. `FFmpeg`'s HLS demuxer loses that init segment when it
-         * seeks past the opening segments and then decodes nothing at all, so this decides how the
-         * player is allowed to seek (see `MediaStream.seekByDecoding`).
-         */
         val hasInitSegment: Boolean = false,
-
-        /**
-         * Sum of the playlist's `#EXTINF` durations, or 0 for a master (which lists no segments) and
-         * for a live playlist (where the total is only the window currently published, not the
-         * media). This is the one place an HLS VOD's length is known without opening the stream, and
-         * the player needs it: without a duration there is no timeline, and so no seek bar at all.
-         */
         val totalDurationNanos: Long = 0L,
     ) {
         /** True when this is a master playlist, i.e. it lists renditions rather than segments. */
@@ -84,10 +54,7 @@ internal object DirectHlsPlaylist {
 
     /**
      * Parses [text], resolving every variant URI against [baseUrl].
-     *
-     * A media playlist is treated as live unless it declares `#EXT-X-ENDLIST` or
-     * `#EXT-X-PLAYLIST-TYPE:VOD`. A master playlist says nothing about liveness on its own, so it
-     * is reported as non-live and the decoder discovers the truth from the media playlist it picks.
+     * A media playlist is treated as live unless it declares `#EXT-X-ENDLIST`.
      */
     fun parse(text: String, baseUrl: String): Parsed {
         val variants = ArrayList<Variant>()
@@ -116,6 +83,7 @@ internal object DirectHlsPlaylist {
                     hasSegments = true
                     segmentNanos += extInfNanos(line)
                 }
+
                 line.startsWith("#EXT-X-ENDLIST") -> ended = true
                 line.startsWith("#EXT-X-PLAYLIST-TYPE:") ->
                     vod = line.substringAfter(':').trim().equals("VOD", ignoreCase = true)
@@ -200,6 +168,7 @@ internal object DirectHlsPlaylist {
                     parts.add(current.toString())
                     current.setLength(0)
                 }
+
                 else -> current.append(c)
             }
         }

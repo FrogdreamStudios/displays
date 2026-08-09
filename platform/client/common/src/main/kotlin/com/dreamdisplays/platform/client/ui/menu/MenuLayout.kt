@@ -7,12 +7,8 @@ import kotlin.math.max
 import kotlin.math.min
 
 /**
- * Responsive panel layout for the display menu.
- *
- * Three modes (carried over from the original implementation):
- * - Wide (>=900x480): preview + settings stacked left, suggestions as a right sidebar (vertical cards).
- * - Normal: preview and settings side by side on top, suggestions strip below.
- * - Compact (<600 wide): preview above settings, suggestions strip below.
+ * Responsive panel layout for the display menu. Three modes depending on screen size: side-by-side, stacked suggestions
+ * below, or suggestions hidden.
  */
 class MenuLayout private constructor(
     val preview: UiRect,

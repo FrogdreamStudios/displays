@@ -33,9 +33,7 @@ internal object RenderPipelineCompat {
 
     /**
      * Constant term of the GPU polygon-offset bias applied to display quads (see [configureDepth]).
-     * Matches vanilla's own [net.minecraft.client.renderer.RenderPipelines.WORLD_BORDER] pipeline,
-     * which floats a large flat quad in front of terrain the same way our screen floats in front of
-     * its backing block.
+     * Matches vanilla's own depth-bias constant.
      */
     private const val DEPTH_BIAS = 3.0f
 

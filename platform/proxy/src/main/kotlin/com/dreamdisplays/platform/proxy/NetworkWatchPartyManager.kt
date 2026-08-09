@@ -5,14 +5,8 @@ import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Proxy-side authority for network watch parties: mints the shared party id and the shared virtual
- * display id every backend must agree on, and tracks which backend each member is currently on so a
- * host-driven state change can be relayed only to the backends that actually need it. Deliberately
- * platform-API-free, like [NetworkBackendRegistry] / [NetworkFullscreenManager].
- *
- * There is exactly one host per party, on exactly one backend — that backend's
- * [com.dreamdisplays.platform.server.playback.WatchPartyManager] session is the sole source of
- * truth; every other backend just relays whatever it says (see that class's doc for the full split).
+ * Proxy-side authority for network watch parties: mints the shared party id and the shared virtual display id, and
+ * tracks membership across backends.
  */
 object NetworkWatchPartyManager {
     /** One live network watch party. */

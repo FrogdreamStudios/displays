@@ -20,30 +20,11 @@ object MediaProcess {
     /** Frame rate assumed when the source reports none, or reports something implausible. */
     const val DEFAULT_OUTPUT_FPS = 30.0
 
-    /**
-     * Sanitizes a source frame rate into the constant rate the pipeline runs at.
-     *
-     * The raw-pipe transports carry no timestamps, so a frame's presentation time is synthesized as
-     * `offset + frameIndex / fps`. That is only correct if `FFmpeg` really emits `fps` frames per
-     * second of content — otherwise the synthesized timeline runs at a different rate than the audio
-     * clock it is paced against, and lip sync drifts linearly: stream metadata rounding 30000/1001
-     * to "30" is a 0.1 % error, which is 3.6 s of drift per hour. So the same value returned here is
-     * both pinned into `FFmpeg`'s output rate ([videoArgs]) and used for the PTS arithmetic, which
-     * makes the two consistent by construction even when the metadata is wrong.
-     */
+    /** Sanitizes source frame rate to constant pipeline rate. Raw pipes carry no frame-rate metadata. */
     fun outputFps(sourceFps: Double?): Double =
         sourceFps?.takeIf { it.isFinite() && it > 1.0 && it <= 240.0 } ?: DEFAULT_OUTPUT_FPS
 
-    /**
-     * True when [stderr] is `FFmpeg` reporting that the input simply has no audio track, rather than
-     * any kind of failure to reach or decode it.
-     *
-     * `-vn` on a video-only input leaves the output with nothing to write, and `FFmpeg` refuses to
-     * open it. This is the normal shape of a silent film, a screen recording, or an HLS variant whose
-     * sound lives in a separate rendition — not a dying session, so the caller must play on in
-     * silence instead of restarting. A transport failure is excluded explicitly: an input that never
-     * opened produces the same empty output, and that one *is* worth retrying.
-     */
+    /** True when [stderr] is `FFmpeg` reporting that the input simply has no audio track, rather than any kind of real failure. */
     fun indicatesNoAudioStream(stderr: String): Boolean {
         if (!stderr.contains("does not contain any stream")) return false
         return NO_AUDIO_DISQUALIFIERS.none { stderr.contains(it, ignoreCase = true) }
@@ -71,15 +52,7 @@ object MediaProcess {
         RAW_NV12,
     }
 
-    /**
-     * Builds an `FFmpeg` process to read video frames from [url] at the given [offsetNanos], scaled and cropped to [w] x [h].
-     *
-     * When [hwAccel] is anything other than [HwAccelBackend.NONE], the decoder is asked to run on
-     * the GPU's video block. The pipeline still pulls RGB out via a pipe, so `FFmpeg` inserts an
-     * implicit `hwdownload`; the win is that the heavy decoding step no longer burns a CPU core.
-     *
-     * @throws IOException if the process fails to start. the caller is responsible for destroying the process when done.
-     */
+    /** Builds FFmpeg process to read video frames from [url] at offset, scaled and cropped to [w]x[h]. */
     @Throws(IOException::class)
     fun buildVideo(
         ffmpeg: String, url: String, w: Int, h: Int, offsetNanos: Long, hwAccel: HwAccelBackend, fps: Double,
@@ -91,18 +64,7 @@ object MediaProcess {
             ),
         ).start()
 
-    /**
-     * Builds the full `FFmpeg` argv for a video session emitting [transport] on stdout.
-     * Used directly by the native pipeline (which spawns the process itself) and by [buildVideo].
-     *
-     * [fps] must be the value the reader uses for its synthesized frame timestamps (see [outputFps]);
-     * it is pinned as the output frame rate so the emitted stream is constant-rate at exactly the
-     * cadence the reader assumes.
-     *
-     * [alreadyResolved] skips the redirect walk for callers that ran [url] through
-     * `MediaHostGuard.resolveSafeUrl` themselves — the in-process libav path needs the resolved URL
-     * before it ever reaches here, so without this the same chain was walked twice per launch.
-     */
+    /** Builds full FFmpeg argv for video session emitting [transport] on stdout. Used by native pipeline directly. */
     fun videoArgs(
         ffmpeg: String, url: String, w: Int, h: Int, offsetNanos: Long, hwAccel: HwAccelBackend,
         transport: VideoTransport, fps: Double, alreadyResolved: Boolean = false,
@@ -138,17 +100,7 @@ object MediaProcess {
                 && hwAccel == HwAccelBackend.VIDEOTOOLBOX
                 && FFmpegCapabilities.hasFilter(ffmpeg, "scale_vt")
 
-    /**
-     * Builds an `FFmpeg` process that seeks to [offsetNanos] in [url] and writes a single JPEG frame
-     * (letterboxed to exactly [w] x [h], high-ish quality) to stdout. Used to generate seek-bar
-     * scrub-preview thumbnails; the caller reads `process.inputStream` fully after `waitFor()`.
-     *
-     * [url] must already be redirect-resolved / host-checked (via `MediaHostGuard.resolveSafeUrl`) —
-     * this is called once per sample across many short-lived processes for the same video, so
-     * re-resolving here (an extra HTTP round-trip per call) would multiply that cost badly.
-     *
-     * @throws IOException if the process fails to start. The caller is responsible for destroying the process when done.
-     */
+    /** Builds FFmpeg process that seeks to offset in URL and writes a single letterboxed JPEG frame. */
     @Throws(IOException::class)
     fun buildFrameExtract(
         ffmpeg: String, url: String, offsetNanos: Long, w: Int, h: Int, seekByDecoding: Boolean = false,
@@ -188,13 +140,7 @@ object MediaProcess {
         return ProcessBuilder(cmd).start()
     }
 
-    /**
-     * Builds an `FFmpeg` process that decodes audio from MPEG-TS piped into its stdin (see
-     * `HlsAudioFeeder`), resampled to [sampleRate] Hz. No network flags: the process never opens a
-     * connection itself, which sidesteps the bundled binary's flaky TLS on live HLS hosts.
-     *
-     * @throws IOException if the process fails to start. The caller is responsible for destroying it.
-     */
+    /** Builds `FFmpeg` process that decodes audio from MPEG-TS piped to stdin. */
     @Throws(IOException::class)
     fun buildAudioPiped(ffmpeg: String, sampleRate: Int): Process {
         val cmd = listOf(
@@ -224,12 +170,7 @@ object MediaProcess {
         }
     }
 
-    /**
-     * Builds the common part of the `FFmpeg` command line for both video and audio processes.
-     * [alreadyResolved] skips the `MediaHostGuard.resolveSafeUrl` redirect-chain lookup (an HTTP
-     * round-trip) for callers that resolved [url] themselves — needed when this runs many times per
-     * video (e.g. one scrub-preview sample each) so that cost isn't paid on every single call.
-     */
+    /** Builds common `FFmpeg` command line for video and audio. [alreadyResolved] skips SSRF guard. */
     @Throws(IOException::class)
     private fun baseCommand(
         ffmpeg: String,
@@ -247,12 +188,7 @@ object MediaProcess {
         return inputCommand(ffmpeg, safeUrl, offsetNanos, hwAccel, seekByDecoding, trimmed)
     }
 
-    /**
-     * The input half of an `FFmpeg` invocation, with the playlist trim already decided. Split out
-     * from [baseCommand] so the argument list can be asserted without a network fetch — the options
-     * an input accepts depend on which kind of input it is, and getting that wrong stops the process
-     * from starting at all.
-     */
+    /** Input half of `FFmpeg` invocation with playlist trim already decided. */
     internal fun inputCommand(
         ffmpeg: String,
         safeUrl: String,

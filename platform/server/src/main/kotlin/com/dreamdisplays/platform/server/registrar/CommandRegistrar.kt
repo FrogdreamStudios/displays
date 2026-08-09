@@ -97,13 +97,7 @@ object CommandRegistrar {
         }
     }
 
-    /**
-     * Same as [simple], but only reachable as `/display <name> this` (raycast, exactly what [cmd]
-     * always did) or `/display <name> <id>` (an id / unambiguous id prefix, gated behind
-     * [com.dreamdisplays.platform.server.PermissionsSection.remote] since it lets you act on a
-     * display anywhere on the server, not just one you're standing in front of). `this` is a literal
-     * so it's tried first; anything else falls into the `id` argument.
-     */
+    /** Like [simple], but adds branches for `this` (raycast) and an explicit id argument. */
     private fun simpleWithThis(
         name: String,
         cmd: SubCommand,
@@ -170,12 +164,7 @@ object CommandRegistrar {
                 Command.SINGLE_SUCCESS
             }
 
-    /**
-     * Builds the `/display name this|<id> [name]` subcommand — see [simpleWithThis] for why both
-     * `this` and an explicit id are offered. `name` is a single space-free token
-     * ([StringArgumentType.word]) since [DisplayManager.resolveByIdOrPrefix] treats it exactly like
-     * an id afterwards, and optional.
-     */
+    /** Builds the `/display name this|<id> [name]` subcommand with optional name argument. */
     private fun nameSubCommand() = Commands.literal("name")
         .requires { it.sender is Player && it.sender.hasPermission(PaperServer.config.permissions.name) }
         .then(
@@ -372,15 +361,7 @@ object CommandRegistrar {
                 }
         )
 
-    /**
-     * `/display fullscreen start <id <id>|url <url>> [<flags in any order / combination>]`, flags
-     * being `target <players>`, `radius <blocks> [<x> <y> <z>]`, `mode <standard|immersive>`,
-     * `forced`, `transient`, `volume <0–200>` - every flag is a real literal / argument node with
-     * its own tab-complete, and [fullscreenFlagsNode] accepts any subset of them, in the canonical
-     * [FULLSCREEN_FLAGS] order.
-     * `id` / `url` are separate literal branches (rather than one argument that guesses which it got)
-     * so both are actually discoverable via tab-complete.
-     */
+    /** Builds the fullscreen start subcommand with optional flags in any order. */
     private fun fullscreenStartSubCommand(): LiteralArgumentBuilder<CommandSourceStack> {
         val flags = fullscreenFlagsNode()
         return Commands.literal("start")
@@ -406,14 +387,7 @@ object CommandRegistrar {
             .also { idArg -> flags.forEach { idArg.then(it) } }
     )
 
-    /**
-     * Bare, space-delimited token wrapped via `Paper`'s `CustomArgumentType` so its real charset
-     * (letters / digits / `@` / `%` / `:` / `/` etc, just not a literal space) can differ from any
-     * vanilla-registered type, while the client only ever sees [getNativeType] (`greedyString`) —
-     * `Paper` substitutes that already-registered native type when building the per-player
-     * command-sync packet (`ApiMirrorRootNode.convertFromPureBrigNode`), so this needs no
-     * `ArgumentTypeInfos` registration and works for un-modded vanilla clients too.
-     */
+    /** Bare space-delimited token argument type with custom character validation. */
     private object PaperBareTokenArgumentType : CustomArgumentType<String, String> {
         private val MISSING = SimpleCommandExceptionType(LiteralMessage("Expected a value."))
 

@@ -9,13 +9,7 @@ import com.github.benmanes.caffeine.cache.Caffeine
 import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
 
-/**
- * In-process Vimeo resolver: one call to the player config endpoint (see [VimeoApi]) instead of a
- * `yt-dlp` subprocess. Mirrors [com.dreamdisplays.media.source.twitch.TwitchResolver] for Twitch -
- * a fast first-party path with `yt-dlp` still behind it as the fallback when Vimeo changes shape.
- *
- * @since 1.9.0
- */
+/** In-process Vimeo resolver: one call to the player config endpoint (see [VimeoApi]) instead of a `yt-dlp` subprocess spawn. */
 object VimeoResolver : MediaResolver {
     /** Logger. */
     private val logger = LoggerFactory.getLogger("DreamDisplays/VimeoResolver")

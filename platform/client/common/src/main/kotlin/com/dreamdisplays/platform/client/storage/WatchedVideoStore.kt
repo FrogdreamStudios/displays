@@ -6,11 +6,7 @@ import kotlinx.serialization.builtins.serializer
 import org.slf4j.LoggerFactory
 
 /**
- * Local, client-only record of which video IDs this player has watched, used to power the
- * suggestions panel's "watched" / "unwatched" sort. Keyed by video ID only (single-viewer
- * perspective) and capped at [MAX_ENTRIES], evicting the oldest watch on overflow.
- *
- * Backed by `watched-videos.json`. Every mutation persists immediately, same as [ClientSettingsStore].
+ * Local client-only record of watched video IDs, powers suggestions panel's recency and uniqueness.
  */
 object WatchedVideoStore {
     /** Logger. */
@@ -23,17 +19,10 @@ object WatchedVideoStore {
     private val jsonFiles = JsonFileStore()
     private val idsSerializer = ListSerializer(String.serializer())
 
-    /**
-     * Insertion order = watch recency; a [LinkedHashSet] gives cheap dedup + reordering on re-watch.
-     *
-     * Guarded by [lock]: playback starts on the media player's own threads (via
-     * `MediaPlayer.whenInitialized`), so two displays coming up at once really do call
-     * [markWatched] concurrently — and an unsynchronized [LinkedHashSet] fails hard when a copy
-     * races a write, seeing the size shrink underneath the array it just allocated.
-     */
+    /** Insertion order = watch recency; [LinkedHashSet] provides cheap dedup + reordering on re-watch. Guarded by lock. */
     private val watched = LinkedHashSet<String>()
 
-    /** Guards every access to [watched]; disk I/O deliberately happens outside it. */
+    /** Guards every access to [watched]; disk I / O deliberately happens outside it. */
     private val lock = Any()
 
     /** Loads the watched-ID list from disk into memory, replacing any current state. */

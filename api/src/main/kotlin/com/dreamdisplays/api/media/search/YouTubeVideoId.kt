@@ -21,7 +21,7 @@ value class YouTubeVideoId(val value: String) {
         /** Valid ID. */
         private val VALID_ID = Regex("^[A-Za-z0-9_-]{11}$")
 
-        /** Parses a bare YouTube id, stripping common URL suffixes when callers pass a path segment. */
+        /** Parses a YouTube id, stripping URL suffixes (?&#). */
         fun parse(value: String?): YouTubeVideoId? {
             val cleaned = value
                 ?.trim()

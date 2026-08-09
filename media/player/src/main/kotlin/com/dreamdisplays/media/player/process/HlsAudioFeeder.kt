@@ -10,17 +10,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Downloads a live HLS audio rendition on the JVM and pipes the raw MPEG-TS segments into the
- * audio `FFmpeg` process's stdin, so FFmpeg only demuxes and decodes — it never touches the network.
- *
- * Exists because the bundled macOS FFmpeg's SecureTransport TLS regularly hangs on its first
- * connection to live HLS hosts (Twitch `ttvnw.net`) until `rw_timeout` kills it and a reconnect
- * retries — 25-30 s with no PCM at all, and more stalls mid-stream. The JVM HTTP stack reaches the
- * same hosts instantly (the resolver and thumbnails already use it), so fetching segments here and
- * feeding them through a pipe removes the flaky layer entirely.
- *
- * Live-only: the feeder always joins near the live edge and follows the sliding window; a VOD
- * playlist (with its full segment list and `#EXT-X-ENDLIST`) must keep using FFmpeg's own `-ss`
- * URL input for seeking.
+ * audio `FFmpeg` process's stdin, so `FFmpeg` only demuxes and decodes.
  */
 internal class HlsAudioFeeder(
     private val playlistUrl: String,
@@ -31,13 +21,7 @@ internal class HlsAudioFeeder(
 ) {
     private val logger = LoggerFactory.getLogger("DreamDisplays/HlsAudioFeeder")
 
-    /**
-     * PES PTS of the first audio access unit fed into the pipe, in nanos (90 kHz ticks converted),
-     * or -1 until the first segment has been scanned. Twitch renditions share one segmenter, so
-     * this is on the same stream clock as the video channel's raw LAV PTS — their difference is
-     * the exact content offset between the two independently joined HLS streams, which the session
-     * manager uses to anchor A/V pacing precisely instead of guessing from wall time.
-     */
+    /** PES PTS of the first audio access unit fed into the pipe, in nanos (90 kHz ticks converted), or -1 until the first segment has been scanned. */
     @Volatile
     var firstPtsNanos: Long = -1L; private set
 
@@ -150,10 +134,8 @@ internal class HlsAudioFeeder(
     }
 
     /**
-     * Scans a raw MPEG-TS [segment] for the first audio PES header (stream ids `0xC0`..`0xDF`;
-     * Twitch's `timed_id3` rides private stream `0xBD` and is skipped) and records its PTS into
-     * [firstPtsNanos]. Walks 188-byte TS packets, honoring the adaptation field, and only looks at
-     * packets that start a new PES payload.
+     * Scans a raw MPEG-TS [segment] for the first audio PES header (stream ids `0xC0`..`0xDF`; Twitch's `timed_id3`
+     * stream is skipped) to derive [firstPtsNanos].
      */
     private fun scanFirstAudioPts(segment: ByteArray) {
         var i = 0

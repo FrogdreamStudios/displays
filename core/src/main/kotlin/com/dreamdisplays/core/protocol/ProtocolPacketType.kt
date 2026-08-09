@@ -4,9 +4,7 @@ import com.dreamdisplays.api.protocol.PacketDirection
 import kotlin.reflect.KClass
 
 /**
- * Append-only protocol-v2 packet type ids carried by [Envelope.type].
- *
- * These ids are part of the wire protocol. Never reuse or renumber existing entries; only append.
+ * Append-only protocol-v2 packet type ids; wire-protocol stable, never reuse or renumber.
  */
 enum class ProtocolPacketType(
     val id: Int,

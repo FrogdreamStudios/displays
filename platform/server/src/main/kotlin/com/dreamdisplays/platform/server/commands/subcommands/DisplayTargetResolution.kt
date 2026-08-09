@@ -13,11 +13,8 @@ import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
 /**
- * Resolves [token] to a [DisplayData] for `/display info|delete|video`, shared across all three
- * since they all target one display the same way: `this` (mandatory when nothing more specific is
- * given) always raycasts, the same 32-block lookup every one of them already used before gaining
- * remote targeting. Anything else is treated as a display id / unambiguous id prefix and requires
- * [com.dreamdisplays.platform.server.PermissionsSection.remote].
+ * Resolves [token] to a [DisplayData] for `/display info|delete|video`, shared across all three since they all accept
+ * the same `this` / id / name target syntax.
  */
 @PaperOnly
 fun resolvePaperDisplayTarget(sender: CommandSender, player: Player, token: String): DisplayData? {

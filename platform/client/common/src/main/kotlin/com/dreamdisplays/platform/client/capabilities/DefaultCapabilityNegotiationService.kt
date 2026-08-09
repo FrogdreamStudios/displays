@@ -10,10 +10,8 @@ import com.dreamdisplays.util.GeneralUtil
 import org.slf4j.LoggerFactory
 
 /**
- * Default [CapabilityNegotiationService]. Local capabilities are probed once via the
- * [ClientCapabilityDetector]; server capabilities arrive either as a single v2
- * [ServerHello] or merged incrementally from the legacy per-flag handshake packets
- * (via [ClientPacketManager]).
+ * Default [CapabilityNegotiationService]. Local capabilities are probed once via the [ClientCapabilityDetector] and cached
+ * for the process lifetime.
  */
 class DefaultCapabilityNegotiationService(
     private val detector: ClientCapabilityDetector,

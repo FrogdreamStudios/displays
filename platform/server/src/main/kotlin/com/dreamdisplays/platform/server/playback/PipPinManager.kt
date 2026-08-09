@@ -15,11 +15,8 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * Tracks which displays each player has pinned to a Picture-in-Picture overlay, so a pinned
- * display's [com.dreamdisplays.core.protocol.DisplayInfo] can be re-sent (bypassing render
- * distance, the same bypass [FullscreenBroadcastManager] uses) on the next join — otherwise a
- * player's PiP is silently lost every time they reconnect, especially for a display far outside
- * normal render distance. Persists across restarts via [PipPinStore].
+ * Tracks which displays each player has pinned to a Picture-in-Picture overlay, so a pinned display's updates keep
+ * reaching them out of range.
  */
 object PipPinManager {
     private val logger = LoggerFactory.getLogger("DreamDisplays/PipPinManager")
@@ -108,10 +105,8 @@ object PipPinManager {
     }
 
     /**
-     * Schedules a debounced store write, coalescing a burst of [pin] / [unpin] calls (e.g. a client
-     * flood the throttle above didn't fully absorb) into a single disk write instead of one per call.
-     * A write already pending absorbs any further calls for free — they'll be picked up by the same
-     * flush since it reads the live [pins] map, not a snapshot taken at schedule time.
+     * Schedules a debounced store write, coalescing a burst of [pin] / [unpin] calls (e.g. a client flooding the throttle)
+     * into one disk write.
      */
     private fun schedulePersist() {
         if (!persistScheduled.compareAndSet(false, true)) return

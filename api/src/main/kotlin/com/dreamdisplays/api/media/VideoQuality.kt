@@ -3,11 +3,7 @@ package com.dreamdisplays.api.media
 import com.dreamdisplays.api.DreamDisplaysUnstableApi
 
 /**
- * Requested video quality for a display: either [Auto] (let the client pick the best available
- * stream) or a [Fixed] target height in pixels.
- *
- * Persisted and displayed via [serialize] / [parse] as a plain label ("auto" or a bare height such
- * as "720"), so on-disk and wire formats stay string-compatible with earlier versions.
+ * Requested video quality: [Auto] (client picks) or [Fixed] height; persisted as label.
  *
  * @since 1.8.0
  */
@@ -35,11 +31,7 @@ sealed interface VideoQuality {
         /** Client default when nothing is persisted. */
         val DEFAULT: VideoQuality = Fixed(1080)
 
-        /**
-         * Parses a raw label into a [VideoQuality]. Null, blank, or "auto" (case-insensitive) yield
-         * [Auto]; a leading positive integer (tolerating a trailing "p", e.g. "720p") yields [Fixed];
-         * anything else falls back to [Auto].
-         */
+        /** Parses a label into [VideoQuality]: null / "auto" -> Auto, digits -> Fixed, else Auto. */
         fun parse(raw: String?): VideoQuality {
             if (raw == null) return Auto
             val trimmed = raw.trim()

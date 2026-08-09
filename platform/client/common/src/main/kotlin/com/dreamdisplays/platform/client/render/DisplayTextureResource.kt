@@ -16,23 +16,7 @@ import net.minecraft.client.renderer.texture.AbstractTexture
 import net.minecraft.client.renderer.texture.DynamicTexture
 import java.util.*
 
-/**
- * Owns the per-display GPU resources and their allocation / release lifecycle. Depending on the
- * pipeline mode this is either a single RGBA [DynamicTexture] (frames converted on the CPU) or
- * three RED8 [VideoPlaneTexture] planes (raw I420 planes converted in the fragment shader, see
- * [DisplayYuvRenderTypes]), plus the [RenderType] that samples them.
- *
- * Pulled out of [DisplayScreen] so the screen no longer mixes Minecraft texture
- * management with playback and sync state. [width]/[height] are the texture's pixel dimensions, derived from the
- * screen's block aspect ratio and target quality.
- *
- * A second "pending" allocation can be staged alongside the live one ([allocatePending]) so a
- * resolution change (quality switch) can be decoded into fresh textures while the old ones keep
- * being rendered; [promotePending] then swaps it in atomically once the first new frame has landed,
- * so the picture never blanks during the switch.
- *
- * @param uuid the owning display's id, used to build a unique texture identifier.
- */
+/** Owns the per-display GPU resources and their allocation / release lifecycle. Depending on the pipeline mode this is either one RGBA texture or three YUV planes. */
 class DisplayTextureResource(private val uuid: UUID) {
     /** One complete set of GPU resources (either RGBA or the three YUV planes) plus its render types. */
     private class Allocation(
@@ -175,12 +159,7 @@ class DisplayTextureResource(private val uuid: UUID) {
         current = build(width, height)
     }
 
-    /**
-     * Stages a fresh allocation at the dimensions for [blockWidth] x [blockHeight] @ [qualityHeight]
-     * without touching the live textures, so the current frame keeps rendering. Once the first
-     * new-resolution frame has been uploaded into it, call [promotePending] to swap it in. Replaces
-     * any previously staged pending allocation. Must be called on the render thread.
-     */
+    /** Stages a fresh allocation at the dimensions for [blockWidth] x [blockHeight] @ [qualityHeight] without touching the currently active allocation. */
     fun allocatePending(blockWidth: Int, blockHeight: Int, qualityHeight: Int) {
         discardPending()
         val (w, h) = textureDimensions(blockWidth, blockHeight, qualityHeight)

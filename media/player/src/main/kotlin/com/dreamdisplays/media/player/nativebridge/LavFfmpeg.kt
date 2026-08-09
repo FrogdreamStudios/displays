@@ -10,19 +10,7 @@ import java.io.*
 import java.net.URI
 import java.util.zip.ZipInputStream
 
-/**
- * Provides the `FFmpeg` shared libraries the in-process libav backend
- * ([NativeMedia.initLav]) links against. When the extracted native cache does not
- * already contain them, a prebuilt shared build is downloaded on demand and
- * unpacked next to `dreamdisplays_lav`, where [NativeMedia.preloadLavDependencies]
- * picks it up.
- *
- * The download must match the `FFmpeg` major branch the library was linked against
- * (matching SONAMEs / DLL names). BtbN's autobuild asset names include a moving
- * git revision, so URLs are resolved from the latest GitHub release at runtime.
- * macOS has no prebuilt shared build available, so it keeps relying on a system
- * (Homebrew) `FFmpeg`.
- */
+/** Downloads and unpacks FFmpeg shared libraries from BtbN for the in-process libav backend. */
 object LavFfmpeg {
     private val logger = LoggerFactory.getLogger("DreamDisplays/LavFFmpeg")
 
@@ -39,12 +27,7 @@ object LavFfmpeg {
         val libDir: String,
     )
 
-    /**
-     * Ensures [dir] contains the FFmpeg shared libraries, downloading and
-     * unpacking them once if needed. Returns true when they are present
-     * afterwards. Best-effort: any failure (no network, unsupported platform)
-     * just returns false and leaves the in-process backend unavailable.
-     */
+    /** Ensures [dir] contains FFmpeg libraries, downloading and unpacking them on first run. */
     fun ensure(dir: File): Boolean {
         if (hasFfmpeg(dir)) return true
         val source = source() ?: return false

@@ -6,12 +6,8 @@ import com.dreamdisplays.core.runtime.DefaultDreamDisplaysRuntime
 import java.util.concurrent.CopyOnWriteArrayList
 
 /**
- * Default [ClientApplication]: a module host over a [ClientContext]. Modules are installed in
- * dependency order on [start]; lifecycle events fan out to external listeners (via [onEvent]) and
- * to every installed module's [ClientModule.onEvent].
- *
- * Module installation is delegated to the shared core runtime; this class only adds client
- * lifecycle events around it.
+ * Default [ClientApplication]: a module host over a [ClientContext]. Modules are installed in dependency order and
+ * torn down in reverse on stop.
  */
 class DefaultClientApplication(override val context: ClientContext) : ClientApplication {
     private val runtime = DefaultDreamDisplaysRuntime(context)

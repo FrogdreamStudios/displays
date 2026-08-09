@@ -86,7 +86,8 @@ class InfoCommand : SubCommand {
         )
         data.scheduledStart?.let { at ->
             val localSecond = ScheduleTimeUtil.localSecondOfDay(at, ScheduleTimeUtil.offsetMinutesOf(player.uniqueId))
-            val actionKey = if (data.scheduledAction == PlaybackAction.PAUSE) "scheduleActionPause" else "scheduleActionPlay"
+            val actionKey =
+                if (data.scheduledAction == PlaybackAction.PAUSE) "scheduleActionPause" else "scheduleActionPlay"
             MessageUtil.sendColoredMessage(
                 player,
                 MessageUtil.formatIndexed(
@@ -157,7 +158,8 @@ object VanillaInfoCommand {
         )
         data.scheduledStart?.let { at ->
             val localSecond = ScheduleTimeUtil.localSecondOfDay(at, ScheduleTimeUtil.offsetMinutesOf(player.uuid))
-            val actionKey = if (data.scheduledAction == PlaybackAction.PAUSE) "scheduleActionPause" else "scheduleActionPlay"
+            val actionKey =
+                if (data.scheduledAction == PlaybackAction.PAUSE) "scheduleActionPause" else "scheduleActionPlay"
             MessageUtil.sendColoredMessage(
                 player,
                 MessageUtil.formatIndexed(
