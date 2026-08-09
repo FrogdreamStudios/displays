@@ -32,6 +32,7 @@ import java.util.*
 import net.minecraft.network.chat.Component as NmsComponent
 //? if >=1.21.11 {
 import net.minecraft.network.chat.contents.ObjectContents as NmsObjectContents
+
 //?}
 
 /** Message utilities. Provides methods for sending localized and formatted messages to players and command senders. */

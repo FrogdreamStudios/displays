@@ -200,7 +200,14 @@ class SuggestionsController {
                         }
                             .onFailure { if (it is CancellationException) throw it; logger.warn("Vimeo meta: ${it.message}") }
                             .getOrNull()
-                        listOf(platformResult(source.url, MediaPlatform.VIMEO, meta, fallbackTitle = "Vimeo ${source.videoId}"))
+                        listOf(
+                            platformResult(
+                                source.url,
+                                MediaPlatform.VIMEO,
+                                meta,
+                                fallbackTitle = "Vimeo ${source.videoId}"
+                            )
+                        )
                     }
 
                     source is MediaSource.Kick -> {
@@ -253,7 +260,13 @@ class SuggestionsController {
                             liveKick?.let(::add)
                             youtubeResults?.let(::addAll)
                         }
-                        publish(seq, combined, null, nextToken = youtubePage?.continuationToken, mode = MoreMode.Search(q))
+                        publish(
+                            seq,
+                            combined,
+                            null,
+                            nextToken = youtubePage?.continuationToken,
+                            mode = MoreMode.Search(q)
+                        )
                         return@launchLoad
                     }
                 }

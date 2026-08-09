@@ -107,7 +107,8 @@ class DreamDisplaysBungee : Plugin(), Listener {
 
             is StartNetworkFullscreen -> {
                 val session = NetworkFullscreenManager.start(packet, System.currentTimeMillis())
-                val targets = NetworkFullscreenManager.targetServers(session.scope, NetworkBackendRegistry.allServerNames())
+                val targets =
+                    NetworkFullscreenManager.targetServers(session.scope, NetworkBackendRegistry.allServerNames())
                 if (targets.isEmpty()) {
                     logger.warning("Network fullscreen '${session.sessionId}' from '$serverName' matched no backends for scope '${session.scope}'")
                 }
@@ -116,21 +117,35 @@ class DreamDisplaysBungee : Plugin(), Listener {
                 targets.forEach { name -> sendTo(name, apply) }
             }
 
-            is NetworkFullscreenAck -> NetworkFullscreenManager.onAck(packet.sessionId, serverName, packet.reach, packet.pending)
+            is NetworkFullscreenAck -> NetworkFullscreenManager.onAck(
+                packet.sessionId,
+                serverName,
+                packet.reach,
+                packet.pending
+            )
 
             is StopNetworkFullscreen -> {
                 val session = NetworkFullscreenManager.stop(packet.sessionId)
-                val targets = session?.let { NetworkFullscreenManager.targetServers(it.scope, NetworkBackendRegistry.allServerNames()) }
+                val targets = session?.let {
+                    NetworkFullscreenManager.targetServers(
+                        it.scope,
+                        NetworkBackendRegistry.allServerNames()
+                    )
+                }
                     ?: NetworkBackendRegistry.allServerNames()
                 targets.forEach { name -> sendTo(name, packet) }
             }
 
             is ListNetworkSessions ->
-                sender.sendData(PROXY_CHANNEL, ProxyPacketRegistry.encode(NetworkSessionList(NetworkFullscreenManager.list())))
+                sender.sendData(
+                    PROXY_CHANNEL,
+                    ProxyPacketRegistry.encode(NetworkSessionList(NetworkFullscreenManager.list()))
+                )
 
             is PlayerReady -> {
                 retryPendingSessions(serverName)
-                val applicable = NetworkFullscreenManager.sessionIdsApplicableTo(serverName, NetworkBackendRegistry.allServerNames())
+                val applicable =
+                    NetworkFullscreenManager.sessionIdsApplicableTo(serverName, NetworkBackendRegistry.allServerNames())
                 val minimized = NetworkFullscreenManager.minimizedSessionIdsFor(packet.playerId, applicable)
                 sendTo(serverName, ReplayForPlayer(packet.playerId, applicable, minimized))
             }
@@ -139,7 +154,13 @@ class DreamDisplaysBungee : Plugin(), Listener {
                 val party = NetworkWatchPartyManager.start(packet, hostServer = serverName)
                 sendTo(
                     serverName,
-                    ApplyNetworkWatchParty(party.partyId, party.sharedDisplayId.toString(), party.hostId, party.url, party.lang),
+                    ApplyNetworkWatchParty(
+                        party.partyId,
+                        party.sharedDisplayId.toString(),
+                        party.hostId,
+                        party.url,
+                        party.lang
+                    ),
                 )
             }
 
@@ -229,9 +250,10 @@ class DreamDisplaysBungee : Plugin(), Listener {
      * pending-retry path since it covers sessions the backend never even acked.
      */
     private fun resendLiveSessions(serverName: String) {
-        NetworkFullscreenManager.liveSessionsApplicableTo(serverName, NetworkBackendRegistry.allServerNames()).forEach { session ->
-            NetworkFullscreenManager.markPending(session.sessionId, setOf(serverName))
-            sendTo(serverName, NetworkFullscreenManager.toApplyPacket(session))
-        }
+        NetworkFullscreenManager.liveSessionsApplicableTo(serverName, NetworkBackendRegistry.allServerNames())
+            .forEach { session ->
+                NetworkFullscreenManager.markPending(session.sessionId, setOf(serverName))
+                sendTo(serverName, NetworkFullscreenManager.toApplyPacket(session))
+            }
     }
 }

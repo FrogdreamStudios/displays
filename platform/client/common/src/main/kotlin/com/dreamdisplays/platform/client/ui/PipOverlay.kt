@@ -418,6 +418,7 @@ class PipOverlay(
                     resizing = false
                     persistGeometry()
                 }
+
                 pressedInClose -> {
                     val s = SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK.value(), 1.0f)
                     Minecraft.getInstance().soundManager.play(s)

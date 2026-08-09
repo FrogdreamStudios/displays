@@ -83,6 +83,7 @@ internal object DirectHlsPlaylist {
                     hasSegments = true
                     segmentNanos += extInfNanos(line)
                 }
+
                 line.startsWith("#EXT-X-ENDLIST") -> ended = true
                 line.startsWith("#EXT-X-PLAYLIST-TYPE:") ->
                     vod = line.substringAfter(':').trim().equals("VOD", ignoreCase = true)
@@ -167,6 +168,7 @@ internal object DirectHlsPlaylist {
                     parts.add(current.toString())
                     current.setLength(0)
                 }
+
                 else -> current.append(c)
             }
         }

@@ -126,29 +126,49 @@ class DreamDisplaysVelocity @Inject constructor(
 
             is StartNetworkFullscreen -> {
                 val session = NetworkFullscreenManager.start(packet, System.currentTimeMillis())
-                val targets = NetworkFullscreenManager.targetServers(session.scope, NetworkBackendRegistry.allServerNames())
+                val targets =
+                    NetworkFullscreenManager.targetServers(session.scope, NetworkBackendRegistry.allServerNames())
                 if (targets.isEmpty()) {
-                    logger.warn("Network fullscreen '{}' from '{}' matched no backends for scope '{}'", session.sessionId, serverName, session.scope)
+                    logger.warn(
+                        "Network fullscreen '{}' from '{}' matched no backends for scope '{}'",
+                        session.sessionId,
+                        serverName,
+                        session.scope
+                    )
                 }
                 NetworkFullscreenManager.markPending(session.sessionId, targets)
                 val apply = NetworkFullscreenManager.toApplyPacket(session)
                 targets.forEach { name -> sendTo(name, apply) }
             }
 
-            is NetworkFullscreenAck -> NetworkFullscreenManager.onAck(packet.sessionId, serverName, packet.reach, packet.pending)
+            is NetworkFullscreenAck -> NetworkFullscreenManager.onAck(
+                packet.sessionId,
+                serverName,
+                packet.reach,
+                packet.pending
+            )
 
             is StopNetworkFullscreen -> {
                 val session = NetworkFullscreenManager.stop(packet.sessionId)
-                val targets = session?.let { NetworkFullscreenManager.targetServers(it.scope, NetworkBackendRegistry.allServerNames()) }
+                val targets = session?.let {
+                    NetworkFullscreenManager.targetServers(
+                        it.scope,
+                        NetworkBackendRegistry.allServerNames()
+                    )
+                }
                     ?: NetworkBackendRegistry.allServerNames() // unknown locally - fan out anyway, a no-op stop() is harmless
                 targets.forEach { name -> sendTo(name, packet) }
             }
 
-            is ListNetworkSessions -> source.server.sendPluginMessage(channel, ProxyPacketRegistry.encode(NetworkSessionList(NetworkFullscreenManager.list())))
+            is ListNetworkSessions -> source.server.sendPluginMessage(
+                channel,
+                ProxyPacketRegistry.encode(NetworkSessionList(NetworkFullscreenManager.list()))
+            )
 
             is PlayerReady -> {
                 retryPendingSessions(serverName)
-                val applicable = NetworkFullscreenManager.sessionIdsApplicableTo(serverName, NetworkBackendRegistry.allServerNames())
+                val applicable =
+                    NetworkFullscreenManager.sessionIdsApplicableTo(serverName, NetworkBackendRegistry.allServerNames())
                 val minimized = NetworkFullscreenManager.minimizedSessionIdsFor(packet.playerId, applicable)
                 sendTo(serverName, ReplayForPlayer(packet.playerId, applicable, minimized))
             }
@@ -157,7 +177,13 @@ class DreamDisplaysVelocity @Inject constructor(
                 val party = NetworkWatchPartyManager.start(packet, hostServer = serverName)
                 sendTo(
                     serverName,
-                    ApplyNetworkWatchParty(party.partyId, party.sharedDisplayId.toString(), party.hostId, party.url, party.lang),
+                    ApplyNetworkWatchParty(
+                        party.partyId,
+                        party.sharedDisplayId.toString(),
+                        party.hostId,
+                        party.url,
+                        party.lang
+                    ),
                 )
             }
 
@@ -213,7 +239,8 @@ class DreamDisplaysVelocity @Inject constructor(
 
     /** Sends [packet] to backend [serverName], if it's currently registered on this proxy. */
     private fun sendTo(serverName: String, packet: ProxyPacket) {
-        proxyServer.getServer(serverName).ifPresent { it.sendPluginMessage(channel, ProxyPacketRegistry.encode(packet)) }
+        proxyServer.getServer(serverName)
+            .ifPresent { it.sendPluginMessage(channel, ProxyPacketRegistry.encode(packet)) }
     }
 
     /** Closes a [ResolveDisplayToken] fan-out window and forwards the answer, if [NetworkTokenResolutions.settle] found exactly one. */
@@ -232,9 +259,10 @@ class DreamDisplaysVelocity @Inject constructor(
 
     /** Re-applies all live sessions that match the server's scope to a newly-connected backend. */
     private fun resendLiveSessions(serverName: String) {
-        NetworkFullscreenManager.liveSessionsApplicableTo(serverName, NetworkBackendRegistry.allServerNames()).forEach { session ->
-            NetworkFullscreenManager.markPending(session.sessionId, setOf(serverName))
-            sendTo(serverName, NetworkFullscreenManager.toApplyPacket(session))
-        }
+        NetworkFullscreenManager.liveSessionsApplicableTo(serverName, NetworkBackendRegistry.allServerNames())
+            .forEach { session ->
+                NetworkFullscreenManager.markPending(session.sessionId, setOf(serverName))
+                sendTo(serverName, NetworkFullscreenManager.toApplyPacket(session))
+            }
     }
 }

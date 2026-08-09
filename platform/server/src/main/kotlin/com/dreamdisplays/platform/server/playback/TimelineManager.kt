@@ -118,6 +118,7 @@ object TimelineManager {
         val timeline = when (display.mode) {
             PlaybackMode.SYNCED, PlaybackMode.BROADCAST ->
                 Timeline(positionMs.coerceAtLeast(0), now, paused = false, durationMs = durationMs, loop = true)
+
             else -> null
         }
         if (timeline != null) {
@@ -188,7 +189,14 @@ object TimelineManager {
         val durationMs = durationMsOf(display)
         return when (display.mode) {
             PlaybackMode.SYNCED, PlaybackMode.BROADCAST ->
-                timelines.getOrPut(display.id) { Timeline.start(transport.nowMs(), durationMs = durationMs, loop = true) }
+                timelines.getOrPut(display.id) {
+                    Timeline.start(
+                        transport.nowMs(),
+                        durationMs = durationMs,
+                        loop = true
+                    )
+                }
+
             else -> {
                 timelines.remove(display.id); null
             }

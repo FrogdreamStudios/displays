@@ -193,7 +193,8 @@ object WatchPartyManager {
     }
 
     /** Creates (or, if already made, returns) the local virtual display a follower backend needs for a network party. */
-    fun createFollowerDisplay(displayId: UUID, hostId: UUID): DisplayData? = transport.createVirtualDisplay(displayId, hostId)
+    fun createFollowerDisplay(displayId: UUID, hostId: UUID): DisplayData? =
+        transport.createVirtualDisplay(displayId, hostId)
 
     /** Delivers `DisplayInfo` for a follower's virtual [display] to one [playerId]. */
     fun sendFollowerDisplayInfo(display: DisplayData, playerId: UUID) {

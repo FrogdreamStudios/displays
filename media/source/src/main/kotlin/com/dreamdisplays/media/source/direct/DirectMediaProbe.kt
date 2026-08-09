@@ -121,7 +121,10 @@ internal object DirectMediaProbe {
         if (bytes.size < 12) return null
         fun ascii(offset: Int, len: Int) = String(bytes, offset, len, StandardCharsets.US_ASCII)
         return when {
-            ascii(4, 4) == "ftyp" -> "video/mp4"                                            // ISO-BMFF (mp4 / mov / m4v)
+            ascii(
+                4,
+                4
+            ) == "ftyp" -> "video/mp4"                                            // ISO-BMFF (mp4 / mov / m4v)
             bytes[0] == 0x1A.toByte() && bytes[1] == 0x45.toByte() &&
                     bytes[2] == 0xDF.toByte() && bytes[3] == 0xA3.toByte() -> "video/webm"  // Matroska / WebM (EBML)
             ascii(0, 3) == "FLV" -> "video/x-flv"

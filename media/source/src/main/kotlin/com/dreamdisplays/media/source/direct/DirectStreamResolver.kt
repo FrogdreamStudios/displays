@@ -80,7 +80,10 @@ object DirectStreamResolver : MediaResolver {
         // hole where a public URL 302s to an internal address.
         val safeUrl = runCatching { MediaHostGuard.resolveSafeUrl(url) }.getOrElse { e ->
             if (declaredKind.isDirect) {
-                throw DreamMediaException.Network("Could not reach this link. Check that it is public and still valid.", e)
+                throw DreamMediaException.Network(
+                    "Could not reach this link. Check that it is public and still valid.",
+                    e
+                )
             }
             notDirect.put(url, true)
             throw DreamMediaException.NotFound("Not a direct media URL: $url.", e)

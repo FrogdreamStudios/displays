@@ -129,7 +129,8 @@ object Thumbnails {
     fun ambientTexture(videoId: String): Identifier? = AMBIENT_TEX.getIfPresent(videoId)
 
     /** True when [videoId]'s thumbnail at [quality] recently failed, so the UI can fall back to placeholder art instead of retrying every frame. */
-    fun isFailed(videoId: String, quality: Quality = Quality.HIGH): Boolean = FAILED.getIfPresent(key(videoId, quality)) != null
+    fun isFailed(videoId: String, quality: Quality = Quality.HIGH): Boolean =
+        FAILED.getIfPresent(key(videoId, quality)) != null
 
     /** Schedules a background download of [videoId]'s thumbnail at [quality] if not already in flight, ready, or recently failed. */
     fun request(videoId: String, quality: Quality = Quality.HIGH) {

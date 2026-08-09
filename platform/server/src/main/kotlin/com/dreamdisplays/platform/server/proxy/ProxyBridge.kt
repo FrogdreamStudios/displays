@@ -252,7 +252,9 @@ object ProxyBridge : PluginMessageListener {
         return targetsRaw.split(",").map { it.trim() }.filter { it.isNotEmpty() }.flatMapTo(mutableSetOf()) { token ->
             when {
                 token.equals("@a", true) || token.equals("@e", true) -> online.map { it.uniqueId }
-                token.startsWith("%") -> online.filter { it.hasPermission($$"group.${token.substring(1)}") }.map { it.uniqueId }
+                token.startsWith("%") -> online.filter { it.hasPermission($$"group.${token.substring(1)}") }
+                    .map { it.uniqueId }
+
                 else -> listOfNotNull(Bukkit.getPlayerExact(token)?.uniqueId)
             }
         }
@@ -269,7 +271,10 @@ object ProxyBridge : PluginMessageListener {
         val sharedId = runCatching { UUID.fromString(packet.sharedDisplayId) }.getOrNull()
         val resolved = FullscreenBroadcastManager.resolveOrCreateDisplay(packet.url, ownerId, sharedId)
         if (resolved == null) {
-            logger.warn("Could not create a virtual display for network fullscreen '{}' (no world loaded yet?)", packet.sessionId)
+            logger.warn(
+                "Could not create a virtual display for network fullscreen '{}' (no world loaded yet?)",
+                packet.sessionId
+            )
             sendViaAnyPlayer(NetworkFullscreenAck(packet.sessionId, reach = 0, pending = true))
             return
         }
@@ -354,7 +359,10 @@ object ProxyBridge : PluginMessageListener {
                 val displayId = runCatching { UUID.fromString(packet.sharedDisplayId) }.getOrNull() ?: return
                 val hostId = runCatching { UUID.fromString(packet.hostId) }.getOrNull() ?: return
                 if (!WatchPartyManager.startVirtual(displayId, hostId, packet.url, packet.lang)) {
-                    logger.warn("Could not start network watch party '{}' (no world loaded yet, or already live?)", packet.partyId)
+                    logger.warn(
+                        "Could not start network watch party '{}' (no world loaded yet, or already live?)",
+                        packet.partyId
+                    )
                 }
             }
 

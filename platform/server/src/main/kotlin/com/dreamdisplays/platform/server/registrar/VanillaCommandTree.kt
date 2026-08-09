@@ -201,7 +201,9 @@ object VanillaCommandTree {
         .then(
             Commands.literal("this")
                 .executes { ctx -> VanillaScheduleCommand.execute(ctx, "this", null, null) }
-                .then(Commands.literal("cancel").executes { ctx -> VanillaScheduleCommand.execute(ctx, "this", "cancel", null) })
+                .then(
+                    Commands.literal("cancel")
+                        .executes { ctx -> VanillaScheduleCommand.execute(ctx, "this", "cancel", null) })
                 .then(scheduleActionNode("play") { "this" })
                 .then(scheduleActionNode("pause") { "this" })
         )
@@ -211,7 +213,14 @@ object VanillaCommandTree {
                     FullscreenBroadcastManager.displayIdSuggestions().forEach { b.suggest(it) }
                     b.buildFuture()
                 }
-                .executes { ctx -> VanillaScheduleCommand.execute(ctx, StringArgumentType.getString(ctx, "id"), null, null) }
+                .executes { ctx ->
+                    VanillaScheduleCommand.execute(
+                        ctx,
+                        StringArgumentType.getString(ctx, "id"),
+                        null,
+                        null
+                    )
+                }
                 .then(
                     Commands.literal("cancel").executes { ctx ->
                         VanillaScheduleCommand.execute(ctx, StringArgumentType.getString(ctx, "id"), "cancel", null)
@@ -246,7 +255,10 @@ object VanillaCommandTree {
     /**
      * Suggests every minute-of-day as `HH:mm`, player-local (via [ScheduleTimeUtil]).
      */
-    private fun scheduleTimeSuggestions(player: ServerPlayer?, builder: SuggestionsBuilder): CompletableFuture<Suggestions> {
+    private fun scheduleTimeSuggestions(
+        player: ServerPlayer?,
+        builder: SuggestionsBuilder
+    ): CompletableFuture<Suggestions> {
         val offset = player?.let { ScheduleTimeUtil.offsetMinutesOf(it.uuid) } ?: 0
         val nowMinute = ScheduleTimeUtil.minuteOfDay(ScheduleTimeUtil.currentSecondOfDay(offset))
         val firstMinute = (nowMinute + 1) % 1440

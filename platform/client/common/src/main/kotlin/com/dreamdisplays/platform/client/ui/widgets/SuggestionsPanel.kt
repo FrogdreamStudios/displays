@@ -39,6 +39,7 @@ class SuggestionsPanel(
     init {
         controller.onResults = { scrollOffset = 0 }
     }
+
     private val searchBox: EditBox
     private val clearButton: IconButton
     private val sortButton: IconButton
@@ -372,7 +373,8 @@ class SuggestionsPanel(
         // nothing to load, so a shimmer would promise an image that never arrives - draw the plate.
         // A URL that has already failed (e.g. a Kick CDN 403) counts the same way - it is never
         // coming, so keep showing an eternal shimmer would be a lie.
-        val awaitingThumbnail = (info.isYouTubeResult || info.thumbnailUrlOverride != null) && !cardThumbnailFailed(info)
+        val awaitingThumbnail =
+            (info.isYouTubeResult || info.thumbnailUrlOverride != null) && !cardThumbnailFailed(info)
         if (thumb != null) {
             blitTexture(g, thumb, thumbX, thumbY, thumbW, thumbH)
         } else if (info.isCustom || !awaitingThumbnail) {
@@ -389,8 +391,25 @@ class SuggestionsPanel(
         // badge, since knowing where a result comes from matters more than its age
         val badge = PlatformBadge.forResult(info)
         when {
-            badge != null -> drawCardTag(g, f, Component.translatable(badge.labelKey).string, badge.bgColor, badge.textColor, thumbX, thumbY)
-            info.isRecent(7) -> drawCardTag(g, f, Component.translatable("dreamdisplays.ui.new").string, UiTheme.ACCENT_NEW_TAG, UiTheme.TEXT_PRIMARY, thumbX, thumbY)
+            badge != null -> drawCardTag(
+                g,
+                f,
+                Component.translatable(badge.labelKey).string,
+                badge.bgColor,
+                badge.textColor,
+                thumbX,
+                thumbY
+            )
+
+            info.isRecent(7) -> drawCardTag(
+                g,
+                f,
+                Component.translatable("dreamdisplays.ui.new").string,
+                UiTheme.ACCENT_NEW_TAG,
+                UiTheme.TEXT_PRIMARY,
+                thumbX,
+                thumbY
+            )
         }
 
         val dur = info.formatDuration()
@@ -449,7 +468,15 @@ class SuggestionsPanel(
     }
 
     /** Draws a small top-left tag ([label]) on a [bg] plate with [textColor] text. */
-    private fun drawCardTag(g: GuiGraphicsCompat, f: Font, label: String, bg: Int, textColor: Int, thumbX: Int, thumbY: Int) {
+    private fun drawCardTag(
+        g: GuiGraphicsCompat,
+        f: Font,
+        label: String,
+        bg: Int,
+        textColor: Int,
+        thumbX: Int,
+        thumbY: Int
+    ) {
         val tw = f.width(label) + 6
         val tagH = f.lineHeight + 4
         g.fill(thumbX + 2, thumbY + 2, thumbX + 2 + tw, thumbY + 2 + tagH, bg)
@@ -502,7 +529,11 @@ class SuggestionsPanel(
         val mx = mouseX.toInt()
         val my = mouseY.toInt()
         val onSortButton = sortButton.isMouseOver(mouseX, mouseY)
-        if (sortDropdown.visible && event.button() == 0 && !onSortButton && sortDropdown.handleClick(mx, my)) return true
+        if (sortDropdown.visible && event.button() == 0 && !onSortButton && sortDropdown.handleClick(
+                mx,
+                my
+            )
+        ) return true
         if (clearButton.isMouseOver(mouseX, mouseY)) return clearButton.mouseClicked(event, dbl)
         if (onSortButton) return sortButton.mouseClicked(event, dbl)
         if (searchButton.isMouseOver(mouseX, mouseY)) return searchButton.mouseClicked(event, dbl)

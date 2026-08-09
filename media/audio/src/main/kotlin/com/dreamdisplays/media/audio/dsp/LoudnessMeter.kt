@@ -34,7 +34,13 @@ class LoudnessMeter(private val sampleRate: Float) {
      * Computes the makeup gain (linear multiplier) needed to move the current estimate toward [targetLufs],
      * clamping both the correction range and the per-second slew rate.
      */
-    fun makeupGain(targetLufs: Float, maxBoostDb: Float, maxCutDb: Float, maxSlewDbPerSecond: Float, dtSeconds: Float): Float {
+    fun makeupGain(
+        targetLufs: Float,
+        maxBoostDb: Float,
+        maxCutDb: Float,
+        maxSlewDbPerSecond: Float,
+        dtSeconds: Float
+    ): Float {
         val desiredDb = (targetLufs - loudnessLufs()).coerceIn(-maxCutDb, maxBoostDb)
         val maxStep = maxSlewDbPerSecond * dtSeconds
         val current = gainDbSmoother.value

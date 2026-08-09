@@ -18,8 +18,8 @@ open class BareTokenArgumentTypeSyncMixin {
         at = At(
             value = "INVOKE",
             target = "Lcom/mojang/brigadier/builder/RequiredArgumentBuilder;" +
-                "argument(Ljava/lang/String;Lcom/mojang/brigadier/arguments/ArgumentType;)" +
-                "Lcom/mojang/brigadier/builder/RequiredArgumentBuilder;",
+                    "argument(Ljava/lang/String;Lcom/mojang/brigadier/arguments/ArgumentType;)" +
+                    "Lcom/mojang/brigadier/builder/RequiredArgumentBuilder;",
         ),
     )
     open fun dd_networkSafeArgumentType(name: String, type: ArgumentType<Any>): RequiredArgumentBuilder<Any, Any> {

@@ -217,7 +217,8 @@ object YouTubeInnerTube {
         val out = ArrayList<MediaSearchResult>()
         var token: String? = null
         runCatching {
-            val commands = path(root, "onResponseReceivedCommands").asJsonArrayOrNull() ?: return MediaSearchPage(out, null)
+            val commands =
+                path(root, "onResponseReceivedCommands").asJsonArrayOrNull() ?: return MediaSearchPage(out, null)
             for (cmd in commands) {
                 val items = cmd.asJsonObjectOrNull()?.obj("appendContinuationItemsAction")?.array("continuationItems")
                     ?: continue
@@ -353,7 +354,8 @@ object YouTubeInnerTube {
         val out = ArrayList<MediaSearchResult>()
         var token: String? = null
         runCatching {
-            val endpoints = path(root, "onResponseReceivedEndpoints").asJsonArrayOrNull() ?: return MediaSearchPage(out, null)
+            val endpoints =
+                path(root, "onResponseReceivedEndpoints").asJsonArrayOrNull() ?: return MediaSearchPage(out, null)
             for (ep in endpoints) {
                 val items = ep.asJsonObjectOrNull()?.obj("appendContinuationItemsAction")?.array("continuationItems")
                     ?: continue

@@ -105,8 +105,10 @@ internal class NativeVideoFramePipe(
 
     private class LavSeekCommand(val offsetNanos: Long, val onFirstFrame: () -> Unit) {
         val createdNanos: Long = System.nanoTime()
+
         @Volatile
         var applied = false
+
         @Volatile
         var failed = false
     }
