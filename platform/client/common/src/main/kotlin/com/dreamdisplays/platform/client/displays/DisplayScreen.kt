@@ -43,6 +43,8 @@ import net.minecraft.core.BlockPos
 import org.slf4j.LoggerFactory
 import java.nio.ByteBuffer
 import java.util.*
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.TimeSource
 import kotlin.math.abs
 
 /** Represents a video display screen in the game world. */
@@ -98,9 +100,20 @@ class DisplayScreen(
     /** Wire ordinal of the scheduled [com.dreamdisplays.api.playback.PlaybackAction] (`PLAY`/`PAUSE`), or `-1` when none is set. */
     var scheduledAction: Int = -1
 
-    /** The last media failure on this display, or `null` when healthy. */
+    /** Monotonic mark of the last [retryVideo], or `null` if never retried this session. */
+    @Volatile
+    private var lastRetryMark: TimeSource.Monotonic.ValueTimeMark? = null
+
+    /**
+     * The last media failure on this display, or `null` when healthy. New failures within
+     * [ERROR_RETRY_COOLDOWN] of a retry are swallowed.
+     */
     @Volatile
     var mediaError: DreamMediaException? = null
+        set(value) {
+            if (value != null && lastRetryMark?.elapsedNow()?.let { it < ERROR_RETRY_COOLDOWN } == true) return
+            field = value
+        }
 
     /** True while a media error is active. */
     val errored: Boolean get() = mediaError != null
@@ -429,6 +442,7 @@ class DisplayScreen(
     /** Re-attempts current video after failure; purely local, no server packet. */
     fun retryVideo() {
         val url = videoUrl ?: return
+        lastRetryMark = TimeSource.Monotonic.markNow()
         loadVideoInternal(url, lang ?: "", preservePausedState = true)
     }
 
@@ -1038,6 +1052,9 @@ class DisplayScreen(
 
         /** Ticks between voxel-acoustics re-probes; the DSP chain smooths across this gap. */
         private const val ENV_PROBE_INTERVAL_TICKS = 2
+
+        /** Grace window after a manual retry during which new media errors are swallowed rather than shown. */
+        private val ERROR_RETRY_COOLDOWN = 15.seconds
 
         /** Initial per-display volume for newly seen displays. */
         internal fun defaultVolume(): Float {
