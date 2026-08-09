@@ -133,7 +133,7 @@ class SuggestionsPanel(
     private fun cardH(viewportW: Int): Int = when {
         !vertical -> dynCardH()
         compactCards -> THUMB_H + 4
-        else -> thumbH(viewportW) + CARD_TEXT_H
+        else -> thumbH(viewportW) + CARD_TEXT_H + CARD_INNER_PAD
     }
 
     private fun dynThumbH(): Int {
