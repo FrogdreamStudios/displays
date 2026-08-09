@@ -9,18 +9,11 @@ import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.seconds
 
-/**
- * TTL-bounded LRU memoizer with in-flight request deduplication: concurrent callers for the same key
- * share one background load instead of spawning duplicate work, and fresh results are served from
- * memory until they expire.
- *
- * Centralizes the cache + `ConcurrentMap<K, Deferred>` + exception-unwrapping pattern that was
- * hand-rolled three times inside `yt-dlp` (format fetch, search, related).
- *
- * @param maxSize LRU capacity; least-recently-used entries beyond this are evicted.
- * @param ttlMs entry freshness window in milliseconds.
- * @param scope coroutine scope loads run in (e.g. [DreamCoroutines.clientIo]).
- * @param tag human-readable name used in error messages.
+/** TTL-bounded LRU memoizer with in-flight request deduplication.
+ * @param maxSize LRU capacity.
+ * @param ttlMs entry freshness window.
+ * @param scope coroutine scope for loads.
+ * @param tag name for error messages.
  */
 class AsyncMemo<K : Any, V : Any>(
     maxSize: Int,

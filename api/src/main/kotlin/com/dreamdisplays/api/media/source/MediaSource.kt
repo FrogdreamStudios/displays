@@ -18,11 +18,7 @@ sealed interface MediaSource {
     /** YouTube video identified by its 11-character id. */
     data class YouTube(val videoId: String) : MediaSource
 
-    /**
-     * Twitch source: a live channel, a VOD (`twitch.tv/videos/<id>`), or a clip
-     * (`clips.twitch.tv/<slug>`). Exactly one of [channel] / [videoId] / [clipSlug] is set,
-     * matching which of the three URL shapes [url] was.
-     */
+    /** Twitch source: live channel, VOD, or clip. Exactly one of [channel] / [videoId] / [clipSlug] is set. */
     data class Twitch(
         val url: String,
         val channel: String? = null,
@@ -30,30 +26,21 @@ sealed interface MediaSource {
         val clipSlug: String? = null,
     ) : MediaSource
 
-    /**
-     * Vimeo video, identified by its numeric [videoId] and an optional unlisted-video [hash] the
-     * player config endpoint needs to authorize playback.
-     */
+    /** Vimeo video identified by [videoId] and optional unlisted-video [hash] for authorization. */
     data class Vimeo(
         val url: String,
         val videoId: String,
         val hash: String? = null,
     ) : MediaSource
 
-    /**
-     * Kick source: a live channel (`kick.com/<slug>`) or a VOD (`kick.com/video/<uuid>` or
-     * `kick.com/<slug>/videos/<uuid>`). [channel] is set for a live channel, [videoUuid] for a VOD.
-     */
+    /** Kick source: live channel or VOD. [channel] for live, [videoUuid] for VOD. */
     data class Kick(
         val url: String,
         val channel: String? = null,
         val videoUuid: String? = null,
     ) : MediaSource
 
-    /**
-     * Direct playable stream URL: a media file or streaming manifest the player opens itself,
-     * with no extractor in between. [kind] records what [CustomMediaUrls] recognized it as.
-     */
+    /** Direct playable stream URL or manifest; [kind] records what [CustomMediaUrls] recognized. */
     data class DirectStream(
         val streamUrl: String,
         val kind: CustomMediaKind = CustomMediaKind.PROGRESSIVE,
@@ -82,14 +69,7 @@ sealed interface MediaSource {
 
     companion object {
         /**
-         * Parses [url] into a typed source when a known host or a direct media URL is recognized;
-         * falls back to [Remote].
-         *
-         * Platform hosts are matched first, so a YouTube or Twitch link never gets mistaken for a
-         * plain file. Whatever is left is run through [CustomMediaUrls] - which also repairs pasted
-         * links and rewrites file-host share URLs - and becomes a [DirectStream] when it names a
-         * playable file or manifest. [Remote] stays the fallback for everything else, which is what
-         * keeps every site the extractor chain supports working exactly as before.
+         * Parses [url] into a typed source: platform hosts first, then [CustomMediaUrls] for direct streams, else [Remote].
          */
         fun from(url: String): MediaSource {
             YouTubeUrls.extractVideoId(url)?.let { return YouTube(it) }

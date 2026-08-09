@@ -1,9 +1,6 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
-/**
- * The `:core`/`:api`/`:util`/`:media:*` modules bundled into every fat loader jar (Fabric,
- * NeoForge, Paper). Identical across loaders, so it's declared once here instead of copy-pasted.
- */
+/** Shared modules bundled into every fat loader jar (`Fabric`, `NeoForge`, `Paper`). */
 val dreamDisplaysSharedModules = listOf(
     ":platform:client:common",
     ":core",
@@ -15,12 +12,7 @@ val dreamDisplaysSharedModules = listOf(
     ":media:audio",
 )
 
-/**
- * Third-party dependency coordinates bundled into the fat client loader jars (Fabric, NeoForge).
- * A superset of what either loader actually pulls onto its `shadow` configuration: `include(dependency(x))`
- * is a no-op when `x` never resolves there, so listing the union instead of reconciling two near-identical
- * per-loader lists is behavior-safe.
- */
+/** Third-party dependencies bundled into fat client loader jars (superset safe). */
 val dreamDisplaysShadedDependencies = listOf(
     "org.jetbrains.kotlinx:kotlinx-serialization-core",
     "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm",
@@ -81,11 +73,7 @@ val dreamDisplaysShadedPackages = listOf(
     "org.mozilla.classfile",
 )
 
-/**
- * `sqlite-jdbc` bundles native binaries for platforms this project never runs on. Superset of what
- * each loader excluded before (they'd drifted slightly out of sync); a wider exclude list can only
- * shrink the jar, never break it.
- */
+/** Exclude `sqlite-jdbc` native binaries for unsupported platforms. */
 val dreamDisplaysSqliteNativeExcludes = listOf(
     "org/sqlite/native/Linux-Android/**",
     "org/sqlite/native/Linux-Musl/x86/**",

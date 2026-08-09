@@ -6,8 +6,7 @@ import com.dreamdisplays.api.media.source.MediaMetadata
 import kotlin.time.Duration
 
 /**
- * Live playback session for one display. Implementations own decoder / player resources; callers
- * control playback through this contract and close the session when the display stops using it.
+ * Live playback session for one display; owns decoder / player resources, closed by caller.
  *
  * @since 1.8.0
  */

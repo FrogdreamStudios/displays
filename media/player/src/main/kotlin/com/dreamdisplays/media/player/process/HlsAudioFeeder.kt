@@ -10,17 +10,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Downloads a live HLS audio rendition on the JVM and pipes the raw MPEG-TS segments into the
- * audio `FFmpeg` process's stdin, so FFmpeg only demuxes and decodes — it never touches the network.
- *
- * Exists because the bundled macOS FFmpeg's SecureTransport TLS regularly hangs on its first
- * connection to live HLS hosts (Twitch `ttvnw.net`) until `rw_timeout` kills it and a reconnect
- * retries — 25-30 s with no PCM at all, and more stalls mid-stream. The JVM HTTP stack reaches the
- * same hosts instantly (the resolver and thumbnails already use it), so fetching segments here and
- * feeding them through a pipe removes the flaky layer entirely.
- *
- * Live-only: the feeder always joins near the live edge and follows the sliding window; a VOD
- * playlist (with its full segment list and `#EXT-X-ENDLIST`) must keep using FFmpeg's own `-ss`
- * URL input for seeking.
+ * audio `FFmpeg` process's stdin, so `FFmpeg` only demuxes and decodes.
  */
 internal class HlsAudioFeeder(
     private val playlistUrl: String,

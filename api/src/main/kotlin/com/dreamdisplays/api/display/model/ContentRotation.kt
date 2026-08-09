@@ -3,10 +3,7 @@ package com.dreamdisplays.api.display.model
 import com.dreamdisplays.api.DreamDisplaysUnstableApi
 
 /**
- * Content texture rotation in quarter turns.
- *
- * Packet and storage boundaries persist [quarterTurns]; runtime code should use this enum so the
- * `0..3` contract stays centralized.
+ * Content texture rotation in quarter turns; enum centralizes the `0..3` contract.
  *
  * @since 1.8.4
  */

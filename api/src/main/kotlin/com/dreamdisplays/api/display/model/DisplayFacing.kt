@@ -4,10 +4,7 @@ import com.dreamdisplays.api.DreamDisplaysUnstableApi
 import kotlinx.serialization.Serializable
 
 /**
- * The facing direction of a display. [byte] is the stable wire encoding (see [fromByte]); it is
- * fixed per constant rather than derived from the ordinal, so constants may be reordered safely.
- *
- * @property byte the stable serialized value for this facing.
+ * Facing direction of a display; [byte] is stable wire encoding (not ordinal-derived).
  *
  * @since 1.0.0
  */

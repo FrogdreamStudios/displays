@@ -7,20 +7,7 @@ import com.dreamdisplays.api.media.source.MediaPlatform
 import com.dreamdisplays.api.media.source.MediaSource
 import java.util.*
 
-/**
- * Server-side policy for custom media: URLs that are not a supported platform page, i.e. the
- * arbitrary links players paste themselves.
- *
- * Platform sources (`YouTube`, `Twitch`) are never subject to this policy - they are already
- * constrained to their own hosts - so a server can forbid custom links without disabling the mod.
- * The check is pure and side-effect free so both server platforms can share it, and so it is
- * testable without a running server.
- *
- * This runs after [MediaUrlPolicy] (URL shape) and is independent of the client's SSRF guard:
- * it answers "is this player allowed to point a display at this host", not "is this URL safe".
- *
- * @since 1.9.0
- */
+/** Server-side policy for custom media URLs (non-platform links players paste). */
 @DreamDisplaysUnstableApi
 object CustomMediaPolicy {
     /**

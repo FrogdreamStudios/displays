@@ -21,17 +21,8 @@ data class ProxyEnvelope(
     override fun hashCode(): Int = 31 * type + payload.contentHashCode()
 }
 
-/**
- * Maps append-only [ProxyPacketType] ids to packet serializers for the `dreamdisplays:proxy`
- * channel. Mirrors [com.dreamdisplays.core.protocol.PacketRegistry] exactly, but kept as a fully
- * separate registry / id-space / envelope: [com.dreamdisplays.core.protocol.PacketRegistry]'s init
- * block requires every [com.dreamdisplays.core.protocol.ProtocolPacketType] to be bound and its
- * `decode(bytes, inbound)` overload validates against client/server directions that are meaningless
- * for a proxy link — reusing it here would either fail those invariants or let a client decode
- * proxy-only packets.
- *
- * Only direct generated `X.serializer()` references are allowed here — reflection-based lookup
- * breaks under shadow relocation (same constraint as `PacketRegistry`).
+/** Separate proxy packet registry (disjoint id-space from [com.dreamdisplays.core.protocol.PacketRegistry]).
+ * Uses direct serializer() references only; reflection breaks under shadow relocation.
  */
 object ProxyPacketRegistry {
     private val proto = ProtoBuf { encodeDefaults = false }
@@ -104,15 +95,7 @@ object ProxyPacketRegistry {
         return proto.decodeFromByteArray(entry.serializer, envelope.payload)
     }
 
-    /**
-     * Decodes envelope bytes for a receiver that legitimately accepts packets travelling [inbound]
-     * (the proxy passes [ProxyPacketDirection.BACKEND_TO_PROXY], a backend passes
-     * [ProxyPacketDirection.PROXY_TO_BACKEND]).
-     *
-     * Unknown type ids return null as in [decode]; a packet whose registered direction does not
-     * match (and is not [ProxyPacketDirection.BIDIRECTIONAL]) throws, surfacing a wrongly-wired
-     * handler instead of letting the receiver act on a packet meant for the other side.
-     */
+    /** Decode with direction validation; throws if direction doesn't match [inbound]. */
     fun decode(bytes: ByteArray, inbound: ProxyPacketDirection): ProxyPacket? {
         val packet = decode(bytes) ?: return null
         val direction = directionOf(packet)

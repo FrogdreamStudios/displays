@@ -5,12 +5,7 @@ import com.dreamdisplays.api.security.MediaHttpUrl
 import java.util.*
 
 /**
- * Recognizes and dissects Kick URLs.
- *
- * A Kick link is either a bare channel (`kick.com/<slug>`, a live stream), a channel VOD
- * (`kick.com/<slug>/videos/<uuid>`), or a direct video (`kick.com/video/<uuid>`). The reserved
- * first-segment words that are site pages rather than channels are filtered so `kick.com/browse`
- * never resolves as a streamer named "browse".
+ * Recognizes and dissects Kick URLs (live channels, VODs, direct videos).
  *
  * @since 1.9.0
  */
@@ -32,10 +27,7 @@ object KickUrls {
     /** True when [url] points at a Kick channel or video. */
     fun isKick(url: String): Boolean = parse(url) != null
 
-    /**
-     * Parses [url] into a [MediaSource.Kick] (a live channel or a VOD), or null when it is not a
-     * recognizable Kick link.
-     */
+    /** Parses [url] into a [MediaSource.Kick] or null if not recognizable. */
     fun parse(url: String): MediaSource.Kick? {
         val parsed = MediaHttpUrl.parse(url) ?: MediaHttpUrl.parse("https://${url.trim()}") ?: return null
         val host = parsed.uri.host?.lowercase(Locale.ROOT)?.removePrefix("www.") ?: return null

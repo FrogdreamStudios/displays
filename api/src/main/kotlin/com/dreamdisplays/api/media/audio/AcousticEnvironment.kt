@@ -3,11 +3,7 @@ package com.dreamdisplays.api.media.audio
 import com.dreamdisplays.api.DreamDisplaysUnstableApi
 
 /**
- * Result of a platform-side voxel raytrace describing the acoustic space between one source and the
- * listener, in engine-agnostic terms.
- *
- * All fields are normalized / in seconds so the DSP chain can smooth and map them directly onto its
- * occlusion filter and reverb send without knowing anything about blocks.
+ * Acoustic space between source and listener; engine-agnostic, normalized for DSP mapping.
  *
  * @since 1.9.0
  */

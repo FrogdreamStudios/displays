@@ -3,9 +3,7 @@ package com.dreamdisplays.api.media.search
 import com.dreamdisplays.api.DreamDisplaysUnstableApi
 
 /**
- * `YouTube` search ordering, carrying the base64 `InnerTube` `params` value ("sp") that requests it.
- * Values reverse-engineered against `youtubei/v1/search` (see the [spParam] docs for the decoded
- * protobuf shape); [RELEVANCE] omits the field entirely, which is `YouTube`'s own default order.
+ * YouTube search ordering via base64 InnerTube `params` ("sp" field); RELEVANCE omits it.
  *
  * @since 1.9.0
  */

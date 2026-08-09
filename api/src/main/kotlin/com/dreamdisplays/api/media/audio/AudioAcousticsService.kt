@@ -4,9 +4,7 @@ import com.dreamdisplays.api.DreamDisplaysUnstableApi
 import java.util.*
 
 /**
- * Owns the acoustic source registry and per-source DSP chains for every playing display. Sources are
- * addressed by their display UUID; [registerSource] is idempotent so callers never need to check
- * whether a source already exists.
+ * Owns acoustic source registry and per-source DSP chains; [registerSource] is idempotent.
  *
  * @since 1.9.0
  */

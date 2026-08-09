@@ -7,9 +7,7 @@ import com.dreamdisplays.api.display.model.DisplayId
 import com.dreamdisplays.api.display.model.DisplaySettings
 
 /**
- * Public display registry and command surface. Implementations expose immutable [Display] snapshots
- * and forward mutations to the authoritative side, which validates ownership / permissions and
- * emits [DisplayEvent] updates.
+ * Public display registry and command surface; forwards mutations to the authoritative side.
  *
  * @since 1.8.0
  */
