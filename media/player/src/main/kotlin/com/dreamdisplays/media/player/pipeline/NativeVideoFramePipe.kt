@@ -8,7 +8,7 @@ import com.dreamdisplays.media.player.nativebridge.NativeMedia
 import com.dreamdisplays.media.player.process.HwAccelBackend
 import com.dreamdisplays.media.player.process.MediaProcess
 import com.dreamdisplays.media.player.util.daemon
-import com.dreamdisplays.media.runtime.OsInfo
+import com.dreamdisplays.util.OsInfo
 import org.slf4j.LoggerFactory
 import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicBoolean

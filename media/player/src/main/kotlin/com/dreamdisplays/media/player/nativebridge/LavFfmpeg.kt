@@ -1,6 +1,6 @@
 package com.dreamdisplays.media.player.nativebridge
 
-import com.dreamdisplays.media.runtime.OsInfo
+import com.dreamdisplays.util.OsInfo
 import com.dreamdisplays.util.net.DreamHttpClient
 import kotlinx.io.IOException
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream

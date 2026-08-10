@@ -8,6 +8,7 @@ import com.dreamdisplays.platform.client.popout.WindowBackend
 import com.dreamdisplays.platform.client.popout.WindowConfig
 import com.dreamdisplays.platform.client.render.AsyncTextureUploader
 import com.dreamdisplays.platform.client.render.UploadPixelFormat
+import com.dreamdisplays.util.OsInfo
 import kotlinx.atomicfu.atomic
 import net.minecraft.client.Minecraft
 import org.lwjgl.glfw.GLFW
@@ -440,7 +441,7 @@ class VideoPopoutWindow(
     }
 
     companion object {
-        private val IS_MACOS = System.getProperty("os.name", "").lowercase().startsWith("mac")
+        private val IS_MACOS = OsInfo.isMac
 
         /** True when a popout window can be opened. Always true on macOS; AWT checks for headless mode. */
         val isAvailable: Boolean by lazy {

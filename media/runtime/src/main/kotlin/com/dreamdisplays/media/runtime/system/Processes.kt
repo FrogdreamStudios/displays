@@ -1,5 +1,6 @@
-package com.dreamdisplays.media.runtime
+package com.dreamdisplays.media.runtime.system
 
+import com.dreamdisplays.util.OsInfo
 import kotlinx.io.IOException
 import java.io.BufferedReader
 import java.io.InputStream

@@ -1,4 +1,4 @@
-package com.dreamdisplays.media.runtime
+package com.dreamdisplays.media.runtime.session
 
 import com.dreamdisplays.api.display.model.DisplayId
 import com.dreamdisplays.api.media.session.MediaSession

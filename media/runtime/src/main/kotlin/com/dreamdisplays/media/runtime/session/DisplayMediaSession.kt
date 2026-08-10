@@ -1,4 +1,4 @@
-package com.dreamdisplays.media.runtime
+package com.dreamdisplays.media.runtime.session
 
 import com.dreamdisplays.api.display.event.DisplayEvent
 import com.dreamdisplays.api.display.model.DisplayId
@@ -22,21 +22,31 @@ internal class DisplayMediaSession(
     private val playback: PlaybackService,
     private val displays: DisplayService,
 ) : MediaSession {
-
+    /** Session ID is the display ID, since each display has at most one session. */
     override val sessionId: String = displayId.toString()
 
+    /** All listeners registered through [on], so they can be detached when the session is closed. */
     private val subscriptions = CopyOnWriteArrayList<AutoCloseable>()
 
+    /** True after [close] has been called, so the session is no longer valid. */
     @Volatile
     private var closed = false
 
     /** The latest runtime state from the display snapshot, or null when the display is gone. */
     private fun runtimeState(): DisplayRuntimeState? = displays.getDisplay(displayId)?.state
 
+    /**
+     * The session state is derived from the display runtime state, or [MediaSessionState.Released] if the display is gone
+     * or the session is closed.
+     */
     override val state: MediaSessionState
         get() = if (closed) MediaSessionState.Released
         else runtimeState()?.toSessionState() ?: MediaSessionState.Released
 
+    /**
+     * The current position is derived from the display runtime state, or zero if the display is gone or the session is
+     * closed.
+     */
     override val currentPosition: Duration
         get() = when (val s = runtimeState()) {
             is DisplayRuntimeState.Playing -> s.positionMs.milliseconds
@@ -44,19 +54,18 @@ internal class DisplayMediaSession(
             else -> Duration.ZERO
         }
 
+    /** The duration is derived from the display runtime state, or null if the display is gone or the session is closed. */
     override val duration: Duration?
         get() = (runtimeState() as? DisplayRuntimeState.Playing)?.durationMs?.milliseconds
 
-    /** Only the duration is known at this layer; rich metadata lives in the search/metadata caches. */
+    /** Only the duration is known at this layer; rich metadata lives in the search / metadata caches. */
     override val metadata: MediaMetadata
         get() = MediaMetadata.UNKNOWN.copy(duration = duration)
 
+    /** Playback control calls are delegated to the [PlaybackService] with the display ID. */
     override fun play() = playback.play(displayId)
-
     override fun pause() = playback.pause(displayId)
-
     override fun seek(position: Duration) = playback.seek(displayId, position)
-
     override fun setVolume(volume: Float) = playback.setVolume(displayId, volume)
 
     /**

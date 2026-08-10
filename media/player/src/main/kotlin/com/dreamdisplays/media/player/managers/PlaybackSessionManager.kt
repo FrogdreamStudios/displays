@@ -19,7 +19,7 @@ import com.dreamdisplays.media.player.stream.MediaStreamSelector
 import com.dreamdisplays.media.player.util.MediaUtil
 import com.dreamdisplays.media.player.util.daemon
 import com.dreamdisplays.media.player.util.joinSafely
-import com.dreamdisplays.media.runtime.MediaHostGuard
+import com.dreamdisplays.media.runtime.security.MediaHostGuard
 import kotlinx.io.IOException
 import org.slf4j.LoggerFactory
 import java.nio.ByteBuffer

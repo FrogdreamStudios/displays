@@ -1,4 +1,4 @@
-package com.dreamdisplays.media.runtime
+package com.dreamdisplays.media.runtime.security
 
 import com.dreamdisplays.util.net.DreamHttpClient
 import com.github.benmanes.caffeine.cache.Cache
@@ -15,6 +15,7 @@ import java.util.concurrent.TimeUnit
  * and get called repeatedly.
  */
 object MediaHostGuard {
+    /** Logger. */
     private val logger = LoggerFactory.getLogger("DreamDisplays/MediaHostGuard")
 
     /** Escape hatch for operators who intentionally host media on a private network. */
@@ -23,7 +24,7 @@ object MediaHostGuard {
 
     /**
      * How long a host's verdict is reused. Deliberately the same order as the JDK's own positive DNS
-     * cache (30 s by default), so memoizing here widens no rebinding window that resolving the host
+     * cache (30 s by default), so memorizing here widens no rebinding window that resolving the host
      * again would have closed anyway — the second lookup would have been served from that cache.
      */
     private const val HOST_VERDICT_TTL_SECONDS = 30L

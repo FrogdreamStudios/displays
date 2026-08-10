@@ -1,4 +1,4 @@
-package com.dreamdisplays.media.runtime
+package com.dreamdisplays.media.runtime.session
 
 import com.dreamdisplays.api.display.model.DisplayId
 import com.dreamdisplays.api.display.service.DisplayService
@@ -13,7 +13,6 @@ class DefaultMediaSessionManager(
     private val playback: PlaybackService,
     private val displays: DisplayService,
 ) : MediaSessionManager {
-
     /** Opens a [DisplayMediaSession] for [displayId], or null if the display is not known. */
     override fun open(displayId: DisplayId): MediaSession? =
         displays.getDisplay(displayId)?.let { DisplayMediaSession(displayId, playback, displays) }
