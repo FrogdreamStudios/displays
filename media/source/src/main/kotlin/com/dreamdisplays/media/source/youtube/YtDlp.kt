@@ -3,31 +3,25 @@ package com.dreamdisplays.media.source.youtube
 import com.dreamdisplays.api.media.search.MediaSearchPage
 import com.dreamdisplays.api.media.search.MediaSearchResult
 import com.dreamdisplays.api.media.search.SortOrder
-import com.dreamdisplays.api.media.search.YouTubeUrls
 import com.dreamdisplays.api.security.MediaUrlPolicy
 import com.dreamdisplays.media.runtime.system.Processes
-import com.dreamdisplays.media.source.youtube.YtDlp.FALLBACK_CLIENTS
-import com.dreamdisplays.media.source.youtube.YtDlp.PRIMARY_CLIENT
-import com.dreamdisplays.media.source.youtube.YtDlp.bestResult
 import com.dreamdisplays.media.source.youtube.binary.YtDlpBinary
-import com.dreamdisplays.media.source.youtube.binary.YtDlpOutputParser
-import com.dreamdisplays.media.source.youtube.cache.FormatDiskCache
+import com.dreamdisplays.media.source.youtube.cache.YtFormatCache
 import com.dreamdisplays.media.source.youtube.cookie.YtCookieManager
 import com.dreamdisplays.media.source.youtube.model.YtStream
 import com.dreamdisplays.media.source.youtube.model.YtStreams
-import com.dreamdisplays.util.AsyncMemo
+import com.dreamdisplays.media.source.youtube.process.YtDlpClientRace
+import com.dreamdisplays.media.source.youtube.search.YtDlpSearchCache
 import com.dreamdisplays.util.DreamCoroutines
-import com.github.benmanes.caffeine.cache.Cache
-import com.github.benmanes.caffeine.cache.Caffeine
 import kotlinx.atomicfu.atomic
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.io.IOException
 import org.slf4j.LoggerFactory
-import java.nio.file.Files
-import java.util.*
 import java.util.concurrent.CopyOnWriteArrayList
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicInteger
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
@@ -43,21 +37,13 @@ private class AbandonFlag {
 }
 
 /**
- * `yt-dlp` orchestrator: caching and dedup around `NewPipeExtractor` and subprocess.
+ * `yt-dlp` orchestrator: races the in-process [NewPipeResolver] fast path against the `yt-dlp`
+ * subprocess (client racing lives in [YtDlpClientRace]), caches the winning result (via
+ * [YtFormatCache]), and exposes YouTube search (via [YtDlpSearchCache]).
  */
 object YtDlp {
+    /** Logger. */
     private val logger = LoggerFactory.getLogger("DreamDisplays/yt-dlp")
-    private const val CACHE_TTL_MS: Long = FormatDiskCache.DEFAULT_TTL_MS
-    private const val INFO_CACHE_TTL_MS: Long = 30L * 60L * 1_000L
-
-    /** Per-invocation `yt-dlp` wait (keep short to surface failures fast). */
-    private const val FETCH_TIMEOUT_SECONDS: Long = 25L
-
-    /** Client tried first (only one YouTube serves full ladder to). */
-    private const val PRIMARY_CLIENT = "android_vr"
-
-    /** Token-free clients raced in parallel (hit PO-token wall, but auto-recover if working). */
-    private val FALLBACK_CLIENTS: List<String?> = listOf("ios", "tv", "android")
 
     /** Head start (ms) for `NewPipeExtractor` before `yt-dlp` subprocess (skips spawn if full ladder). */
     private val HEDGE_DELAY_MS: Long =
@@ -66,14 +52,11 @@ object YtDlp {
     /** All `yt-dlp` background work runs on [DreamCoroutines.clientIo] scope. */
     private val cookies = YtCookieManager()
 
-    private val formatMemo = AsyncMemo<String, List<YtStream>>(200, CACHE_TTL_MS, DreamCoroutines.clientIo, "fetch")
+    /** Races `yt-dlp` clients for a single fetch; see [fetchUncached]. */
+    private val clientRace = YtDlpClientRace(cookies)
 
-    /** When each URL's streams were resolved (for live TTL refresh). */
-    private val fetchedAtMs: Cache<String, Long> = Caffeine.newBuilder().maximumSize(300).build()
-    private val searchMemo =
-        AsyncMemo<String, List<MediaSearchResult>>(100, INFO_CACHE_TTL_MS, DreamCoroutines.clientIo, "search")
-    private val relatedMemo =
-        AsyncMemo<String, List<MediaSearchResult>>(200, INFO_CACHE_TTL_MS, DreamCoroutines.clientIo, "related")
+    /** In-memory / disk cache in front of [fetchUncached]. */
+    private val formatCache = YtFormatCache(resolve = ::fetchUncached)
 
     /** Returns stream list for videoUrl (in-memory -> disk -> `yt-dlp`). */
     @Throws(IOException::class)
@@ -81,32 +64,8 @@ object YtDlp {
         if (!MediaUrlPolicy.isAllowed(videoUrl)) {
             return emptyList()
         }
-
-        var streams = loadFromDisk(videoUrl) ?: formatMemo.getBlocking(videoUrl) { fetchAndPersist(it) }
-        if (isStaleLive(videoUrl, streams) || isStalePartial(videoUrl, streams)) {
-            invalidateCache(videoUrl)
-            streams = formatMemo.getBlocking(videoUrl) { fetchAndPersist(it) }
-        }
-        return streams
+        return formatCache.fetch(videoUrl)
     }
-
-    /** Whether cached live result is stale (playlist URLs have expiring tokens). */
-    private fun isStaleLive(videoUrl: String, streams: List<YtStream>): Boolean {
-        if (streams.none { it.isLive }) return false
-        val at = fetchedAtMs.getIfPresent(videoUrl) ?: return true
-        return System.currentTimeMillis() - at > FormatDiskCache.LIVE_TTL_MS
-    }
-
-    /** Whether cached partial result is stale (re-check PO-token wall on cadence). */
-    private fun isStalePartial(videoUrl: String, streams: List<YtStream>): Boolean {
-        if (streams.isEmpty() || offersFullResult(streams)) return false
-        val at = fetchedAtMs.getIfPresent(videoUrl) ?: return true
-        return System.currentTimeMillis() - at > FormatDiskCache.PARTIAL_TTL_MS
-    }
-
-    /** Whether streams is worth caching at full TTL (quality ladder or live). */
-    private fun offersFullResult(streams: List<YtStream>): Boolean =
-        streams.any { it.isLive } || YtStreams.offersQualityLadder(streams)
 
     /** Resolves the binary path, cookie browser, and cookie header in the background to reduce first-fetch latency. */
     fun prewarmAsync() {
@@ -117,111 +76,57 @@ object YtDlp {
                 YtDlpBinary.resolveCommand()
                 cookies.prewarm()
             }.onFailure { e ->
-                logger.warn("Failed to prewarm yt-dlp", e)
+                logger.warn("Failed to prewarm yt-dlp.", e)
             }
         }
     }
 
     /** Fires a background fetch for [videoUrl] if not already cached, so it is ready before [fetch] is called. */
-    @Suppress("DeferredResultUnused")
     fun prefetchFormats(videoUrl: String) {
         if (videoUrl.isBlank()) return
         if (!MediaUrlPolicy.isAllowed(videoUrl)) return
-        val cached = formatMemo.peekFresh(videoUrl) ?: loadFromDisk(videoUrl)
-        if (cached != null && !isStaleLive(videoUrl, cached) && !isStalePartial(videoUrl, cached)) return
-        if (cached != null) invalidateCache(videoUrl)
-        formatMemo.load(videoUrl) { fetchAndPersist(it) }
-    }
-
-    /** Returns the disk-cached streams for [videoUrl] if fresh, promoting them into the in-memory cache. */
-    private fun loadFromDisk(videoUrl: String): List<YtStream>? {
-        formatMemo.peekFresh(videoUrl)?.let { return it }
-        val fromDisk = FormatDiskCache.load(videoUrl, CACHE_TTL_MS)?.takeIf { it.isNotEmpty() } ?: return null
-        val immutable = fromDisk.toList()
-        formatMemo.put(videoUrl, immutable)
-        fetchedAtMs.put(videoUrl, System.currentTimeMillis())
-        return immutable
-    }
-
-    /** Resolves streams and mirrors to disk cache (partial results persisted too). */
-    @Throws(IOException::class)
-    private suspend fun fetchAndPersist(videoUrl: String): List<YtStream> {
-        val streams = fetchUncached(videoUrl).toList()
-        fetchedAtMs.put(videoUrl, System.currentTimeMillis())
-        if (streams.isNotEmpty()) FormatDiskCache.saveAsync(videoUrl, streams)
-        return streams
+        formatCache.prefetch(videoUrl)
     }
 
     /** Searches YouTube for [query] via InnerTube, returning up to [limit] results; uses a 30-minute in-memory cache. */
     @Throws(IOException::class)
-    fun search(query: String, limit: Int): List<MediaSearchResult> {
-        if (query.isBlank()) return ArrayList()
-        val n = limit.coerceIn(1, 25)
-        val key = query.trim().lowercase(Locale.ENGLISH) + "|" + n
-        return searchMemo.getBlocking(key, timeoutSeconds = 30) {
-            YouTubeInnerTube.search(query.trim(), n).toList()
-        }
-    }
+    fun search(query: String, limit: Int): List<MediaSearchResult> = YtDlpSearchCache.search(query, limit)
 
     /** Fetches up to [limit] related videos for [videoId] via InnerTube; falls back to title search if none found. */
     @Throws(IOException::class)
-    fun related(videoId: String, limit: Int): List<MediaSearchResult> {
-        if (videoId.isBlank()) return ArrayList()
-        val n = limit.coerceIn(1, 25)
-        return relatedMemo.getBlocking("$videoId|$n", timeoutSeconds = 30) {
-            val nextResult = YouTubeInnerTube.next(videoId)
-            var hits = ArrayList(nextResult.related)
-            hits.removeAll { it.id == videoId }
-            // If no related found, fall back to searching by title
-            if (hits.isEmpty() && !nextResult.title.isNullOrBlank()) {
-                hits = ArrayList(YouTubeInnerTube.search(nextResult.title, n + 2))
-                hits.removeAll { it.id == videoId }
-            }
-            if (hits.size > n) hits = ArrayList(hits.subList(0, n))
-            hits.toList()
-        }
-    }
+    fun related(videoId: String, limit: Int): List<MediaSearchResult> = YtDlpSearchCache.related(videoId, limit)
 
     /** Fetches the first page (up to [limit] results) matching [query] in [sortOrder]; a fresh network call each time (continuation isn't cacheable). */
     @Throws(IOException::class)
-    fun searchPage(query: String, limit: Int, sortOrder: SortOrder = SortOrder.RELEVANCE): MediaSearchPage {
-        if (query.isBlank()) return MediaSearchPage(emptyList(), null)
-        return YouTubeInnerTube.searchPage(query.trim(), limit.coerceIn(1, 25), sortOrder)
-    }
+    fun searchPage(query: String, limit: Int, sortOrder: SortOrder = SortOrder.RELEVANCE): MediaSearchPage =
+        YtDlpSearchCache.searchPage(query, limit, sortOrder)
 
     /** Fetches the page following [continuationToken] from a prior [searchPage]/[searchMore] call. */
     @Throws(IOException::class)
     fun searchMore(continuationToken: String, limit: Int): MediaSearchPage =
-        YouTubeInnerTube.searchMore(continuationToken, limit.coerceIn(1, 25))
+        YtDlpSearchCache.searchMore(continuationToken, limit)
 
     /** Fetches the first page (up to [limit] results) related to [videoId]. */
     @Throws(IOException::class)
-    fun relatedPage(videoId: String, limit: Int): MediaSearchPage {
-        if (videoId.isBlank()) return MediaSearchPage(emptyList(), null)
-        return YouTubeInnerTube.relatedPage(videoId, limit.coerceIn(1, 25))
-    }
+    fun relatedPage(videoId: String, limit: Int): MediaSearchPage = YtDlpSearchCache.relatedPage(videoId, limit)
 
     /** Fetches the page following [continuationToken] from a prior [relatedPage]/[relatedMore] call. */
     @Throws(IOException::class)
     fun relatedMore(continuationToken: String, limit: Int): MediaSearchPage =
-        YouTubeInnerTube.relatedMore(continuationToken, limit.coerceIn(1, 25))
+        YtDlpSearchCache.relatedMore(continuationToken, limit)
 
     /** Extracts the 11-character YouTube video ID from a full URL, short URL, or bare ID. Returns null if not recognized. */
-    fun extractVideoId(url: String?): String? = YouTubeUrls.extractVideoId(url)
+    fun extractVideoId(url: String?): String? = YtDlpSearchCache.extractVideoId(url)
 
     /** Removes [videoUrl] from the in-memory format cache, in-flight map, and disk cache. */
-    fun invalidateCache(videoUrl: String) {
-        formatMemo.invalidate(videoUrl)
-        fetchedAtMs.invalidate(videoUrl)
-        FormatDiskCache.deleteEntry(videoUrl)
-    }
+    fun invalidateCache(videoUrl: String) = formatCache.invalidate(videoUrl)
 
     /** Returns a cached YouTube cookie header string for use by HTTP clients other than `yt-dlp`. */
     fun getPublicCookieHeader(): String? = cookies.header()
 
     /**
      * Resolves streams for [videoUrl]: races the in-process [NewPipeResolver] fast path against the `yt-dlp` subprocess
-     * and returns whichever first offers a full quality ladder.
+     * (via [clientRace]) and returns whichever first offers a full quality ladder.
      */
     @Throws(IOException::class)
     private suspend fun fetchUncached(videoUrl: String): List<YtStream> {
@@ -230,7 +135,7 @@ object YtDlp {
         val ytdlp = DreamCoroutines.clientIo.async {
             if (HEDGE_DELAY_MS > 0) delay(HEDGE_DELAY_MS.milliseconds)
             if (abandoned.isAbandoned) return@async emptyList()
-            raceClients(videoUrl) { proc ->
+            clientRace.resolve(videoUrl) { proc ->
                 ytProcesses.add(proc)
                 if (abandoned.isAbandoned) Processes.destroyTree(proc)
             } ?: emptyList()
@@ -265,7 +170,7 @@ object YtDlp {
         }
 
         val viaYtDlp = runCatching {
-            withTimeoutOrNull((FETCH_TIMEOUT_SECONDS + 15).seconds) { ytdlp.await() }
+            withTimeoutOrNull((YtDlpClientRace.FETCH_TIMEOUT_SECONDS + 15).seconds) { ytdlp.await() }
                 ?: emptyList<YtStream>().also { abandonYtDlp() }
         }.onFailure { e ->
             abandonYtDlp()
@@ -286,153 +191,5 @@ object YtDlp {
             viaYtDlp.isNotEmpty() -> viaYtDlp
             else -> throw IOException("All yt-dlp clients failed for $videoUrl.")
         }
-    }
-
-    /**
-     * Resolves [videoUrl] via `yt-dlp`. Tries [PRIMARY_CLIENT] alone first (one request, fast, the only client that
-     * isn't PO-token gated), then races [FALLBACK_CLIENTS] in parallel if that fails.
-     */
-    private suspend fun raceClients(videoUrl: String, onProcess: (Process) -> Unit): List<YtStream>? {
-        if (!cookies.disabledByConfig()) {
-            return runCatchingClient(videoUrl, null, onProcess)?.takeIf { it.isNotEmpty() }
-        }
-        runCatchingClient(videoUrl, PRIMARY_CLIENT, onProcess)?.takeIf { it.isNotEmpty() }?.let { return it }
-        return raceParallel(videoUrl, FALLBACK_CLIENTS, onProcess)
-    }
-
-    /** Runs a single [client] fetch, reporting its subprocess to [onProcess]; returns null instead of throwing. */
-    private fun runCatchingClient(videoUrl: String, client: String?, onProcess: (Process) -> Unit): List<YtStream>? =
-        runCatching {
-            runClientFetch(videoUrl, client, onProcess)
-        }.onFailure { e ->
-            logger.debug("yt-dlp client {} failed for {}: {}.", client ?: "cookies", videoUrl, e.message?.take(200))
-        }.getOrNull()
-
-    /**
-     * Races [clients] (one subprocess each) in parallel: the first to yield a quality ladder wins
-     * immediately and the still-running losers are killed; otherwise, once every client finishes,
-     * [bestResult] picks the strongest result. Returns null when every client failed.
-     */
-    @Suppress("CoroutineContextWithJob")
-    private suspend fun raceParallel(
-        videoUrl: String,
-        clients: List<String?>,
-        onProcess: (Process) -> Unit
-    ): List<YtStream>? {
-        val processes = CopyOnWriteArrayList<Process>()
-        val results = CopyOnWriteArrayList<List<YtStream>>()
-        val winner = CompletableDeferred<List<YtStream>>()
-        val remaining = AtomicInteger(clients.size)
-
-        val runRace: suspend () -> List<YtStream> = {
-            coroutineScope {
-                for (client in clients) {
-                    launch(DreamCoroutines.clientIo.coroutineContext) {
-                        runCatching {
-                            val streams = runClientFetch(videoUrl, client) { proc ->
-                                processes.add(proc)
-                                onProcess(proc)
-                                if (winner.isCompleted) Processes.destroyTree(proc)
-                            }
-                            if (streams.isNotEmpty()) results.add(streams)
-                            if (YtStreams.offersQualityLadder(streams)) winner.complete(streams)
-                        }.onFailure { e ->
-                            if (e is CancellationException) throw e
-                            logger.debug(
-                                "yt-dlp client {} failed for {}: {}",
-                                client ?: "cookies",
-                                videoUrl,
-                                e.message?.take(200)
-                            )
-                        }.also { result ->
-                            if (result.exceptionOrNull() is CancellationException) return@launch
-
-                            if (remaining.decrementAndGet() == 0) {
-                                winner.complete(bestResult(results))
-                            }
-                        }
-                    }
-                }
-                winner.await()
-            }
-        }
-
-        val finalResult = try {
-            withTimeoutOrNull((FETCH_TIMEOUT_SECONDS + 10).seconds) { runRace() } ?: run {
-                logger.warn("yt-dlp race for $videoUrl did not settle.")
-                emptyList()
-            }
-        } finally {
-            processes.forEach { runCatching { Processes.destroyTree(it) } }
-        }
-
-        return finalResult.takeIf { it.isNotEmpty() }
-    }
-
-    /** Picks the strongest raced result: a quality ladder first, then the one with the most heights. */
-    private fun bestResult(results: List<List<YtStream>>): List<YtStream> =
-        results.maxWithOrNull(
-            compareBy<List<YtStream>> { if (YtStreams.offersQualityLadder(it)) 1 else 0 }
-                .thenBy { YtStreams.distinctHeights(it).size }
-        ) ?: emptyList()
-
-    /**
-     * Runs a single `yt-dlp` invocation for [videoUrl] with the given [client] (null = let yt-dlp
-     * choose, used on the cookie path). [onStarted] receives the live process so the racer can kill
-     * it once another client wins. Returns the parsed streams; throws on non-zero exit or timeout.
-     */
-    @Throws(IOException::class)
-    private fun runClientFetch(videoUrl: String, client: String?, onStarted: (Process) -> Unit): List<YtStream> {
-        val cmd = ArrayList<String>()
-        cmd.addAll(YtDlpBinary.resolveCommand())
-        val tempCookies = cookies.appendArgs(cmd)
-
-        val hasCookieArg = cmd.any { it == "--cookies" || it == "--cookies-from-browser" }
-        if (!hasCookieArg && client != null) {
-            cmd.addAll(listOf("--extractor-args", "youtube:player_client=$client"))
-        }
-
-        cmd.addAll(
-            listOf(
-                "--force-ipv4",
-                "-J", "--no-playlist", "--no-warnings", "--no-check-formats",
-                "--ignore-config", "--no-mark-watched",
-                "--extractor-retries", "0",
-                "--socket-timeout", "8",
-                "--",
-                videoUrl,
-            )
-        )
-        val pb = ProcessBuilder(cmd)
-        pb.redirectErrorStream(false)
-        val process = pb.start()
-        onStarted(process)
-        runCatching { process.outputStream.close() }
-        val stdout = StringBuilder()
-        val stderr = StringBuilder()
-        val stdoutReader = Processes.collector(process.inputStream, stdout, "YtDlp-stdout")
-        val stderrReader = Processes.collector(process.errorStream, stderr, "YtDlp-stderr")
-        stdoutReader.start()
-        stderrReader.start()
-        try {
-            if (!process.waitFor(FETCH_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
-                Processes.destroyTree(process)
-                stdoutReader.join(2_000)
-                stderrReader.join(2_000)
-                throw IOException("Timed out for url: $videoUrl (client=${client ?: "cookies"}).")
-            }
-            stdoutReader.join(5_000)
-            stderrReader.join(5_000)
-        } catch (e: InterruptedException) {
-            process.destroyForcibly()
-            Thread.currentThread().interrupt()
-            throw IOException("Interrupted while waiting for yt-dlp.", e)
-        } finally {
-            if (tempCookies != null) runCatching { Files.deleteIfExists(tempCookies) }
-        }
-        if (process.exitValue() != 0) {
-            throw IOException("Exited with code ${process.exitValue()}: ${stderr.toString().trim()}.")
-        }
-        return YtDlpOutputParser.parseFormats(stdout.toString())
     }
 }
