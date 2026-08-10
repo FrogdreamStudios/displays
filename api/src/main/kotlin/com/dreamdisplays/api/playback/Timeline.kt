@@ -2,7 +2,11 @@ package com.dreamdisplays.api.playback
 
 import com.dreamdisplays.api.DreamDisplaysUnstableApi
 
-/** Authoritative playback clock; [positionMs] is position as of [serverTimeMs], advances while running. */
+/**
+ * Authoritative playback clock; [positionMs] is position as of [serverTimeMs], advances while running.
+ *
+ * @since 1.8.x
+ */
 @DreamDisplaysUnstableApi
 data class Timeline(
     val positionMs: Long,

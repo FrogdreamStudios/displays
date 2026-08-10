@@ -3,7 +3,11 @@ package com.dreamdisplays.api.watchparty
 import com.dreamdisplays.api.DreamDisplaysUnstableApi
 import com.dreamdisplays.api.display.model.DisplayId
 
-/** Controls ephemeral watch-party sessions on displays; open to nearby players when display is unlocked. */
+/**
+ * Controls ephemeral watch-party sessions on displays; open to nearby players when display is unlocked.
+ *
+ * @since 1.8.x
+ */
 @DreamDisplaysUnstableApi
 interface WatchPartyService {
     /**

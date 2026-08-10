@@ -18,8 +18,15 @@ interface DisplaySystem :
     DisplayMutationPort,
     PlaybackPort,
     WatchPartyPort {
+    /** Records a new display in the "system". */
     fun recordDisplay(display: Display)
+
+    /** Removes a display from the "system". */
     fun removeDisplay(id: DisplayId)
+
+    /** Clear displays from the system. */
     fun clearDisplays()
+
+    /** Publishes a display event to all listeners. */
     fun publish(event: DisplayEvent)
 }

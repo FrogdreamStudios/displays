@@ -5,6 +5,8 @@ import kotlinx.serialization.Serializable
 /**
  * Persisted snapshot of one non-transient server-forced fullscreen broadcast session, enough to
  * recreate it (or its synthetic virtual display) after a server restart.
+ *
+ * @since 1.9.x
  */
 @Serializable
 data class FullscreenSessionRecord(

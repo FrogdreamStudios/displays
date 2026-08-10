@@ -8,6 +8,8 @@ import com.dreamdisplays.api.media.stream.StreamSelector
  * Cross-cutting platform services a playback engine depends on, bundled so a player can be created
  * with a single environment handle instead of a long constructor. The platform layer supplies one
  * shared implementation.
+ *
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 interface PlaybackEnvironment {

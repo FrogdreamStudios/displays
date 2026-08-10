@@ -65,7 +65,7 @@ object PlaybackPermissions {
     fun canPopout(c: PlaybackContext): Boolean =
         c.mode != BROADCAST
 
-    /** Start a watch party: anyone nearby when unlocked, owner/admin when locked. */
+    /** Start a watch party: anyone nearby when unlocked, owner / admin when locked. */
     fun canStartWatchParty(c: PlaybackContext): Boolean =
         !c.hasActiveParty && (c.isOwner || c.isAdmin || !c.isLocked)
 
@@ -77,7 +77,7 @@ object PlaybackPermissions {
     fun canCloseWatchParty(c: PlaybackContext): Boolean =
         c.isPartyHost || c.isOwner || c.isAdmin
 
-    /** The lock the world actually sees: the base lock, or forced on by Watch party / Broadcast. */
+    /** The lock the world actually sees: the base lock, or forced on by `Watch party` / `Broadcast`. */
     fun isEffectivelyLocked(mode: PlaybackMode, baseLocked: Boolean): Boolean =
         baseLocked || mode == WATCH_PARTY || mode == BROADCAST
 }

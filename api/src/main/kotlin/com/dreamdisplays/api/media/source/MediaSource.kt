@@ -41,7 +41,7 @@ sealed interface MediaSource {
     ) : MediaSource
 
     /**
-     * BIlibili source: a VOD ([bvid] or legacy [avid], with optional multi-part [part]) or a live
+     * BIlibili source: a VOD ([bvid] or legacy [avid], with optional multipart [part]) or a live
      * [roomId]. An unresolved `b23.tv` short link carries none of these — the resolver follows the
      * redirect itself, since that needs a network call this synchronous parser cannot make.
      */

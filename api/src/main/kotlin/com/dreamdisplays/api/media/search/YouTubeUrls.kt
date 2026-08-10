@@ -90,6 +90,7 @@ object YouTubeUrls {
         host == root || host.endsWith(".$root")
 
     /** Returns first query parameter value with [name], or null if not found. */
+    @Suppress("SameParameterValue")
     private fun queryParameter(rawQuery: String?, name: String): String? =
         rawQuery
             ?.split('&')

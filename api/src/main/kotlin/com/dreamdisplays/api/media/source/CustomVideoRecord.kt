@@ -3,7 +3,11 @@ package com.dreamdisplays.api.media.source
 import com.dreamdisplays.api.DreamDisplaysUnstableApi
 import kotlinx.serialization.Serializable
 
-/** Custom link persisted in local link list; client-only and never sent over network. */
+/**
+ * Custom link persisted in local link list; client-only and never sent over network.
+ *
+ * @since 1.9.x
+ */
 @DreamDisplaysUnstableApi
 @Serializable
 data class CustomVideoRecord(

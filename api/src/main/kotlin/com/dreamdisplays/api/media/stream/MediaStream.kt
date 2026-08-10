@@ -42,7 +42,7 @@ data class MediaStream(
     /** True when seeking requires decoding from start instead of seeking via demuxer. */
     val seekByDecoding: Boolean = false,
 ) {
-    /** Compact quality label for UI display, preferring video height over bitrate. */
+    /** Compact quality label for UI display, preferring video height to bitrate. */
     val qualityLabel: String
         get() = when {
             height != null && fps != null && fps > 50 -> "${height}p${fps.toInt()}"

@@ -13,9 +13,6 @@ data class DisplaySettings(
     /** The display's volume. */
     val volume: Float = 1.0f,
 
-    // TODO: separate sync volume as it was in old versions?
-    // val syncVolume: Float = 0.5f,
-
     /** The display's quality. [VideoQuality.Auto] lets the client choose the best quality. */
     val quality: VideoQuality = VideoQuality.Auto,
 

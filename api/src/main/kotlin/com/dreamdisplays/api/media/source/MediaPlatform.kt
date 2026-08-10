@@ -30,8 +30,4 @@ enum class MediaPlatform {
 
     /** Any other pasted link, left to the extractor chain (the long tail `yt-dlp` covers). */
     OTHER;
-
-    /** True for the two platforms whose links are always live-or-VOD pages, never plain files. */
-    val isFirstPartyPlatform: Boolean
-        get() = this == YOUTUBE || this == TWITCH || this == VIMEO || this == KICK || this == BILIBILI
 }

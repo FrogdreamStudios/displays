@@ -7,7 +7,11 @@ import com.dreamdisplays.api.media.source.MediaPlatform
 import com.dreamdisplays.api.media.source.MediaSource
 import java.util.*
 
-/** Server-side policy for custom media URLs (non-platform links players paste). */
+/**
+ * Server-side policy for custom media URLs (non-platform links players paste).
+ *
+ * @since 1.9.x
+ */
 @DreamDisplaysUnstableApi
 object CustomMediaPolicy {
     /** The `[custom_media]` config section, in the shape the check needs. */

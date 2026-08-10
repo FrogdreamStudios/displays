@@ -2,7 +2,11 @@ package com.dreamdisplays.api.runtime.registry
 
 import com.dreamdisplays.api.DreamDisplaysUnstableApi
 
-/** Stable key for a service binding; [id] allows multiple bindings per contract type. */
+/**
+ * Stable key for a service binding; [id] allows multiple bindings per contract type.
+ *
+ * @since 1.8.x
+ */
 @DreamDisplaysUnstableApi
 data class ServiceKey<T : Any>(
     val id: String,

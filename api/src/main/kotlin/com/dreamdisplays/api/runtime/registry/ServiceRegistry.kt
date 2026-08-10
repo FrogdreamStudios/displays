@@ -2,7 +2,11 @@ package com.dreamdisplays.api.runtime.registry
 
 import com.dreamdisplays.api.DreamDisplaysUnstableApi
 
-/** Registry of services available to the runtime; access by [ServiceKey] or by class. */
+/**
+ * Registry of services available to the runtime; access by [ServiceKey] or by class.
+ *
+ * @since 1.8.x
+ */
 @DreamDisplaysUnstableApi
 interface ServiceRegistry {
     /** Registers [instance] under [key], replacing any previous binding for that key. */

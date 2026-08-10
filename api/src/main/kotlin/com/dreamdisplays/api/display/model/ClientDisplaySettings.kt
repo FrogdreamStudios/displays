@@ -37,11 +37,7 @@ data class ClientDisplaySettings(
     /** Whether the viewer pinned this display to a Picture-in-Picture overlay; re-opened on rejoin regardless of render distance. */
     var pipOpen: Boolean = false,
 
-    /**
-     * Name of the [com.dreamdisplays.platform.client.ui.PipAnchor] the viewer last left this
-     * display's PiP at, or null to use the caller's default. Stored as a name rather than an ordinal
-     * so reordering the anchor enum can't silently move everyone's overlay.
-     */
+    /** Picture-in-Picture anchor point. */
     var pipAnchor: String? = null,
 
     /** Height of the PiP as a fraction of the screen, or `0` when the viewer never resized it. */

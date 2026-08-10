@@ -9,14 +9,14 @@ import com.dreamdisplays.api.DreamDisplaysUnstableApi
  */
 @DreamDisplaysUnstableApi
 data class AcousticMaterial(
-    /** Reflected-energy factor: 0 = fully absorbent, ~1.5 = hard reflective (stone/metal). */
+    /** Reflected-energy factor: 0 = fully absorbent, ~1.5 = hard reflective (stone / metal). */
     val reflectivity: Float,
 
     /** Muffling weight a full solid block of this material adds to an occluded direct path. */
     val occlusion: Float,
 ) {
     companion object {
-        /** Fallback for unmapped blocks — mid reflectivity, one full occlusion unit. */
+        /** Fallback for unmapped blocks — mid-reflectivity, one full occlusion unit. */
         val DEFAULT = AcousticMaterial(reflectivity = 0.5f, occlusion = 1.0f)
 
         /** Open air / non-solid: no reflection, no occlusion. */

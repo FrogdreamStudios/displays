@@ -6,7 +6,11 @@ import com.dreamdisplays.api.playback.PlaybackMode
 import kotlinx.serialization.Serializable
 import java.util.*
 
-/** Full persisted snapshot of a display; holds all state needed to recreate it. */
+/**
+ * Full persisted snapshot of a display; holds all state needed to recreate it.
+ *
+ * @since 1.0.x
+ */
 @DreamDisplaysUnstableApi
 @Serializable
 data class FullDisplayData(

@@ -13,7 +13,7 @@ fun interface TaskHandle {
     fun cancel()
 
     companion object {
-        /** Handle for work that cannot or does not need to be cancelled. */
+        /** Handle for work that cannot or does not need to be canceled. */
         val NOOP: TaskHandle = TaskHandle { }
     }
 }

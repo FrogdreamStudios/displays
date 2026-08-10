@@ -56,6 +56,7 @@ object BilibiliUrls {
     }
 
     /** Returns the value of query parameter [key] in [rawQuery], or null when absent. */
+    @Suppress("SameParameterValue")
     private fun queryParam(rawQuery: String?, key: String): String? =
         rawQuery?.split('&')?.firstNotNullOfOrNull { pair ->
             val idx = pair.indexOf('=')

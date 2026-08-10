@@ -15,10 +15,10 @@ data class AcousticEnvironment(
     /** Estimated reverberation decay (RT60-like), in seconds. 0 disables the reverb tail. */
     val reverbDecaySeconds: Float,
 
-    /** Wet-mix level of the reverb send, 0 (anechoic / open sky) .. 1 (fully enclosed reflective space). */
+    /** Wet-mix level of the reverb send, 0 (anechoic / open sky) ..1 (fully enclosed reflective space). */
     val reverbWetGain: Float,
 
-    /** High-frequency damping of the reverb tail, 0 (bright, hard walls) .. 1 (dark, soft walls). */
+    /** High-frequency damping of the reverb tail, 0 (bright, hard walls) ..1 (dark, soft walls). */
     val reverbDamping: Float,
 ) {
     companion object {

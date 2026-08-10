@@ -9,9 +9,15 @@ import com.dreamdisplays.api.DreamDisplaysUnstableApi
  */
 @DreamDisplaysUnstableApi
 data class ListenerPose(
-    val x: Double, val y: Double, val z: Double,
-    val forwardX: Double, val forwardY: Double, val forwardZ: Double,
-    val upX: Double, val upY: Double, val upZ: Double,
+    val x: Double,
+    val y: Double,
+    val z: Double,
+    val forwardX: Double,
+    val forwardY: Double,
+    val forwardZ: Double,
+    val upX: Double,
+    val upY: Double,
+    val upZ: Double,
 ) {
     companion object {
         /** Origin-facing pose used before the first real camera update arrives. */

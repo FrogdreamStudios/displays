@@ -16,7 +16,7 @@ value class DisplayId(val uuid: UUID) {
 
     companion object {
         /** Generates a new random display ID. */
-        fun random(): DisplayId = DisplayId(UUID.randomUUID()) // TODO: use a better id generator in 2.0.0
+        fun random(): DisplayId = DisplayId(UUID.randomUUID())
 
         /** Creates a display ID from the given string. Throws an exception if the string is not a valid UUID. */
         fun from(string: String): DisplayId = DisplayId(UUID.fromString(string))

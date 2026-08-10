@@ -24,7 +24,7 @@ interface Platform {
     /** Minecraft version reported by the loader / server runtime. */
     val minecraftVersion: String
 
-    /** Dream Displays mod or plugin version. */
+    /** `Dream Displays` mod or plugin version. */
     val modVersion: String
 
     /** Scheduler used to marshal work onto the platform's main thread or background executors. */

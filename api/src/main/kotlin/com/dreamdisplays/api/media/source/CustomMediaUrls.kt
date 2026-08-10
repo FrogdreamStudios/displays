@@ -7,7 +7,11 @@ import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 import java.util.*
 
-/** Normalize, classify, and name-for-display custom media URLs (direct links, not platform URLs). */
+/**
+ * Normalize, classify, and name-for-display custom media URLs (direct links, not platform URLs).
+ *
+ * @since 1.9.x
+ */
 @DreamDisplaysUnstableApi
 object CustomMediaUrls {
     /** Video containers (muxed or video-only). */
@@ -137,6 +141,7 @@ object CustomMediaUrls {
     }
 
     /** Returns the first value of query parameter [name] in [uri], or null when absent. */
+    @Suppress("SameParameterValue")
     private fun queryParam(uri: URI, name: String): String? =
         uri.query
             ?.split('&')
@@ -145,6 +150,7 @@ object CustomMediaUrls {
             ?.takeIf { it.isNotEmpty() }
 
     /** Rebuilds [uri] with [name]=[value] set and every parameter in [drop] removed. */
+    @Suppress("SameParameterValue")
     private fun withQueryParam(uri: URI, name: String, value: String, drop: Set<String>): String {
         val kept = uri.query
             ?.split('&')

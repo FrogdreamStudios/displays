@@ -12,7 +12,7 @@ import kotlinx.serialization.Serializable
 @DreamDisplaysUnstableApi
 @Serializable
 enum class PlaybackMode {
-    /** No synchronization: every client plays independently from its own saved position. */
+    /** No synchronization: every client plays independently of its own saved position. */
     LOCAL,
 
     /** Server-authoritative shared timeline; nearby players join the live position. */

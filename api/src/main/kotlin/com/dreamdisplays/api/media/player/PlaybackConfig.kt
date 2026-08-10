@@ -2,7 +2,11 @@ package com.dreamdisplays.api.media.player
 
 import com.dreamdisplays.api.DreamDisplaysUnstableApi
 
-/** Read-only playback-relevant configuration the media player needs from the host application. */
+/**
+ * Read-only playback-relevant configuration the media player needs from the host application.
+ *
+ * @since 1.8.x
+ */
 @DreamDisplaysUnstableApi
 interface PlaybackConfig {
     /** Default per-display volume (0–2.0) applied to a freshly created player. */
