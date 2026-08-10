@@ -266,18 +266,15 @@ jobs:
           files: build/libs/dreamdisplays-*.jar
           changelog-file: changelog.md
 
-  # `_build.yml`'s task list still includes paper/velocity/bungeecord entries (those three are
-  # published above); filter them out here so the matrix below doesn't spawn three redundant no-op
-  # runs for them.
   prepare-loader-matrix:
-    name: Filter NeoForge/Fabric matrix
+    name: Filter NeoForge / Fabric matrix
     runs-on: ubuntu-latest
     needs: build
     outputs:
       tasks: ${{ steps.filter.outputs.tasks }}
 
     steps:
-      - name: Filter tasks to NeoForge/Fabric only
+      - name: Filter tasks to NeoForge / Fabric only
         id: filter
         run: |
           python3 - <<'EOF'
@@ -293,7 +290,6 @@ jobs:
         env:
           TASKS_JSON: ${{ needs.build.outputs.marketplace_publish_tasks }}
 
-  # NeoForge/Fabric only start once Paper, Velocity, and BungeeCord have all published successfully.
   publish:
     name: Publish ${{ matrix.task.kind }} ${{ matrix.task.mc }}
     runs-on: ubuntu-latest
