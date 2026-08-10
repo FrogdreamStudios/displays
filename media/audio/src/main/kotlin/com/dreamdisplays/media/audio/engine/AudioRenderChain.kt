@@ -44,6 +44,8 @@ internal class AudioRenderChain(
         state = newState
     }
 
+    override fun latestState(): SourceAcousticState? = state
+
     private val loudness = LoudnessMeter(sampleRate)
     private val limiter = Limiter(sampleRate)
     private val leftBinaural = ParametricBinaural(sampleRate)

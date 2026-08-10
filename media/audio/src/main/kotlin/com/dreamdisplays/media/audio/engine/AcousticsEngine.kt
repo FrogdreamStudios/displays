@@ -9,7 +9,19 @@ import java.util.concurrent.ConcurrentHashMap
  * Default [AudioAcousticsService]: owns one [AudioRenderChain] per registered display and the shared
  * listener pose / global quality tier / output profile they all read from.
  */
-class AcousticsEngine(private val sampleRate: Float = 44100f) : AudioAcousticsService {
+class AcousticsEngine(
+    /** Sample rate. */
+    private val sampleRate: Float = 44100f,
+
+    /** Forwards the listener pose to another consumer (the native audio engine) whenever it changes. */
+    private val onListenerChanged: (ListenerPose) -> Unit = {},
+
+    /** Forwards the global quality ceiling to another consumer whenever it changes. */
+    private val onQualityChanged: (AcousticQuality) -> Unit = {},
+
+    /** Forwards the binaural toggle to another consumer whenever it changes. */
+    private val onBinauralChanged: (Boolean) -> Unit = {},
+) : AudioAcousticsService {
     private val chains = ConcurrentHashMap<UUID, AudioRenderChain>()
     private val listenerRef = atomic(ListenerPose.IDENTITY)
     private val qualityRef = atomic(AcousticQuality.ADVANCED)
@@ -22,6 +34,7 @@ class AcousticsEngine(private val sampleRate: Float = 44100f) : AudioAcousticsSe
     /** Selects binaural (headphone) rendering vs. constant-power stereo pan for every source. */
     fun setBinauralOutput(binaural: Boolean) {
         binauralRef.value = binaural
+        onBinauralChanged(binaural)
     }
 
     override fun registerSource(id: UUID): AudioDspStage =
@@ -37,9 +50,11 @@ class AcousticsEngine(private val sampleRate: Float = 44100f) : AudioAcousticsSe
 
     override fun updateListener(pose: ListenerPose) {
         listenerRef.value = pose
+        onListenerChanged(pose)
     }
 
     override fun setGlobalQuality(quality: AcousticQuality) {
         qualityRef.value = quality
+        onQualityChanged(quality)
     }
 }
