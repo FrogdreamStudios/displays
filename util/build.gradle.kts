@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":core"))
+    api(project(":api"))
     api(libs.caffeine)
     api(libs.kotlinxCoroutinesCore)
     api(libs.kotlinxSerializationJson)
