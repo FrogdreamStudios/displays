@@ -8,7 +8,7 @@ import com.dreamdisplays.api.runtime.registry.serviceKey
  * Display service keys. Modules should prefer these keys over ad-hoc class lookups when depending on public display
  * services.
  *
- * @since 1.8.4
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 object DisplayServices {

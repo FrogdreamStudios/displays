@@ -5,7 +5,7 @@ import com.dreamdisplays.api.DreamDisplaysUnstableApi
 /**
  * Per-frame render input shared with display surfaces.
  *
- * @since 1.8.0
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 interface RenderContext {

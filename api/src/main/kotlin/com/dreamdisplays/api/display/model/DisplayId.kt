@@ -6,7 +6,7 @@ import java.util.*
 /**
  * A unique identifier for a display.
  *
- * @since 1.0.0
+ * @since 1.0.x
  */
 @JvmInline
 @DreamDisplaysUnstableApi

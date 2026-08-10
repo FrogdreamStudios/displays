@@ -10,7 +10,7 @@ import kotlin.time.Duration
  * Public playback command surface for displays. Calls are requests: server-authoritative modes
  * validate permissions before broadcasting new state, while local mode updates the client session.
  *
- * @since 1.8.0
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 interface PlaybackService {

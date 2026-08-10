@@ -5,7 +5,7 @@ import com.dreamdisplays.api.DreamDisplaysUnstableApi
 /**
  * Syntactic classification of a custom URL (by extension/host); probe-validated by resolver.
  *
- * @since 1.9.0
+ * @since 1.9.x
  */
 @DreamDisplaysUnstableApi
 enum class CustomMediaKind {

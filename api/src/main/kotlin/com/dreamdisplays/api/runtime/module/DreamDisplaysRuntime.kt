@@ -5,7 +5,7 @@ import com.dreamdisplays.api.DreamDisplaysUnstableApi
 /**
  * Assembler.
  *
- * @since 1.8.4
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 interface DreamDisplaysRuntime : DreamDisplaysApi, AutoCloseable {

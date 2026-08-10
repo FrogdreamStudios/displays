@@ -5,7 +5,7 @@ import com.dreamdisplays.api.DreamDisplaysUnstableApi
 /**
  * Opaque integer texture id owned by the platform renderer.
  *
- * @since 1.8.0
+ * @since 1.8.x
  */
 @JvmInline
 @DreamDisplaysUnstableApi

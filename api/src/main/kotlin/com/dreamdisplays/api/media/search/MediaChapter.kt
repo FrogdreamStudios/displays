@@ -5,7 +5,7 @@ import com.dreamdisplays.api.DreamDisplaysUnstableApi
 /**
  * A single chapter marker within a video. Only YouTube publishes these today.
  *
- * @since 1.9.0
+ * @since 1.9.x
  */
 @DreamDisplaysUnstableApi
 data class MediaChapter(

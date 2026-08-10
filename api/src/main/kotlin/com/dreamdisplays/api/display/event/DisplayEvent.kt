@@ -10,7 +10,7 @@ import com.dreamdisplays.api.media.common.DreamMediaException
 /**
  * Represents an event that occurred on a display.
  *
- * @since 1.8.0
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 sealed interface DisplayEvent {

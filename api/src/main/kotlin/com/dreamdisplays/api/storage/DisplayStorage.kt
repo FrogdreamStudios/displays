@@ -6,7 +6,7 @@ import java.util.*
 /**
  * In-memory registry of server-authoritative display snapshots, keyed by server id.
  *
- * @since 1.8.4
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 interface DisplayStorage {

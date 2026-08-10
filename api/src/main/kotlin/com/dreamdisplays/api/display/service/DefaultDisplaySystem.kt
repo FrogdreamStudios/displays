@@ -16,7 +16,7 @@ import kotlin.time.Duration
 /**
  * Default implementation of [DisplaySystem].
  *
- * @since 1.8.4
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 class DefaultDisplaySystem(

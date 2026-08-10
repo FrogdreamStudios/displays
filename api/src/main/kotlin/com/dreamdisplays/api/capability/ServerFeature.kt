@@ -7,7 +7,7 @@ import com.dreamdisplays.api.util.wireEnumValueOfOrNull
 /**
  * Server capabilities advertised during negotiation; string tokens stay centralized in this enum.
  *
- * @since 1.8.4
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 enum class ServerFeature(override val wire: String) : WireEnum {

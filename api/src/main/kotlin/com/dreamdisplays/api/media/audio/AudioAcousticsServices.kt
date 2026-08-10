@@ -7,7 +7,7 @@ import com.dreamdisplays.api.runtime.registry.serviceKey
 /**
  * Acoustics service keys.
  *
- * @since 1.9.0
+ * @since 1.9.x
  */
 @DreamDisplaysUnstableApi
 object AudioAcousticsServices {

@@ -9,7 +9,7 @@ import com.dreamdisplays.media.source.platform.YtDlpMetadataFallback
  * Metadata cache for Kick channels and VODs, so a pasted Kick link shows a real title / thumbnail /
  * live badge without waiting for stream resolution. Keyed so a live channel and a VOD never collide.
  *
- * @since 1.9.0
+ * @since 1.9.x
  */
 object KickMetadataCache {
     private val cache = PlatformMetadataCache(

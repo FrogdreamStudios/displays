@@ -6,7 +6,7 @@ import com.dreamdisplays.api.media.common.VideoQuality
 /**
  * Represents the settings for a display.
  *
- * @since 1.0.0
+ * @since 1.0.x
  */
 @DreamDisplaysUnstableApi
 data class DisplaySettings(

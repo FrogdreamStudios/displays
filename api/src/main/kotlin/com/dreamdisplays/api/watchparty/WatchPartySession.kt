@@ -7,7 +7,7 @@ import com.dreamdisplays.api.playback.WatchPartySessionState
  * A live watch-party session over a display, as seen by the local client. Ephemeral, so it exists only
  * while a party is running. Drive it through [WatchPartyService].
  *
- * @since 1.8.0
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 data class WatchPartySession(

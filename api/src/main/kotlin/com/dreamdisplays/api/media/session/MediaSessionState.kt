@@ -6,7 +6,7 @@ import com.dreamdisplays.api.media.common.DreamMediaException
 /**
  * Lifecycle state of a media session, from idle / resolving through active playback and teardown.
  *
- * @since 1.8.0
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 sealed interface MediaSessionState {

@@ -9,7 +9,7 @@ import java.util.*
 /**
  * Display abstraction for [com.dreamdisplays.media.player.MediaPlayer]; platform-side implementation.
  *
- * @since 1.8.0
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 interface PlaybackHost {

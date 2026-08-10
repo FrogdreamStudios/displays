@@ -7,7 +7,7 @@ import java.util.*
 /**
  * A validated absolute HTTP(S) media URL.
  *
- * @since 1.8.4
+ * @since 1.8.x
  */
 @JvmInline
 @DreamDisplaysUnstableApi

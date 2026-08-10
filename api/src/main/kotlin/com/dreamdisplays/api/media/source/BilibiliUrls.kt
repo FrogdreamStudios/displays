@@ -7,7 +7,7 @@ import java.util.*
 /**
  * Recognizes and dissects Bilibili URLs (VODs, live rooms, `b23.tv` short links).
  *
- * @since 1.9.0
+ * @since 1.9.x
  */
 @DreamDisplaysUnstableApi
 object BilibiliUrls {

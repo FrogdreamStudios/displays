@@ -10,7 +10,7 @@ import com.dreamdisplays.api.watchparty.WatchPartyPort
 /**
  * Display system.
  *
- * @since 1.8.4
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 interface DisplaySystem :

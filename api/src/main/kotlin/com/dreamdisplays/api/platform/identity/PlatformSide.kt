@@ -6,7 +6,7 @@ import com.dreamdisplays.api.DreamDisplaysUnstableApi
  * Which logical side of the game a [Platform] runs on. Drives side-aware guards so common code can
  * ask "am I on the client?" without touching loader internals.
  *
- * @since 1.8.0
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 enum class PlatformSide {

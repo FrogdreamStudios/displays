@@ -6,7 +6,7 @@ import com.dreamdisplays.api.runtime.registry.ServiceRegistry
 /**
  * Entry point for services exposed to integrations and modules.
  *
- * @since 1.8.4
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 interface DreamDisplaysApi {

@@ -7,7 +7,7 @@ import com.dreamdisplays.api.util.wireEnumValueOf
 /**
  * Shader-pack integration currently controlling the world render pass.
  *
- * @since 1.8.4
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 enum class ShaderBackend(override val wire: String) : WireEnum {

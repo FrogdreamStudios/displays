@@ -9,7 +9,7 @@ import java.util.*
 /**
  * Canonical YouTube URL parsing and building.
  *
- * @since 1.0.0
+ * @since 1.0.x
  */
 @DreamDisplaysUnstableApi
 object YouTubeUrls {

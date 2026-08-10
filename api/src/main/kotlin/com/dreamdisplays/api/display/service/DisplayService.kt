@@ -9,7 +9,7 @@ import com.dreamdisplays.api.display.model.DisplaySettings
 /**
  * Public display registry and command surface; forwards mutations to the authoritative side.
  *
- * @since 1.8.0
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 interface DisplayService {

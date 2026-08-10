@@ -11,7 +11,7 @@ import kotlin.time.Duration
 /**
  * Dispatcher for display commands.
  *
- * @since 1.8.4
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 interface DisplayCommandExecutor {

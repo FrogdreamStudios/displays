@@ -7,7 +7,7 @@ import java.util.*
 /**
  * Persistence for per-display, client-local [ClientDisplaySettings].
  *
- * @since 1.8.4
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 interface ClientSettingsStorage {

@@ -7,7 +7,7 @@ import com.dreamdisplays.api.watchparty.WatchPartySession
 /**
  * Represents a display that can be rendered on the client.
  *
- * @since 1.0.0
+ * @since 1.0.x
  */
 @DreamDisplaysUnstableApi
 data class Display(

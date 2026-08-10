@@ -6,7 +6,7 @@ import java.nio.file.Path
 /**
  * Platform-resolved filesystem locations used by API consumers and shared modules.
  *
- * @since 1.8.0
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 interface PlatformPaths {

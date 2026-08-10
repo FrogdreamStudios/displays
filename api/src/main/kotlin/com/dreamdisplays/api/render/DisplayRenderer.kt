@@ -7,7 +7,7 @@ import com.dreamdisplays.api.render.backend.RenderSurface
 /**
  * Registry and dispatcher for display render surfaces in one render context.
  *
- * @since 1.8.0
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 interface DisplayRenderer {

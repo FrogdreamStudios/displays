@@ -7,7 +7,7 @@ import com.dreamdisplays.api.util.wireEnumValueOf
 /**
  * Video codecs the media pipeline recognizes and can advertise to servers.
  *
- * @since 1.8.4
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 enum class SupportedCodec(override val wire: String, private vararg val prefixes: String) : WireEnum {

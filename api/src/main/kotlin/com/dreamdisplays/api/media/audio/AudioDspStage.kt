@@ -5,7 +5,7 @@ import com.dreamdisplays.api.DreamDisplaysUnstableApi
 /**
  * Per-source audio DSP stage applied to S16LE PCM in place; one per playback source.
  *
- * @since 1.9.0
+ * @since 1.9.x
  */
 @DreamDisplaysUnstableApi
 interface AudioDspStage : AutoCloseable {

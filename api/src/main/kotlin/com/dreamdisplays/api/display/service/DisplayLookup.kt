@@ -8,7 +8,7 @@ import com.dreamdisplays.api.display.model.DisplayId
 /**
  * Display lookup service.
  *
- * @since 1.8.4
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 interface DisplayLookup {

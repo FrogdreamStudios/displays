@@ -7,7 +7,7 @@ import com.dreamdisplays.api.util.wireEnumValueOf
 /**
  * Stable ids for known platform adapters.
  *
- * @since 1.8.0
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 enum class PlatformId(override val wire: String) : WireEnum {

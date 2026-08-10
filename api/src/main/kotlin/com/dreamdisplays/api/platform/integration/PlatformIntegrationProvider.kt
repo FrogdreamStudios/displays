@@ -6,7 +6,7 @@ import com.dreamdisplays.api.platform.identity.Platform
 /**
  * Supplies the [Platform] adapter.
  *
- * @since 1.8.4
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 fun interface PlatformIntegrationProvider {

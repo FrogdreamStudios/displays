@@ -8,7 +8,7 @@ import com.dreamdisplays.api.runtime.registry.serviceKey
 /**
  * Storage service keys.
  *
- * @since 1.8.4
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 object StorageServices {

@@ -6,7 +6,7 @@ import com.dreamdisplays.api.media.stream.MediaStream
 /**
  * Fully resolved media: candidate streams plus metadata and timeline capabilities.
  *
- * @since 1.8.0
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 data class ResolvedMedia(

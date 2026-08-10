@@ -5,7 +5,7 @@ import com.dreamdisplays.api.DreamDisplaysUnstableApi
 /**
  * Typed exception hierarchy for media failures; every subclass carries [kind] and [isFatal].
  *
- * @since 1.8.0
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 sealed class DreamMediaException(

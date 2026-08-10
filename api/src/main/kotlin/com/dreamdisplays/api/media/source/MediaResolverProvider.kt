@@ -5,7 +5,7 @@ import com.dreamdisplays.api.DreamDisplaysUnstableApi
 /**
  * Supplies the ordered set of [MediaResolver]s a [MediaResolverRegistry] is assembled from.
  *
- * @since 1.8.4
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 fun interface MediaResolverProvider {

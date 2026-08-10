@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 /**
  * Facing direction of a display; [byte] is stable wire encoding (not ordinal-derived).
  *
- * @since 1.0.0
+ * @since 1.0.x
  */
 @DreamDisplaysUnstableApi
 @Serializable

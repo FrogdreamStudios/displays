@@ -6,7 +6,7 @@ import com.dreamdisplays.api.display.model.DisplayId
 /**
  * Watch party port.
  *
- * @since 1.8.4
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 interface WatchPartyPort {

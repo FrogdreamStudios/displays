@@ -6,7 +6,7 @@ import com.dreamdisplays.api.DreamDisplaysUnstableApi
  * What a [MediaStream] carries. Drives track selection: a video-only and an audio-only stream are
  * paired for playback, while a muxed [VIDEO_AUDIO] stream stands alone.
  *
- * @since 1.6.0
+ * @since 1.6.x
  */
 @DreamDisplaysUnstableApi
 enum class MediaStreamType {

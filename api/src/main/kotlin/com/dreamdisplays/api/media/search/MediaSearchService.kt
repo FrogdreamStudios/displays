@@ -5,7 +5,7 @@ import com.dreamdisplays.api.DreamDisplaysUnstableApi
 /**
  * Contract for YouTube search, related-video lookup, and video-ID extraction.
  *
- * @since 1.6.0
+ * @since 1.6.x
  */
 @DreamDisplaysUnstableApi
 interface MediaSearchService {

@@ -9,7 +9,7 @@ import kotlin.time.Duration
 /**
  * Playback port.
  *
- * @since 1.8.4
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 interface PlaybackPort {

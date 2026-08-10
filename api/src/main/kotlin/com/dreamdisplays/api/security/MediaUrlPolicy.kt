@@ -6,7 +6,7 @@ import com.dreamdisplays.api.media.search.YouTubeVideoId
 /**
  * Trust-boundary policy for client-supplied media URLs.
  *
- * @since 1.8.4
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 object MediaUrlPolicy {

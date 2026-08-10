@@ -8,7 +8,7 @@ import com.dreamdisplays.api.platform.capability.PlatformScheduler
 /**
  * Loader-neutral facts and services supplied by the active Minecraft platform adapter.
  *
- * @since 1.8.0
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 interface Platform {

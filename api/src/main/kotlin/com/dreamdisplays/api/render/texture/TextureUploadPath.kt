@@ -7,7 +7,7 @@ import com.dreamdisplays.api.util.wireEnumValueOf
 /**
  * Texture-upload path selected for the active render backend.
  *
- * @since 1.8.4
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 enum class TextureUploadPath(override val wire: String) : WireEnum {

@@ -6,7 +6,7 @@ import com.dreamdisplays.api.DreamDisplaysUnstableApi
  * Which service a [MediaSource] (or a search result) comes from, so the UI can badge it and pick
  * the right metadata path without a chain of `is` checks scattered across the client.
  *
- * @since 1.9.0
+ * @since 1.9.x
  */
 @DreamDisplaysUnstableApi
 enum class MediaPlatform {

@@ -6,7 +6,7 @@ import com.dreamdisplays.api.media.common.DreamMediaException
 /**
  * Represents the runtime state of a display.
  *
- * @since 1.8.0
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 sealed interface DisplayRuntimeState {

@@ -6,7 +6,7 @@ import com.dreamdisplays.api.media.sink.DecodedVideoFrame
 /**
  * Uploads decoded video frames into platform-owned textures.
  *
- * @since 1.8.0
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 interface TextureUploader : AutoCloseable {

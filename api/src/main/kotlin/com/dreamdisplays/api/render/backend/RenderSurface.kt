@@ -7,7 +7,7 @@ import com.dreamdisplays.api.render.texture.TextureHandle
 /**
  * Renderable display plane with its current texture and visibility state.
  *
- * @since 1.8.0
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 interface RenderSurface {
