@@ -1,13 +1,13 @@
 package com.dreamdisplays.api.media.audio
 
 import com.dreamdisplays.api.DreamDisplaysUnstableApi
-import com.dreamdisplays.api.runtime.ServiceKey
-import com.dreamdisplays.api.runtime.serviceKey
+import com.dreamdisplays.api.runtime.registry.ServiceKey
+import com.dreamdisplays.api.runtime.registry.serviceKey
 
 /**
  * Acoustics service keys.
  *
- * @since 1.9.0
+ * @since 1.9.x
  */
 @DreamDisplaysUnstableApi
 object AudioAcousticsServices {

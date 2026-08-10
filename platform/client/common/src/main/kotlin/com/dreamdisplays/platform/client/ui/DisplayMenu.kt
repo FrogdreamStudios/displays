@@ -5,8 +5,8 @@ import net.minecraft.client.input.MouseButtonEvent
 //?}
 import com.dreamdisplays.api.display.model.DisplayId
 import com.dreamdisplays.api.display.service.DisplayServices
-import com.dreamdisplays.api.media.MediaServices
-import com.dreamdisplays.api.media.VideoQuality
+import com.dreamdisplays.api.media.common.MediaServices
+import com.dreamdisplays.api.media.common.VideoQuality
 import com.dreamdisplays.api.media.audio.AcousticQuality
 import com.dreamdisplays.api.media.audio.AudioAcousticsServices
 import com.dreamdisplays.api.media.search.MediaSearchResult
@@ -14,7 +14,7 @@ import com.dreamdisplays.api.playback.FullscreenMode
 import com.dreamdisplays.api.playback.PlaybackAction
 import com.dreamdisplays.api.playback.PlaybackMode
 import com.dreamdisplays.api.playback.PlaybackServices
-import com.dreamdisplays.api.runtime.get
+import com.dreamdisplays.api.runtime.registry.get
 import com.dreamdisplays.api.watchparty.WatchPartyServices
 import com.dreamdisplays.media.source.ytdlp.VideoMetadataCache
 import com.dreamdisplays.media.source.ytdlp.VideoTitleCache

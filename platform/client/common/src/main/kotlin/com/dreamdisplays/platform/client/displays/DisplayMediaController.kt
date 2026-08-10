@@ -1,6 +1,6 @@
 package com.dreamdisplays.platform.client.displays
 
-import com.dreamdisplays.api.media.MediaServices
+import com.dreamdisplays.api.media.common.MediaServices
 import com.dreamdisplays.api.media.audio.AudioAcousticsServices
 import com.dreamdisplays.api.media.source.MediaSource
 import com.dreamdisplays.api.playback.PlaybackMode

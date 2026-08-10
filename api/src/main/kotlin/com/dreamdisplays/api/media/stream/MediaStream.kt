@@ -5,7 +5,7 @@ import com.dreamdisplays.api.DreamDisplaysUnstableApi
 /**
  * One playable media track or muxed stream produced by a resolver.
  *
- * @since 1.6.0
+ * @since 1.6.x
  */
 @DreamDisplaysUnstableApi
 data class MediaStream(

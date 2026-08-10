@@ -5,7 +5,7 @@ import com.dreamdisplays.api.DreamDisplaysUnstableApi
 /**
  * Runs a task on the platform's render thread (e.g. `Minecraft.getInstance().execute`).
  *
- * @since 1.8.0
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 fun interface RenderThreadExecutor {

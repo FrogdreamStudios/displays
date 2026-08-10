@@ -5,7 +5,7 @@ import com.dreamdisplays.api.DreamDisplaysUnstableApi
 /**
  * Acoustics rendering tier, from fully disabled to the highest-fidelity HRIR-based chain.
  *
- * @since 1.9.0
+ * @since 1.9.x
  */
 @DreamDisplaysUnstableApi
 enum class AcousticQuality {

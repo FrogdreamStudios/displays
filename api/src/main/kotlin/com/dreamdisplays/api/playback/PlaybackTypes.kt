@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
  * How a display drives its playback timeline. This protocol-v2 enum travels on the wire as its
  * [ordinal] int ([wire] / [fromWire]); ordinals are append-only - never reorder or remove an entry.
  *
- * @since 1.8.0
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 @Serializable

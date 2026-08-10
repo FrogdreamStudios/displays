@@ -10,7 +10,7 @@ import com.dreamdisplays.media.source.platform.YtDlpMetadataFallback
  * thumbnail / live badge without waiting for stream resolution. Keyed so a VOD, its parts, and a
  * live room never collide.
  *
- * @since 1.9.0
+ * @since 1.9.x
  */
 object BilibiliMetadataCache {
     private val cache = PlatformMetadataCache(

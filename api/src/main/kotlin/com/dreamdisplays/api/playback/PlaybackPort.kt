@@ -3,13 +3,13 @@ package com.dreamdisplays.api.playback
 import com.dreamdisplays.api.DreamDisplaysUnstableApi
 import com.dreamdisplays.api.display.model.DisplayId
 import com.dreamdisplays.api.display.model.DisplayRuntimeState
-import com.dreamdisplays.api.media.VideoQuality
+import com.dreamdisplays.api.media.common.VideoQuality
 import kotlin.time.Duration
 
 /**
  * Playback port.
  *
- * @since 1.8.4
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 interface PlaybackPort {

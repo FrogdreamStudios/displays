@@ -1,6 +1,6 @@
 package com.dreamdisplays.platform.client.ui.widgets
 
-import com.dreamdisplays.api.media.MediaServices
+import com.dreamdisplays.api.media.common.MediaServices
 import com.dreamdisplays.api.media.search.MediaSearchResult
 import com.dreamdisplays.api.media.search.YouTubeUrls
 import com.dreamdisplays.api.media.source.CustomMediaUrls

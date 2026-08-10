@@ -5,12 +5,12 @@ import com.dreamdisplays.api.display.model.Display
 import com.dreamdisplays.api.display.model.DisplayId
 import com.dreamdisplays.api.display.model.DisplayRuntimeState
 import com.dreamdisplays.api.display.model.DisplaySettings
-import com.dreamdisplays.api.media.DreamMediaException
+import com.dreamdisplays.api.media.common.DreamMediaException
 
 /**
  * Represents an event that occurred on a display.
  *
- * @since 1.8.0
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 sealed interface DisplayEvent {

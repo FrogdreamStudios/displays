@@ -6,7 +6,7 @@ import com.dreamdisplays.api.DreamDisplaysUnstableApi
  * The direction a packet is allowed to travel. Registry metadata used for send-side
  * validation; never serialized.
  *
- * @since 1.8.4
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 enum class PacketDirection {

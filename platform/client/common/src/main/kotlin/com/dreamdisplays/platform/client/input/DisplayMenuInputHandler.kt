@@ -1,6 +1,6 @@
 package com.dreamdisplays.platform.client.input
 
-import com.dreamdisplays.api.runtime.getOrNull
+import com.dreamdisplays.api.runtime.registry.getOrNull
 import com.dreamdisplays.platform.client.core.DreamServices
 import com.dreamdisplays.platform.client.displays.DisplayRegistry
 import com.dreamdisplays.platform.client.ui.DisplayMenu

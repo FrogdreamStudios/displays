@@ -3,10 +3,10 @@ package com.dreamdisplays.platform.client.core.modules
 import com.dreamdisplays.api.display.service.DisplayServices
 import com.dreamdisplays.api.playback.PlaybackPort
 import com.dreamdisplays.api.playback.PlaybackServices
-import com.dreamdisplays.api.runtime.DreamDisplaysModule
-import com.dreamdisplays.api.runtime.ModuleContext
-import com.dreamdisplays.api.runtime.get
-import com.dreamdisplays.api.runtime.register
+import com.dreamdisplays.api.runtime.module.DreamDisplaysModule
+import com.dreamdisplays.api.runtime.module.ModuleContext
+import com.dreamdisplays.api.runtime.registry.get
+import com.dreamdisplays.api.runtime.registry.register
 import com.dreamdisplays.api.watchparty.WatchPartyPort
 import com.dreamdisplays.api.watchparty.WatchPartyServices
 import com.dreamdisplays.core.playback.DefaultPlaybackService

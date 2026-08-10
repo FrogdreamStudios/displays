@@ -1,6 +1,6 @@
 package com.dreamdisplays.platform.server.storage
 
-import com.dreamdisplays.api.storage.FullscreenSessionRecord
+import com.dreamdisplays.api.playback.FullscreenSessionRecord
 import com.dreamdisplays.util.json.JsonFileStore
 import kotlinx.serialization.builtins.ListSerializer
 import org.slf4j.LoggerFactory

@@ -1,12 +1,12 @@
 package com.dreamdisplays.api.display.model
 
 import com.dreamdisplays.api.DreamDisplaysUnstableApi
-import com.dreamdisplays.api.media.VideoQuality
+import com.dreamdisplays.api.media.common.VideoQuality
 
 /**
  * Represents the settings for a display.
  *
- * @since 1.0.0
+ * @since 1.0.x
  */
 @DreamDisplaysUnstableApi
 data class DisplaySettings(

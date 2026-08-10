@@ -4,14 +4,14 @@ import com.dreamdisplays.api.DreamDisplaysUnstableApi
 import com.dreamdisplays.api.display.model.Display
 import com.dreamdisplays.api.display.model.DisplayId
 import com.dreamdisplays.api.display.model.DisplaySettings
-import com.dreamdisplays.api.media.VideoQuality
+import com.dreamdisplays.api.media.common.VideoQuality
 import com.dreamdisplays.api.playback.PlaybackMode
 import kotlin.time.Duration
 
 /**
  * Dispatcher for display commands.
  *
- * @since 1.8.4
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 interface DisplayCommandExecutor {

@@ -3,14 +3,14 @@ package com.dreamdisplays.api.playback
 import com.dreamdisplays.api.DreamDisplaysUnstableApi
 import com.dreamdisplays.api.display.model.DisplayId
 import com.dreamdisplays.api.display.model.DisplayRuntimeState
-import com.dreamdisplays.api.media.VideoQuality
+import com.dreamdisplays.api.media.common.VideoQuality
 import kotlin.time.Duration
 
 /**
  * Public playback command surface for displays. Calls are requests: server-authoritative modes
  * validate permissions before broadcasting new state, while local mode updates the client session.
  *
- * @since 1.8.0
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 interface PlaybackService {

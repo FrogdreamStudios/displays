@@ -3,7 +3,7 @@ package com.dreamdisplays.platform.client.popout
 import com.dreamdisplays.api.display.model.DisplayId
 import com.dreamdisplays.api.media.sink.VideoFrameSink
 import com.dreamdisplays.api.playback.FullscreenMode
-import com.dreamdisplays.api.runtime.getOrNull
+import com.dreamdisplays.api.runtime.registry.getOrNull
 import com.dreamdisplays.core.protocol.PipPin
 import com.dreamdisplays.platform.client.Initializer
 import com.dreamdisplays.platform.client.core.DreamServices

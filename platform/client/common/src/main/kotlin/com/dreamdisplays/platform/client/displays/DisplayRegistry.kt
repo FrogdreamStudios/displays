@@ -3,9 +3,9 @@ package com.dreamdisplays.platform.client.displays
 import com.dreamdisplays.api.display.event.DisplayEvent
 import com.dreamdisplays.api.display.model.DisplayId
 import com.dreamdisplays.api.display.service.DisplaySystem
-import com.dreamdisplays.api.media.VideoQuality
+import com.dreamdisplays.api.media.common.VideoQuality
 import com.dreamdisplays.api.media.audio.AudioAcousticsServices
-import com.dreamdisplays.api.runtime.getOrNull
+import com.dreamdisplays.api.runtime.registry.getOrNull
 import com.dreamdisplays.api.storage.FullDisplayData
 import com.dreamdisplays.core.storage.DisplayStorage
 import com.dreamdisplays.platform.client.core.DreamServices

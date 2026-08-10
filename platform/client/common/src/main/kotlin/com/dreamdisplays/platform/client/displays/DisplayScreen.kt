@@ -11,12 +11,12 @@ import net.minecraft.resources.Identifier
 import com.dreamdisplays.api.capability.ServerFeature
 import com.dreamdisplays.api.display.model.ContentRotation
 import com.dreamdisplays.api.display.model.DisplayFacing
-import com.dreamdisplays.api.media.DreamMediaException
-import com.dreamdisplays.api.media.VideoQuality
+import com.dreamdisplays.api.media.common.DreamMediaException
+import com.dreamdisplays.api.media.common.VideoQuality
 import com.dreamdisplays.api.media.audio.*
 import com.dreamdisplays.api.media.stream.MediaStream
 import com.dreamdisplays.api.playback.*
-import com.dreamdisplays.api.storage.ClientDisplaySettings
+import com.dreamdisplays.api.display.model.ClientDisplaySettings
 import com.dreamdisplays.api.watchparty.WatchPartySession
 import com.dreamdisplays.core.protocol.*
 import com.dreamdisplays.media.player.MediaPlayer

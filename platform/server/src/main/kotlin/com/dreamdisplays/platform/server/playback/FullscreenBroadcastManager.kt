@@ -5,7 +5,7 @@ import com.dreamdisplays.api.playback.FullscreenAckAction
 import com.dreamdisplays.api.playback.FullscreenMode
 import com.dreamdisplays.api.playback.PlaybackMode
 import com.dreamdisplays.api.playback.Timeline
-import com.dreamdisplays.api.storage.FullscreenSessionRecord
+import com.dreamdisplays.api.playback.FullscreenSessionRecord
 import com.dreamdisplays.core.protocol.DisplayDelete
 import com.dreamdisplays.core.protocol.FullscreenState
 import com.dreamdisplays.core.protocol.toSync

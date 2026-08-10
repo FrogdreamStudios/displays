@@ -12,7 +12,7 @@ import java.util.*
 /**
  * JSON-friendly UUID serializer used by persisted settings and display snapshots.
  *
- * @since 1.8.4
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 object UuidStringSerializer : KSerializer<UUID> {

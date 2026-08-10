@@ -7,7 +7,7 @@ import java.util.*
 /**
  * Recognizes and dissects Vimeo URLs, extracting video id and optional unlisted-video hash.
  *
- * @since 1.9.0
+ * @since 1.9.x
  */
 @DreamDisplaysUnstableApi
 object VimeoUrls {

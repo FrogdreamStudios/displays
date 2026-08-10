@@ -6,7 +6,7 @@ import com.dreamdisplays.api.media.source.MediaPlatform
 /**
  * Describes a single video returned by a search or related-video query.
  *
- * @since 1.6.0
+ * @since 1.6.x
  */
 @DreamDisplaysUnstableApi
 data class MediaSearchResult(

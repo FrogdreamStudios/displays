@@ -5,7 +5,7 @@ import com.dreamdisplays.api.DreamDisplaysUnstableApi
 /**
  * Content texture rotation in quarter turns; enum centralizes the `0..3` contract.
  *
- * @since 1.8.4
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 enum class ContentRotation(val quarterTurns: Int) {

@@ -1,9 +1,9 @@
 package com.dreamdisplays.platform.client.render
 
 import com.dreamdisplays.api.render.DisplayRenderer
-import com.dreamdisplays.api.render.RenderContext
+import com.dreamdisplays.api.render.backend.RenderContext
 import com.dreamdisplays.api.render.RenderStats
-import com.dreamdisplays.api.render.RenderSurface
+import com.dreamdisplays.api.render.backend.RenderSurface
 import java.util.concurrent.CopyOnWriteArrayList
 
 /** Default [DisplayRenderer]: orchestrator for externally registered, self-rendering [RenderSurface]s. */

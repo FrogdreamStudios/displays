@@ -6,7 +6,7 @@ import com.dreamdisplays.api.DreamDisplaysUnstableApi
  * Strategy for handling decoded frames that arrive faster than they can be uploaded, i.e. how a
  * render surface trades latency against smoothness when its frame queue backs up.
  *
- * @since 1.8.0
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 enum class FrameDropPolicy {

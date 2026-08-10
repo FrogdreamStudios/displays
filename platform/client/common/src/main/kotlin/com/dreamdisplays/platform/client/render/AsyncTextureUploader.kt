@@ -5,8 +5,8 @@ import com.mojang.blaze3d.opengl.GlStateManager
 //?} else
 /*import com.mojang.blaze3d.platform.GlStateManager*/
 import com.dreamdisplays.api.media.sink.DecodedVideoFrame
-import com.dreamdisplays.api.render.TextureHandle
-import com.dreamdisplays.api.render.TextureUploader
+import com.dreamdisplays.api.render.texture.TextureHandle
+import com.dreamdisplays.api.render.texture.TextureUploader
 import com.dreamdisplays.platform.client.render.AsyncTextureUploader.Companion.PBO_COUNT
 import org.lwjgl.opengl.*
 import org.lwjgl.system.MemoryUtil

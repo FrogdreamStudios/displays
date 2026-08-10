@@ -1,14 +1,14 @@
 package com.dreamdisplays.api.media.session
 
 import com.dreamdisplays.api.DreamDisplaysUnstableApi
-import com.dreamdisplays.api.media.DreamMediaException
+import com.dreamdisplays.api.media.common.DreamMediaException
 import com.dreamdisplays.api.media.source.MediaMetadata
 import kotlin.time.Duration
 
 /**
  * Events emitted by a [MediaSession] as its state, timeline, and metadata change.
  *
- * @since 1.8.0
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 sealed interface MediaSessionEvent {

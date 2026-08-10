@@ -8,7 +8,7 @@ import java.util.*
 /**
  * User-provided media locator before resolver-specific stream extraction.
  *
- * @since 1.8.0
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 sealed interface MediaSource {

@@ -6,7 +6,7 @@ import java.util.*
 /**
  * A client-supplied language tag after trust-boundary cleanup.
  *
- * @since 1.8.4
+ * @since 1.8.x
  */
 @JvmInline
 @DreamDisplaysUnstableApi

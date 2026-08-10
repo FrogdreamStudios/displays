@@ -5,7 +5,7 @@ import com.dreamdisplays.api.DreamDisplaysUnstableApi
 /**
  * A validated 11-character YouTube video id.
  *
- * @since 1.8.4
+ * @since 1.8.x
  */
 @JvmInline
 @DreamDisplaysUnstableApi

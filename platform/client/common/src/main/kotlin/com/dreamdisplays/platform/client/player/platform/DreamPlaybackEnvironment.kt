@@ -1,10 +1,10 @@
 package com.dreamdisplays.platform.client.player.platform
 
-import com.dreamdisplays.api.media.MediaServices
+import com.dreamdisplays.api.media.common.MediaServices
 import com.dreamdisplays.api.media.player.*
 import com.dreamdisplays.api.media.source.MediaResolverRegistry
 import com.dreamdisplays.api.media.stream.StreamSelector
-import com.dreamdisplays.api.runtime.get
+import com.dreamdisplays.api.runtime.registry.get
 import com.dreamdisplays.media.player.MediaPlayer
 import com.dreamdisplays.media.source.bilibili.BilibiliResolver
 import com.dreamdisplays.media.source.direct.DirectStreamResolver

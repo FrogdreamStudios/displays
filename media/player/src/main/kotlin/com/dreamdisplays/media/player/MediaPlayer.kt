@@ -1,8 +1,8 @@
 package com.dreamdisplays.media.player
 
-import com.dreamdisplays.api.media.DreamMediaException
-import com.dreamdisplays.api.media.FramePixelFormat
-import com.dreamdisplays.api.media.VideoQuality
+import com.dreamdisplays.api.media.common.DreamMediaException
+import com.dreamdisplays.api.media.common.FramePixelFormat
+import com.dreamdisplays.api.media.common.VideoQuality
 import com.dreamdisplays.api.media.audio.AudioDspStage
 import com.dreamdisplays.api.media.player.GpuTextureRef
 import com.dreamdisplays.api.media.player.PlaybackEnvironment

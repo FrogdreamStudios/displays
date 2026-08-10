@@ -1,6 +1,6 @@
 package com.dreamdisplays.media.source.direct
 
-import com.dreamdisplays.api.media.DreamMediaException
+import com.dreamdisplays.api.media.common.DreamMediaException
 import com.dreamdisplays.api.media.source.*
 import com.dreamdisplays.api.media.stream.MediaStream
 import com.dreamdisplays.api.media.stream.MediaStreamType

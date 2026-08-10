@@ -6,7 +6,7 @@ import java.util.*
 /**
  * Owns acoustic source registry and per-source DSP chains; [registerSource] is idempotent.
  *
- * @since 1.9.0
+ * @since 1.9.x
  */
 @DreamDisplaysUnstableApi
 interface AudioAcousticsService {

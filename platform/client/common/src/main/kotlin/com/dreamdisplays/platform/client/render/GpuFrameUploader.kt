@@ -2,7 +2,7 @@ package com.dreamdisplays.platform.client.render
 
 //? if >=1.21.11 {
 //?}
-import com.dreamdisplays.api.media.FramePixelFormat
+import com.dreamdisplays.api.media.common.FramePixelFormat
 import com.dreamdisplays.api.media.player.FrameUploader
 import com.dreamdisplays.api.media.player.GpuTextureRef
 import net.minecraft.client.Minecraft

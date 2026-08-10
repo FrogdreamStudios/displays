@@ -1,8 +1,8 @@
 package com.dreamdisplays.platform.client.core.modules
 
-import com.dreamdisplays.api.runtime.DreamDisplaysModule
-import com.dreamdisplays.api.runtime.ModuleContext
-import com.dreamdisplays.api.runtime.register
+import com.dreamdisplays.api.runtime.module.DreamDisplaysModule
+import com.dreamdisplays.api.runtime.module.ModuleContext
+import com.dreamdisplays.api.runtime.registry.register
 import com.dreamdisplays.platform.client.input.*
 
 /** Installs display interaction, key binding, and input dispatch services. */

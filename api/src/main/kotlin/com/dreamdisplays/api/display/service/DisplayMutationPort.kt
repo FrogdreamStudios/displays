@@ -7,7 +7,7 @@ import com.dreamdisplays.api.display.model.DisplaySettings
 /**
  * Display mutation port.
  *
- * @since 1.8.4
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 interface DisplayMutationPort {

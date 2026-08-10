@@ -1,15 +1,15 @@
 package com.dreamdisplays.api.media.player
 
 import com.dreamdisplays.api.DreamDisplaysUnstableApi
-import com.dreamdisplays.api.media.DreamMediaException
-import com.dreamdisplays.api.media.VideoQuality
+import com.dreamdisplays.api.media.common.DreamMediaException
+import com.dreamdisplays.api.media.common.VideoQuality
 import com.dreamdisplays.api.playback.PlaybackMode
 import java.util.*
 
 /**
  * Display abstraction for [com.dreamdisplays.media.player.MediaPlayer]; platform-side implementation.
  *
- * @since 1.8.0
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 interface PlaybackHost {

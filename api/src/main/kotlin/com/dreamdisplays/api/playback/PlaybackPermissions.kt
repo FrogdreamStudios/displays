@@ -6,7 +6,7 @@ import com.dreamdisplays.api.playback.PlaybackMode.*
 /**
  * Inputs the permission rules need.
  *
- * @since 1.8.4
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 data class PlaybackContext(
@@ -21,7 +21,7 @@ data class PlaybackContext(
 /**
  * The single source of truth for who may do what in each [PlaybackMode].
  *
- * @since 1.8.4
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 object PlaybackPermissions {

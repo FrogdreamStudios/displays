@@ -1,13 +1,13 @@
 package com.dreamdisplays.api.media.player
 
 import com.dreamdisplays.api.DreamDisplaysUnstableApi
-import com.dreamdisplays.api.media.FramePixelFormat
+import com.dreamdisplays.api.media.common.FramePixelFormat
 import java.nio.ByteBuffer
 
 /**
  * Render-thread sink that uploads decoded frames into GPU textures (one per decode channel).
  *
- * @since 1.8.0
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 interface FrameUploader {

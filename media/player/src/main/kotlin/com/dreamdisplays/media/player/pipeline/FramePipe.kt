@@ -1,6 +1,6 @@
 package com.dreamdisplays.media.player.pipeline
 
-import com.dreamdisplays.api.media.FramePixelFormat
+import com.dreamdisplays.api.media.common.FramePixelFormat
 import com.dreamdisplays.api.media.player.GpuTextureRef
 import org.slf4j.LoggerFactory
 import java.nio.ByteBuffer

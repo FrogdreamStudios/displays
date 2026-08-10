@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
  * Visual sub-mode of the fullscreen overlay. Travels on the wire as its [ordinal] int
  * ([wire] / [fromWire]); ordinals are append-only - never reorder or remove an entry.
  *
- * @since 1.9.0
+ * @since 1.9.x
  */
 @DreamDisplaysUnstableApi
 @Serializable
@@ -35,7 +35,7 @@ enum class FullscreenMode {
  * Client acknowledgement of a fullscreen-broadcast transition (see `FullscreenAck`). Travels on
  * the wire as its [ordinal] int; ordinals are append-only.
  *
- * @since 1.9.0
+ * @since 1.9.x
  */
 @DreamDisplaysUnstableApi
 enum class FullscreenAckAction {

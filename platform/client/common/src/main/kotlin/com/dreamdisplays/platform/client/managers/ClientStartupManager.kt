@@ -1,8 +1,8 @@
 package com.dreamdisplays.platform.client.managers
 
-import com.dreamdisplays.api.platform.PlatformServices
-import com.dreamdisplays.api.runtime.DreamDisplaysModule
-import com.dreamdisplays.api.runtime.register
+import com.dreamdisplays.api.platform.integration.PlatformServices
+import com.dreamdisplays.api.runtime.module.DreamDisplaysModule
+import com.dreamdisplays.api.runtime.registry.register
 import com.dreamdisplays.media.player.nativebridge.NativeMedia
 import com.dreamdisplays.media.player.process.FFmpegBinary
 import com.dreamdisplays.media.source.ytdlp.FormatDiskCache

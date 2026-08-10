@@ -7,7 +7,7 @@ import java.util.*
 /**
  * Recognizes and dissects Kick URLs (live channels, VODs, direct videos).
  *
- * @since 1.9.0
+ * @since 1.9.x
  */
 @DreamDisplaysUnstableApi
 object KickUrls {

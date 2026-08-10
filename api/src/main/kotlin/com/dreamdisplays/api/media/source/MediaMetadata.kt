@@ -6,7 +6,7 @@ import kotlin.time.Duration
 /**
  * Metadata resolved for a media item. Fields are nullable because providers expose different facts.
  *
- * @since 1.8.0
+ * @since 1.8.x
  */
 @DreamDisplaysUnstableApi
 data class MediaMetadata(

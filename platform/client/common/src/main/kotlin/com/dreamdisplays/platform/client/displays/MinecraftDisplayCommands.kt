@@ -4,7 +4,7 @@ import com.dreamdisplays.api.display.model.Display
 import com.dreamdisplays.api.display.model.DisplayId
 import com.dreamdisplays.api.display.model.DisplaySettings
 import com.dreamdisplays.api.display.service.DisplayCommandExecutor
-import com.dreamdisplays.api.media.VideoQuality
+import com.dreamdisplays.api.media.common.VideoQuality
 import com.dreamdisplays.api.playback.PlaybackMode
 import com.dreamdisplays.core.protocol.DisplayDelete
 import com.dreamdisplays.core.protocol.ReportDisplay

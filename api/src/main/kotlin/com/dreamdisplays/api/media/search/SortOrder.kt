@@ -5,7 +5,7 @@ import com.dreamdisplays.api.DreamDisplaysUnstableApi
 /**
  * YouTube search ordering via base64 InnerTube `params` ("sp" field); RELEVANCE omits it.
  *
- * @since 1.9.0
+ * @since 1.9.x
  */
 @DreamDisplaysUnstableApi
 enum class SortOrder(val spParam: String?) {
