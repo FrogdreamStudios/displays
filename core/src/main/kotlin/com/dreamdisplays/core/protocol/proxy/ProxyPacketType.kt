@@ -1,9 +1,33 @@
 package com.dreamdisplays.core.protocol.proxy
 
+import com.dreamdisplays.core.protocol.proxy.packets.ApplyFullscreen
+import com.dreamdisplays.core.protocol.proxy.packets.ApplyNetworkWatchParty
+import com.dreamdisplays.core.protocol.proxy.packets.BackendDisplayIndex
+import com.dreamdisplays.core.protocol.proxy.packets.BackendHello
+import com.dreamdisplays.core.protocol.proxy.packets.ClockProbe
+import com.dreamdisplays.core.protocol.proxy.packets.ClockReply
+import com.dreamdisplays.core.protocol.proxy.packets.CloseNetworkWatchParty
+import com.dreamdisplays.core.protocol.proxy.packets.DisplayTokenResolved
+import com.dreamdisplays.core.protocol.proxy.packets.JoinNetworkWatchParty
+import com.dreamdisplays.core.protocol.proxy.packets.ListNetworkSessions
+import com.dreamdisplays.core.protocol.proxy.packets.NetworkFullscreenAck
+import com.dreamdisplays.core.protocol.proxy.packets.NetworkSessionList
+import com.dreamdisplays.core.protocol.proxy.packets.NetworkWatchPartyState
+import com.dreamdisplays.core.protocol.proxy.packets.PlayerFullscreenMinimized
+import com.dreamdisplays.core.protocol.proxy.packets.PlayerLeftNetwork
+import com.dreamdisplays.core.protocol.proxy.packets.PlayerReady
+import com.dreamdisplays.core.protocol.proxy.packets.PlayerTransferring
+import com.dreamdisplays.core.protocol.proxy.packets.ProxyPacket
+import com.dreamdisplays.core.protocol.proxy.packets.ProxyWelcome
+import com.dreamdisplays.core.protocol.proxy.packets.ReplayForPlayer
+import com.dreamdisplays.core.protocol.proxy.packets.ResolveDisplayToken
+import com.dreamdisplays.core.protocol.proxy.packets.StartNetworkFullscreen
+import com.dreamdisplays.core.protocol.proxy.packets.StartNetworkWatchParty
+import com.dreamdisplays.core.protocol.proxy.packets.StopNetworkFullscreen
 import kotlin.reflect.KClass
 
 /**
- * Append-only `dreamdisplays:proxy` packet type ids (disjoint from ProtocolPacketType).
+ * Append-only `dreamdisplays:proxy` packet type ids (disjoint from `PacketType`).
  * Wire-protocol stable; never reuse or renumber, only append.
  */
 enum class ProxyPacketType(

@@ -1,5 +1,6 @@
 package com.dreamdisplays.core.runtime
 
+import com.dreamdisplays.api.runtime.module.ModuleContext
 import com.dreamdisplays.api.runtime.registry.ServiceKey
 import com.dreamdisplays.api.runtime.registry.ServiceRegistry
 import java.util.concurrent.ConcurrentHashMap
@@ -20,3 +21,8 @@ class DefaultServiceRegistry : ServiceRegistry {
     override fun <T : Any> getOrNull(key: ServiceKey<T>): T? =
         instances[key]?.let(key.type::cast)
 }
+
+/** Default [ModuleContext] backed by a [ServiceRegistry]. */
+class DefaultModuleContext(
+    override val services: ServiceRegistry,
+) : ModuleContext

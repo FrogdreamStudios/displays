@@ -2,10 +2,10 @@ package com.dreamdisplays.platform.server.utils.net
 
 import com.dreamdisplays.api.display.model.ContentRotation
 import com.dreamdisplays.api.playback.PlaybackMode
-import com.dreamdisplays.core.protocol.ClearCache
-import com.dreamdisplays.core.protocol.DisplayDelete
-import com.dreamdisplays.core.protocol.DisplayInfo
-import com.dreamdisplays.core.protocol.SetDisplaysEnabled
+import com.dreamdisplays.core.protocol.packets.ClearCache
+import com.dreamdisplays.core.protocol.packets.DisplayDelete
+import com.dreamdisplays.core.protocol.packets.DisplayInfo
+import com.dreamdisplays.core.protocol.packets.SetDisplaysEnabled
 import com.dreamdisplays.platform.server.PaperServer
 import com.dreamdisplays.platform.server.datatypes.sync.SyncData
 import com.dreamdisplays.platform.server.managers.PlayerManager

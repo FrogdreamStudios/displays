@@ -7,8 +7,8 @@ import com.dreamdisplays.api.media.common.VideoQuality
 import com.dreamdisplays.api.media.source.MediaSource
 import com.dreamdisplays.api.playback.PlaybackMode
 import com.dreamdisplays.api.storage.FullDisplayData
-import com.dreamdisplays.core.protocol.DisplayInfo
-import com.dreamdisplays.core.storage.DisplayStorage
+import com.dreamdisplays.core.protocol.packets.DisplayInfo
+import com.dreamdisplays.core.services.DisplayStorage
 import com.dreamdisplays.platform.client.core.DreamServices
 import com.dreamdisplays.platform.client.displays.DisplayRegistry
 import com.dreamdisplays.platform.client.displays.DisplayScreen

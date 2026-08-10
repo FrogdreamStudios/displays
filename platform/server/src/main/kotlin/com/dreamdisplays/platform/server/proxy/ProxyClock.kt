@@ -1,6 +1,6 @@
 package com.dreamdisplays.platform.server.proxy
 
-import com.dreamdisplays.core.protocol.proxy.ClockReply
+import com.dreamdisplays.core.protocol.proxy.packets.ClockReply
 import java.util.concurrent.atomic.AtomicLong
 
 /** Tracks the NTP-style clock offset between this backend and the proxy via sampled RTT measurements. */

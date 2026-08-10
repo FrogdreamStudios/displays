@@ -1,7 +1,7 @@
 package com.dreamdisplays.platform.server.storage
 
 import com.dreamdisplays.api.storage.FullDisplayData
-import com.dreamdisplays.core.storage.DisplayStorage
+import com.dreamdisplays.core.services.DisplayStorage
 import com.dreamdisplays.util.json.JsonFileStore
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer

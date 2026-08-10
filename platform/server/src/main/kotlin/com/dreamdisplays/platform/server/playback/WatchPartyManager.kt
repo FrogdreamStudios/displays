@@ -5,8 +5,8 @@ import com.dreamdisplays.api.playback.Timeline
 import com.dreamdisplays.api.playback.WatchPartyAction
 import com.dreamdisplays.api.playback.WatchPartySessionState
 import com.dreamdisplays.api.playback.WatchPartySessionState.*
-import com.dreamdisplays.core.protocol.DisplayDelete
-import com.dreamdisplays.core.protocol.WatchPartyState
+import com.dreamdisplays.core.protocol.packets.DisplayDelete
+import com.dreamdisplays.core.protocol.packets.WatchPartyState
 import com.dreamdisplays.platform.server.datatypes.display.DisplayData
 import com.dreamdisplays.platform.server.managers.ActionThrottle
 import com.dreamdisplays.platform.server.managers.DisplayManager
@@ -118,7 +118,7 @@ object WatchPartyManager {
             if (senderId !in nearbyIds(session)) return false
             if (action == WatchPartyAction.READY) {
                 session.ready.add(senderId)
-                // The host signalling ready while preparing opens the ready-check
+                // The host signaling ready while preparing opens the ready-check
                 if (session.state == PREPARING && senderId == session.hostId) session.state = WAITING
             } else {
                 session.ready.remove(senderId)
@@ -202,7 +202,7 @@ object WatchPartyManager {
     }
 
     /** Forwards an already-built wire packet straight to [playerId] — used by the follower relay to pass through relayed state and teardown. */
-    fun sendToMember(playerId: UUID, packet: com.dreamdisplays.core.protocol.DreamPacket) {
+    fun sendToMember(playerId: UUID, packet: com.dreamdisplays.core.protocol.packets.DreamPacket) {
         transport.sendTo(playerId, packet)
     }
 

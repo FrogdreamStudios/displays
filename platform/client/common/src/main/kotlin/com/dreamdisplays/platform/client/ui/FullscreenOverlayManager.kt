@@ -2,7 +2,7 @@ package com.dreamdisplays.platform.client.ui
 
 import com.dreamdisplays.api.playback.FullscreenAckAction
 import com.dreamdisplays.api.playback.FullscreenMode
-import com.dreamdisplays.core.protocol.FullscreenAck
+import com.dreamdisplays.core.protocol.packets.FullscreenAck
 import com.dreamdisplays.platform.client.displays.DisplayScreen
 import com.dreamdisplays.platform.client.net.ProtocolRouter
 import com.dreamdisplays.platform.client.utils.MinecraftScreenUtil

@@ -9,8 +9,8 @@ import com.dreamdisplays.api.runtime.registry.get
 import com.dreamdisplays.api.runtime.registry.register
 import com.dreamdisplays.api.watchparty.WatchPartyPort
 import com.dreamdisplays.api.watchparty.WatchPartyServices
-import com.dreamdisplays.core.playback.DefaultPlaybackService
-import com.dreamdisplays.core.watchparty.DefaultWatchPartyService
+import com.dreamdisplays.core.services.DefaultPlaybackService
+import com.dreamdisplays.core.services.DefaultWatchPartyService
 import com.dreamdisplays.media.runtime.DefaultMediaSessionManager
 import com.dreamdisplays.media.runtime.MediaSessionManager
 

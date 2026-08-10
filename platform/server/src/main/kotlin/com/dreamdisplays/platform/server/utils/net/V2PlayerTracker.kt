@@ -1,6 +1,6 @@
 package com.dreamdisplays.platform.server.utils.net
 
-import com.dreamdisplays.core.protocol.ClientHello
+import com.dreamdisplays.core.protocol.packets.ClientHello
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 

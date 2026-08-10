@@ -1,8 +1,8 @@
 package com.dreamdisplays.platform.proxy
 
-import com.dreamdisplays.core.protocol.proxy.ApplyFullscreen
-import com.dreamdisplays.core.protocol.proxy.NetworkSessionInfo
-import com.dreamdisplays.core.protocol.proxy.StartNetworkFullscreen
+import com.dreamdisplays.core.protocol.proxy.packets.ApplyFullscreen
+import com.dreamdisplays.core.protocol.proxy.packets.NetworkSessionInfo
+import com.dreamdisplays.core.protocol.proxy.packets.StartNetworkFullscreen
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
@@ -98,14 +98,14 @@ object NetworkFullscreenManager {
         sessions[sessionId]?.pendingServers?.addAll(servers)
     }
 
-    /** Records a backend's [NetworkFullscreenAck][com.dreamdisplays.core.protocol.proxy.NetworkFullscreenAck]. */
+    /** Records a backend's [NetworkFullscreenAck][com.dreamdisplays.core.protocol.proxy.packets.NetworkFullscreenAck]. */
     fun onAck(sessionId: String, serverName: String, reach: Int, pending: Boolean) {
         val session = sessions[sessionId] ?: return
         session.reach[serverName] = reach
         if (pending) session.pendingServers.add(serverName) else session.pendingServers.remove(serverName)
     }
 
-    /** Live sessions still owed a retry on [serverName] — called on a [PlayerReady][com.dreamdisplays.core.protocol.proxy.PlayerReady]. */
+    /** Live sessions still owed a retry on [serverName] — called on a [PlayerReady][com.dreamdisplays.core.protocol.proxy.packets.PlayerReady]. */
     fun pendingSessionsFor(serverName: String): List<Session> =
         sessions.values.filter { serverName in it.pendingServers }
 

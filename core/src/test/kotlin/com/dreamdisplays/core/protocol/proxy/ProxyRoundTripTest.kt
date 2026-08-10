@@ -2,6 +2,7 @@
 
 package com.dreamdisplays.core.protocol.proxy
 
+import com.dreamdisplays.core.protocol.proxy.packets.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.protobuf.ProtoBuf
 import kotlin.test.Test

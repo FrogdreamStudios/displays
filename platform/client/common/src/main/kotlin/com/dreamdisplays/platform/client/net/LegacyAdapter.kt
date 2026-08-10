@@ -1,6 +1,6 @@
 package com.dreamdisplays.platform.client.net
 
-import com.dreamdisplays.core.protocol.*
+import com.dreamdisplays.core.protocol.packets.*
 import com.dreamdisplays.platform.client.managers.ClientPacketManager
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload
 

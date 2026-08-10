@@ -1,11 +1,11 @@
 package com.dreamdisplays.platform.server.proxy
 
-import com.dreamdisplays.core.protocol.proxy.NetworkSessionInfo
+import com.dreamdisplays.core.protocol.proxy.packets.NetworkSessionInfo
 import java.util.concurrent.atomic.AtomicReference
 
 /**
  * Backend-side view of the proxy network, filled in by [ProxyBridge] when a
- * [com.dreamdisplays.core.protocol.proxy.ProxyWelcome] / `NetworkSessionList` arrives. Platform-neutral.
+ * [com.dreamdisplays.core.protocol.proxy.packets.ProxyWelcome] / `NetworkSessionList` arrives. Platform-neutral.
  */
 object ProxyNetwork {
     private val ownName = AtomicReference<String?>(null)

@@ -1,6 +1,6 @@
 package com.dreamdisplays.platform.server.playback
 
-import com.dreamdisplays.core.protocol.DreamPacket
+import com.dreamdisplays.core.protocol.packets.DreamPacket
 import com.dreamdisplays.platform.server.datatypes.display.DisplayData
 import java.util.*
 
