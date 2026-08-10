@@ -20,7 +20,10 @@ import java.util.*
  * Persistent on-disk cache for resolved YouTube format URLs.
  */
 object FormatDiskCache {
+    /** Logger. */
     private val logger = LoggerFactory.getLogger("DreamDisplays/FormatDiskCache")
+
+    /** Directory under the config root where the cache is stored. */
     private val CACHE_DIR: Path = Path.of("config", "dreamdisplays", "yt-cache")
 
     /** Shared 5h format-cache TTL: the on-disk default and [YtDlp]'s in-memory format TTL. */
@@ -138,6 +141,7 @@ object FormatDiskCache {
         Integer.toHexString(s.hashCode())
     }
 
+    /** Cache entry schema for serialization. */
     @Serializable
     private data class CacheEntry(
         val v: Int,

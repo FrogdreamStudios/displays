@@ -10,15 +10,22 @@ import java.util.concurrent.TimeUnit
 
 /** In-memory cache of [MediaSearchResult] keyed by YouTube video ID. */
 object VideoMetadataCache {
+    /** Logger. */
     private val logger = LoggerFactory.getLogger("DreamDisplays/VideoMetadataCache")
+
+    /** Time-to-live for cached metadata. */
     private const val CACHE_TTL_MINUTES = 30L
+
+    /** Time-to-live for in-flight metadata fetches. */
     private const val IN_FLIGHT_TTL_MINUTES = 2L
 
+    /** In-memory cache of [MediaSearchResult] keyed by video ID. */
     private val CACHE: Cache<String, MediaSearchResult> = Caffeine.newBuilder()
         .maximumSize(500)
         .expireAfterAccess(CACHE_TTL_MINUTES, TimeUnit.MINUTES)
         .build()
 
+    /** Tracks video ids for which a metadata fetch is currently in flight. */
     private val IN_FLIGHT: Cache<String, Boolean> = Caffeine.newBuilder()
         .maximumSize(500)
         .expireAfterWrite(IN_FLIGHT_TTL_MINUTES, TimeUnit.MINUTES)

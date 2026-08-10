@@ -5,13 +5,9 @@ import java.util.*
 /**
  * Browsers `yt-dlp` can export cookies from via `--cookies-from-browser`, plus [NONE] for the
  * disabled state. [browserName] is the exact token `yt-dlp` expects; null for [NONE].
- *
- * @property browserName the `yt-dlp` browser token, or null when cookie export is disabled.
  */
 enum class CookieSource(val browserName: String?) {
-    /** Cookie export disabled. */
     NONE(null),
-
     BRAVE("brave"),
     CHROME("chrome"),
     CHROMIUM("chromium"),

@@ -7,6 +7,8 @@ package com.dreamdisplays.media.source.ytdlp
 internal object YtStreams {
     /** Distinct heights, or a single track at least this tall, needed to count as a real quality choice. */
     private const val LADDER_MIN_DISTINCT_HEIGHTS = 2
+
+    /** A single track must be at least this tall to count as a real quality choice. */
     private const val LADDER_MIN_SINGLE_HEIGHT = 720
 
     /** The distinct video heights present across [streams], ignoring audio-only tracks. */

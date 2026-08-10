@@ -22,8 +22,10 @@ import kotlin.time.Duration.Companion.nanoseconds
 
 /** In-process YouTube stream resolver backed by `NewPipeExtractor`; fast path before `yt-dlp` fallback. */
 object NewPipeResolver : MediaResolver {
+    /** Logger. */
     private val logger = LoggerFactory.getLogger("DreamDisplays/NewPipe")
 
+    /** Whether `NewPipeExtractor` has been initialized with our HTTP downloader. */
     private val initialized = atomic(false)
 
     /** How long a resolved video is reused before `NewPipeExtractor` is hit again. Matches FormatDiskCache.DEFAULT_TTL_MS. */
@@ -39,7 +41,10 @@ object NewPipeResolver : MediaResolver {
     /** Live playlist URLs carry short-lived tokens, so reuse is capped much lower than VOD. */
     private const val LIVE_TTL_NANOS = 60_000_000_000L
 
+    /** Negative cache for videos that `NewPipeExtractor` cannot resolve (e.g. age-gated, region-blocked, or deleted). */
     private const val NEGATIVE_TTL_NANOS = 20_000_000_000L
+
+    /** Maximum number of entries in the in-memory cache. */
     private const val MAX_CACHE_ENTRIES = 256
 
     /** Kill switch for the overlapped fallback (see [shouldOverlapFallback]). */
@@ -61,6 +66,8 @@ object NewPipeResolver : MediaResolver {
      * `yt-dlp` fallback is going to be needed at all — so it is measured rather than assumed.
      */
     private val ladderHits = atomic(0)
+
+    /** How often recent YouTube resolutions came back walled, with only a single muxed 360p stream. */
     private val ladderMisses = atomic(0)
 
     /** Recently resolved videos, keyed by video id (falling back to the full URL). */
@@ -86,10 +93,13 @@ object NewPipeResolver : MediaResolver {
         })
         .build()
 
+    /** Priority in the resolver chain: `NewPipeExtractor` is fast and in-process, so it goes first. */
     override val priority: Int = 10
 
+    /** True if this resolver can handle [source], which is only YouTube. */
     override fun canResolve(source: MediaSource): Boolean = source is MediaSource.YouTube
 
+    /** Resolves [source] via `NewPipeExtractor`, falling back to `yt-dlp` if it fails or returns no quality ladder. */
     override fun resolve(source: MediaSource): ResolvedMedia {
         ensureInitialized()
         check(initialized.value) { "NewPipeExtractor failed to initialize" }
@@ -125,7 +135,7 @@ object NewPipeResolver : MediaResolver {
         cache.invalidate(YouTubeUrls.extractVideoId(url) ?: url)
     }
 
-    /** Initializes NewPipeExtractor with our HTTP downloader exactly once. Safe to call repeatedly. */
+    /** Initializes `NewPipeExtractor` with our HTTP downloader exactly once. Safe to call repeatedly. */
     fun ensureInitialized() {
         if (!initialized.compareAndSet(expect = false, update = true)) return
         runCatching {
@@ -151,7 +161,7 @@ object NewPipeResolver : MediaResolver {
     }
 
     /**
-     * Resolves the playable streams for [videoUrl] via NewPipeExtractor, mapped to [YtStream].
+     * Resolves the playable streams for [videoUrl] via `NewPipeExtractor`, mapped to [YtStream].
      * Returns an empty list on any failure (caller falls back to `yt-dlp`).
      */
     fun fetch(videoUrl: String): List<YtStream> {
@@ -311,7 +321,7 @@ object NewPipeResolver : MediaResolver {
         )
     }
 
-    /** Converts a NewPipeExtractor [AudioStream] to a [YtStream]. */
+    /** Converts a `NewPipeExtractor` [AudioStream] to a [YtStream]. */
     private fun audioToYt(
         s: AudioStream,
         live: Boolean,
@@ -347,7 +357,7 @@ object NewPipeResolver : MediaResolver {
         s.isUrl && s.content.isNotBlank() &&
                 (s.deliveryMethod == DeliveryMethod.PROGRESSIVE_HTTP || s.deliveryMethod == DeliveryMethod.HLS)
 
-    /** Maps the NewPipeExtractor delivery method to the protocol label used by [YtStream]. */
+    /** Maps the `NewPipeExtractor` delivery method to the protocol label used by [YtStream]. */
     private fun protocolOf(s: Stream): String =
         if (s.deliveryMethod == DeliveryMethod.HLS) "m3u8_native" else "https"
 

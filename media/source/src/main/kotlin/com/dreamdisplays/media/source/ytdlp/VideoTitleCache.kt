@@ -6,6 +6,7 @@ import java.util.concurrent.TimeUnit
 
 /** Cache for video titles, to avoid repeated calls to `yt-dlp`. */
 object VideoTitleCache {
+    /** In-memory cache of video titles keyed by YouTube video ID. */
     private val TITLES: Cache<String, String> = Caffeine.newBuilder()
         .maximumSize(1_000)
         .expireAfterAccess(30, TimeUnit.MINUTES)

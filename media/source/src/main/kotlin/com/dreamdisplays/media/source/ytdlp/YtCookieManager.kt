@@ -18,28 +18,37 @@ import java.util.concurrent.TimeUnit
  * maintaining the exported cookie file.
  */
 class YtCookieManager {
+    /** Logger. */
     private val logger = LoggerFactory.getLogger("DreamDisplays/yt-dlp")
 
+    /** Cookie file path under the bundled `yt-dlp` dir. This is the "master" file that all processes copy from. */
     private val cookieFile: Path get() = YtDlpBinary.bundledDir.resolve("cookies.txt")
 
+    /** Cached resolved browser name, or null if cookies are disabled or no suitable browser was found. */
     @Volatile
     private var resolvedBrowser: String? = null
 
+    /** True when the browser has been resolved (successfully or not) at least once. */
     @Volatile
     private var browserResolved: Boolean = false
 
+    /** Timestamp of the last browser resolution attempt, used to throttle repeated failed lookups. */
     @Volatile
     private var browserResolvedAt: Long = 0
 
+    /** Cached cookie header string for plain HTTP clients, or null if not yet exported. */
     @Volatile
     private var cachedHeader: String? = null
 
+    /** Timestamp of the last cookie header export, used to refresh after a TTL. */
     @Volatile
     private var headerExportedAt: Long = 0
 
+    /** True when the cookie export produced no file, so we don't keep retrying for this session. */
     @Volatile
     private var unavailableThisSession = false
 
+    /** True when a background cookie refresh is in progress, so we don't start another. */
     private val refreshInProgress = atomic(false)
 
     /** True when the user explicitly disabled browser cookies in the config. */
@@ -291,7 +300,10 @@ class YtCookieManager {
     }
 
     companion object {
+        /** TTL for exported cookies before we re-export them in the background. */
         private const val COOKIE_REFRESH_MS: Long = 2L * 60L * 60L * 1_000L
+
+        /** Minimum time between repeated failed browser resolutions, to avoid spamming the logs. */
         private const val BROWSER_RETRY_MS: Long = 60L * 60L * 1_000L
 
         /**

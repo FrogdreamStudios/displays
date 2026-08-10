@@ -14,16 +14,25 @@ import java.util.concurrent.TimeUnit
  * and would then block any fetch that could supply them.
  */
 object YouTubeChapterCache {
+    /** Logger. */
     private val logger = LoggerFactory.getLogger("DreamDisplays/YouTubeChapters")
+
+    /** Time-to-live for cached chapter lists. */
     private const val CACHE_TTL_MINUTES = 30L
+
+    /** Time-to-live for in-flight chapter fetches. */
     private const val IN_FLIGHT_TTL_MINUTES = 2L
+
+    /** Maximum number of entries in the cache. */
     private const val MAX_ENTRIES = 200L
 
+    /** In-memory cache of chapter lists keyed by video id. */
     private val CACHE: Cache<String, List<MediaChapter>> = Caffeine.newBuilder()
         .maximumSize(MAX_ENTRIES)
         .expireAfterAccess(CACHE_TTL_MINUTES, TimeUnit.MINUTES)
         .build()
 
+    /** Tracks video ids for which a chapter fetch is currently in flight. */
     private val IN_FLIGHT: Cache<String, Boolean> = Caffeine.newBuilder()
         .maximumSize(MAX_ENTRIES)
         .expireAfterWrite(IN_FLIGHT_TTL_MINUTES, TimeUnit.MINUTES)

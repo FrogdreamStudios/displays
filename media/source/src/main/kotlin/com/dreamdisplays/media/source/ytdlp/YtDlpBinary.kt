@@ -22,14 +22,16 @@ import java.util.concurrent.TimeUnit
 /**
  * Provisioning of the `yt-dlp` executable: locating a system install, falling back to the bundled
  * copy, downloading from GitHub as a last resort, and weekly background self-updates of the bundled
- * binary. Extracted from the YtDlp god-object so the orchestrator only deals in stream fetching.
+ * binary.
  */
 object YtDlpBinary {
+    /** Logger. */
     private val logger = LoggerFactory.getLogger("DreamDisplays/yt-dlp")
 
     /** Directory holding the bundled binary and its cookie files; shared with [YtCookieManager]. */
     val bundledDir: Path = Path.of("libs", "yt-dlp")
 
+    /** Well-known paths to probe for a system-installed `yt-dlp` binary, in preference order. */
     private val CANDIDATE_PATHS = arrayOf(
         "yt-dlp",
         "/opt/homebrew/bin/yt-dlp",
@@ -37,10 +39,14 @@ object YtDlpBinary {
         "/usr/bin/yt-dlp",
         "C:\\Program Files\\yt-dlp\\yt-dlp.exe",
     )
+
+    /** Official GitHub release download base URL for `yt-dlp` assets. */
     private const val DOWNLOAD_BASE = "https://github.com/yt-dlp/yt-dlp/releases/latest/download/"
 
     /** GitHub asset name of the lightweight Python zipapp variant, and its local filename. */
     private const val ZIPAPP_ASSET = "yt-dlp"
+
+    /** Local filename of the lightweight Python zipapp variant. */
     private const val ZIPAPP_NAME = "yt-dlp.pyz"
 
     /** `yt-dlp` requires CPython >= 3.9; older interpreters are rejected so the zipapp never runs on one. */
@@ -51,13 +57,17 @@ object YtDlpBinary {
         if (OsInfo.isWindows) arrayOf("python", "python3", "py")
         else arrayOf("python3", "/opt/homebrew/bin/python3", "/usr/local/bin/python3", "/usr/bin/python3", "python")
 
-    /** Re-run `yt-dlp -U` on the bundled binary once it is older than this; a stale binary is a top
-     *  cause of "not a bot" / extraction failures since it never self-updates otherwise. */
+    /**
+     * Re-run `yt-dlp -U` on the bundled binary once it is older than this; a stale binary is a top
+     * cause of "not a bot" / extraction failures since it never self-updates otherwise.
+     */
     private const val BINARY_REFRESH_MS: Long = 7L * 24L * 60L * 60L * 1_000L
 
+    /** Cached resolved binary path, or null if not yet resolved. */
     @Volatile
     private var resolved: String? = null
 
+    /** True when the bundled binary has been checked for self-update this session. */
     private val updateChecked = atomic(false)
 
     /** Cached full launch prefix (e.g. `[python3, .../yt-dlp.pyz]` or `[binaryPath]`); see [resolveCommand]. */
@@ -68,6 +78,7 @@ object YtDlpBinary {
     @Volatile
     private var pythonProbe: String? = null
 
+    /** True when the zipapp has been checked for refresh this session. */
     private val zipappUpdateChecked = atomic(false)
 
     /**
