@@ -227,6 +227,17 @@ jobs:
           rustc --version
           cargo --version
 
+      - name: Setup Zig
+        if: runner.os == 'Linux'
+        uses: mlugg/setup-zig@v2.2.1
+        with:
+          version: 0.16.0
+
+      - name: Install cargo-zigbuild
+        if: runner.os == 'Linux'
+        shell: bash
+        run: cargo install cargo-zigbuild --locked
+
       - name: Install FFmpeg dependencies on macOS
         if: runner.os == 'macOS'
         run: |
@@ -235,6 +246,7 @@ jobs:
           ffmpeg_ver="$(brew list --versions ffmpeg | awk '{print $2}')"
           echo "FFMPEG_CACHE_SUFFIX=ffmpeg-${ffmpeg_ver}" >> "$GITHUB_ENV"
           echo "PKG_CONFIG_PATH=$(brew --prefix ffmpeg)/lib/pkgconfig" >> "$GITHUB_ENV"
+          echo "MACOSX_DEPLOYMENT_TARGET=11.0" >> "$GITHUB_ENV"
 
       - name: Cache Cargo
         uses: Swatinem/rust-cache@v2.9.1
@@ -363,13 +375,24 @@ jobs:
       - name: Build native libraries
         shell: bash
         run: |
-          cargo build \
-            --manifest-path native/Cargo.toml \
-            --release \
-            --package dreamdisplays-native \
-            --package dreamdisplays-lav \
-            --locked \
-            --target "${{ matrix.native.target }}"
+          set -euo pipefail
+          if [[ "${{ runner.os }}" == "Linux" ]]; then
+            cargo zigbuild \
+              --manifest-path native/Cargo.toml \
+              --release \
+              --package dreamdisplays-native \
+              --package dreamdisplays-lav \
+              --locked \
+              --target "${{ matrix.native.target }}.2.28"
+          else
+            cargo build \
+              --manifest-path native/Cargo.toml \
+              --release \
+              --package dreamdisplays-native \
+              --package dreamdisplays-lav \
+              --locked \
+              --target "${{ matrix.native.target }}"
+          fi
 
       - name: Test native libraries
         shell: bash
@@ -401,6 +424,9 @@ jobs:
           fi
 
           release_dir="native/target/$target/release"
+          if [[ ! -f "$release_dir/$native_library" && -d "native/target/${target}.2.28/release" ]]; then
+            release_dir="native/target/${target}.2.28/release"
+          fi
           out="native-artifact/dreamdisplays-natives/$platform"
           mkdir -p "$out"
 
