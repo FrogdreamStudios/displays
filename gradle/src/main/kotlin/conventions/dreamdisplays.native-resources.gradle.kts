@@ -1,3 +1,12 @@
+import support.natives.cargoAvailable
+import support.natives.hostNativeKey
+import support.natives.nativeLibraryBaseNames
+import support.natives.nativeLibraryName
+import support.natives.nativePlatformKeys
+import support.natives.toPlatformList
+import support.natives.toStrictBoolean
+import java.io.File
+
 /** Adds the native libraries to the process resources. */
 tasks.withType<ProcessResources>().configureEach {
     val rootProjectDir = rootProject.projectDir

@@ -1,6 +1,8 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import support.chisel.chiselSource
+import support.stonecutter.StonecutterVersions
 import java.util.*
 
 /** `Stonecutter` conventions for Kotlin projects. */

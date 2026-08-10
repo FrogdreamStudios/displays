@@ -1,3 +1,5 @@
+package support.shadow
+
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 /** Shared modules bundled into every fat loader jar (`Fabric`, `NeoForge`, `Paper`). */

@@ -1,3 +1,5 @@
+package support.natives
+
 import java.io.File
 
 /** Native platform keys, e.g. `linux-x64`, `macos-x64`, `windows-x64`. */

@@ -1,3 +1,5 @@
+package support.chisel
+
 /** Process `Stonecutter`-style version directives (`//? if >=26 {...}`), evaluating conditions per target. */
 fun chiselSource(lines: List<String>, minecraftVersion: String): String {
     val out = StringBuilder()

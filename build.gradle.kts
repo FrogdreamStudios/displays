@@ -1,3 +1,5 @@
+import support.stonecutter.StonecutterVersions
+
 subprojects {
     val activeStonecutterVersion = gradle.extensions.getByType<StonecutterVersions>().active
 

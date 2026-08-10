@@ -1,3 +1,5 @@
+import support.stonecutter.StonecutterVersions
+
 plugins {
     id("net.neoforged.moddev")
     id("dreamdisplays.kotlin-conventions")

@@ -1,3 +1,8 @@
+import support.shadow.excludeDreamDisplaysSqliteNativeExtras
+import support.shadow.includeDreamDisplaysSharedContents
+import support.shadow.relocateDreamDisplaysSharedPackages
+import support.stonecutter.StonecutterVersions
+
 plugins {
     id("net.fabricmc.fabric-loom") apply false
     id("net.fabricmc.fabric-loom-remap") apply false

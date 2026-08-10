@@ -1,3 +1,4 @@
+import support.stonecutter.StonecutterVersions
 import java.util.*
 
 val active = settingsDir.resolve("versions/active.txt").readText().trim()

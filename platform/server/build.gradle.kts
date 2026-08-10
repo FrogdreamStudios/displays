@@ -1,3 +1,5 @@
+import support.shadow.excludeDreamDisplaysSqliteNativeExtras
+import support.stonecutter.StonecutterVersions
 import java.util.*
 
 plugins {

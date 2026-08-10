@@ -1,3 +1,5 @@
+package support.stonecutter
+
 import java.util.*
 
 /** Read versions/active.txt once, share as Gradle extension for all build scripts. */

@@ -1,3 +1,8 @@
+import support.shadow.excludeDreamDisplaysSqliteNativeExtras
+import support.shadow.includeDreamDisplaysSharedContents
+import support.shadow.relocateDreamDisplaysSharedPackages
+import support.stonecutter.StonecutterVersions
+
 plugins {
     id("net.neoforged.moddev")
     id("maven-publish")
