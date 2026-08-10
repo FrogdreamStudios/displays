@@ -7,11 +7,9 @@ import com.dreamdisplays.api.media.source.MediaSource
 import com.dreamdisplays.api.media.source.ResolvedMedia
 import com.dreamdisplays.api.media.stream.MediaStream
 import com.dreamdisplays.api.media.stream.MediaStreamType
+import com.dreamdisplays.media.source.platform.LiveAwareResolvedMediaCache
 import com.dreamdisplays.media.source.youtube.YtDlpResolver
 import com.dreamdisplays.util.net.DreamHttpClient
-import com.github.benmanes.caffeine.cache.Cache
-import com.github.benmanes.caffeine.cache.Caffeine
-import com.github.benmanes.caffeine.cache.Expiry
 import org.slf4j.LoggerFactory
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
@@ -28,29 +26,11 @@ object TwitchResolver : MediaResolver {
     /** Above [YtDlpResolver] (0) so the subprocess is only reached when this path fails. */
     override val priority: Int = 10
 
-    /** Live results are cached just long enough to absorb the prefetch->resolve double call and a quick pause-resume. */
-    private const val LIVE_TTL_NANOS = 25_000_000_000L // 25 s
-
-    /** VOD / clip URLs are token-signed too but stable for much longer. */
-    private const val VOD_TTL_NANOS = 1_800_000_000_000L // 30 min
-
-    private class CacheEntry(val value: ResolvedMedia, val ttlNanos: Long)
-
-    private val cache: Cache<String, CacheEntry> = Caffeine.newBuilder()
-        .maximumSize(100)
-        .expireAfter(object : Expiry<String, CacheEntry> {
-            override fun expireAfterCreate(key: String, value: CacheEntry, currentTime: Long): Long =
-                value.ttlNanos
-
-            override fun expireAfterUpdate(
-                key: String, value: CacheEntry, currentTime: Long, currentDuration: Long,
-            ): Long = value.ttlNanos
-
-            override fun expireAfterRead(
-                key: String, value: CacheEntry, currentTime: Long, currentDuration: Long,
-            ): Long = currentDuration
-        })
-        .build()
+    /**
+     * Live results are cached just long enough to absorb the prefetch->resolve double call and a quick pause-resume;
+     * VOD / clip URLs are token-signed too but stable for much longer.
+     */
+    private val cache = LiveAwareResolvedMediaCache(maxSize = 100, liveTtlSeconds = 25, staticTtlMinutes = 30)
 
     override fun canResolve(source: MediaSource): Boolean = source is MediaSource.Twitch
 
@@ -82,13 +62,13 @@ object TwitchResolver : MediaResolver {
     private fun resolveCached(source: MediaSource.Twitch): ResolvedMedia {
         val key = TwitchMetadataCache.cacheKey(source)
             ?: throw DreamMediaException.NotFound("Unrecognized Twitch URL shape: ${source.url}.")
-        cache.getIfPresent(key)?.let { return it.value }
+        cache.get(key)?.let { return it }
         val resolved = when {
             source.channel != null -> resolveLive(source, source.channel!!)
             source.videoId != null -> resolveVod(source, source.videoId!!)
             else -> resolveClip(source, source.clipSlug!!)
         }
-        cache.put(key, CacheEntry(resolved, if (resolved.isLive) LIVE_TTL_NANOS else VOD_TTL_NANOS))
+        cache.put(key, resolved)
         return resolved
     }
 
