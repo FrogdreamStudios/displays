@@ -1,12 +1,35 @@
 package com.dreamdisplays.core.protocol
 
 import com.dreamdisplays.api.protocol.PacketDirection
+import com.dreamdisplays.core.protocol.packets.ClearCache
+import com.dreamdisplays.core.protocol.packets.ClientHello
+import com.dreamdisplays.core.protocol.packets.DreamPacket
+import com.dreamdisplays.core.protocol.packets.DisplayDelete
+import com.dreamdisplays.core.protocol.packets.DisplayInfo
+import com.dreamdisplays.core.protocol.packets.DisplaySync
+import com.dreamdisplays.core.protocol.packets.FullscreenAck
+import com.dreamdisplays.core.protocol.packets.FullscreenState
+import com.dreamdisplays.core.protocol.packets.PipPin
+import com.dreamdisplays.core.protocol.packets.PlaybackCommand
+import com.dreamdisplays.core.protocol.packets.RadiusPreview
+import com.dreamdisplays.core.protocol.packets.RemotePlaybackToggle
+import com.dreamdisplays.core.protocol.packets.ReportDisplay
+import com.dreamdisplays.core.protocol.packets.ReportDuration
+import com.dreamdisplays.core.protocol.packets.RequestSync
+import com.dreamdisplays.core.protocol.packets.ServerHello
+import com.dreamdisplays.core.protocol.packets.SetDisplaysEnabled
+import com.dreamdisplays.core.protocol.packets.SetLocked
+import com.dreamdisplays.core.protocol.packets.SetMode
+import com.dreamdisplays.core.protocol.packets.SetVideo
+import com.dreamdisplays.core.protocol.packets.WatchPartyControl
+import com.dreamdisplays.core.protocol.packets.WatchPartyStart
+import com.dreamdisplays.core.protocol.packets.WatchPartyState
 import kotlin.reflect.KClass
 
 /**
  * Append-only protocol-v2 packet type ids; wire-protocol stable, never reuse or renumber.
  */
-enum class ProtocolPacketType(
+enum class PacketType(
     val id: Int,
     val packetClass: KClass<out DreamPacket>,
     val direction: PacketDirection,
@@ -41,6 +64,6 @@ enum class ProtocolPacketType(
             require(byId.size == entries.size) { "Duplicate protocol packet type ids." }
         }
 
-        fun fromId(id: Int): ProtocolPacketType? = byId[id]
+        fun fromId(id: Int): PacketType? = byId[id]
     }
 }

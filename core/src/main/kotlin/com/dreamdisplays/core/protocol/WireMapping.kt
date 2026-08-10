@@ -1,9 +1,16 @@
 package com.dreamdisplays.core.protocol
 
+import com.dreamdisplays.api.capability.ServerFeature
 import com.dreamdisplays.api.playback.PlaybackMode
 import com.dreamdisplays.api.playback.Timeline
+import com.dreamdisplays.core.protocol.packets.DisplaySync
+import com.dreamdisplays.core.protocol.packets.ServerHello
 import kotlinx.serialization.Serializable
 import java.util.*
+
+/** True if this server snapshot advertises [feature]. */
+fun ServerHello.hasFeature(feature: ServerFeature): Boolean =
+    feature.wire in allowedFeatures
 
 /** Builds the wire [DisplaySync] for [id] in [mode], stamped with the current [nowMs] anchor. */
 fun Timeline.toSync(id: @Serializable(UuidSerializer::class) UUID, mode: PlaybackMode, nowMs: Long): DisplaySync {

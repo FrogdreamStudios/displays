@@ -3,6 +3,29 @@
 package com.dreamdisplays.core.protocol
 
 import com.dreamdisplays.api.protocol.PacketDirection
+import com.dreamdisplays.core.protocol.packets.ClearCache
+import com.dreamdisplays.core.protocol.packets.DreamPacket
+import com.dreamdisplays.core.protocol.packets.ClientHello
+import com.dreamdisplays.core.protocol.packets.DisplayDelete
+import com.dreamdisplays.core.protocol.packets.DisplayInfo
+import com.dreamdisplays.core.protocol.packets.DisplaySync
+import com.dreamdisplays.core.protocol.packets.FullscreenAck
+import com.dreamdisplays.core.protocol.packets.FullscreenState
+import com.dreamdisplays.core.protocol.packets.PipPin
+import com.dreamdisplays.core.protocol.packets.PlaybackCommand
+import com.dreamdisplays.core.protocol.packets.RadiusPreview
+import com.dreamdisplays.core.protocol.packets.RemotePlaybackToggle
+import com.dreamdisplays.core.protocol.packets.ReportDisplay
+import com.dreamdisplays.core.protocol.packets.ReportDuration
+import com.dreamdisplays.core.protocol.packets.RequestSync
+import com.dreamdisplays.core.protocol.packets.ServerHello
+import com.dreamdisplays.core.protocol.packets.SetDisplaysEnabled
+import com.dreamdisplays.core.protocol.packets.SetLocked
+import com.dreamdisplays.core.protocol.packets.SetMode
+import com.dreamdisplays.core.protocol.packets.SetVideo
+import com.dreamdisplays.core.protocol.packets.WatchPartyControl
+import com.dreamdisplays.core.protocol.packets.WatchPartyStart
+import com.dreamdisplays.core.protocol.packets.WatchPartyState
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -28,7 +51,7 @@ object PacketRegistry {
     private val proto = ProtoBuf { encodeDefaults = false }
 
     private class Entry<T : DreamPacket>(
-        val packetType: ProtocolPacketType,
+        val packetType: PacketType,
         val type: KClass<T>,
         val serializer: KSerializer<T>,
     ) {
@@ -37,28 +60,28 @@ object PacketRegistry {
     }
 
     private val entries: List<Entry<out DreamPacket>> = listOf(
-        Entry(ProtocolPacketType.CLIENT_HELLO, ClientHello::class, ClientHello.serializer()),
-        Entry(ProtocolPacketType.SERVER_HELLO, ServerHello::class, ServerHello.serializer()),
-        Entry(ProtocolPacketType.DISPLAY_INFO, DisplayInfo::class, DisplayInfo.serializer()),
-        Entry(ProtocolPacketType.DISPLAY_DELETE, DisplayDelete::class, DisplayDelete.serializer()),
-        Entry(ProtocolPacketType.DISPLAY_SYNC, DisplaySync::class, DisplaySync.serializer()),
-        Entry(ProtocolPacketType.REQUEST_SYNC, RequestSync::class, RequestSync.serializer()),
-        Entry(ProtocolPacketType.SET_VIDEO, SetVideo::class, SetVideo.serializer()),
-        Entry(ProtocolPacketType.SET_LOCKED, SetLocked::class, SetLocked.serializer()),
-        Entry(ProtocolPacketType.REPORT_DISPLAY, ReportDisplay::class, ReportDisplay.serializer()),
-        Entry(ProtocolPacketType.SET_DISPLAYS_ENABLED, SetDisplaysEnabled::class, SetDisplaysEnabled.serializer()),
-        Entry(ProtocolPacketType.CLEAR_CACHE, ClearCache::class, ClearCache.serializer()),
-        Entry(ProtocolPacketType.PLAYBACK_COMMAND, PlaybackCommand::class, PlaybackCommand.serializer()),
-        Entry(ProtocolPacketType.SET_MODE, SetMode::class, SetMode.serializer()),
-        Entry(ProtocolPacketType.WATCH_PARTY_START, WatchPartyStart::class, WatchPartyStart.serializer()),
-        Entry(ProtocolPacketType.WATCH_PARTY_CONTROL, WatchPartyControl::class, WatchPartyControl.serializer()),
-        Entry(ProtocolPacketType.WATCH_PARTY_STATE, WatchPartyState::class, WatchPartyState.serializer()),
-        Entry(ProtocolPacketType.FULLSCREEN_STATE, FullscreenState::class, FullscreenState.serializer()),
-        Entry(ProtocolPacketType.FULLSCREEN_ACK, FullscreenAck::class, FullscreenAck.serializer()),
-        Entry(ProtocolPacketType.RADIUS_PREVIEW, RadiusPreview::class, RadiusPreview.serializer()),
-        Entry(ProtocolPacketType.PIP_PIN, PipPin::class, PipPin.serializer()),
-        Entry(ProtocolPacketType.REPORT_DURATION, ReportDuration::class, ReportDuration.serializer()),
-        Entry(ProtocolPacketType.REMOTE_PLAYBACK_TOGGLE, RemotePlaybackToggle::class, RemotePlaybackToggle.serializer()),
+        Entry(PacketType.CLIENT_HELLO, ClientHello::class, ClientHello.serializer()),
+        Entry(PacketType.SERVER_HELLO, ServerHello::class, ServerHello.serializer()),
+        Entry(PacketType.DISPLAY_INFO, DisplayInfo::class, DisplayInfo.serializer()),
+        Entry(PacketType.DISPLAY_DELETE, DisplayDelete::class, DisplayDelete.serializer()),
+        Entry(PacketType.DISPLAY_SYNC, DisplaySync::class, DisplaySync.serializer()),
+        Entry(PacketType.REQUEST_SYNC, RequestSync::class, RequestSync.serializer()),
+        Entry(PacketType.SET_VIDEO, SetVideo::class, SetVideo.serializer()),
+        Entry(PacketType.SET_LOCKED, SetLocked::class, SetLocked.serializer()),
+        Entry(PacketType.REPORT_DISPLAY, ReportDisplay::class, ReportDisplay.serializer()),
+        Entry(PacketType.SET_DISPLAYS_ENABLED, SetDisplaysEnabled::class, SetDisplaysEnabled.serializer()),
+        Entry(PacketType.CLEAR_CACHE, ClearCache::class, ClearCache.serializer()),
+        Entry(PacketType.PLAYBACK_COMMAND, PlaybackCommand::class, PlaybackCommand.serializer()),
+        Entry(PacketType.SET_MODE, SetMode::class, SetMode.serializer()),
+        Entry(PacketType.WATCH_PARTY_START, WatchPartyStart::class, WatchPartyStart.serializer()),
+        Entry(PacketType.WATCH_PARTY_CONTROL, WatchPartyControl::class, WatchPartyControl.serializer()),
+        Entry(PacketType.WATCH_PARTY_STATE, WatchPartyState::class, WatchPartyState.serializer()),
+        Entry(PacketType.FULLSCREEN_STATE, FullscreenState::class, FullscreenState.serializer()),
+        Entry(PacketType.FULLSCREEN_ACK, FullscreenAck::class, FullscreenAck.serializer()),
+        Entry(PacketType.RADIUS_PREVIEW, RadiusPreview::class, RadiusPreview.serializer()),
+        Entry(PacketType.PIP_PIN, PipPin::class, PipPin.serializer()),
+        Entry(PacketType.REPORT_DURATION, ReportDuration::class, ReportDuration.serializer()),
+        Entry(PacketType.REMOTE_PLAYBACK_TOGGLE, RemotePlaybackToggle::class, RemotePlaybackToggle.serializer()),
     )
 
     private val byId = entries.associateBy { it.id }
@@ -67,8 +90,8 @@ object PacketRegistry {
     init {
         require(byId.size == entries.size) { "Duplicate packet type ids." }
         require(byType.size == entries.size) { "Duplicate packet classes." }
-        require(entries.map { it.packetType }.toSet() == ProtocolPacketType.entries.toSet()) {
-            "PacketRegistry must bind every ProtocolPacketType exactly once."
+        require(entries.map { it.packetType }.toSet() == PacketType.entries.toSet()) {
+            "PacketRegistry must bind every PacketType exactly once."
         }
         entries.forEach { entry ->
             require(entry.type == entry.packetType.packetClass) {
