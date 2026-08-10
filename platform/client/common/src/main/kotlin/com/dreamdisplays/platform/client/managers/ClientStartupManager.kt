@@ -5,8 +5,8 @@ import com.dreamdisplays.api.runtime.module.DreamDisplaysModule
 import com.dreamdisplays.api.runtime.registry.register
 import com.dreamdisplays.media.player.nativebridge.NativeMedia
 import com.dreamdisplays.media.player.process.FFmpegBinary
-import com.dreamdisplays.media.source.ytdlp.FormatDiskCache
-import com.dreamdisplays.media.source.ytdlp.YtDlp
+import com.dreamdisplays.media.source.youtube.cache.FormatDiskCache
+import com.dreamdisplays.media.source.youtube.YtDlp
 import com.dreamdisplays.platform.client.Config
 import com.dreamdisplays.platform.client.Focuser
 import com.dreamdisplays.platform.client.Initializer

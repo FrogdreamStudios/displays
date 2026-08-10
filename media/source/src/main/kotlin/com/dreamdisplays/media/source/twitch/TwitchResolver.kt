@@ -7,7 +7,7 @@ import com.dreamdisplays.api.media.source.MediaSource
 import com.dreamdisplays.api.media.source.ResolvedMedia
 import com.dreamdisplays.api.media.stream.MediaStream
 import com.dreamdisplays.api.media.stream.MediaStreamType
-import com.dreamdisplays.media.source.ytdlp.YtDlpResolver
+import com.dreamdisplays.media.source.youtube.YtDlpResolver
 import com.dreamdisplays.util.net.DreamHttpClient
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine

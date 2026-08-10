@@ -9,7 +9,7 @@ import com.dreamdisplays.media.source.DefaultMediaResolverProvider
 import com.dreamdisplays.media.source.DefaultMediaResolverRegistry
 import com.dreamdisplays.media.source.DefaultStreamSelector
 import com.dreamdisplays.media.source.YtDlpSearchService
-import com.dreamdisplays.media.source.ytdlp.ResolverConfig
+import com.dreamdisplays.media.source.youtube.ResolverConfig
 import com.dreamdisplays.platform.client.managers.ClientStateManager
 
 /** Installs the media resolver chain, search service, and stream selector. */

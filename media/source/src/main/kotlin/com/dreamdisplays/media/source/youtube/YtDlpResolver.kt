@@ -1,4 +1,4 @@
-package com.dreamdisplays.media.source.ytdlp
+package com.dreamdisplays.media.source.youtube
 
 import com.dreamdisplays.api.media.source.*
 import kotlin.time.Duration.Companion.nanoseconds
@@ -15,7 +15,7 @@ object YtDlpResolver : MediaResolver {
     /** Any source with a resolvable URL is delegated to `yt-dlp`. */
     override fun canResolve(source: MediaSource): Boolean = true
 
-    /** Pre-warms the yt-dlp format cache for [source] on a background thread. */
+    /** Pre-warms the `yt-dlp` format cache for [source] on a background thread. */
     override fun prefetch(source: MediaSource): Boolean {
         val url = source.toResolvableUrl() ?: return false
         YtDlp.prefetchFormats(url)

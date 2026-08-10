@@ -1,4 +1,4 @@
-package com.dreamdisplays.media.source.ytdlp
+package com.dreamdisplays.media.source.youtube.model
 
 import com.dreamdisplays.api.media.stream.MediaStream
 import com.dreamdisplays.api.media.stream.MediaStreamType

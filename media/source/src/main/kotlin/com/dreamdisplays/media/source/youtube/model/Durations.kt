@@ -1,4 +1,4 @@
-package com.dreamdisplays.media.source.ytdlp
+package com.dreamdisplays.media.source.youtube.model
 
 import kotlin.math.max
 import kotlin.math.round

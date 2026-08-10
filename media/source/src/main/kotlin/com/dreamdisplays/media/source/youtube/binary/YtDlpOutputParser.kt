@@ -1,5 +1,8 @@
-package com.dreamdisplays.media.source.ytdlp
+package com.dreamdisplays.media.source.youtube.binary
 
+import com.dreamdisplays.media.source.youtube.model.Durations
+import com.dreamdisplays.media.source.youtube.model.LiveStatus
+import com.dreamdisplays.media.source.youtube.model.YtStream
 import com.dreamdisplays.util.*
 import com.dreamdisplays.util.json.DreamJson
 import kotlinx.io.IOException

@@ -1,6 +1,6 @@
 package com.dreamdisplays.media.source.platform
 
-import com.dreamdisplays.media.source.ytdlp.YtDlp
+import com.dreamdisplays.media.source.youtube.YtDlp
 import org.slf4j.LoggerFactory
 
 /** Metadata-only fallback when in-process API call fails: runs `yt-dlp` to fetch metadata. */

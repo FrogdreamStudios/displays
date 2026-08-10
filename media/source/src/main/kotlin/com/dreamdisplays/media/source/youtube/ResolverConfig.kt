@@ -1,4 +1,6 @@
-package com.dreamdisplays.media.source.ytdlp
+package com.dreamdisplays.media.source.youtube
+
+import com.dreamdisplays.media.source.youtube.cookie.CookieSource
 
 /**
  * Host-supplied configuration the media resolvers need (proxy, browser-cookie source). The platform

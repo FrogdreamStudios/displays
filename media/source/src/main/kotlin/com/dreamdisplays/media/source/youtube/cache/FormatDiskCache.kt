@@ -1,5 +1,7 @@
-package com.dreamdisplays.media.source.ytdlp
+package com.dreamdisplays.media.source.youtube.cache
 
+import com.dreamdisplays.media.source.youtube.model.YtStream
+import com.dreamdisplays.media.source.youtube.model.YtStreams
 import com.dreamdisplays.util.DreamCoroutines
 import com.dreamdisplays.util.json.DreamJson
 import kotlinx.coroutines.launch

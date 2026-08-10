@@ -1,4 +1,4 @@
-package com.dreamdisplays.media.source.ytdlp
+package com.dreamdisplays.media.source.youtube
 
 import com.dreamdisplays.util.asJsonObjectOrNull
 import com.dreamdisplays.util.json.DreamJson

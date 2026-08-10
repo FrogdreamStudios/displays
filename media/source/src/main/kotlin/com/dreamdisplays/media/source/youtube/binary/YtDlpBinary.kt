@@ -1,10 +1,10 @@
-package com.dreamdisplays.media.source.ytdlp
+package com.dreamdisplays.media.source.youtube.binary
 
 import com.dreamdisplays.media.runtime.system.Processes
-import com.dreamdisplays.media.source.ytdlp.YtDlpBinary.BINARY_REFRESH_MS
-import com.dreamdisplays.media.source.ytdlp.YtDlpBinary.MIN_PYTHON_MINOR
-import com.dreamdisplays.media.source.ytdlp.YtDlpBinary.PYTHON_CANDIDATES
-import com.dreamdisplays.media.source.ytdlp.YtDlpBinary.maybeSelfUpdate
+import com.dreamdisplays.media.source.youtube.binary.YtDlpBinary.BINARY_REFRESH_MS
+import com.dreamdisplays.media.source.youtube.binary.YtDlpBinary.MIN_PYTHON_MINOR
+import com.dreamdisplays.media.source.youtube.binary.YtDlpBinary.PYTHON_CANDIDATES
+import com.dreamdisplays.media.source.youtube.binary.YtDlpBinary.maybeSelfUpdate
 import com.dreamdisplays.util.DreamCoroutines
 import com.dreamdisplays.util.OsInfo
 import com.dreamdisplays.util.net.DreamHttpClient

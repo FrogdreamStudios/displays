@@ -1,6 +1,8 @@
-package com.dreamdisplays.media.source.ytdlp
+package com.dreamdisplays.media.source.youtube.cookie
 
 import com.dreamdisplays.media.runtime.system.Processes
+import com.dreamdisplays.media.source.youtube.ResolverConfig
+import com.dreamdisplays.media.source.youtube.binary.YtDlpBinary
 import com.dreamdisplays.util.DreamCoroutines
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.launch

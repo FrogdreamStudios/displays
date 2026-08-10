@@ -1,6 +1,7 @@
-package com.dreamdisplays.media.source.ytdlp
+package com.dreamdisplays.media.source.youtube.cache
 
 import com.dreamdisplays.api.media.search.MediaChapter
+import com.dreamdisplays.media.source.youtube.YouTubeInnerTube
 import com.dreamdisplays.util.DreamCoroutines
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine

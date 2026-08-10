@@ -1,7 +1,7 @@
 package com.dreamdisplays.media.source.twitch
 
 import com.dreamdisplays.api.media.source.MediaSource
-import com.dreamdisplays.media.source.ytdlp.YtDlp
+import com.dreamdisplays.media.source.youtube.YtDlp
 import com.dreamdisplays.util.*
 import com.dreamdisplays.util.json.DreamJson
 import com.dreamdisplays.util.net.DreamHttpClient

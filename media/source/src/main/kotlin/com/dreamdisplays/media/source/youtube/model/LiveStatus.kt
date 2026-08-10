@@ -1,4 +1,4 @@
-package com.dreamdisplays.media.source.ytdlp
+package com.dreamdisplays.media.source.youtube.model
 
 /**
  * Values of `yt-dlp`'s `live_status` metadata field. [wireValue] is the exact JSON token yt-dlp

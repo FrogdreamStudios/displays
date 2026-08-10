@@ -4,8 +4,8 @@ import com.dreamdisplays.api.media.search.MediaSearchPage
 import com.dreamdisplays.api.media.search.MediaSearchResult
 import com.dreamdisplays.api.media.search.MediaSearchService
 import com.dreamdisplays.api.media.search.SortOrder
-import com.dreamdisplays.media.source.ytdlp.YouTubeInnerTube
-import com.dreamdisplays.media.source.ytdlp.YtDlp
+import com.dreamdisplays.media.source.youtube.YouTubeInnerTube
+import com.dreamdisplays.media.source.youtube.YtDlp
 
 /** [MediaSearchService] backed by [YtDlp] and [YouTubeInnerTube]. */
 class YtDlpSearchService : MediaSearchService {

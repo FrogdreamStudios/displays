@@ -11,8 +11,8 @@ import com.dreamdisplays.media.source.direct.DirectStreamResolver
 import com.dreamdisplays.media.source.kick.KickResolver
 import com.dreamdisplays.media.source.twitch.TwitchResolver
 import com.dreamdisplays.media.source.vimeo.VimeoResolver
-import com.dreamdisplays.media.source.ytdlp.NewPipeResolver
-import com.dreamdisplays.media.source.ytdlp.YtDlp
+import com.dreamdisplays.media.source.youtube.NewPipeResolver
+import com.dreamdisplays.media.source.youtube.YtDlp
 import com.dreamdisplays.platform.client.core.DreamServices
 import com.dreamdisplays.platform.client.managers.ClientStateManager
 import com.dreamdisplays.platform.client.render.DisplayYuvRenderTypes

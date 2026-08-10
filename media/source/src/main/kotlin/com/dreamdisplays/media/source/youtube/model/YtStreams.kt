@@ -1,4 +1,4 @@
-package com.dreamdisplays.media.source.ytdlp
+package com.dreamdisplays.media.source.youtube.model
 
 /**
  * Shared helpers over resolved [YtStream] lists, used by both the in-process [NewPipeResolver] fast

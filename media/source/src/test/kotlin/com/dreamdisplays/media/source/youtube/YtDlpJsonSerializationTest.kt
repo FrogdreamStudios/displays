@@ -1,5 +1,8 @@
-package com.dreamdisplays.media.source.ytdlp
+package com.dreamdisplays.media.source.youtube
 
+import com.dreamdisplays.media.source.youtube.binary.YtDlpOutputParser
+import com.dreamdisplays.media.source.youtube.model.Durations
+import com.dreamdisplays.media.source.youtube.model.YtStream
 import com.dreamdisplays.util.json.DreamJson
 import kotlin.test.Test
 import kotlin.test.assertEquals
