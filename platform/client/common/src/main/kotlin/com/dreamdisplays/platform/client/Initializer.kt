@@ -13,6 +13,7 @@ import com.dreamdisplays.platform.client.overlay.OverlayManager
 import com.dreamdisplays.platform.client.ui.FullscreenOverlayManager
 import com.dreamdisplays.platform.client.ui.MinecraftOverlayRenderContext
 import com.dreamdisplays.platform.client.utils.MinecraftScreenUtil
+import com.dreamdisplays.util.OsInfo
 import net.minecraft.client.Minecraft
 //? if >=26 {
 import net.minecraft.client.gui.GuiGraphicsExtractor
@@ -35,7 +36,7 @@ object Initializer {
         // On macOS, VideoPopoutWindow uses GLFW (not AWT), so no AWT setup is needed.
         // On Windows / Linux, AWT is used: override java.awt.headless so a JFrame can open.
         // Must run before any AWT class initializes the Toolkit.
-        if (!System.getProperty("os.name", "").lowercase().startsWith("mac")) {
+        if (!OsInfo.isMac) {
             System.setProperty("java.awt.headless", "false")
         }
         ClientPacketManager.bind(dreamDisplaysMod)

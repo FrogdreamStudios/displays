@@ -16,8 +16,8 @@ import com.dreamdisplays.api.playback.PlaybackMode
 import com.dreamdisplays.api.playback.PlaybackServices
 import com.dreamdisplays.api.runtime.registry.get
 import com.dreamdisplays.api.watchparty.WatchPartyServices
-import com.dreamdisplays.media.source.ytdlp.VideoMetadataCache
-import com.dreamdisplays.media.source.ytdlp.VideoTitleCache
+import com.dreamdisplays.media.source.youtube.cache.VideoMetadataCache
+import com.dreamdisplays.media.source.youtube.cache.VideoTitleCache
 import com.dreamdisplays.platform.client.core.DreamServices
 import com.dreamdisplays.platform.client.displays.DisplayRegistry
 import com.dreamdisplays.platform.client.displays.DisplayScreen

@@ -8,7 +8,7 @@ import com.dreamdisplays.media.player.nativebridge.NativeMedia
 import com.dreamdisplays.media.player.process.HwAccelBackend
 import com.dreamdisplays.media.player.process.MediaProcess
 import com.dreamdisplays.media.player.util.daemon
-import com.dreamdisplays.media.runtime.OsInfo
+import com.dreamdisplays.util.OsInfo
 import org.slf4j.LoggerFactory
 import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicBoolean
@@ -121,7 +121,7 @@ internal class NativeVideoFramePipe(
     var firstRawPtsNanos: Long = Long.MIN_VALUE; private set
 
     @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
-    private val lavSeekMonitor = java.lang.Object()
+    private val lavSeekMonitor = Object()
 
     @Volatile
     private var pendingLavSeek: LavSeekCommand? = null
@@ -377,7 +377,7 @@ internal class NativeVideoFramePipe(
             if (!firstFrame) {
                 firstFrame = true
                 currentOnFirstFrame()
-                if (MediaPlayer.DEBUG) logger.debug("$debugLabel First frame ${w} x ${h} (native).")
+                if (MediaPlayer.DEBUG) logger.debug("$debugLabel First frame $w x $h (native).")
             }
         }
 
@@ -386,10 +386,10 @@ internal class NativeVideoFramePipe(
             if (queuedMs >= 1_000) {
                 logger.warn(
                     "$debugLabel In-place seek to ${"%.1f".format(seek.offsetNanos / 1e6)}ms reached the " +
-                            "reader only after ${queuedMs} ms — reader was blocked outside the native read."
+                            "reader only after $queuedMs ms — reader was blocked outside the native read."
                 )
             } else if (MediaPlayer.DEBUG) {
-                logger.debug("$debugLabel In-place seek applied ${queuedMs} ms after request.")
+                logger.debug("$debugLabel In-place seek applied $queuedMs ms after request.")
             }
             prebuffer?.resetForSeek(seek.onFirstFrame)
             val ok = NativeMedia.lavSeek(lavHandle, seek.offsetNanos / 1_000L)
@@ -545,7 +545,7 @@ internal class NativeVideoFramePipe(
 
             if (passFirstFrameAfterSeek) {
                 // As soon as the first acceptable post-seek frame exists, start the playback clock and
-                // release the audio start gate before pacing. Otherwise video waits for an audio clock
+                // release the audio start gate before pacing. Otherwise, video waits for an audio clock
                 // that itself is waiting for this callback, producing the visible ~3 s seek delay.
                 armFirstFrameClock()
             }

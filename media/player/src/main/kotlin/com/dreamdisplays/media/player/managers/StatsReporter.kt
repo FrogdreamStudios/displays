@@ -2,6 +2,7 @@ package com.dreamdisplays.media.player.managers
 
 import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Diagnostic service that periodically logs decoded FPS, GPU-upload FPS, dropped frames,
@@ -33,10 +34,10 @@ internal class StatsReporter(
     fun start() {
         if (job?.isActive == true) return
         job = scope.launch {
-            delay(intervalMs)
+            delay(intervalMs.milliseconds)
             while (isActive) {
                 report()
-                delay(intervalMs)
+                delay(intervalMs.milliseconds)
             }
         }
     }

@@ -5,7 +5,7 @@ import com.dreamdisplays.api.media.source.MediaResolver
 import com.dreamdisplays.api.media.source.MediaResolverRegistry
 import com.dreamdisplays.api.media.source.MediaSource
 import com.dreamdisplays.api.media.source.ResolvedMedia
-import com.dreamdisplays.media.runtime.MediaHostGuard
+import com.dreamdisplays.media.runtime.security.MediaHostGuard
 import com.dreamdisplays.util.DreamCoroutines
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
@@ -15,7 +15,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 
 /** Default [MediaResolverRegistry]: tries registered resolvers in priority order, returning the first success. */
 class DefaultMediaResolverRegistry : MediaResolverRegistry {
-
+    /** Backing list of resolvers, sorted by priority on every access. */
     private val backing = CopyOnWriteArrayList<MediaResolver>()
 
     /** Limits concurrent prefetch hints to avoid network/process flooding. */
@@ -28,6 +28,7 @@ class DefaultMediaResolverRegistry : MediaResolverRegistry {
      */
     private val inFlight = ConcurrentHashMap.newKeySet<String>()
 
+    /** Returns the registered resolvers in priority order (highest first). */
     override val resolvers: List<MediaResolver>
         get() = backing.sortedByDescending { it.priority }
 

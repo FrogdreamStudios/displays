@@ -1,7 +1,7 @@
 package com.dreamdisplays.media.source.twitch
 
 import com.dreamdisplays.api.media.source.MediaSource
-import com.dreamdisplays.media.source.ytdlp.YtDlp
+import com.dreamdisplays.media.source.youtube.YtDlp
 import com.dreamdisplays.util.*
 import com.dreamdisplays.util.json.DreamJson
 import com.dreamdisplays.util.net.DreamHttpClient
@@ -22,7 +22,7 @@ data class TwitchMetadata(
     val channelAvatarUrl: String? = null,
 )
 
-/** A usher playback access token: [value] is the token blob, [signature] authenticates it. */
+/** An usher playback access token: [value] is the token blob, [signature] authenticates it. */
 data class TwitchAccessToken(val value: String, val signature: String)
 
 /** Live-channel playback lookup: metadata plus the usher access token, from one GQL round trip. */

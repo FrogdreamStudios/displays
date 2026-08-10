@@ -113,7 +113,7 @@ object BilibiliApi {
         }
     }
 
-    /** Follows a `b23.tv` short link's redirect chain and re-parses the final URL into a BIlibili source. */
+    /** Follows a `b23.tv` short link's redirect chain and reparses the final URL into a BIlibili source. */
     private fun resolveShortlink(url: String): MediaSource.Bilibili? {
         var current = url
         repeat(MAX_REDIRECT_HOPS) {
@@ -177,7 +177,7 @@ object BilibiliApi {
     }
 
     /** Resolves a live room identified by [roomId]. */
-    private fun resolveLive(roomId: Long): BilibiliPlayback? {
+    private fun resolveLive(roomId: Long): BilibiliPlayback {
         val infoRoot = getJson("https://api.live.bilibili.com/room/v1/Room/get_info?room_id=$roomId")
         val info = infoRoot?.obj("data")
         val isLive = info?.optInt("live_status") == 1

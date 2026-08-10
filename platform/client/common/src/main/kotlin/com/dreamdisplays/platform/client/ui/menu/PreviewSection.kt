@@ -16,8 +16,8 @@ import com.dreamdisplays.media.source.kick.KickMetadataCache
 import com.dreamdisplays.media.source.platform.PlatformVideoMetadata
 import com.dreamdisplays.media.source.twitch.TwitchMetadataCache
 import com.dreamdisplays.media.source.vimeo.VimeoMetadataCache
-import com.dreamdisplays.media.source.ytdlp.VideoMetadataCache
-import com.dreamdisplays.media.source.ytdlp.VideoTitleCache
+import com.dreamdisplays.media.source.youtube.cache.VideoMetadataCache
+import com.dreamdisplays.media.source.youtube.cache.VideoTitleCache
 import com.dreamdisplays.platform.client.Initializer
 import com.dreamdisplays.platform.client.core.DreamServices
 import com.dreamdisplays.platform.client.displays.DisplayScreen

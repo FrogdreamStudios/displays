@@ -1,6 +1,6 @@
 package com.dreamdisplays.media.player.nativebridge
 
-import com.dreamdisplays.media.runtime.OsInfo
+import com.dreamdisplays.util.OsInfo
 import com.dreamdisplays.util.net.DreamHttpClient
 import kotlinx.io.IOException
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
@@ -139,12 +139,12 @@ object LavFfmpeg {
     private fun wantedEntry(entryName: String, libDir: String): Boolean {
         val parts = entryName.split('/')
         val leaf = parts.last()
-        if (parts.size >= 2 && parts[parts.size - 2] == libDir && isSharedLibrary(leaf.lowercase())) return true
-        return leaf.equals("LICENSE.txt", ignoreCase = true) && parts.size <= 2
+        return parts.size >= 2 && parts[parts.size - 2] == libDir && isSharedLibrary(leaf.lowercase()) ||
+                leaf.equals("LICENSE.txt", ignoreCase = true) && parts.size <= 2
     }
 
     @Throws(IOException::class)
-    private fun writeEntry(input: java.io.InputStream, dest: File) {
+    private fun writeEntry(input: InputStream, dest: File) {
         BufferedOutputStream(FileOutputStream(dest)).use { out -> input.transferTo(out) }
     }
 
@@ -180,6 +180,7 @@ object LavFfmpeg {
     }
 
     /** Reads [url], following up to 10 redirect hops. */
+    @Suppress("SameParameterValue")
     @Throws(IOException::class)
     private fun readUrl(url: String): String {
         return DreamHttpClient.readText(

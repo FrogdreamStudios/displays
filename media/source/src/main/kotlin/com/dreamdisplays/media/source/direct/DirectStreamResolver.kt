@@ -4,7 +4,7 @@ import com.dreamdisplays.api.media.common.DreamMediaException
 import com.dreamdisplays.api.media.source.*
 import com.dreamdisplays.api.media.stream.MediaStream
 import com.dreamdisplays.api.media.stream.MediaStreamType
-import com.dreamdisplays.media.runtime.MediaHostGuard
+import com.dreamdisplays.media.runtime.security.MediaHostGuard
 import com.dreamdisplays.util.net.DreamHttpClient
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
@@ -195,7 +195,7 @@ object DirectStreamResolver : MediaResolver {
             metadata = metadataFor(originalUrl, durationNanos, probe.fileName),
             // A file the server will not range-seek behaves like a stream: it can only play forward
             isLive = false,
-            isSeekable = probe.acceptsRanges && kind != CustomMediaKind.DASH,
+            isSeekable = probe.acceptsRanges,
         )
     }
 

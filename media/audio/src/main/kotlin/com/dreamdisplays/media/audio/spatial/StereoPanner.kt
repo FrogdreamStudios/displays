@@ -11,7 +11,7 @@ import kotlin.math.sin
  */
 class StereoPanner {
     private companion object {
-        val HALF_PI = (PI / 2.0)
+        const val HALF_PI = (PI / 2.0)
     }
 
     var lastL = 0f
@@ -19,7 +19,7 @@ class StereoPanner {
 
     /** Pans a mono [sample] to `[left, right]` given [azimuthRad], storing result in [lastL] and [lastR]. */
     fun pan(sample: Float, azimuthRad: Double) {
-        val t = (azimuthRad.coerceIn(-HALF_PI, HALF_PI) / HALF_PI + 1.0) / 2.0 // 0 = left .. 1 = right
+        val t = (azimuthRad.coerceIn(-HALF_PI, HALF_PI) / HALF_PI + 1.0) / 2.0 // 0 = left ..1 = right
         val angle = t * HALF_PI
         lastL = (sample * cos(angle)).toFloat()
         lastR = (sample * sin(angle)).toFloat()

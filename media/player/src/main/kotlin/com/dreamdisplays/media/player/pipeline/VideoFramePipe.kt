@@ -57,8 +57,11 @@ internal class VideoFramePipe(
     @Volatile
     private var activePrebuffer: FramePrebuffer? = null
 
-    /** When set and true, the reader idles between frames while keeping the process and pipe open — the
-     *  full pipe back-pressures `FFmpeg` into a warm standstill, so a resume continues instantly. */
+    /**
+     * When set and true, the reader idles between frames while keeping the process and pipe open — the
+     * full pipe back-pressures `FFmpeg` into a warm standstill, so a subsequent un-park resumes immediately
+     * without a new process launch or connection.
+     */
     @Volatile
     private var parked: AtomicBoolean? = null
 
@@ -242,7 +245,7 @@ internal class VideoFramePipe(
                     if (!firstFrame) {
                         firstFrame = true
                         onFirstFrame()
-                        if (MediaPlayer.DEBUG) logger.debug("$debugLabel First frame ${w} x ${h}.")
+                        if (MediaPlayer.DEBUG) logger.debug("$debugLabel First frame $w x $h.")
                     }
 
                     videoPts += frameNs

@@ -19,7 +19,7 @@ import com.dreamdisplays.media.player.stream.MediaStreamSelector
 import com.dreamdisplays.media.player.util.MediaUtil
 import com.dreamdisplays.media.player.util.daemon
 import com.dreamdisplays.media.player.util.joinSafely
-import com.dreamdisplays.media.runtime.MediaHostGuard
+import com.dreamdisplays.media.runtime.security.MediaHostGuard
 import kotlinx.io.IOException
 import org.slf4j.LoggerFactory
 import java.nio.ByteBuffer
@@ -63,7 +63,7 @@ internal class PlaybackSessionManager(
     private val gpuYuvActive: Boolean,
 
     /** Optional per-display acoustics DSP stage; null keeps the legacy distance-gain-only pipeline. */
-    private val audioStage: AudioDspStage? = null,
+    audioStage: AudioDspStage? = null,
 ) {
     /** Logger. */
     private val logger = LoggerFactory.getLogger("DreamDisplays/PlaybackSession")
@@ -259,9 +259,6 @@ internal class PlaybackSessionManager(
     /** Declares the audio tracks to keep pre-warmed; the one currently playing must not be among them. */
     fun setWarmAudioTracks(tracks: List<WarmTrack>) =
         audioWarmPool.setTracks(tracks.filter { it.url !in SILENT_SOURCES })
-
-    /** Drops every pre-warmed audio shadow, whose spawn positions no longer relate to the playhead. */
-    fun invalidateWarmAudio() = audioWarmPool.invalidateAll()
 
     init {
         audio.setParkFlag(parkFlag)
@@ -757,7 +754,7 @@ internal class PlaybackSessionManager(
         updateRawFrameSink()
         isPlaying = true
         logger.debug(
-            "$debugLabel [reappear] replay-only video started ${w} x $h resume=${"%.1f".format(resumeNanos / 1_000_000.0)} ms " +
+            "$debugLabel [reappear] replay-only video started $w x $h resume=${"%.1f".format(resumeNanos / 1_000_000.0)} ms " +
                     "edge=${"%.1f".format(liveEdgeNanos / 1_000_000.0)} ms audioPcm=${audioPcm?.size ?: 0}B.",
         )
         return true
@@ -861,7 +858,7 @@ internal class PlaybackSessionManager(
                 discardChannelBlocking(channel)
                 return false
             }
-            logger.debug("$debugLabel [reappear] live attached ${w} x $h at ${"%.1f".format(liveOffsetNanos / 1_000_000.0)} ms, warming up...")
+            logger.debug("$debugLabel [reappear] live attached $w x $h at ${"%.1f".format(liveOffsetNanos / 1_000_000.0)} ms, warming up...")
             true
         } catch (e: IOException) {
             logger.error("$debugLabel [reappear] failed to attach live after replay.", e)
@@ -1021,7 +1018,7 @@ internal class PlaybackSessionManager(
             // No latch / audio gate: the clock is already running. EOS aborts only this handoff
             if (MediaPlayer.DEBUG) {
                 logger.debug(
-                    "$debugLabel Starting incoming video handoff #$generation ${w} x $h " +
+                    "$debugLabel Starting incoming video handoff #$generation $w x $h " +
                             "at ${"%.1f".format(offsetNanos / 1_000_000.0)} ms.",
                 )
             }
@@ -1049,9 +1046,7 @@ internal class PlaybackSessionManager(
                 presentPreview = false,
             )
             val shouldDiscard = synchronized(switchLock) {
-                if (!terminated.get() && active != null && incoming === channel && incomingGeneration == generation) {
-                    false
-                } else if (incoming === channel && incomingGeneration == generation) {
+                !(!terminated.get() && active != null && incoming === channel && incomingGeneration == generation) && if (incoming === channel && incomingGeneration == generation) {
                     incoming = null
                     true
                 } else {
@@ -1132,7 +1127,7 @@ internal class PlaybackSessionManager(
         parkFlag.set(false) // Release any parked readers so they observe the stop flags and exit
         // A reappearance bridge whose live process never attached: flag it; audio.stop() below releases the
         // line and the pending live-input gate, and the thread is joined at the end.
-        bridgeAudio?.let { it.stop.set(true) }
+        bridgeAudio?.stop?.set(true)
         val inc = synchronized(switchLock) {
             incomingGeneration += 1
             incoming.also { incoming = null }
@@ -1141,7 +1136,7 @@ internal class PlaybackSessionManager(
 
         val a = active
         active = null
-        audioHalf?.let { it.stop.set(true) }
+        audioHalf?.stop?.set(true)
         a?.let { it.stop.set(true); it.nativePipe?.kill() }
         audioHalf?.let { MediaProcess.gracefulDestroy(it.process) }
         audio.stop()

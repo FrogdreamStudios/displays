@@ -10,7 +10,6 @@ import com.dreamdisplays.util.json.DreamJson
 import com.dreamdisplays.util.net.DreamHttpClient
 import kotlinx.serialization.json.JsonObject
 import org.slf4j.LoggerFactory
-import java.net.URLEncoder
 
 /** A resolved Kick channel or VOD: playable [streams], [metadata], length, and seekability. */
 data class KickPlayback(
@@ -18,17 +17,6 @@ data class KickPlayback(
     val metadata: PlatformVideoMetadata,
     val durationSec: Long?,
     val isSeekable: Boolean,
-)
-
-/** One channel hit from a Kick keyword search, merged with its matching live-stream entry when the channel is live. */
-data class KickSearchItem(
-    val slug: String,
-    val username: String,
-    val isLive: Boolean,
-    val isVerified: Boolean,
-    val title: String?,
-    val thumbnailUrl: String?,
-    val avatarUrl: String?,
 )
 
 /** Resolves Kick channels and VODs through Kick's public site API — the same JSON the website uses, no API key or auth required. */
@@ -80,36 +68,6 @@ object KickApi {
             isSeekable = false,
         )
     }
-
-    /**
-     * Keyword channel search against Kick's own site search — used to mix Kick channels into the
-     * free-text suggestions list. Kick's search is channel-oriented (not a flat video index), so each
-     * hit carries the channel's live title/thumbnail when the search response reports it as live.
-     */
-    fun searchChannels(keyword: String): List<KickSearchItem> {
-        val root = getJson("https://search.kick.com/api/v1/search?query=${urlEncode(keyword)}") ?: return emptyList()
-        val data = root.obj("data") ?: return emptyList()
-        val channels = data.array("channels")?.mapNotNull { it.asJsonObjectOrNull() } ?: return emptyList()
-        val liveBySlug = data.array("livestreams")?.mapNotNull { it.asJsonObjectOrNull() }
-            ?.mapNotNull { ls -> ls.optString("slug")?.let { it to ls } }?.toMap().orEmpty()
-
-        return channels.mapNotNull { channel ->
-            val slug = channel.optString("slug") ?: return@mapNotNull null
-            val live = liveBySlug[slug]
-            KickSearchItem(
-                slug = slug,
-                username = channel.optString("username") ?: slug,
-                isLive = channel.optBoolean("is_live"),
-                isVerified = channel.optBoolean("is_verified"),
-                title = live?.optString("title"),
-                thumbnailUrl = live?.obj("thumbnail")?.optString("src"),
-                avatarUrl = channel.optString("profile_picture"),
-            )
-        }
-    }
-
-    /** URL-encodes [value] for a query string. */
-    private fun urlEncode(value: String): String = URLEncoder.encode(value, "UTF-8").replace("+", "%20")
 
     private fun resolveVod(uuid: String): KickPlayback? {
         val root = getJson("https://kick.com/api/v1/video/$uuid") ?: return null

@@ -1,5 +1,7 @@
 package com.dreamdisplays.media.player.process
 
+import com.dreamdisplays.util.OsInfo
+
 /**
  * Hardware-accelerated video decoder backends supported by `FFmpeg`.
  *
@@ -28,14 +30,11 @@ enum class HwAccelBackend(val ffmpegName: String?, val hwOutputFormat: String?, 
          * compatible option per-platform rather than the absolute fastest: a stream that fails to
          * decode is worse than a stream that decodes a bit slower.
          */
-        fun detectDefault(): HwAccelBackend {
-            val os = System.getProperty("os.name").orEmpty().lowercase()
-            return when {
-                os.contains("mac") || os.contains("darwin") -> VIDEOTOOLBOX
-                os.contains("win") -> D3D11VA
-                os.contains("nux") || os.contains("nix") -> VAAPI
-                else -> NONE
-            }
+        fun detectDefault(): HwAccelBackend = when {
+            OsInfo.isMac -> VIDEOTOOLBOX
+            OsInfo.isWindows -> D3D11VA
+            OsInfo.isLinux -> VAAPI
+            else -> NONE
         }
 
         /**

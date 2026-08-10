@@ -3,6 +3,7 @@ package com.dreamdisplays.media.audio.dsp
 import kotlin.math.exp
 import kotlin.math.log10
 import kotlin.math.max
+import kotlin.math.pow
 
 /**
  * Real-time loudness estimator and slow makeup-gain controller, in the spirit of ITU-R BS.1770 / EBU R128.
@@ -56,5 +57,5 @@ class LoudnessMeter(private val sampleRate: Float) {
         gainDbSmoother.snap(0f)
     }
 
-    private fun dbToLinear(db: Float): Float = Math.pow(10.0, db / 20.0).toFloat()
+    private fun dbToLinear(db: Float): Float = 10.0.pow(db / 20.0).toFloat()
 }

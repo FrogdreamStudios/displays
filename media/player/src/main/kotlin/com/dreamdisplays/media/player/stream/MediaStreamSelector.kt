@@ -3,6 +3,7 @@ package com.dreamdisplays.media.player.stream
 import com.dreamdisplays.api.media.stream.MediaStream
 import com.dreamdisplays.api.media.stream.MediaStreamType
 import com.dreamdisplays.api.media.stream.SupportedCodec
+import com.dreamdisplays.util.OsInfo
 import kotlin.math.abs
 
 /** Pure helpers for parsing quality values and picking video / audio tracks from a [MediaStream] list. */
@@ -18,20 +19,14 @@ object MediaStreamSelector {
     private val defaultFps60Penalty: Int =
         System.getProperty("dreamdisplays.stream.fps60Penalty", "420").toIntOrNull()?.coerceAtLeast(0) ?: 420
 
-    /** Operating system name. Used to determine platform-specific behavior. */
-    private val osName: String = System.getProperty("os.name").orEmpty().lowercase()
-
-    /** Operating system architecture. Used to determine platform-specific behavior. */
-    private val osArch: String = System.getProperty("os.arch").orEmpty().lowercase()
-
     /** Is the current platform macOS? */
-    private val isMac: Boolean = osName.contains("mac") || osName.contains("darwin")
+    private val isMac: Boolean = OsInfo.isMac
 
     /** Is the current platform Windows? */
-    private val isWindows: Boolean = osName.contains("win")
+    private val isWindows: Boolean = OsInfo.isWindows
 
     /** Is the current platform Apple Silicon? */
-    private val isAppleSilicon: Boolean = isMac && (osArch.contains("aarch64") || osArch.contains("arm64"))
+    private val isAppleSilicon: Boolean = OsInfo.isMac && OsInfo.isArm64
 
     /** Returns the pixel height of [stream], or [Int.MAX_VALUE] if unknown. */
     fun parseQuality(stream: MediaStream): Int = stream.height ?: Int.MAX_VALUE
@@ -55,7 +50,7 @@ object MediaStreamSelector {
      * @return the updated set, or null when no switch is possible (no candidate, or the best
      *   candidate is already the current video).
      */
-    internal fun switchQuality(streams: ActiveStreams, target: Int, lang: String): ActiveStreams? {
+    internal fun switchQuality(streams: ActiveStreams, target: Int): ActiveStreams? {
         val best = pickVideo(streams.availableVideo, target)
             ?.takeIf { it.url != streams.currentVideo.url } ?: return null
         // Keep the current audio so the progressive pick isn't reverted on a quality switch
@@ -66,7 +61,7 @@ object MediaStreamSelector {
      * Switches the active audio track to the one whose URL equals [targetUrl], leaving the video
      * selection untouched.
      *
-     * @return the updated set, or null when there's no matching track or it's already current.
+     * @return the updated set, or null when there's no matching track, or it's already current.
      */
     internal fun switchAudioTrack(streams: ActiveStreams, targetUrl: String): ActiveStreams? {
         val best = streams.availableAudio.firstOrNull { it.url == targetUrl }
@@ -224,8 +219,7 @@ object MediaStreamSelector {
     /** Case-insensitive partial match of [lang] against the stream's language tag and track name. */
     fun matchesLanguage(stream: MediaStream, lang: String): Boolean {
         val needle = lang.lowercase()
-        if (needle.isEmpty()) return false
-        return stream.audioTrackLang?.lowercase()?.contains(needle) == true
-                || stream.audioTrackName?.lowercase()?.contains(needle) == true
+        return needle.isNotEmpty() && (stream.audioTrackLang?.lowercase()?.contains(needle) == true
+                || stream.audioTrackName?.lowercase()?.contains(needle) == true)
     }
 }

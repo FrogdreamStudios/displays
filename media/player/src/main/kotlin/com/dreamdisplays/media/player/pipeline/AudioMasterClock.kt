@@ -39,8 +39,7 @@ internal class AudioMasterClock(
          */
         const val MAX_BACKWARD_ANCHOR_NANOS = 800_000_000L
 
-        /** Implausible exact-PTS bias bounds: different clocks, a PTS wrap, or a mid-session splice. */
-        const val MIN_PLAUSIBLE_EXACT_BIAS_NANOS = -800_000_000L
+        /** Maximum plausible bias from a stream PTS anchor; anything more is probably a bug. */
         const val MAX_PLAUSIBLE_EXACT_BIAS_NANOS = 30_000_000_000L
 
         /**
@@ -195,7 +194,7 @@ internal class AudioMasterClock(
             return
         }
         val exact = exactBias()?.takeIf {
-            it > MIN_PLAUSIBLE_EXACT_BIAS_NANOS && it < MAX_PLAUSIBLE_EXACT_BIAS_NANOS
+            it in -799999999..<MAX_PLAUSIBLE_EXACT_BIAS_NANOS
         }
         if (exact != null) {
             // Live video can't rewind, so an anchor that would park the clock further behind than

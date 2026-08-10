@@ -2,6 +2,7 @@ package com.dreamdisplays.media.audio.dsp
 
 import kotlin.math.PI
 import kotlin.math.cos
+import kotlin.math.pow
 import kotlin.math.sin
 import kotlin.math.sqrt
 
@@ -22,7 +23,7 @@ class Biquad {
     /** Recomputes coefficients for [type] at [freqHz] / [sampleRate], with [q] and (shelf-only) [gainDb]. */
     fun configure(type: Type, sampleRate: Float, freqHz: Float, q: Float, gainDb: Float = 0f) {
         val w0 = 2.0 * PI * (freqHz / sampleRate).coerceIn(0.0001f, 0.499f)
-        val cosW0 = cos(w0);
+        val cosW0 = cos(w0)
         val sinW0 = sin(w0)
         val alpha = sinW0 / (2.0 * q)
         var b0d: Double
@@ -43,7 +44,7 @@ class Biquad {
             }
 
             Type.HIGH_SHELF -> {
-                val a = Math.pow(10.0, gainDb / 40.0)
+                val a = 10.0.pow(gainDb / 40.0)
                 val s = 1.0 // Shelf slope
                 val alphaS = sinW0 / 2.0 * sqrt((a + 1.0 / a) * (1.0 / s - 1.0) + 2.0)
                 val twoSqrtAAlpha = 2.0 * sqrt(a) * alphaS

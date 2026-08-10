@@ -108,7 +108,7 @@ internal class FramePrebuffer(
         val blockedMs = (System.nanoTime() - blockedSinceNs) / 1_000_000
         if (blockedMs >= 1_000) {
             logger.warn(
-                "$debugLabel Producer blocked ${blockedMs} ms in submit " +
+                "$debugLabel Producer blocked $blockedMs ms in submit " +
                         "(queue=${queue.size}/$capacityFrames, primed=$primed, flush=$flushRequested)."
             )
         }
@@ -294,7 +294,7 @@ internal class FramePrebuffer(
 
         /**
          * Builds a started prebuffer sized for [frameNs] (one frame's duration), or null when disabled.
-         * Capacity is the prefill plus headroom so the producer keeps a little slack above the pre-fill mark.
+         * Capacity is the prefill plus headroom so the producer keeps a little slack above the prefill mark.
          */
         fun createIfEnabled(
             surface: FrameSurface, frameNs: Long,
@@ -305,7 +305,7 @@ internal class FramePrebuffer(
             if (!enabled || frameNs <= 0) return null
             val prefill = ((prebufferMs * 1_000_000L) / frameNs).toInt().coerceIn(2, 240)
             // A little slack above the prefill mark so the producer can run slightly ahead of playout.
-            // Memory cost is capacity * frameSize, so keep it tight — raw frames are large at high res.
+            // Memory cost is capacity * frameSize, so keep it tight — raw frames are large at high-res.
             val capacity = prefill + 4
             // Let the surface pool retain every in-flight buffer (queue + ready + spare) so steady-state
             // playout reuses buffers instead of churning large direct allocations (which would GC-stutter).
