@@ -195,7 +195,7 @@ object DirectStreamResolver : MediaResolver {
             metadata = metadataFor(originalUrl, durationNanos, probe.fileName),
             // A file the server will not range-seek behaves like a stream: it can only play forward
             isLive = false,
-            isSeekable = probe.acceptsRanges && kind != CustomMediaKind.DASH,
+            isSeekable = probe.acceptsRanges,
         )
     }
 

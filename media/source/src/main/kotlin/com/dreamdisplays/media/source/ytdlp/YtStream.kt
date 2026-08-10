@@ -48,9 +48,6 @@ class YtStream(
     /** Returns true if the stream has audio, even if it's not a video stream. */
     fun hasAudio(): Boolean = hasAudio
 
-    /** Returns true if the stream is a muxed stream (video and audio in the same file). */
-    val isMuxed: Boolean get() = hasVideo && hasAudio
-
     /** Maps this internal stream descriptor to the media-api contract type used by [MediaResolver]. */
     fun toMediaStream(): MediaStream = MediaStream(
         url = url,

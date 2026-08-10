@@ -39,7 +39,7 @@ object FormatDiskCache {
     private const val SCHEMA_VERSION = 4
 
     /**
-     * Serialises write / delete coroutines so same-file ops keep their submission order (the single-writer
+     * Serializes write / delete coroutines so same-file ops keep their submission order (the single-writer
      * guarantee the old dedicated writer thread gave).
      */
     private val writeMutex = Mutex()
@@ -129,7 +129,7 @@ object FormatDiskCache {
     /** Returns the cache file path for [videoUrl] by hashing the URL to a stable filename. */
     private fun fileFor(videoUrl: String): File = File(CACHE_DIR.toFile(), hash(videoUrl) + ".json")
 
-    /** Returns a SHA-1 hex digest of [s], falling back to `hashCode` if SHA-1 is unavailable. */
+    /** Returns an SHA-1 hex digest of [s], falling back to `hashCode` if SHA-1 is unavailable. */
     private fun hash(s: String): String = runCatching {
         val md = MessageDigest.getInstance("SHA-1")
         HexFormat.of().formatHex(md.digest(s.toByteArray(StandardCharsets.UTF_8)))

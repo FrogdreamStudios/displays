@@ -151,7 +151,7 @@ object TwitchResolver : MediaResolver {
         )
     }
 
-    /** Downloads and parses a usher master playlist into [MediaStream]s; throws when it has no video. */
+    /** Downloads and parses an usher master playlist into [MediaStream]s; throws when it has no video. */
     private fun fetchRenditions(playlistUrl: String): List<MediaStream> {
         val playlist = DreamHttpClient.readText(
             playlistUrl,

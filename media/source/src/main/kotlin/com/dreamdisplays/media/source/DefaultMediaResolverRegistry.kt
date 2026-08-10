@@ -15,7 +15,6 @@ import java.util.concurrent.CopyOnWriteArrayList
 
 /** Default [MediaResolverRegistry]: tries registered resolvers in priority order, returning the first success. */
 class DefaultMediaResolverRegistry : MediaResolverRegistry {
-
     private val backing = CopyOnWriteArrayList<MediaResolver>()
 
     /** Limits concurrent prefetch hints to avoid network/process flooding. */

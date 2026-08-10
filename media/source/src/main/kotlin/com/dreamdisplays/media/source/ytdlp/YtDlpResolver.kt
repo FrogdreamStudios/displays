@@ -9,7 +9,6 @@ import kotlin.time.Duration.Companion.nanoseconds
  * only reaches it after the in-process fast path has declined or failed.
  */
 object YtDlpResolver : MediaResolver {
-
     /** Below [NewPipeResolver] (10) so the in-process path is always tried first. */
     override val priority: Int = 0
 

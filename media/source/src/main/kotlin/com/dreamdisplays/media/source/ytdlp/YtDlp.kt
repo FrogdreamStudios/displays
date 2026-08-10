@@ -7,10 +7,8 @@ import com.dreamdisplays.api.media.search.YouTubeUrls
 import com.dreamdisplays.api.security.MediaUrlPolicy
 import com.dreamdisplays.media.runtime.system.Processes
 import com.dreamdisplays.media.source.ytdlp.YtDlp.FALLBACK_CLIENTS
-import com.dreamdisplays.media.source.ytdlp.YtDlp.HEDGE_DELAY_MS
 import com.dreamdisplays.media.source.ytdlp.YtDlp.PRIMARY_CLIENT
 import com.dreamdisplays.media.source.ytdlp.YtDlp.bestResult
-import com.dreamdisplays.media.source.ytdlp.YtDlp.raceClients
 import com.dreamdisplays.util.AsyncMemo
 import com.dreamdisplays.util.DreamCoroutines
 import com.github.benmanes.caffeine.cache.Cache
@@ -36,12 +34,6 @@ private class AbandonFlag {
     fun abandon() {
         flag.value = true
     }
-}
-
-/** Per-race countdown surviving capture across parallel client coroutines. */
-private class RemainingCountdown(initial: Int) {
-    private val remaining = atomic(initial)
-    fun decrementAndGet(): Int = remaining.decrementAndGet()
 }
 
 /**

@@ -187,7 +187,7 @@ object YtDlpBinary {
      * (the binary path has its own `-U` in [maybeSelfUpdate]). Runs in the background, never blocking.
      */
     private fun maybeRefreshZipapp(pyz: Path) {
-        if (!zipappUpdateChecked.compareAndSet(false, true)) return
+        if (!zipappUpdateChecked.compareAndSet(expect = false, update = true)) return
         val age = runCatching {
             System.currentTimeMillis() - Files.getLastModifiedTime(pyz).toMillis()
         }.getOrNull() ?: return
@@ -208,7 +208,7 @@ object YtDlpBinary {
      * latest release in the background.
      */
     private fun maybeSelfUpdate(bundled: Path) {
-        if (!updateChecked.compareAndSet(false, true)) return
+        if (!updateChecked.compareAndSet(expect = false, update = true)) return
         val age = runCatching {
             System.currentTimeMillis() - Files.getLastModifiedTime(bundled).toMillis()
         }.getOrNull() ?: return

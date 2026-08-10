@@ -144,7 +144,7 @@ class YtCookieManager {
 
     /** Re-exports the browser cookie file in the background if not already in progress. */
     private fun refreshAsync() {
-        if (!refreshInProgress.compareAndSet(false, true)) return
+        if (!refreshInProgress.compareAndSet(expect = false, update = true)) return
         DreamCoroutines.clientIo.launch {
             try {
                 exportHeader()
@@ -231,14 +231,10 @@ class YtCookieManager {
 
             // Cookies are opt-in, so "configured" is always a single explicit browser name here
             // (see disabledByConfig). No auto-detection sweep -> no macOS keychain popup.
-            val binary: String? = runCatching {
+            val binary: String = runCatching {
                 YtDlpBinary.resolve()
             }.getOrElse { e ->
                 if (e !is IOException) throw e
-                browserResolved = true
-                return null
-            }
-            if (binary == null) {
                 browserResolved = true
                 return null
             }

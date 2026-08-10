@@ -90,7 +90,7 @@ object YouTubeInnerTube {
     fun next(videoId: String): NextResult {
         val root = post("next", InnerTubeRequest(videoId = videoId))
         val meta = extractWatchMetadata(root)
-        val related = extractRelatedPage(root, videoId, 25)
+        val related = extractRelatedPage(root, 25)
         return NextResult(meta?.title, meta?.uploader, meta?.viewCountRaw, meta?.likeCountRaw, related.results)
     }
 
@@ -110,7 +110,7 @@ object YouTubeInnerTube {
     @Throws(IOException::class)
     fun relatedPage(videoId: String, limit: Int): MediaSearchPage {
         val root = post("next", InnerTubeRequest(videoId = videoId))
-        val page = extractRelatedPage(root, videoId, limit + 1)
+        val page = extractRelatedPage(root, limit + 1)
         val hits = page.results.filter { it.id != videoId }.take(limit)
         if (hits.isNotEmpty()) return MediaSearchPage(hits, page.continuationToken)
         val title = extractWatchMetadata(root)?.title ?: return MediaSearchPage(hits, null)
@@ -352,11 +352,8 @@ object YouTubeInnerTube {
         return emptyList()
     }
 
-    /**
-     * Walks the initial `next` response's related-video sidebar, collecting up to [limit] videos (including [selfId] itself,
-     * filtered later) and a continuation token.
-     */
-    private fun extractRelatedPage(root: JsonObject, selfId: String, limit: Int): MediaSearchPage {
+    /** Walks the initial `next` response's related-video sidebar, collecting up to [limit] videos. */
+    private fun extractRelatedPage(root: JsonObject, limit: Int): MediaSearchPage {
         val out = ArrayList<MediaSearchResult>()
         var token: String? = null
         runCatching {

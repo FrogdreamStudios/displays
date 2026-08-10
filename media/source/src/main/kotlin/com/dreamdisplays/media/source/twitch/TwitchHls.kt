@@ -47,7 +47,7 @@ internal object TwitchHls {
             "sig" to token.signature,
             "token" to token.value,
         )
-        return base + "?" + params.joinToString("&") { (key, value) ->
+        return "$base?" + params.joinToString("&") { (key, value) ->
             "$key=${URLEncoder.encode(value, StandardCharsets.UTF_8)}"
         }
     }
@@ -86,7 +86,7 @@ internal object TwitchHls {
     }
 
     /**
-     * Parses an m3u8 attribute list into a key -> value map, honoring quoted values — `CODECS`
+     * Parses a m3u8 attribute list into a key -> value map, honoring quoted values — `CODECS`
      * contains commas, so a plain split would shear it apart. Quotes are stripped from values.
      */
     private fun parseAttributes(list: String): Map<String, String> {

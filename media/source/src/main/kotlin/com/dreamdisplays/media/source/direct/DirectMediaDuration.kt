@@ -196,6 +196,7 @@ internal object DirectMediaDuration {
     }
 
     /** Index of [pattern] in [data] at or after [from], or null when absent. */
+    @Suppress("SameParameterValue")
     private fun indexOf(data: ByteArray, pattern: ByteArray, from: Int): Int? {
         outer@ for (i in from..data.size - pattern.size) {
             for (j in pattern.indices) if (data[i + j] != pattern[j]) continue@outer

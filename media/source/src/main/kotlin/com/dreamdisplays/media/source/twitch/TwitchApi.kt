@@ -22,7 +22,7 @@ data class TwitchMetadata(
     val channelAvatarUrl: String? = null,
 )
 
-/** A usher playback access token: [value] is the token blob, [signature] authenticates it. */
+/** An usher playback access token: [value] is the token blob, [signature] authenticates it. */
 data class TwitchAccessToken(val value: String, val signature: String)
 
 /** Live-channel playback lookup: metadata plus the usher access token, from one GQL round trip. */

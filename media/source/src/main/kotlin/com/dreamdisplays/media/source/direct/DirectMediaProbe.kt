@@ -48,7 +48,7 @@ internal object DirectMediaProbe {
         "application/dash+xml",
     )
 
-    /** Generic types a correctly-served media file is nonetheless often labelled with: object storage defaults to binary / octet-stream. */
+    /** Generic types a correctly-served media file is nonetheless often labeled with: object storage defaults to binary / octet-stream. */
     private val TOLERATED_TYPES = setOf("application/octet-stream", "binary/octet-stream")
 
     /**

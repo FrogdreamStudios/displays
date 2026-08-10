@@ -5,8 +5,6 @@ import com.dreamdisplays.api.media.source.MediaMetadata
 import com.dreamdisplays.api.media.source.MediaResolver
 import com.dreamdisplays.api.media.source.MediaSource
 import com.dreamdisplays.api.media.source.ResolvedMedia
-import com.dreamdisplays.media.source.ytdlp.NewPipeResolver.PARTIAL_TTL_NANOS
-import com.dreamdisplays.media.source.ytdlp.NewPipeResolver.POSITIVE_TTL_NANOS
 import com.dreamdisplays.util.net.DreamHttpClient
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
@@ -29,19 +27,19 @@ object NewPipeResolver : MediaResolver {
     private val initialized = atomic(false)
 
     /** How long a resolved video is reused before `NewPipeExtractor` is hit again. Matches FormatDiskCache.DEFAULT_TTL_MS. */
-    private val POSITIVE_TTL_NANOS = FormatDiskCache.DEFAULT_TTL_MS * 1_000_000L
+    private const val POSITIVE_TTL_NANOS = FormatDiskCache.DEFAULT_TTL_MS * 1_000_000L
 
     /**
      * Partial ("walled") resolutions: reused across replays within a viewing session but rechecked
      * periodically in case YouTube's PO-token/SABR wall lifts for this video. Matches
      * [FormatDiskCache.PARTIAL_TTL_MS].
      */
-    private val PARTIAL_TTL_NANOS = FormatDiskCache.PARTIAL_TTL_MS * 1_000_000L
+    private const val PARTIAL_TTL_NANOS = FormatDiskCache.PARTIAL_TTL_MS * 1_000_000L
 
     /** Live playlist URLs carry short-lived tokens, so reuse is capped much lower than VOD. */
-    private val LIVE_TTL_NANOS = 60_000_000_000L
+    private const val LIVE_TTL_NANOS = 60_000_000_000L
 
-    private val NEGATIVE_TTL_NANOS = 20_000_000_000L
+    private const val NEGATIVE_TTL_NANOS = 20_000_000_000L
     private const val MAX_CACHE_ENTRIES = 256
 
     /** Kill switch for the overlapped fallback (see [shouldOverlapFallback]). */
@@ -54,7 +52,7 @@ object NewPipeResolver : MediaResolver {
     /** Walled share of recent resolutions at which the `yt-dlp` fallback is worth starting early. */
     private const val OVERLAP_MISS_PERCENT = 34
 
-    /** Halve the counters past this many samples, so the rate tracks YouTube's current behaviour. */
+    /** Halve the counters past this many samples, so the rate tracks YouTube's current behavior. */
     private const val LADDER_DECAY_AT = 64
 
     /**
@@ -129,7 +127,7 @@ object NewPipeResolver : MediaResolver {
 
     /** Initializes NewPipeExtractor with our HTTP downloader exactly once. Safe to call repeatedly. */
     fun ensureInitialized() {
-        if (!initialized.compareAndSet(false, true)) return
+        if (!initialized.compareAndSet(expect = false, update = true)) return
         runCatching {
             NewPipe.init(YtHttpDownloader)
         }.onFailure { e ->
@@ -184,16 +182,15 @@ object NewPipeResolver : MediaResolver {
         val hits = ladderHits.value
         val misses = ladderMisses.value
         val samples = hits + misses
-        if (samples < MIN_LADDER_SAMPLES) return true
-        return misses * 100 >= samples * OVERLAP_MISS_PERCENT
+        return samples < MIN_LADDER_SAMPLES || misses * 100 >= samples * OVERLAP_MISS_PERCENT
     }
 
     /** Records whether a completed extraction produced a full ladder, decaying the older history. */
     private fun recordLadderOutcome(laddered: Boolean) {
         if (laddered) ladderHits.incrementAndGet() else ladderMisses.incrementAndGet()
         if (ladderHits.value + ladderMisses.value < LADDER_DECAY_AT) return
-        ladderHits.value = ladderHits.value / 2
-        ladderMisses.value = ladderMisses.value / 2
+        ladderHits.value /= 2
+        ladderMisses.value /= 2
     }
 
     /** Returns cached resolution if fresh, otherwise resolves, caches, and records whether quality ladder is available. */
