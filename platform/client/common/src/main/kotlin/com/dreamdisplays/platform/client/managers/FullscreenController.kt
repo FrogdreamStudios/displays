@@ -1,6 +1,6 @@
 package com.dreamdisplays.platform.client.managers
 
-import com.dreamdisplays.api.media.VideoQuality
+import com.dreamdisplays.api.media.common.VideoQuality
 import com.dreamdisplays.api.playback.FullscreenAckAction
 import com.dreamdisplays.api.playback.FullscreenMode
 import com.dreamdisplays.core.protocol.FullscreenAck

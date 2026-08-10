@@ -2,8 +2,8 @@ package com.dreamdisplays.platform.client.managers
 
 import com.dreamdisplays.api.display.model.ContentRotation
 import com.dreamdisplays.api.display.model.DisplayFacing
-import com.dreamdisplays.api.media.MediaServices
-import com.dreamdisplays.api.media.VideoQuality
+import com.dreamdisplays.api.media.common.MediaServices
+import com.dreamdisplays.api.media.common.VideoQuality
 import com.dreamdisplays.api.media.source.MediaSource
 import com.dreamdisplays.api.playback.PlaybackMode
 import com.dreamdisplays.api.storage.FullDisplayData

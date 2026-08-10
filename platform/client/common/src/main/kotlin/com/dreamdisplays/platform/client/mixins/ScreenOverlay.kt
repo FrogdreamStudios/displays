@@ -1,6 +1,6 @@
 package com.dreamdisplays.platform.client.mixins
 
-import com.dreamdisplays.api.runtime.getOrNull
+import com.dreamdisplays.api.runtime.registry.getOrNull
 import com.dreamdisplays.platform.client.core.DreamServices
 import com.dreamdisplays.platform.client.overlay.OverlayManager
 import com.dreamdisplays.platform.client.ui.FullscreenOverlayManager

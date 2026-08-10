@@ -1,6 +1,7 @@
 package com.dreamdisplays.api.storage
 
 import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.display.model.ClientSettingsStorage
 
 /**
  * Supplies the storage backends.

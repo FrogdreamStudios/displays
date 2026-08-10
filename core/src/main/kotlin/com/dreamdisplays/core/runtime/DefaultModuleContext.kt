@@ -1,7 +1,7 @@
 package com.dreamdisplays.core.runtime
 
-import com.dreamdisplays.api.runtime.ModuleContext
-import com.dreamdisplays.api.runtime.ServiceRegistry
+import com.dreamdisplays.api.runtime.module.ModuleContext
+import com.dreamdisplays.api.runtime.registry.ServiceRegistry
 
 /** Default [ModuleContext] backed by a [ServiceRegistry]. */
 class DefaultModuleContext(

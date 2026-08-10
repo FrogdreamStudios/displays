@@ -1,6 +1,6 @@
 package com.dreamdisplays.media.source.twitch
 
-import com.dreamdisplays.api.media.DreamMediaException
+import com.dreamdisplays.api.media.common.DreamMediaException
 import com.dreamdisplays.api.media.source.MediaMetadata
 import com.dreamdisplays.api.media.source.MediaResolver
 import com.dreamdisplays.api.media.source.MediaSource

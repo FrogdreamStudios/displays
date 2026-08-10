@@ -1,7 +1,7 @@
 package com.dreamdisplays.platform.client.ui.menu
 
-import com.dreamdisplays.api.media.DreamMediaException
-import com.dreamdisplays.api.media.MediaFailureKind
+import com.dreamdisplays.api.media.common.DreamMediaException
+import com.dreamdisplays.api.media.common.MediaFailureKind
 import com.dreamdisplays.platform.client.ui.GuiGraphicsCompat
 import com.dreamdisplays.platform.client.ui.drawText
 import com.dreamdisplays.platform.client.ui.kit.UiRect

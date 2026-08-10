@@ -1,8 +1,8 @@
 package com.dreamdisplays.platform.client.managers
 
-import com.dreamdisplays.api.media.FramePixelFormat
+import com.dreamdisplays.api.media.common.FramePixelFormat
 import com.dreamdisplays.api.playback.FullscreenMode
-import com.dreamdisplays.api.runtime.getOrNull
+import com.dreamdisplays.api.runtime.registry.getOrNull
 import com.dreamdisplays.media.player.MediaPlayer
 import com.dreamdisplays.platform.client.core.DreamServices
 import com.dreamdisplays.platform.client.displays.DisplayScreen

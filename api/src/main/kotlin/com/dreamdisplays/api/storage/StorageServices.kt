@@ -1,8 +1,9 @@
 package com.dreamdisplays.api.storage
 
 import com.dreamdisplays.api.DreamDisplaysUnstableApi
-import com.dreamdisplays.api.runtime.ServiceKey
-import com.dreamdisplays.api.runtime.serviceKey
+import com.dreamdisplays.api.display.model.ClientSettingsStorage
+import com.dreamdisplays.api.runtime.registry.ServiceKey
+import com.dreamdisplays.api.runtime.registry.serviceKey
 
 /**
  * Storage service keys.

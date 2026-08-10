@@ -6,7 +6,7 @@ import com.dreamdisplays.api.display.model.Display
 import com.dreamdisplays.api.display.model.DisplayId
 import com.dreamdisplays.api.display.model.DisplayRuntimeState
 import com.dreamdisplays.api.display.model.DisplaySettings
-import com.dreamdisplays.api.media.VideoQuality
+import com.dreamdisplays.api.media.common.VideoQuality
 import com.dreamdisplays.api.playback.PlaybackMode
 import com.dreamdisplays.api.watchparty.WatchPartySession
 import java.util.concurrent.ConcurrentHashMap

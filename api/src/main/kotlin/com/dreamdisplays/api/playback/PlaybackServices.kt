@@ -1,8 +1,8 @@
 package com.dreamdisplays.api.playback
 
 import com.dreamdisplays.api.DreamDisplaysUnstableApi
-import com.dreamdisplays.api.runtime.ServiceKey
-import com.dreamdisplays.api.runtime.serviceKey
+import com.dreamdisplays.api.runtime.registry.ServiceKey
+import com.dreamdisplays.api.runtime.registry.serviceKey
 
 /**
  * Playback service keys.

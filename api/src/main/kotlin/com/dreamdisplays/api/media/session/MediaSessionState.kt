@@ -1,7 +1,7 @@
 package com.dreamdisplays.api.media.session
 
 import com.dreamdisplays.api.DreamDisplaysUnstableApi
-import com.dreamdisplays.api.media.DreamMediaException
+import com.dreamdisplays.api.media.common.DreamMediaException
 
 /**
  * Lifecycle state of a media session, from idle / resolving through active playback and teardown.

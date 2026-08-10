@@ -1,7 +1,7 @@
 package com.dreamdisplays.platform.client.core
 
-import com.dreamdisplays.api.runtime.DreamDisplaysModule
-import com.dreamdisplays.api.runtime.ServiceRegistry
+import com.dreamdisplays.api.runtime.module.DreamDisplaysModule
+import com.dreamdisplays.api.runtime.registry.ServiceRegistry
 import com.dreamdisplays.core.runtime.DefaultDreamDisplaysRuntime
 import java.util.concurrent.CopyOnWriteArrayList
 

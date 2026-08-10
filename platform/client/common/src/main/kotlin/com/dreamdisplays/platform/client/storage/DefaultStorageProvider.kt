@@ -1,6 +1,6 @@
 package com.dreamdisplays.platform.client.storage
 
-import com.dreamdisplays.api.storage.ClientSettingsStorage
+import com.dreamdisplays.api.display.model.ClientSettingsStorage
 import com.dreamdisplays.api.storage.DisplayStorage
 import com.dreamdisplays.api.storage.StorageProvider
 import com.dreamdisplays.core.storage.DisplayStorage as CoreDisplayStorage

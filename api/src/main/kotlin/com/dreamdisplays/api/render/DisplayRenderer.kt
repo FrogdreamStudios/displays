@@ -1,6 +1,8 @@
 package com.dreamdisplays.api.render
 
 import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.render.backend.RenderContext
+import com.dreamdisplays.api.render.backend.RenderSurface
 
 /**
  * Registry and dispatcher for display render surfaces in one render context.

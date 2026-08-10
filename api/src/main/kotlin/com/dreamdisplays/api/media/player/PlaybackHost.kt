@@ -1,8 +1,8 @@
 package com.dreamdisplays.api.media.player
 
 import com.dreamdisplays.api.DreamDisplaysUnstableApi
-import com.dreamdisplays.api.media.DreamMediaException
-import com.dreamdisplays.api.media.VideoQuality
+import com.dreamdisplays.api.media.common.DreamMediaException
+import com.dreamdisplays.api.media.common.VideoQuality
 import com.dreamdisplays.api.playback.PlaybackMode
 import java.util.*
 

@@ -1,6 +1,11 @@
 package com.dreamdisplays.platform.client.platform
 
-import com.dreamdisplays.api.platform.*
+import com.dreamdisplays.api.platform.capability.PlatformLogger
+import com.dreamdisplays.api.platform.capability.PlatformPaths
+import com.dreamdisplays.api.platform.capability.PlatformScheduler
+import com.dreamdisplays.api.platform.identity.Platform
+import com.dreamdisplays.api.platform.identity.PlatformId
+import com.dreamdisplays.api.platform.identity.PlatformSide
 import com.dreamdisplays.platform.client.Initializer
 import com.dreamdisplays.util.GeneralUtil
 import net.fabricmc.loader.api.FabricLoader

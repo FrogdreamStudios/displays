@@ -13,9 +13,9 @@ import net.minecraft.client.renderer.rendertype.RenderType
 import com.dreamdisplays.api.display.model.ContentRotation
 import com.dreamdisplays.api.display.model.DisplayFacing
 import com.dreamdisplays.api.display.model.DisplayId
-import com.dreamdisplays.api.render.RenderContext
-import com.dreamdisplays.api.render.TextureHandle
-import com.dreamdisplays.api.runtime.getOrNull
+import com.dreamdisplays.api.render.backend.RenderContext
+import com.dreamdisplays.api.render.texture.TextureHandle
+import com.dreamdisplays.api.runtime.registry.getOrNull
 import com.dreamdisplays.platform.client.core.DreamServices
 import com.dreamdisplays.platform.client.displays.DisplayRegistry
 import com.dreamdisplays.platform.client.displays.DisplayScreen
