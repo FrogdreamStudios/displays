@@ -107,9 +107,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   publish-core-loaders:
-    name: Publish Paper / Velocity / BungeeCord
+    name: Publish BungeeCord / Velocity / Paper
     runs-on: ubuntu-latest
-    needs: build
+    needs: [ build, publish ]
     permissions:
       contents: write
 
@@ -198,21 +198,20 @@ jobs:
               f.write("\n".join(lines).strip() + "\n")
           EOF
 
-      - name: Publish Paper
+      # Published least-important first: every one of these lands as a separate version of the same
+      # Modrinth project, so the last upload is the one that sits on top of the version list.
+      - name: Publish BungeeCord to Modrinth
         if: needs.build.outputs.is_marketplace_publishable == 'true'
         uses: Kir-Antipov/mc-publish@v3.3
         with:
-          name: 'Dream Displays ${{ needs.build.outputs.pretty_version }} — Paper ${{ steps.versions.outputs.paper_label }}'
+          name: 'Dream Displays ${{ needs.build.outputs.pretty_version }} — BungeeCord'
           version: ${{ needs.build.outputs.version }}
           version-type: ${{ needs.build.outputs.is_preview == 'true' && 'alpha' || 'release' }}
-          files: build/libs/dreamdisplays-paper-${{ needs.build.outputs.version }}.jar
+          files: build/libs/dreamdisplays-bungeecord-${{ needs.build.outputs.version }}.jar
           changelog-file: changelog.md
           modrinth-id: dreamdisplays
           modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
-          loaders: |
-            folia
-            paper
-            purpur
+          loaders: bungeecord
           game-versions: ${{ steps.versions.outputs.paper_versions }}
           game-version-filter: none
 
@@ -231,18 +230,21 @@ jobs:
           game-versions: ${{ steps.versions.outputs.paper_versions }}
           game-version-filter: none
 
-      - name: Publish BungeeCord to Modrinth
+      - name: Publish Paper
         if: needs.build.outputs.is_marketplace_publishable == 'true'
         uses: Kir-Antipov/mc-publish@v3.3
         with:
-          name: 'Dream Displays ${{ needs.build.outputs.pretty_version }} — BungeeCord'
+          name: 'Dream Displays ${{ needs.build.outputs.pretty_version }} — Paper ${{ steps.versions.outputs.paper_label }}'
           version: ${{ needs.build.outputs.version }}
           version-type: ${{ needs.build.outputs.is_preview == 'true' && 'alpha' || 'release' }}
-          files: build/libs/dreamdisplays-bungeecord-${{ needs.build.outputs.version }}.jar
+          files: build/libs/dreamdisplays-paper-${{ needs.build.outputs.version }}.jar
           changelog-file: changelog.md
           modrinth-id: dreamdisplays
           modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
-          loaders: bungeecord
+          loaders: |
+            folia
+            paper
+            purpur
           game-versions: ${{ steps.versions.outputs.paper_versions }}
           game-version-filter: none
 
@@ -293,7 +295,7 @@ jobs:
   publish:
     name: Publish ${{ matrix.task.kind }} ${{ matrix.task.mc }}
     runs-on: ubuntu-latest
-    needs: [ build, publish-core-loaders, prepare-loader-matrix ]
+    needs: [ build, prepare-loader-matrix ]
     strategy:
       fail-fast: false
       max-parallel: 1
