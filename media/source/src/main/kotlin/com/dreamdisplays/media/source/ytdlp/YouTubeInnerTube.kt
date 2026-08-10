@@ -1,5 +1,6 @@
 package com.dreamdisplays.media.source.ytdlp
 
+import com.dreamdisplays.api.media.search.MediaChapter
 import com.dreamdisplays.api.media.search.MediaSearchPage
 import com.dreamdisplays.api.media.search.MediaSearchResult
 import com.dreamdisplays.api.media.search.SortOrder
@@ -135,6 +136,11 @@ object YouTubeInnerTube {
             channelAvatarUrl = meta.channelAvatarUrl, isVerified = meta.isVerified,
         )
     }
+
+    /** Fetches the chapter markers for [videoId]; empty when the video has none. */
+    @Throws(IOException::class)
+    fun chapters(videoId: String): List<MediaChapter> =
+        extractChapters(post("next", InnerTubeRequest(videoId = videoId)))
 
     data class NextResult(
         val title: String?,
@@ -313,6 +319,37 @@ object YouTubeInnerTube {
         }.onFailure { e ->
             logger.warn("Watch metadata parse failed: ${e.message}")
         }.getOrNull()
+    }
+
+    /** Extracts chapter markers from a `next` endpoint response's `macroMarkersListRenderer` engagement panel, if present. */
+    internal fun extractChapters(root: JsonObject): List<MediaChapter> {
+        return runCatching { findChapters(root) }.getOrElse { e ->
+            logger.debug("Chapter parse failed: ${e.message}")
+            emptyList()
+        }
+    }
+
+    /** Walks [root]'s engagement panels for the first non-empty `macroMarkersListRenderer` chapter list. */
+    private fun findChapters(root: JsonObject): List<MediaChapter> {
+        val panels = root.array("engagementPanels") ?: return emptyList()
+        for (panel in panels) {
+            val items = panel.asJsonObjectOrNull()
+                ?.obj("engagementPanelSectionListRenderer")
+                ?.obj("content")
+                ?.obj("macroMarkersListRenderer")
+                ?.array("contents") ?: continue
+            val chapters = ArrayList<MediaChapter>()
+            for (el in items) {
+                val item = el.asJsonObjectOrNull()?.obj("macroMarkersListItemRenderer") ?: continue
+                val title = runsText(item.obj("title")) ?: simpleText(item.obj("title")) ?: continue
+                val startSeconds = item.obj("onTap")?.obj("watchEndpoint")?.optLong("startTimeSeconds")
+                    ?: parseDuration(simpleText(item.obj("timeDescription")))
+                    ?: continue
+                chapters.add(MediaChapter(title, startSeconds))
+            }
+            if (chapters.isNotEmpty()) return chapters
+        }
+        return emptyList()
     }
 
     /**

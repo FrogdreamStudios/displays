@@ -296,6 +296,7 @@ class DisplayMenu private constructor(
                     { Component.translatable("dreamdisplays.ui.quality_applying").string.takeIf { ds.isApplyingQuality } },
                     { Component.translatable("dreamdisplays.ui.audio_track_loading").string.takeIf { ds.isSwitchingAudioTrack } },
                 ),
+                chapters = { DisplayChapters.of(ds) },
             ) { nanos ->
                 if (ds.canSeek() && !ds.isLive && ds.canSeekHere) {
                     playback.seek(displayId, (nanos / 1_000_000L).milliseconds)

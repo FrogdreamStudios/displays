@@ -1,5 +1,6 @@
 package com.dreamdisplays.platform.client.ui.widgets
 
+import com.dreamdisplays.api.media.search.MediaChapter
 import com.dreamdisplays.platform.client.render.ScrubPreview
 import com.dreamdisplays.platform.client.ui.GuiGraphicsCompat
 import com.dreamdisplays.platform.client.ui.drawText
@@ -40,6 +41,7 @@ class SeekBar(
     private val waitingLabel: (() -> String?)? = null,
     private val scheduleLabel: (() -> String?)? = null,
     statusLabels: List<() -> String?> = emptyList(),
+    private val chapters: () -> List<MediaChapter> = { emptyList() },
     private val onSeek: (Long) -> Unit,
 ) : UiWidget(Component.empty()) {
 
@@ -48,6 +50,7 @@ class SeekBar(
     private var dragTargetNanos = 0L
     private var hoverFade = 0f
     private var previewFade = 0f
+
 
     /**
      * A suffix behind the time label that grows in and shrinks away character by character. Its text
@@ -98,6 +101,10 @@ class SeekBar(
         val cur = if (dragging) dragTargetNanos else current()
         val value = if (dur > 0) Mth.clamp(cur / dur.toDouble(), 0.0, 1.0) else 0.0
 
+        val hoverTarget = if (active && !dragging && dur > 0 && isHovered) 1f else 0f
+        hoverFade += (hoverTarget - hoverFade) * FADE_SPEED
+
+
         //? if >=1.21.11 {
         g.blitSprite(RenderPipelines.GUI_TEXTURED, trackSprite(), x, y, width, height)
         //?} else
@@ -108,8 +115,6 @@ class SeekBar(
         //?} else
         /*g.blitSprite(handleSprite(), handleX, y, 8, height)*/
 
-        val hoverTarget = if (active && !dragging && dur > 0 && isHovered) 1f else 0f
-        hoverFade += (hoverTarget - hoverFade) * FADE_SPEED
         if (hoverFade > 0.01f) {
             val hoverPct = Mth.clamp((mouseX - (x + 4).toDouble()) / (width - 8).toDouble(), 0.0, 1.0)
             val hoverX = x + (hoverPct * (width - 8)).toInt()
@@ -154,9 +159,13 @@ class SeekBar(
         //?}
     }
 
+    /** The chapter covering [nanos], or null when the video has none. */
+    private fun chapterAt(nanos: Long): MediaChapter? =
+        chapters().lastOrNull { it.startSeconds * 1_000_000_000L <= nanos }
+
     /**
      * Draws the scrub-preview thumbnail above the bar, centered on [mouseX] and clamped to the screen.
-     * The on-screen timestamp tracks the hover position.
+     * The on-screen timestamp tracks the hover position, with the chapter it lands in named above the frame.
      */
     private fun drawPreview(
         g: GuiGraphicsCompat,
@@ -166,10 +175,13 @@ class SeekBar(
         dur: Long,
         fade: Float
     ) {
+        val font = Minecraft.getInstance().font
         val textureW = ScrubPreview.FRAME_WIDTH
         val textureH = ScrubPreview.FRAME_HEIGHT
         val boxW = DISPLAY_WIDTH + 4
-        val boxH = DISPLAY_HEIGHT + 14
+        val chapterTitle = chapterAt(hoverNanos)?.title
+        val headerH = if (chapterTitle != null) font.lineHeight + 3 else 0
+        val boxH = DISPLAY_HEIGHT + 14 + headerH
         // Clamped to the screen, not the (possibly narrower-than-the-box) widget bounds — coerceIn
         // over widget bounds alone throws when width < boxW (min > max).
         val screenW = Minecraft.getInstance().window.guiScaledWidth
@@ -177,16 +189,26 @@ class SeekBar(
         val maxX = (screenW - boxW).coerceAtLeast(minX)
         val boxX = (mouseX - boxW / 2).coerceIn(minX, maxX)
         val boxY = y - boxH - 4
+        val frameY = boxY + 2 + headerH
 
         val boxAlpha = (0xE0 * fade).toInt().coerceIn(0, 0xE0)
         g.fill(boxX, boxY, boxX + boxW, boxY + boxH, (boxAlpha shl 24) or 0x101010)
+
+        if (chapterTitle != null) {
+            val shown = UiText.trim(font, chapterTitle, boxW - 6)
+            val textAlpha = (0xFF * fade).toInt().coerceIn(0, 0xFF)
+            g.drawText(
+                font, shown, boxX + (boxW - font.width(shown)) / 2, boxY + 3,
+                (textAlpha shl 24) or CHAPTER_LABEL_RGB, false,
+            )
+        }
 
         val scaleX = DISPLAY_WIDTH.toFloat() / textureW
         val scaleY = DISPLAY_HEIGHT.toFloat() / textureH
         val matrices = g.pose()
         //? if >=1.21.11 {
         matrices.pushMatrix()
-        matrices.translate((boxX + 2).toFloat(), (boxY + 2).toFloat())
+        matrices.translate((boxX + 2).toFloat(), frameY.toFloat())
         matrices.scale(scaleX, scaleY)
         g.blit(
             RenderPipelines.GUI_TEXTURED,
@@ -204,16 +226,15 @@ class SeekBar(
         matrices.popMatrix()
         //?} else
         /*matrices.pushPose()
-        matrices.translate((boxX + 2).toDouble(), (boxY + 2).toDouble(), 0.0)
+        matrices.translate((boxX + 2).toDouble(), frameY.toDouble(), 0.0)
         matrices.scale(scaleX, scaleY, 1f)
         g.blit(texture, 0, 0, 0f, 0f, textureW, textureH, textureW, textureH)
         matrices.popPose()*/
 
-        val font = Minecraft.getInstance().font
         val label = UiText.formatTime(hoverNanos)
         val labelX = boxX + (boxW - font.width(label)) / 2
-        val textAlpha = (0xFF * fade).toInt().coerceIn(0, 0xFF)
-        g.drawText(font, label, labelX, boxY + DISPLAY_HEIGHT + 4, (textAlpha shl 24) or 0xFFFFFF, false)
+        val labelAlpha = (0xFF * fade).toInt().coerceIn(0, 0xFF)
+        g.drawText(font, label, labelX, frameY + DISPLAY_HEIGHT + 2, (labelAlpha shl 24) or 0xFFFFFF, false)
     }
 
     /** Formats the current / total time as a colored text component for display on the bar. */
@@ -304,8 +325,7 @@ class SeekBar(
         private const val DISPLAY_HEIGHT = 60
         private const val GHOST_HANDLE_ALPHA = 0.45f
         private const val FADE_SPEED = 0.35f
-
-        /** Dim grey used for [waitingLabel] text (matches the disabled time-label color). */
+        private const val CHAPTER_LABEL_RGB = 0xAAAAAA
         private const val WAITING_COLOR = 0xFFA0A0A0.toInt()
 
         private val TRACK = Identifier.withDefaultNamespace("widget/slider")

@@ -479,6 +479,13 @@ class PreviewSection(
             metaX += badgeSize + 3
             metaW -= badgeSize + 3
         }
+        val chapter = DisplayChapters.activeTitle(ds)
+        if (chapter != null) {
+            val shownChapter = UiText.trim(font, chapter, metaW * 2 / 5)
+            val chapterW = font.width(shownChapter)
+            g.drawText(font, shownChapter, x + w - padX - chapterW, metaY, UiTheme.ACCENT, false)
+            metaW -= chapterW + 6
+        }
         g.drawText(
             font, UiText.trim(font, parts.toString(), metaW),
             metaX, metaY, UiTheme.TEXT_SECONDARY, false,
