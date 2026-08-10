@@ -2,8 +2,6 @@ package com.dreamdisplays.media.player.pipeline
 
 import com.dreamdisplays.api.media.audio.AudioDspStage
 import com.dreamdisplays.media.player.MediaPlayer
-import com.dreamdisplays.media.player.pipeline.AudioSink.Companion.LINE_BUFFER_BYTES
-import com.dreamdisplays.media.player.pipeline.AudioSink.Companion.MIN_PACE_BYTES
 import com.dreamdisplays.media.player.pipeline.AudioSink.Companion.PCM_RING_MAX_BYTES
 import com.dreamdisplays.media.player.util.MediaBufferEffects
 import com.dreamdisplays.media.player.util.MediaUtil
@@ -99,11 +97,8 @@ internal class AudioSink(private val debugLabel: String) {
         @JvmField val epoch: Int,
         @JvmField val originKnown: Boolean,
         @JvmField val preludeFrames: Long,
-        contentStartNanos: Long,
+        @Volatile @JvmField var contentStartNanos: Long,
     ) {
-        @Volatile
-        @JvmField
-        var contentStartNanos: Long = contentStartNanos
 
         @Volatile
         @JvmField

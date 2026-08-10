@@ -26,8 +26,7 @@ object MediaProcess {
 
     /** True when [stderr] is `FFmpeg` reporting that the input simply has no audio track, rather than any kind of real failure. */
     fun indicatesNoAudioStream(stderr: String): Boolean {
-        if (!stderr.contains("does not contain any stream")) return false
-        return NO_AUDIO_DISQUALIFIERS.none { stderr.contains(it, ignoreCase = true) }
+        return stderr.contains("does not contain any stream") && NO_AUDIO_DISQUALIFIERS.none { stderr.contains(it, ignoreCase = true) }
     }
 
     /** Markers that mean the empty output came from a failed input, not from a silent one. */
@@ -240,7 +239,7 @@ object MediaProcess {
             when {
                 trimmed != null -> {
                     // Forcing the demuxer is required: FFmpeg will not probe a playlist out of a
-                    // data: URI ("Not detecting m3u8/hls with non standard extension").
+                    // data: URI ("Not detecting m3u8/hls with non-standard extension").
                     addAll(listOf("-f", "hls", "-i", trimmed.url))
                     if (trimmed.residualNanos > 0) addAll(seekArgs(trimmed.residualNanos))
                 }

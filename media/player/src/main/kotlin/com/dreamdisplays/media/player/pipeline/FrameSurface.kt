@@ -130,12 +130,6 @@ internal class FrameSurface(
         uploader.cleanup()
     }
 
-    /** Drops the ready frame and the buffer pool without recycling (used when the frame size changes). */
-    fun resetPool() {
-        readyBufferRef.set(null)
-        reusableFrameBuffers.clear()
-    }
-
     /**
      * Swaps [frame] into the ready slot for the render thread and returns a fresh spare buffer
      * of at least [nextSize] bytes for the reader to fill next.

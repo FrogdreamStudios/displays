@@ -2,6 +2,7 @@ package com.dreamdisplays.media.player.managers
 
 import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Watches whether frames are arriving. If no frame arrives within the applicable threshold, calls [onStall] and stops itself;
@@ -39,10 +40,10 @@ internal class StreamWatchdog(
         deliveredAFrame = false
         lastSeenStamp = getLastFrameNanos()
         job = scope.launch {
-            delay(checkIntervalMs)
+            delay(checkIntervalMs.milliseconds)
             // Stops at the first stall: recovery is the caller's job, and it restarts the watchdog
             while (isActive && check()) {
-                delay(checkIntervalMs)
+                delay(checkIntervalMs.milliseconds)
             }
         }
     }

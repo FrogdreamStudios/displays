@@ -9,7 +9,6 @@ import com.dreamdisplays.api.media.player.PlaybackEnvironment
 import com.dreamdisplays.api.media.player.PlaybackHost
 import com.dreamdisplays.api.media.stream.MediaStream
 import com.dreamdisplays.media.player.MediaPlayer.Companion.INIT_EXECUTOR
-import com.dreamdisplays.media.player.MediaPlayer.Companion.REPLAY_LEAD_NS
 import com.dreamdisplays.media.player.events.PlayerEvents
 import com.dreamdisplays.media.player.managers.PlaybackSessionManager
 import com.dreamdisplays.media.player.managers.StatsReporter
@@ -347,12 +346,6 @@ class MediaPlayer(
 
     /** Stream duration in nanos, or 0 for live streams. */
     fun getDuration(): Long = if (liveStream) 0L else durationHintNanos
-
-    /** Returns the current [PlaybackState]. */
-    fun getState(): PlaybackState = state.get()
-
-    /** Returns true once stream selection is complete and playback is active or paused. */
-    fun isInitialized(): Boolean = isReady
 
     /** Primes the first live start offset before initialization opens the decoder. */
     fun primeStartPosition(nanos: Long) {
@@ -1018,7 +1011,7 @@ class MediaPlayer(
             return
         }
         if (isPausedWarm()) freezePausedWarmSession()
-        val newSs = MediaStreamSelector.switchQuality(ss, target, lang) ?: return
+        val newSs = MediaStreamSelector.switchQuality(ss, target) ?: return
         val previousQuality = lastQuality
         streams = newSs
         lastQuality = MediaStreamSelector.parseQuality(newSs.currentVideo)

@@ -1,7 +1,7 @@
+@file:Suppress("Since15", "ArrayInDataClass")
+
 package com.dreamdisplays.media.player.nativebridge
 
-import com.dreamdisplays.media.player.pipeline.VideoFramePipe
-import com.dreamdisplays.media.player.process.HwAccelBackend
 import com.dreamdisplays.media.runtime.OsInfo
 import org.slf4j.LoggerFactory
 import java.io.File
@@ -36,9 +36,7 @@ object NativeMedia {
     private const val CACHE_ROOT = "./dreamdisplays/native"
     private const val STDERR_CAP = 128L * 1024L
 
-    const val LAV_SURFACE_PLATFORM_MACOS_IOSURFACE = 1
     const val LAV_SURFACE_FORMAT_NV12_8 = 1
-    const val LAV_SURFACE_FORMAT_P010_10 = 2
     const val GL_TEXTURE_RECTANGLE = 0x84F5
 
     /** When true (default) the native pipe carries NV12 instead of RGB24, halving pipe traffic. */
@@ -210,8 +208,7 @@ object NativeMedia {
     /** Enables the native rolling packet cache for a live LAV [handle]. */
     fun lavEnableCache(handle: Long, windowMs: Long, maxBytes: Long): Boolean {
         val enable = lavEnableCacheHandle ?: return false
-        if (windowMs <= 0 || maxBytes <= 0) return false
-        return (enable.invoke(
+        return !(windowMs <= 0 || maxBytes <= 0) && (enable.invoke(
             handle,
             windowMs.coerceAtMost(Int.MAX_VALUE.toLong()).toInt(),
             maxBytes

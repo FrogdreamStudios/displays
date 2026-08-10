@@ -122,9 +122,6 @@ internal object FramePacing {
     /** Logger. */
     private val logger = LoggerFactory.getLogger("DreamDisplays/FramePacing")
 
-    /** Single-sample clock entry point. */
-    fun pace(videoPts: Long, audioClock: Long): Boolean = pace(videoPts, { audioClock })
-
     /**
      * Paces the reader thread against the audio clock: parks/spins until [videoPts] is due, then re-samples the clock to
      * decide whether to present or drop the frame.
@@ -141,7 +138,7 @@ internal object FramePacing {
             val clock = audioClock()
             val diff = videoPts - if (clock >= 0) clock else videoPts
             if (diff <= 0) break
-            if (dropStaleTimeline && clock >= 0 && diff >= STALE_TIMELINE_DIFF_NS) {
+            if (dropStaleTimeline && diff >= STALE_TIMELINE_DIFF_NS) {
                 val now = System.nanoTime()
                 val last = lastWarnNanos.get()
                 if (now - last >= 1_000_000_000L && lastWarnNanos.compareAndSet(last, now)) {
