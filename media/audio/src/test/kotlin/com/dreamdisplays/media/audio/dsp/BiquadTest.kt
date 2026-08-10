@@ -41,7 +41,7 @@ class BiquadTest {
     @Test
     fun `filter output never explodes (stable coefficients)`() {
         val shelf = Biquad().apply { configure(Biquad.Type.HIGH_SHELF, sampleRate, 1500f, 0.7f, 6f) }
-        var x = 1f
+        var x: Float
         repeat(10000) {
             x = shelf.process(if (it % 2 == 0) 1f else -1f)
             assertTrue(x.isFinite() && kotlin.math.abs(x) < 100f, "Biquad output diverged: $x at sample $it.")

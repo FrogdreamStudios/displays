@@ -151,7 +151,7 @@ internal class AudioRenderChain(
 
         val dtSample = 1f / sampleRate
         for (i in 0 until frames) {
-            val rawL = floatL[i];
+            val rawL = floatL[i]
             val rawR = floatR[i]
             loudness.observe(rawL, rawR, dtSample)
 

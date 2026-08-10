@@ -18,7 +18,7 @@ class ParametricBinaural(private val sampleRate: Float) {
         const val MAX_ILD_ATTEN = 0.35f
         const val OPEN_CUTOFF_HZ = 9000f
         const val SHADOWED_CUTOFF_HZ = 2200f
-        val HALF_PI = (PI / 2.0)
+        const val HALF_PI = (PI / 2.0)
     }
 
     private val delayLine = FractionalDelayLine(64)

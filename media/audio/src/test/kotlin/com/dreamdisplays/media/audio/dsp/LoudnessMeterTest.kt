@@ -1,6 +1,7 @@
 package com.dreamdisplays.media.audio.dsp
 
 import kotlin.math.PI
+import kotlin.math.pow
 import kotlin.math.sin
 import kotlin.test.Test
 import kotlin.test.assertTrue
@@ -25,7 +26,7 @@ class LoudnessMeterTest {
         }
 
         assertTrue(gain > 1f, "Expected a quiet signal to receive positive makeup gain, got $gain.")
-        val maxLinear = Math.pow(10.0, 12.0 / 20.0).toFloat()
+        val maxLinear = 10.0.pow(12.0 / 20.0).toFloat()
         assertTrue(gain <= maxLinear + 1e-3f, "Makeup gain $gain exceeded the +12dB clamp ($maxLinear).")
     }
 
