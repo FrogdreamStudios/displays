@@ -23,12 +23,12 @@ import com.dreamdisplays.core.protocol.proxy.ResolveDisplayToken
 import com.dreamdisplays.core.protocol.proxy.StartNetworkFullscreen
 import com.dreamdisplays.core.protocol.proxy.StartNetworkWatchParty
 import com.dreamdisplays.core.protocol.proxy.StopNetworkFullscreen
-import com.dreamdisplays.platform.proxy.BungeeCordOnly
 import com.dreamdisplays.platform.proxy.NetworkBackendRegistry
 import com.dreamdisplays.platform.proxy.NetworkDisplayIndex
 import com.dreamdisplays.platform.proxy.NetworkFullscreenManager
 import com.dreamdisplays.platform.proxy.NetworkTokenResolutions
 import com.dreamdisplays.platform.proxy.NetworkWatchPartyManager
+import io.github.arnodoelinger.platformweaver.BungeeCordOnly
 import net.md_5.bungee.api.connection.Server
 import net.md_5.bungee.api.event.PlayerDisconnectEvent
 import net.md_5.bungee.api.event.PluginMessageEvent

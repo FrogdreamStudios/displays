@@ -74,6 +74,7 @@ class SelectionListener(plugin: PaperServer) : Listener {
  * Shared `Fabric` / `NeoForge` selection-point handling. [FabricSelectionListener] and
  * [NeoForgeSelectionListener] only adapt their loader's event API and hand off here.
  */
+@ModLoaderOnly
 object VanillaSelectionListener {
     /** Left-click: sets pos1 if holding the selection tool over the base material. Returns true if handled. */
     fun handleLeftClick(player: ServerPlayer, world: ServerLevel, pos: BlockPos): Boolean {

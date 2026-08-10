@@ -1,5 +1,6 @@
 package com.dreamdisplays.platform.server
 
+import com.dreamdisplays.platform.server.ModLoaderOnly
 import com.dreamdisplays.platform.server.managers.DisplayManager
 import com.dreamdisplays.platform.server.managers.StateManager
 import com.dreamdisplays.platform.server.managers.StorageManager
@@ -18,6 +19,7 @@ import kotlin.time.Duration.Companion.milliseconds
  * Shared `Fabric` / `NeoForge` server-lifecycle bootstrap: storage bring-up, display registration, playback transport wiring,
  * and the repeating background tasks.
  */
+@ModLoaderOnly
 object VanillaBootstrap {
     /** Connects storage, loads displays, binds playback, and starts the repeating tasks. */
     fun onServerStarted(server: MinecraftServer, dataDir: File) {

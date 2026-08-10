@@ -7,6 +7,7 @@ import com.dreamdisplays.platform.server.utils.MessageUtil
 import com.dreamdisplays.platform.server.utils.VanillaPermissions
 import com.dreamdisplays.platform.server.utils.net.PacketUtil
 import com.dreamdisplays.platform.server.utils.net.VanillaPacketUtil
+import com.dreamdisplays.platform.server.ModLoaderOnly
 import com.mojang.brigadier.context.CommandContext
 import io.github.arnodoelinger.platformweaver.PaperOnly
 import net.minecraft.commands.CommandSourceStack
@@ -97,6 +98,7 @@ class OnCommand : SubCommand {
  * Shared `Fabric` / `NeoForge` implementation of the `/display on` command.
  */
 @Deprecated("This command is being replaced by UI interface. Will be removed in a future update.")
+@ModLoaderOnly
 object VanillaOnCommand {
     /** Enables displays for the executing player or the named [targetName], checking op-level permission for the latter. */
     fun execute(ctx: CommandContext<CommandSourceStack>, targetName: String? = null): Int {

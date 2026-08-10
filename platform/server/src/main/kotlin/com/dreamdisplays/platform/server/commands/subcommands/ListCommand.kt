@@ -1,5 +1,6 @@
 package com.dreamdisplays.platform.server.commands.subcommands
 
+import com.dreamdisplays.platform.server.ModLoaderOnly
 import com.dreamdisplays.platform.server.PaperServer
 import com.dreamdisplays.platform.server.datatypes.display.PaperDisplayData
 import com.dreamdisplays.platform.server.datatypes.display.VanillaDisplayData
@@ -290,6 +291,7 @@ class ListCommand : SubCommand {
  * Shared `Fabric` / `NeoForge` implementation of the `/display list` command.
  */
 @Deprecated("This command is being replaced by UI interface. Will be removed in a future update.")
+@ModLoaderOnly
 object VanillaListCommand {
     private const val PAGE_SIZE = 10
 

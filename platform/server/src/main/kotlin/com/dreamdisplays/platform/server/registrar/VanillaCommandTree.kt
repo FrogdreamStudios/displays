@@ -1,5 +1,6 @@
 package com.dreamdisplays.platform.server.registrar
 
+import com.dreamdisplays.platform.server.ModLoaderOnly
 import com.dreamdisplays.platform.server.PermissionsSection
 import com.dreamdisplays.platform.server.VanillaServerState
 import com.dreamdisplays.platform.server.commands.subcommands.*
@@ -31,6 +32,7 @@ import java.util.concurrent.CompletableFuture
  * `Paper` equivalent (built on `io.papermc.paper.command.brigadier` wrapper types of the same
  * simple names; imports are per-file in Kotlin so the two coexist without collision).
  */
+@ModLoaderOnly
 object VanillaCommandTree {
     /** Suggestion tokens for the fullscreen `quality` flag. */
     private val QUALITY_SUGGESTIONS = listOf("auto", "360", "480", "720", "1080")
@@ -510,14 +512,14 @@ object VanillaCommandTree {
             id = StringArgumentType.getString(ctx, "id"),
             serverScope = tryArg(ctx, "name", String::class.java),
             players = tryArg(ctx, "players", String::class.java),
-            radiusBlocks = tryArg(ctx, "blocks", java.lang.Double::class.java)?.toDouble(),
-            radiusX = tryArg(ctx, "x", java.lang.Double::class.java)?.toDouble(),
-            radiusY = tryArg(ctx, "y", java.lang.Double::class.java)?.toDouble(),
-            radiusZ = tryArg(ctx, "z", java.lang.Double::class.java)?.toDouble(),
+            radiusBlocks = tryArg(ctx, "blocks", Double::class.javaObjectType)?.toDouble(),
+            radiusX = tryArg(ctx, "x", Double::class.javaObjectType)?.toDouble(),
+            radiusY = tryArg(ctx, "y", Double::class.javaObjectType)?.toDouble(),
+            radiusZ = tryArg(ctx, "z", Double::class.javaObjectType)?.toDouble(),
             mode = mode,
             forced = "forced" in nodeNames,
             transientSession = "transient" in nodeNames,
-            volume = tryArg(ctx, "volume", java.lang.Double::class.java)?.let { (it.toFloat() / 200f) },
+            volume = tryArg(ctx, "volume", Double::class.javaObjectType)?.let { (it.toFloat() / 200f) },
             loop = "looped" in nodeNames,
             quality = tryArg(ctx, "quality", String::class.java),
         )

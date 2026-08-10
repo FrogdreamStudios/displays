@@ -1,5 +1,6 @@
 package com.dreamdisplays.platform.server.commands.subcommands
 
+import com.dreamdisplays.platform.server.ModLoaderOnly
 import com.dreamdisplays.api.playback.PlaybackAction
 import com.dreamdisplays.platform.server.PaperServer
 import com.dreamdisplays.platform.server.datatypes.display.PaperDisplayData
@@ -105,6 +106,7 @@ class InfoCommand : SubCommand {
  * Shared `Fabric` / `NeoForge` implementation of the `/display info` command.
  */
 @Deprecated("This command is being replaced by UI interface. Will be removed in a future update.")
+@ModLoaderOnly
 object VanillaInfoCommand {
     /** Prints owner, UUID, region, size, and media metadata of the targeted display. */
     fun execute(ctx: CommandContext<CommandSourceStack>, token: String): Int {

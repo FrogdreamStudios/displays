@@ -1,5 +1,6 @@
 package com.dreamdisplays.platform.server.commands.subcommands
 
+import com.dreamdisplays.platform.server.ModLoaderOnly
 import com.dreamdisplays.platform.server.PaperServer
 import com.dreamdisplays.platform.server.VanillaServerState
 import com.dreamdisplays.platform.server.utils.MessageUtil
@@ -35,6 +36,7 @@ class ReloadCommand : SubCommand {
 /**
  * Shared `Fabric` / `NeoForge` implementation of the `/display reload` command.
  */
+@ModLoaderOnly
 object VanillaReloadCommand {
     /** Reloads the server config from disk; replies with success or failure to the command source. */
     fun execute(ctx: CommandContext<CommandSourceStack>): Int {

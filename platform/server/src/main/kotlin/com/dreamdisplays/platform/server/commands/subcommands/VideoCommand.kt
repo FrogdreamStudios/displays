@@ -1,5 +1,6 @@
 package com.dreamdisplays.platform.server.commands.subcommands
 
+import com.dreamdisplays.platform.server.ModLoaderOnly
 import com.dreamdisplays.api.media.search.YouTubeUrls
 import com.dreamdisplays.api.media.source.CustomMediaUrls
 import com.dreamdisplays.api.playback.PlaybackPermissions
@@ -140,6 +141,7 @@ private fun canonicalUrl(raw: String): String? {
  * Shared `Fabric` / `NeoForge` implementation of the `/display video` command.
  */
 @Deprecated("This command is being replaced by UI interface. Will be removed in a future update.")
+@ModLoaderOnly
 object VanillaVideoCommand {
     /** Assigns a YouTube URL (and optional language) to the targeted display, after validating ownership. */
     fun execute(ctx: CommandContext<CommandSourceStack>, token: String, urlAndLang: String): Int {

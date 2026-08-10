@@ -1,5 +1,6 @@
 package com.dreamdisplays.platform.server.commands.subcommands
 
+import com.dreamdisplays.platform.server.ModLoaderOnly
 import com.dreamdisplays.platform.server.PaperServer
 import com.dreamdisplays.platform.server.VanillaServerState
 import com.dreamdisplays.platform.server.datatypes.display.VanillaDisplayData
@@ -49,6 +50,7 @@ class DeleteCommand : SubCommand {
  * Shared `Fabric` / `NeoForge` implementation of the `/display delete` command.
  */
 @Deprecated("This command is being replaced by UI interface. Will be removed in a future update.")
+@ModLoaderOnly
 object VanillaDeleteCommand {
     /** Deletes the display named by `this` (looked-at, within 32 blocks) or a remote id/prefix. */
     fun execute(ctx: CommandContext<CommandSourceStack>, token: String): Int {

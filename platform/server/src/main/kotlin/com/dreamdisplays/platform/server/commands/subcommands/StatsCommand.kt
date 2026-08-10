@@ -1,5 +1,6 @@
 package com.dreamdisplays.platform.server.commands.subcommands
 
+import com.dreamdisplays.platform.server.ModLoaderOnly
 import com.dreamdisplays.platform.server.PaperServer
 import com.dreamdisplays.platform.server.managers.PlayerManager
 import com.dreamdisplays.platform.server.utils.MessageUtil
@@ -45,6 +46,7 @@ class StatsCommand : SubCommand {
 /**
  * Shared `Fabric` / `NeoForge` implementation of the `/display stats` command.
  */
+@ModLoaderOnly
 object VanillaStatsCommand {
     /** Prints a per-mod-version breakdown of currently connected players that have reported their client version. */
     fun execute(ctx: CommandContext<CommandSourceStack>): Int {

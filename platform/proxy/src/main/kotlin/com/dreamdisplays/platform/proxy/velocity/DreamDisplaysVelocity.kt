@@ -28,7 +28,6 @@ import com.dreamdisplays.platform.proxy.NetworkDisplayIndex
 import com.dreamdisplays.platform.proxy.NetworkFullscreenManager
 import com.dreamdisplays.platform.proxy.NetworkTokenResolutions
 import com.dreamdisplays.platform.proxy.NetworkWatchPartyManager
-import com.dreamdisplays.platform.proxy.VelocityOnly
 import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.connection.DisconnectEvent
 import com.velocitypowered.api.event.connection.PluginMessageEvent
@@ -39,6 +38,7 @@ import com.velocitypowered.api.plugin.annotation.DataDirectory
 import com.velocitypowered.api.proxy.ProxyServer
 import com.velocitypowered.api.proxy.ServerConnection
 import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier
+import io.github.arnodoelinger.platformweaver.VelocityOnly
 import org.slf4j.Logger
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit

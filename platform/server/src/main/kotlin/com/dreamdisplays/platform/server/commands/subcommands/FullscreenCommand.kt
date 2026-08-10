@@ -1,5 +1,6 @@
 package com.dreamdisplays.platform.server.commands.subcommands
 
+import com.dreamdisplays.platform.server.ModLoaderOnly
 import com.dreamdisplays.api.media.common.VideoQuality
 import com.dreamdisplays.api.playback.FullscreenMode
 import com.dreamdisplays.platform.server.PaperServer
@@ -257,7 +258,7 @@ object PaperFullscreenCommand {
         val count = FullscreenCommand.stop(idOrAll)
 
         val forwarded = sender is Player && ProxyNetwork.isConnected() && networkIds.isNotEmpty()
-        if (forwarded) networkIds.forEach { ProxyBridge.stopNetworkFullscreen(sender as Player, it) }
+        if (forwarded) networkIds.forEach { ProxyBridge.stopNetworkFullscreen(sender, it) }
 
         when {
             count > 0 -> MessageUtil.sendColoredMessage(
@@ -317,6 +318,7 @@ object PaperFullscreenCommand {
 }
 
 /** Shared `Fabric` / `NeoForge` adapter: resolves vanilla sender/player state and turns [FullscreenCommand] results into chat replies. */
+@ModLoaderOnly
 object VanillaFullscreenCommand {
     /** Handles `/display fullscreen start <id> [<flags>]`; player-only, since it needs a position for the default radius origin. */
     fun start(

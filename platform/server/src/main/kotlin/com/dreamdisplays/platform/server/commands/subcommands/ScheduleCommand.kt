@@ -1,5 +1,6 @@
 package com.dreamdisplays.platform.server.commands.subcommands
 
+import com.dreamdisplays.platform.server.ModLoaderOnly
 import com.dreamdisplays.api.playback.PlaybackAction
 import com.dreamdisplays.platform.server.PaperServer
 import com.dreamdisplays.platform.server.VanillaServerState
@@ -53,6 +54,7 @@ class ScheduleCommand : SubCommand {
 }
 
 /** Shared `Fabric` / `NeoForge` implementation of the `/display schedule` command. */
+@ModLoaderOnly
 object VanillaScheduleCommand {
     fun execute(ctx: CommandContext<CommandSourceStack>, token: String, action: String?, time: String?): Int {
         val player = ctx.source.entity as? ServerPlayer

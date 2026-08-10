@@ -1,5 +1,6 @@
 package com.dreamdisplays.platform.server.listeners
 
+import com.dreamdisplays.platform.server.ModLoaderOnly
 //? if >=26 {
 import net.neoforged.neoforge.event.level.block.BreakBlockEvent as NeoForgeBreakEvent
 //?} else
@@ -124,6 +125,7 @@ class ProtectionListener : Listener {
  * Shared `Fabric` / `NeoForge` block-break protection check. [FabricProtectionListener] and
  * [NeoForgeProtectionListener] only adapt their loader's event API and hand off here.
  */
+@ModLoaderOnly
 object VanillaProtectionListener {
     /** Returns true if the break at [pos] in [worldKey] should be cancelled; warns [player] if known. */
     fun handleBreak(worldKey: String, pos: BlockPos, player: ServerPlayer?): Boolean {

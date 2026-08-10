@@ -1,5 +1,6 @@
 package com.dreamdisplays.platform.server.commands.subcommands
 
+import com.dreamdisplays.platform.server.ModLoaderOnly
 import com.dreamdisplays.platform.server.PaperServer
 import com.dreamdisplays.platform.server.VanillaServerState
 import com.dreamdisplays.platform.server.utils.MessageUtil
@@ -54,8 +55,10 @@ class HelpCommand : SubCommand {
 /**
  * Shared `Fabric` / `NeoForge` implementation of the `/display help` command.
  */
+@ModLoaderOnly
 object VanillaHelpCommand {
     /** Prints the help message listing every `/display` subcommand. */
+    @Suppress("SameReturnValue")
     fun execute(ctx: CommandContext<CommandSourceStack>): Int {
         val player = ctx.source.entity as? ServerPlayer
         val config = VanillaServerState.config

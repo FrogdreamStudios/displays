@@ -12,7 +12,6 @@ import com.dreamdisplays.platform.server.datatypes.display.VanillaDisplayData
 import com.dreamdisplays.platform.server.datatypes.selection.PaperSelectionData
 import com.dreamdisplays.platform.server.datatypes.selection.VanillaSelectionData
 import com.dreamdisplays.platform.server.datatypes.sync.SyncData
-import com.dreamdisplays.platform.server.managers.DisplayManager.removeDisplays
 import com.dreamdisplays.platform.server.meta.Scheduler
 import com.dreamdisplays.platform.server.meta.Scheduler.runAsync
 import com.dreamdisplays.platform.server.meta.Scheduler.runSync
@@ -92,20 +91,12 @@ object DisplayManager {
     }
 
     /** Removes the display referenced by [id], if it exists. */
+    @PaperOnly
     @JvmStatic
     fun delete(id: UUID) {
-        val data = displays[id] ?: return
-        when (data) {
-            is PaperDisplayData -> deletePaper(data)
-            is VanillaDisplayData -> delete(data)
-        }
+        val data = displays[id] as? PaperDisplayData ?: return
+        delete(data)
     }
-
-    /**
-     * Forwards to [delete].
-     */
-    @PaperOnly
-    private fun deletePaper(displayData: PaperDisplayData) = delete(displayData)
 
     /** Returns true when [x,y,z] is within [maxRender] blocks of the axis-aligned box defined by the given bounds. */
     private fun isInRangeImpl(

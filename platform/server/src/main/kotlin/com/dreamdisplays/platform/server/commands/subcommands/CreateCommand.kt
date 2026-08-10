@@ -150,6 +150,7 @@ class CreateCommand : SubCommand {
 
 /** Shared `Fabric` / `NeoForge` version of the [CreateCommand]. */
 @Deprecated("This command is being replaced by UI interface. Will be removed in a future update.")
+@ModLoaderOnly
 object VanillaCreateCommand {
     /** Command execution logic. */
     fun execute(ctx: CommandContext<CommandSourceStack>): Int {

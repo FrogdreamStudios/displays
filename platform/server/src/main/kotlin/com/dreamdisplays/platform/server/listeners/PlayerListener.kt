@@ -1,5 +1,6 @@
 package com.dreamdisplays.platform.server.listeners
 
+import com.dreamdisplays.platform.server.ModLoaderOnly
 import com.dreamdisplays.platform.server.PaperServer.Companion.config
 import com.dreamdisplays.platform.server.VanillaServerState
 import com.dreamdisplays.platform.server.managers.DisplayManager
@@ -80,6 +81,7 @@ class PlayerListener : Listener {
  * Shared `Fabric` / `NeoForge` player join / leave handling. [FabricPlayerListener] and
  * [NeoForgePlayerListener] only adapt their loader's event-subscription API and hand off here.
  */
+@ModLoaderOnly
 object VanillaPlayerListener {
     private var hasValidatedWorld = false
 

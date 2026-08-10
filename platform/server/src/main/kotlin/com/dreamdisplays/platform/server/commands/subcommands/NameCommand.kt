@@ -1,5 +1,6 @@
 package com.dreamdisplays.platform.server.commands.subcommands
 
+import com.dreamdisplays.platform.server.ModLoaderOnly
 import com.dreamdisplays.platform.server.PaperServer
 import com.dreamdisplays.platform.server.VanillaServerState
 import com.dreamdisplays.platform.server.datatypes.display.PaperDisplayData
@@ -79,6 +80,7 @@ private fun normalizeDisplayName(raw: String?): String? {
 }
 
 /** Shared `Fabric` / `NeoForge` implementation of the `/display name` command. */
+@ModLoaderOnly
 object VanillaNameCommand {
     /** Renames the targeted display, after validating ownership and the name's shape/uniqueness. */
     fun execute(ctx: CommandContext<CommandSourceStack>, token: String, requestedName: String?): Int {
