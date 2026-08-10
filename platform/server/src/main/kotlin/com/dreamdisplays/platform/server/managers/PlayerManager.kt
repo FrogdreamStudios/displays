@@ -1,6 +1,6 @@
 package com.dreamdisplays.platform.server.managers
 
-import io.github.arnodoelinger.platformweaver.FabricOnly
+import com.dreamdisplays.platform.server.ModLoaderOnly
 import io.github.arnodoelinger.platformweaver.PaperOnly
 import net.minecraft.server.level.ServerPlayer
 import org.bukkit.entity.Player
@@ -51,7 +51,7 @@ object PlayerManager {
     fun setVersion(player: Player, version: Semver?) = setVersion(player.uniqueId, version)
 
     /** Records the mod [version] reported by [player] for compatibility checks. */
-    @FabricOnly
+    @ModLoaderOnly
     fun setVersion(player: ServerPlayer, version: Semver?) = setVersion(player.uuid, version)
 
     /**
@@ -69,7 +69,7 @@ object PlayerManager {
     fun removeVersion(player: Player) = removePlayer(player.uniqueId)
 
     /** Drops all cached per-player state on disconnect. */
-    @FabricOnly
+    @ModLoaderOnly
     fun removeVersion(player: ServerPlayer) = removePlayer(player.uuid)
 
     /** Returns a defensive copy of the per-player version map. */
@@ -85,7 +85,7 @@ object PlayerManager {
     fun getVersion(player: Player): Semver? = getVersion(player.uniqueId)
 
     /** Returns the mod version reported by [player], or null if none was reported. */
-    @FabricOnly
+    @ModLoaderOnly
     fun getVersion(player: ServerPlayer): Semver? = getVersion(player.uuid)
 
     /** Returns true if [uuid] has already been informed about a mod update. */
@@ -98,7 +98,7 @@ object PlayerManager {
         hasBeenNotifiedAboutModUpdate(player.uniqueId)
 
     /** Returns true if [player] has already been informed about a mod update. */
-    @FabricOnly
+    @ModLoaderOnly
     fun hasBeenNotifiedAboutModUpdate(player: ServerPlayer): Boolean =
         hasBeenNotifiedAboutModUpdate(player.uuid)
 
@@ -112,7 +112,7 @@ object PlayerManager {
         setModUpdateNotified(player.uniqueId, notified)
 
     /** Marks whether [player] has been notified about a mod update. */
-    @FabricOnly
+    @ModLoaderOnly
     fun setModUpdateNotified(player: ServerPlayer, notified: Boolean) =
         setModUpdateNotified(player.uuid, notified)
 
@@ -126,7 +126,7 @@ object PlayerManager {
         hasBeenNotifiedAboutPluginUpdate(player.uniqueId)
 
     /** Returns true if [player] has already been informed about a plugin update. */
-    @FabricOnly
+    @ModLoaderOnly
     fun hasBeenNotifiedAboutPluginUpdate(player: ServerPlayer): Boolean =
         hasBeenNotifiedAboutPluginUpdate(player.uuid)
 
@@ -141,7 +141,7 @@ object PlayerManager {
         setPluginUpdateNotified(player.uniqueId, notified)
 
     /** Marks whether [player] has been notified about a plugin update. */
-    @FabricOnly
+    @ModLoaderOnly
     fun setPluginUpdateNotified(player: ServerPlayer, notified: Boolean) =
         setPluginUpdateNotified(player.uuid, notified)
 
@@ -155,7 +155,7 @@ object PlayerManager {
         hasBeenNotifiedAboutModRequired(player.uniqueId)
 
     /** Returns true if [player] has already been informed that the mod is required. */
-    @FabricOnly
+    @ModLoaderOnly
     fun hasBeenNotifiedAboutModRequired(player: ServerPlayer): Boolean =
         hasBeenNotifiedAboutModRequired(player.uuid)
 
@@ -170,7 +170,7 @@ object PlayerManager {
         setModRequiredNotified(player.uniqueId, notified)
 
     /** Marks whether [player] has been notified that the mod is required. */
-    @FabricOnly
+    @ModLoaderOnly
     fun setModRequiredNotified(player: ServerPlayer, notified: Boolean) =
         setModRequiredNotified(player.uuid, notified)
 
@@ -186,7 +186,7 @@ object PlayerManager {
         setDisplaysEnabled(player.uniqueId, enabled)
 
     /** Sets whether displays should be rendered for [player]. */
-    @FabricOnly
+    @ModLoaderOnly
     fun setDisplaysEnabled(player: ServerPlayer, enabled: Boolean) =
         setDisplaysEnabled(player.uuid, enabled)
 
@@ -200,7 +200,7 @@ object PlayerManager {
         isDisplaysEnabled(player.uniqueId)
 
     /** Returns whether displays are enabled for [player] (defaults to true). */
-    @FabricOnly
+    @ModLoaderOnly
     fun isDisplaysEnabled(player: ServerPlayer): Boolean =
         isDisplaysEnabled(player.uuid)
 }

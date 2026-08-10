@@ -96,10 +96,16 @@ object DisplayManager {
     fun delete(id: UUID) {
         val data = displays[id] ?: return
         when (data) {
-            is PaperDisplayData -> delete(data)
+            is PaperDisplayData -> deletePaper(data)
             is VanillaDisplayData -> delete(data)
         }
     }
+
+    /**
+     * Forwards to [delete].
+     */
+    @PaperOnly
+    private fun deletePaper(displayData: PaperDisplayData) = delete(displayData)
 
     /** Returns true when [x,y,z] is within [maxRender] blocks of the axis-aligned box defined by the given bounds. */
     private fun isInRangeImpl(
