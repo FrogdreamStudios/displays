@@ -1,9 +1,9 @@
 package com.dreamdisplays.platform.server.utils.net
 
-import com.dreamdisplays.core.protocol.ClearCache
-import com.dreamdisplays.core.protocol.DisplayDelete
-import com.dreamdisplays.core.protocol.DisplayInfo
-import com.dreamdisplays.core.protocol.SetDisplaysEnabled
+import com.dreamdisplays.core.protocol.packets.ClearCache
+import com.dreamdisplays.core.protocol.packets.DisplayDelete
+import com.dreamdisplays.core.protocol.packets.DisplayInfo
+import com.dreamdisplays.core.protocol.packets.SetDisplaysEnabled
 import com.dreamdisplays.platform.client.net.Packets
 import com.dreamdisplays.platform.server.datatypes.display.VanillaDisplayData
 import com.dreamdisplays.platform.server.datatypes.sync.SyncData

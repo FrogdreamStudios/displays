@@ -3,8 +3,8 @@ package com.dreamdisplays.platform.client.managers
 import com.dreamdisplays.api.display.model.DisplayId
 import com.dreamdisplays.api.display.service.DisplaySystem
 import com.dreamdisplays.api.runtime.registry.getOrNull
-import com.dreamdisplays.core.protocol.*
-import com.dreamdisplays.core.storage.DisplayStorage
+import com.dreamdisplays.core.protocol.packets.*
+import com.dreamdisplays.core.services.DisplayStorage
 import com.dreamdisplays.platform.client.Mod
 import com.dreamdisplays.platform.client.capabilities.CapabilityNegotiationService
 import com.dreamdisplays.platform.client.core.DreamServices

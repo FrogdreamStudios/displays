@@ -19,6 +19,7 @@ import com.dreamdisplays.api.playback.*
 import com.dreamdisplays.api.display.model.ClientDisplaySettings
 import com.dreamdisplays.api.watchparty.WatchPartySession
 import com.dreamdisplays.core.protocol.*
+import com.dreamdisplays.core.protocol.packets.*
 import com.dreamdisplays.media.player.MediaPlayer
 import com.dreamdisplays.platform.client.Initializer
 import com.dreamdisplays.platform.client.audio.ListenerPoseTracker
@@ -52,7 +53,7 @@ class DisplayScreen(
     /** Stable unique id of this display, shared with the server. */
     val uuid: UUID,
 
-    /** Id of the player who created and owns this display. */
+    /** ID of the player who created and owns this display. */
     val ownerUuid: UUID,
 
     /** Anchor block X coordinate. */
@@ -94,7 +95,7 @@ class DisplayScreen(
     /** Server-reported lock state, or `null` until the server reports it. */
     var isLocked: Boolean? = null
 
-    /** Epoch millis of a pending scheduled play / pause, or `0` when none is set (see [com.dreamdisplays.core.protocol.DisplayInfo]). */
+    /** Epoch millis of a pending scheduled play / pause, or `0` when none is set (see [com.dreamdisplays.core.protocol.packets.DisplayInfo]). */
     var scheduledStartEpochMillis: Long = 0
 
     /** Wire ordinal of the scheduled [com.dreamdisplays.api.playback.PlaybackAction] (`PLAY`/`PAUSE`), or `-1` when none is set. */
@@ -281,7 +282,6 @@ class DisplayScreen(
         while (steps < DISTANCE_STEP_THRESHOLDS.size && fraction >= DISTANCE_STEP_THRESHOLDS[steps]) steps++
         while (steps > 0 && fraction < DISTANCE_STEP_THRESHOLDS[steps - 1] - DISTANCE_STEP_HYSTERESIS) steps--
         if (steps == distanceQualitySteps) return
-        val previousSteps = distanceQualitySteps
         distanceQualitySteps = steps
         reloadQuality()
     }
@@ -354,7 +354,7 @@ class DisplayScreen(
     @Volatile
     private var hasEverRendered = false
 
-    /** [System.nanoTime] of the first uploaded frame, driving the appear fade-in. `0` = none yet. */
+    /** [System.nanoTime] of the first uploaded frame, driving to appear fade-in. `0` = none yet. */
     @Transient
     @Volatile
     private var firstFrameNanos = 0L
@@ -385,7 +385,7 @@ class DisplayScreen(
     /** True once the video is effectively playing: not awaiting the initial timeline and a frame has filled. */
     val isVideoStarted: Boolean get() = !stillWaitingForInitialTimeline() && (hasEverRendered || mediaPlayer?.textureFilled() == true)
 
-    /** Marks that a frame has rendered, stamping the first-frame time so the appear fade-in can run. */
+    /** Marks that a frame has rendered, stamping the first-frame time so to appear fade-in can run. */
     private fun markRendered() {
         if (!hasEverRendered) firstFrameNanos = System.nanoTime()
         hasEverRendered = true
@@ -877,8 +877,12 @@ class DisplayScreen(
         DisplayReplayCache.put(uuid, url, position, snapshot, audioPcm, prepared)
         val elapsedMs = (System.nanoTime() - started) / 1_000_000.0
         logger.debug(
-            "$uuid captured replay snapshot bytes=${snapshot.size} audioPcm=${audioPcm?.size ?: 0}B at " +
-                    "${"%.1f".format(position / 1_000_000.0)} ms in ${"%.1f".format(elapsedMs)} ms.",
+            "{} captured replay snapshot bytes={} audioPcm={}B at {} ms in {} ms.",
+            uuid,
+            snapshot.size,
+            audioPcm?.size ?: 0,
+            "%.1f".format(position / 1_000_000.0),
+            "%.1f".format(elapsedMs)
         )
     }
 

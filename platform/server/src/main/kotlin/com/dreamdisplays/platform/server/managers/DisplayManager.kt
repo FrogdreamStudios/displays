@@ -1,6 +1,6 @@
 package com.dreamdisplays.platform.server.managers
 
-import com.dreamdisplays.core.protocol.DreamPacket
+import com.dreamdisplays.core.protocol.packets.DreamPacket
 import com.dreamdisplays.platform.server.PaperServer.Companion.config
 import com.dreamdisplays.platform.server.PaperServer.Companion.getInstance
 import com.dreamdisplays.platform.server.VanillaServerState

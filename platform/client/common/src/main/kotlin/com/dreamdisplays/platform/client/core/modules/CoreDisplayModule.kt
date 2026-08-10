@@ -6,7 +6,7 @@ import com.dreamdisplays.api.runtime.module.DreamDisplaysModule
 import com.dreamdisplays.api.runtime.module.ModuleContext
 import com.dreamdisplays.api.runtime.registry.register
 import com.dreamdisplays.api.watchparty.WatchPartyPort
-import com.dreamdisplays.core.display.service.impl.DefaultDisplayService
+import com.dreamdisplays.core.services.DefaultDisplayService
 import com.dreamdisplays.platform.client.displays.MinecraftDisplayCommands
 
 /** Installs the client-side display system and its public [DisplayService]. */

@@ -1,6 +1,6 @@
 package com.dreamdisplays.platform.proxy
 
-import com.dreamdisplays.core.protocol.proxy.StartNetworkWatchParty
+import com.dreamdisplays.core.protocol.proxy.packets.StartNetworkWatchParty
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 

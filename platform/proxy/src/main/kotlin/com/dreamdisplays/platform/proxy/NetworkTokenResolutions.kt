@@ -3,7 +3,7 @@ package com.dreamdisplays.platform.proxy
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Proxy-side collection window for a [com.dreamdisplays.core.protocol.proxy.ResolveDisplayToken] fan-out. More than
+ * Proxy-side collection window for a [com.dreamdisplays.core.protocol.proxy.packets.ResolveDisplayToken] fan-out. More than
  * one backend may reply; [settle] picks the winner once the window closes.
  */
 object NetworkTokenResolutions {

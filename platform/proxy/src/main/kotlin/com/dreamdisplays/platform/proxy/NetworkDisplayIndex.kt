@@ -1,6 +1,6 @@
 package com.dreamdisplays.platform.proxy
 
-import com.dreamdisplays.core.protocol.proxy.BackendDisplayIndex
+import com.dreamdisplays.core.protocol.proxy.packets.BackendDisplayIndex
 import java.util.concurrent.ConcurrentHashMap
 
 /**

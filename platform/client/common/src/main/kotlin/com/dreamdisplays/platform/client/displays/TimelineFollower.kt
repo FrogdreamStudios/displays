@@ -1,6 +1,6 @@
 package com.dreamdisplays.platform.client.displays
 
-import com.dreamdisplays.core.protocol.DisplaySync
+import com.dreamdisplays.core.protocol.packets.DisplaySync
 import com.dreamdisplays.platform.client.displays.TimelineFollower.Companion.SEEK_COOLDOWN_MS
 import com.dreamdisplays.platform.client.displays.TimelineFollower.Companion.SEEK_LEAD_MS
 

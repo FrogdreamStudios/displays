@@ -7,7 +7,7 @@ import com.dreamdisplays.api.media.common.VideoQuality
 import com.dreamdisplays.api.media.audio.AudioAcousticsServices
 import com.dreamdisplays.api.runtime.registry.getOrNull
 import com.dreamdisplays.api.storage.FullDisplayData
-import com.dreamdisplays.core.storage.DisplayStorage
+import com.dreamdisplays.core.services.DisplayStorage
 import com.dreamdisplays.platform.client.core.DreamServices
 import com.dreamdisplays.platform.client.storage.ClientSettingsStore
 import java.util.*

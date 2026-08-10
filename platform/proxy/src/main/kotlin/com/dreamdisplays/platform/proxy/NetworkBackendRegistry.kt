@@ -1,6 +1,6 @@
 package com.dreamdisplays.platform.proxy
 
-import com.dreamdisplays.core.protocol.proxy.BackendHello
+import com.dreamdisplays.core.protocol.proxy.packets.BackendHello
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicReference
 
@@ -25,7 +25,7 @@ object NetworkBackendRegistry {
         known.set(names.toSet())
     }
 
-    /** The full configured roster — used to answer [com.dreamdisplays.core.protocol.proxy.ProxyWelcome.allServerNames]. */
+    /** The full configured roster — used to answer [com.dreamdisplays.core.protocol.proxy.packets.ProxyWelcome.allServerNames]. */
     fun allServerNames(): Set<String> = known.get()
 
     /** Records that [serverName] announced itself with [hello] just now. */
