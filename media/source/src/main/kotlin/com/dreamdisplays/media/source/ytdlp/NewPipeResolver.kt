@@ -188,9 +188,11 @@ object NewPipeResolver : MediaResolver {
     /** Records whether a completed extraction produced a full ladder, decaying the older history. */
     private fun recordLadderOutcome(laddered: Boolean) {
         if (laddered) ladderHits.incrementAndGet() else ladderMisses.incrementAndGet()
-        if (ladderHits.value + ladderMisses.value < LADDER_DECAY_AT) return
-        ladderHits.value /= 2
-        ladderMisses.value /= 2
+        val hits = ladderHits.value
+        val misses = ladderMisses.value
+        if (hits + misses < LADDER_DECAY_AT) return
+        ladderHits.value = hits / 2
+        ladderMisses.value = misses / 2
     }
 
     /** Returns cached resolution if fresh, otherwise resolves, caches, and records whether quality ladder is available. */
