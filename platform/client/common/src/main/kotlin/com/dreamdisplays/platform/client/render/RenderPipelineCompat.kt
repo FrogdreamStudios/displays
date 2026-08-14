@@ -54,8 +54,7 @@ internal object RenderPipelineCompat {
             Class.forName("com.mojang.blaze3d.platform.DepthTestFunction")
         }.getOrNull() ?: return
 
-        @Suppress("UNCHECKED_CAST")
-        val lequalDepth = java.lang.Enum.valueOf(depthTestFunctionClass as Class<out Enum<*>>, "LEQUAL_DEPTH_TEST")
+        val lequalDepth = reflectiveEnumValue(depthTestFunctionClass, "LEQUAL_DEPTH_TEST")
         builderClass.getMethod("withDepthTestFunction", depthTestFunctionClass).invoke(builder, lequalDepth)
         runCatching {
             builderClass.getMethod("withDepthWrite", Boolean::class.javaPrimitiveType).invoke(builder, true)
@@ -101,10 +100,9 @@ internal object RenderPipelineCompat {
         }
 
         //? if >=26 {
-        val modeClass = Class.forName("com.mojang.blaze3d.vertex.VertexFormat\$Mode")
+        val modeClass = Class.forName($$"com.mojang.blaze3d.vertex.VertexFormat$Mode")
 
-        @Suppress("UNCHECKED_CAST")
-        val quads = java.lang.Enum.valueOf(modeClass as Class<out Enum<*>>, "QUADS")
+        val quads = reflectiveEnumValue(modeClass, "QUADS")
         builderClass.getMethod("withVertexFormat", VertexFormat::class.java, modeClass)
             .invoke(builder, DefaultVertexFormat.POSITION_TEX_COLOR, quads)
         //?} else
@@ -133,8 +131,7 @@ internal object RenderPipelineCompat {
 
         val topologyClass = Class.forName("com.mojang.blaze3d.PrimitiveTopology")
 
-        @Suppress("UNCHECKED_CAST")
-        val quads = java.lang.Enum.valueOf(topologyClass as Class<out Enum<*>>, "QUADS")
+        val quads = reflectiveEnumValue(topologyClass, "QUADS")
         builderClass.getMethod("withPrimitiveTopology", topologyClass).invoke(builder, quads)
     }
 
@@ -152,5 +149,9 @@ internal object RenderPipelineCompat {
     /** Gets the `BindGroupLayout` for the given name. */
     private fun vanillaLayout(name: String): Any =
         Class.forName("net.minecraft.client.renderer.BindGroupLayouts").getField(name).get(null)
+
+    /** Resolves enum constant [name] on [enumClass], whose static type is not known at compile time. */
+    fun reflectiveEnumValue(enumClass: Class<*>, name: String): Any =
+        enumClass.enumConstants.first { (it as Enum<*>).name == name }
 }
 //?}

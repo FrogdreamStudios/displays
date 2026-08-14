@@ -21,8 +21,7 @@ class VideoPlaneTexture(label: String, width: Int, height: Int) : AbstractTextur
     private fun createRed8Texture(device: Any, label: String, width: Int, height: Int): GpuTexture {
         val textureFormatClass = Class.forName("com.mojang.blaze3d.textures.TextureFormat")
 
-        @Suppress("UNCHECKED_CAST")
-        val red8 = java.lang.Enum.valueOf(textureFormatClass as Class<out Enum<*>>, "RED8")
+        val red8 = RenderPipelineCompat.reflectiveEnumValue(textureFormatClass, "RED8")
         val createTexture = device.javaClass.getMethod(
             "createTexture",
             String::class.java, Int::class.javaPrimitiveType, textureFormatClass,
