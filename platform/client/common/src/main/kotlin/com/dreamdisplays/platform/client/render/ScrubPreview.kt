@@ -6,6 +6,7 @@ import net.minecraft.resources.Identifier
 /*import net.minecraft.resources.ResourceLocation as Identifier*/
 import com.dreamdisplays.media.player.process.FFmpegBinary
 import com.dreamdisplays.media.player.process.MediaProcess
+import com.dreamdisplays.api.security.MediaHosts
 import com.dreamdisplays.media.runtime.security.MediaHostGuard
 import com.dreamdisplays.platform.client.render.ScrubPreview.EXTRACT_CONCURRENCY
 import com.dreamdisplays.platform.client.render.ScrubPreview.FRAMES
@@ -44,11 +45,22 @@ object ScrubPreview {
     /** Target number of sampled frames across the full duration. */
     private const val SAMPLE_COUNT = 20
 
+    /**
+     * Samples taken from a host nobody vouched for. Each sample is its own connection and its own
+     * range read, and every client that can see the display makes the same set — a full sweep of
+     * one pasted address by a room full of players is a burst that host never asked for. A coarser
+     * preview is a fair trade for not being a hammer.
+     */
+    private const val THIRD_PARTY_SAMPLE_COUNT = 6
+
     /** Never sample closer together than this, so short videos don't spawn a process per second. */
     private const val MIN_SAMPLE_SPACING_NANOS = 5_000_000_000L
 
     /** Max simultaneous FFmpeg extractions: each opens its own connection, so concurrency is capped conservatively. */
     private const val EXTRACT_CONCURRENCY = 2
+
+    /** Extractions run one at a time against a pasted host (see [THIRD_PARTY_SAMPLE_COUNT]). */
+    private const val THIRD_PARTY_CONCURRENCY = 1
 
     /** Budget for one sample: extraction requires deep range-seek into file with unknown codec/container overhead. */
     private val EXTRACT_TIMEOUT = 25.seconds
@@ -113,12 +125,15 @@ object ScrubPreview {
             FRAMES.put(key, emptyList())
             return
         }
-        val spacing = (durationNanos / SAMPLE_COUNT).coerceAtLeast(MIN_SAMPLE_SPACING_NANOS)
+        val firstParty = MediaHosts.isFirstParty(sourceUrl)
+        val samples = if (firstParty) SAMPLE_COUNT else THIRD_PARTY_SAMPLE_COUNT
+        val concurrency = if (firstParty) EXTRACT_CONCURRENCY else THIRD_PARTY_CONCURRENCY
+        val spacing = (durationNanos / samples).coerceAtLeast(MIN_SAMPLE_SPACING_NANOS)
         val timestamps = generateSequence(spacing / 2) { it + spacing }.takeWhile { it < durationNanos }.toList()
-        logger.info("Generating $key: ${timestamps.size} sample(s), concurrency=$EXTRACT_CONCURRENCY, ffmpeg=$ffmpeg")
+        logger.info("Generating $key: ${timestamps.size} sample(s), concurrency=$concurrency, ffmpeg=$ffmpeg")
 
         val collected = Collections.synchronizedList(ArrayList<Frame>(timestamps.size))
-        val semaphore = Semaphore(EXTRACT_CONCURRENCY)
+        val semaphore = Semaphore(concurrency)
         FRAMES.put(key, emptyList())
         val outcomes = coroutineScope {
             timestamps.map { ts ->

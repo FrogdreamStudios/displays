@@ -1,6 +1,7 @@
 package com.dreamdisplays.util.net
 
 import kotlinx.io.IOException
+import com.dreamdisplays.api.security.MediaHosts
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -17,6 +18,8 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 import java.util.zip.GZIPInputStream
 
@@ -31,6 +34,48 @@ object DreamHttpClient {
     private const val DEFAULT_CONNECT_TIMEOUT_MS = 10_000L
     private const val DEFAULT_READ_TIMEOUT_MS = 30_000L
     private const val MAX_UNLIMITED_BODY_BYTES = 64 * 1024 * 1024
+
+    /** Sent whenever a caller names no identity of its own; see [request]. */
+    private const val DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
+            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+
+    /**
+     * Requests allowed to be in flight at once against one host that isn't a supported platform.
+     *
+     * A pasted link is fetched by every client that can see the display, and each of them probes,
+     * reads playlists and measures duration. Left uncapped, a room full of displays pointed at one
+     * address is a distributed hammer aimed by whoever pasted it; the platforms have the capacity
+     * (and the relationship with us) that a stranger's server does not.
+     */
+    private const val THIRD_PARTY_HOST_CONCURRENCY = 4
+
+    /** How long a request waits for its turn before giving up rather than piling on. */
+    private const val THIRD_PARTY_QUEUE_TIMEOUT_MS = 15_000L
+
+    /** Cap on remembered gates, so a session that visits many hosts can't grow this without bound. */
+    private const val MAX_TRACKED_HOSTS = 256
+
+    /** Host gates. */
+    private val hostGates = ConcurrentHashMap<String, Semaphore>()
+
+    /**
+     * Runs [block] under this host's concurrency gate, or straight through for the platforms and
+     * for URLs with no host to key on.
+     */
+    private fun <T> withHostGate(url: String, block: () -> T): T {
+        if (MediaHosts.isFirstParty(url)) return block()
+        val host = MediaHosts.hostOf(url) ?: return block()
+        if (hostGates.size > MAX_TRACKED_HOSTS) hostGates.clear()
+        val gate = hostGates.computeIfAbsent(host) { Semaphore(THIRD_PARTY_HOST_CONCURRENCY, true) }
+        if (!gate.tryAcquire(THIRD_PARTY_QUEUE_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
+            throw IOException("Too many requests already in flight to $host.")
+        }
+        try {
+            return block()
+        } finally {
+            gate.release()
+        }
+    }
 
     private val baseClient = OkHttpClient.Builder()
         .retryOnConnectionFailure(true)
@@ -124,10 +169,10 @@ object DreamHttpClient {
         headers.groupBy({ it.first }, { it.second })
 
     @Throws(IOException::class)
-    fun execute(url: String, options: RequestOptions = RequestOptions()): HttpResponse {
+    fun execute(url: String, options: RequestOptions = RequestOptions()): HttpResponse = withHostGate(url) {
         val request = request(url, options)
         clientFor(options).newCall(request).execute().use { response ->
-            return HttpResponse(
+            HttpResponse(
                 code = response.code,
                 message = response.message,
                 headers = response.headers.toMultimap(),
@@ -154,12 +199,12 @@ object DreamHttpClient {
         url: String,
         maxBytes: Int,
         options: RequestOptions = RequestOptions(),
-    ): HttpResponse {
+    ): HttpResponse = withHostGate(url) {
         require(maxBytes > 0) { "maxBytes must be positive." }
         val request = request(url, options)
         clientFor(options).newCall(request).execute().use { response ->
             val body = response.bodyStream().use { it.readAtMost(maxBytes) }
-            return HttpResponse(
+            HttpResponse(
                 code = response.code,
                 message = response.message,
                 headers = response.headers.toMultimap(),
@@ -228,6 +273,12 @@ object DreamHttpClient {
         val builder = Request.Builder().url(url)
         for ((name, values) in options.headers) {
             for (value in values) builder.addHeader(name, value)
+        }
+        // Anything a player pastes is fetched by every viewer's client, so the request must say no
+        // more about them than a browser visit would. Without this the default identifies the HTTP
+        // library — and therefore the mod — to whoever runs the host.
+        if (options.headers.keys.none { it.equals("User-Agent", ignoreCase = true) }) {
+            builder.header("User-Agent", DEFAULT_USER_AGENT)
         }
         val method = options.method.uppercase(Locale.ROOT)
         builder.method(method, requestBody(method, options))

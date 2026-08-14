@@ -203,5 +203,6 @@
   "fullscreenListNetworkEntry": "&7D |&7 {0} &8| &7scope=&f{1} &8| &7network-reach=&f{2}",
   "customMediaDisabled": "&7D |&f קישורי וידאו מותאמים אישית מושבתים בשרת הזה",
   "customMediaHostBlocked": "&7D |&f סרטונים מאתר זה אינם מותרים בשרת הזה",
-  "customMediaNoPermission": "&7D |&f אין לך הרשאה להפעיל קישורי וידאו משלך"
+  "customMediaNoPermission": "&7D |&f אין לך הרשאה להפעיל קישורי וידאו משלך",
+  "customMediaTooFast": "&7D |&f אתה מחליף קישורי וידאו מהר מדי. המתן רגע"
 }

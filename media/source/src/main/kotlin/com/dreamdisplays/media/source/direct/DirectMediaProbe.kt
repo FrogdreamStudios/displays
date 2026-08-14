@@ -15,9 +15,8 @@ internal object DirectMediaProbe {
 
     private const val CONNECT_TIMEOUT_MS = 8_000L
     private const val READ_TIMEOUT_MS = 8_000L
-
-    /** Bytes read for the container magic-number sniff. */
-    private const val SNIFF_BYTES = 64
+    private const val SNIFF_BYTES = 512
+    private const val TS_PACKET_BYTES = 188
 
     /** What the server said about the URL.  makes a progressive file seekable. */
     data class Result(
@@ -26,6 +25,7 @@ internal object DirectMediaProbe {
         val contentLength: Long?,
         val acceptsRanges: Boolean,
         val fileName: String? = null,
+        val verifiedByBytes: Boolean = false,
     ) {
         /** True when the MIME type names audio or video (or an HLS / DASH manifest type). */
         val isMediaType: Boolean
@@ -56,11 +56,15 @@ internal object DirectMediaProbe {
      * Never throws: a failed probe means "the direct path cannot answer for this URL", and the
      * caller decides whether to refuse or fall through to the extractor chain.
      */
-    fun probe(url: String): Result? {
+    fun probe(url: String, requireBytes: Boolean = false): Result? {
         head(url)?.takeIf { it.contentType != null || it.contentLength != null }?.let { base ->
-            // A HEAD carries no body, so a generic / missing content type needs its own sniff GET
-            if (base.contentType == null || base.contentType in TOLERATED_TYPES) {
-                sniffContentType(url)?.let { return base.copy(contentType = it) }
+            // A HEAD carries no body. Sniff when the declared type is not media or too generic to
+            // tell a playlist from a file, and whenever the caller wants the container proven
+            // rather than asserted.
+            if (requireBytes || !base.isMediaType || base.contentType in TOLERATED_TYPES) {
+                sniffContentType(url)?.let {
+                    return base.copy(contentType = it, verifiedByBytes = true)
+                }
             }
             return base
         }
@@ -68,9 +72,7 @@ internal object DirectMediaProbe {
         // The ranged GET both confirms range support and, crucially, already returns the leading
         // bytes — so the magic-byte sniff reads them from here instead of re-fetching the URL
         val (base, body) = rangedGet(url) ?: return null
-        if (base.contentType == null || base.contentType in TOLERATED_TYPES) {
-            magicContentType(body)?.let { return base.copy(contentType = it) }
-        }
+        magicContentType(body)?.let { return base.copy(contentType = it, verifiedByBytes = true) }
         return base
     }
 
@@ -116,24 +118,46 @@ internal object DirectMediaProbe {
         magicContentType(response.body)
     }.onFailure { logger.debug("Sniff failed for {}: {}.", url.take(120), it.message) }.getOrNull()
 
-    /** Maps a leading byte pattern to a content type for the container families players paste. */
-    private fun magicContentType(bytes: ByteArray): String? {
+    /**
+     * Maps a leading byte pattern to a content type for the container families players paste, or
+     * null when the bytes are not a container this player can name. Covers every mainstream one,
+     * because for a host nobody vouched for this is the only evidence that the link really is
+     * media — a `Content-Type` header is just what that host chose to write.
+     */
+    internal fun magicContentType(bytes: ByteArray): String? {
         if (bytes.size < 12) return null
         fun ascii(offset: Int, len: Int) = String(bytes, offset, len, StandardCharsets.US_ASCII)
+        fun at(offset: Int, vararg pattern: Int) =
+            pattern.withIndex().all { (i, b) -> bytes[offset + i] == b.toByte() }
         return when {
-            ascii(
-                4,
-                4
-            ) == "ftyp" -> "video/mp4"                                            // ISO-BMFF (mp4 / mov / m4v)
-            bytes[0] == 0x1A.toByte() && bytes[1] == 0x45.toByte() &&
-                    bytes[2] == 0xDF.toByte() && bytes[3] == 0xA3.toByte() -> "video/webm"  // Matroska / WebM (EBML)
+            ascii(4, 4) == "ftyp" -> "video/mp4"
+            at(0, 0x1A, 0x45, 0xDF, 0xA3) -> "video/webm"
             ascii(0, 3) == "FLV" -> "video/x-flv"
             ascii(0, 4) == "OggS" -> "video/ogg"
-            ascii(0, 7) == "#EXTM3U" -> "application/vnd.apple.mpegurl"                     // HLS playlist
-            bytes[0] == 0x52.toByte() && bytes[1] == 0x49.toByte() &&
-                    bytes[2] == 0x46.toByte() && ascii(8, 4) == "AVI " -> "video/x-msvideo" // RIFF...AVI
+            ascii(0, 7) == "#EXTM3U" -> "application/vnd.apple.mpegurl"
+            at(0, 0x52, 0x49, 0x46, 0x46) && ascii(8, 4) == "AVI " -> "video/x-msvideo"
+            at(0, 0x30, 0x26, 0xB2, 0x75) -> "video/x-ms-asf"
+            at(0, 0x00, 0x00, 0x01, 0xBA) -> "video/mpeg"
+            isTransportStream(bytes) -> "video/mp2t"
+            dashManifest(ascii(0, minOf(bytes.size, 64))) -> "application/dash+xml"
             else -> null
         }
+    }
+
+    /**
+     * True when the bytes carry the MPEG-TS sync byte at the start of two consecutive packets. One
+     * `0x47` alone is far too weak — plenty of text starts with a `G`.
+     */
+    private fun isTransportStream(bytes: ByteArray): Boolean =
+        bytes.size > TS_PACKET_BYTES &&
+                bytes[0] == 0x47.toByte() &&
+                bytes[TS_PACKET_BYTES] == 0x47.toByte()
+
+    /** True when a text head reads as the start of a DASH manifest, with or without an XML prolog. */
+    private fun dashManifest(head: String): Boolean {
+        val text = head.trimStart('﻿', ' ', '\n', '\r', '\t')
+        return text.startsWith("<MPD", ignoreCase = true) ||
+                (text.startsWith("<?xml") && head.contains("<MPD", ignoreCase = true))
     }
 
     private fun requestOptions(method: String, range: String? = null) = DreamHttpClient.RequestOptions(

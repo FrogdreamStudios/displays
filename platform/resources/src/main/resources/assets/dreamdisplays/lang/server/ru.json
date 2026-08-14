@@ -203,5 +203,6 @@
   "fullscreenListNetworkEntry": "&7D |&7 {0} &8| &7scope=&f{1} &8| &7network-reach=&f{2}",
   "customMediaDisabled": "&7D |&f Свои ссылки на видео отключены на этом сервере",
   "customMediaHostBlocked": "&7D |&f Видео с этого сайта не разрешены на этом сервере",
-  "customMediaNoPermission": "&7D |&f У вас нет прав включать свои ссылки на видео"
+  "customMediaNoPermission": "&7D |&f У вас нет прав включать свои ссылки на видео",
+  "customMediaTooFast": "&7D |&f Вы слишком часто меняете ссылки на видео. Подождите немного"
 }

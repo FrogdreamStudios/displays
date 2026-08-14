@@ -203,5 +203,6 @@
   "fullscreenListNetworkEntry": "&7D |&7 {0} &8| &7scope=&f{1} &8| &7network-reach=&f{2}",
   "customMediaDisabled": "&7D |&f Custom video links are disabled on this server",
   "customMediaHostBlocked": "&7D |&f Videos from this site are not allowed on this server",
-  "customMediaNoPermission": "&7D |&f You don't have permission to play your own video links"
+  "customMediaNoPermission": "&7D |&f You don't have permission to play your own video links",
+  "customMediaTooFast": "&7D |&f You're switching video links too fast. Wait a moment"
 }

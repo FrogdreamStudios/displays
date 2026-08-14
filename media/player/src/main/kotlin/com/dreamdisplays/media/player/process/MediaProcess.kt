@@ -1,5 +1,6 @@
 package com.dreamdisplays.media.player.process
 
+import com.dreamdisplays.api.security.MediaHosts
 import com.dreamdisplays.media.player.pipeline.VideoFramePipe
 import com.dreamdisplays.media.runtime.security.MediaHostGuard
 import kotlinx.io.IOException
@@ -37,18 +38,13 @@ object MediaProcess {
     )
 
     /**
-     * Some CDNs 403 a correct URL unless `Referer` matches their own site (seen on Bilibili's
-     * `bilivideo.com`); mirrors the host mapping in the client's `Thumbnails.refererFor`.
+     * Request headers for [url]. Platform CDNs get the `Referer` some of them insist on (see
+     * [MediaHosts.refererFor]); a host a player pasted gets a plain browser identity and nothing
+     * else, so its operator learns no more from the request than any visitor would give them.
      */
-    private fun refererFor(url: String): String {
-        val host = runCatching { java.net.URI(url).host }.getOrNull()?.lowercase(Locale.ROOT) ?: ""
-        return when {
-            host.endsWith("kick.com") -> "https://kick.com/"
-            host.endsWith("vimeocdn.com") || host.endsWith("vimeo.com") -> "https://vimeo.com/"
-            host.endsWith("bilibili.com") || host.endsWith("hdslb.com") || host.endsWith("bilivideo.com") ->
-                "https://www.bilibili.com/"
-            else -> "https://www.youtube.com/"
-        }
+    private fun headerArgs(url: String): List<String> {
+        val referer = MediaHosts.refererFor(url)?.let { "Referer: $it\r\n" }.orEmpty()
+        return listOf("-headers", "User-Agent: $USER_AGENT\r\n$referer")
     }
 
     /** Wire format the video `FFmpeg` process writes to its stdout pipe. */
@@ -260,7 +256,7 @@ object MediaProcess {
 
     /** Connection options for an `http(s)` input; see [baseCommand] for why they are conditional. */
     private fun MutableList<String>.addHttpOptions(url: String) {
-        addAll(listOf("-headers", "User-Agent: $USER_AGENT\r\nReferer: ${refererFor(url)}\r\n"))
+        addAll(headerArgs(url))
         addAll(
             listOf(
                 "-reconnect", "1",

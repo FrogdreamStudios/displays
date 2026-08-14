@@ -76,6 +76,7 @@ class VideoCommand : SubCommand {
             requestedUrl,
             PaperServer.config.settings.customMediaPolicy,
             player.hasPermission(PaperServer.config.permissions.custom),
+            player.uniqueId,
         )?.let {
             MessageUtil.sendMessage(player, it)
             return
@@ -178,6 +179,7 @@ object VanillaVideoCommand {
                 VanillaServerState.config.permissions.custom,
                 VanillaPermissions.Fallback.EVERYONE,
             ),
+            player.uuid,
         )?.let { refusal ->
             MessageUtil.sendMessage(player, refusal)
             return 0

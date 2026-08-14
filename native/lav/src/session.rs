@@ -42,21 +42,32 @@ const USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/
 
 /// Some CDNs 403 a correct URL unless `Referer` matches their own site (seen on Bilibili's
 /// `bilivideo.com`); mirrors the host mapping in the client's `Thumbnails.refererFor`.
-fn referer_for(url: &str) -> &'static str {
+fn referer_for(url: &str) -> Option<&'static str> {
     let host = url
         .split("://")
         .nth(1)
         .and_then(|rest| rest.split('/').next())
-        .unwrap_or("")
-        .to_ascii_lowercase();
-    if host.ends_with("kick.com") {
-        "https://kick.com/"
-    } else if host.ends_with("vimeocdn.com") || host.ends_with("vimeo.com") {
-        "https://vimeo.com/"
-    } else if host.ends_with("bilibili.com") || host.ends_with("hdslb.com") || host.ends_with("bilivideo.com") {
-        "https://www.bilibili.com/"
+        .and_then(|authority| authority.rsplit('@').next())
+        .map(|hostport| hostport.split(':').next().unwrap_or("").to_ascii_lowercase())
+        .unwrap_or_default();
+    let covers = |domain: &str| host == domain || host.ends_with(&format!(".{domain}"));
+    if covers("kick.com") {
+        Some("https://kick.com/")
+    } else if covers("vimeo.com") || covers("vimeocdn.com") {
+        Some("https://vimeo.com/")
+    } else if covers("bilibili.com") || covers("hdslb.com") || covers("bilivideo.com") {
+        Some("https://www.bilibili.com/")
+    } else if covers("twitch.tv") || covers("ttvnw.net") || covers("jtvnw.net") || covers("live-video.net") {
+        Some("https://www.twitch.tv/")
+    } else if covers("youtube.com")
+        || covers("youtu.be")
+        || covers("googlevideo.com")
+        || covers("ytimg.com")
+        || covers("googleusercontent.com")
+    {
+        Some("https://www.youtube.com/")
     } else {
-        "https://www.youtube.com/"
+        None
     }
 }
 
@@ -67,6 +78,8 @@ const SLOW_PREROLL_WARN_MS: u128 = 2_000;
 const SLOW_READ_WARN_MS: u128 = 1_000;
 const STATS_WINDOW_SECS: u64 = 5;
 const WIRE_READ_NANOS: u128 = 1_000_000;
+const MAX_DECODED_PIXELS: i64 = 16_384 * 16_384;
+const MAX_INPUT_STREAMS: &str = "64";
 
 /// Limited-range black for the padding borders.
 const BLACK_Y: u8 = 16;
@@ -717,9 +730,8 @@ impl LavSession {
 
         // Kept as a list because every bounded request the chunked reader makes repeats them; the
         // format dictionary below passes the same set down to the protocol on the direct path.
-        let net_opts: Vec<(&str, String)> = vec![
+        let mut net_opts: Vec<(&str, String)> = vec![
             ("user_agent", USER_AGENT.to_string()),
-            ("headers", format!("Referer: {}\r\n", referer_for(url))),
             ("reconnect", "1".into()),
             ("reconnect_streamed", "1".into()),
             ("reconnect_delay_max", "10".into()),
@@ -728,6 +740,10 @@ impl LavSession {
             ("rw_timeout", "15000000".into()),
             ("recv_buffer_size", "4194304".into()),
         ];
+
+        if let Some(referer) = referer_for(url) {
+            net_opts.push(("headers", format!("Referer: {referer}\r\n")));
+        }
 
         let mut opts = Dictionary::new();
         for (key, value) in &net_opts {
@@ -744,6 +760,7 @@ impl LavSession {
         // 1000000) shaves most of the blocking open time.
         opts.set("probesize", "1048576");
         opts.set("analyzeduration", "1000000");
+        opts.set("max_streams", MAX_INPUT_STREAMS);
 
         // A seek on a paced source has to fetch everything from the landing keyframe to the target
         // before it can show a frame, and a single long request hands that over at playback speed.
@@ -1615,6 +1632,10 @@ fn new_decoder_context(
     unsafe {
         // Auto thread count; the default AVCodecContext is single-threaded
         (*context.as_mut_ptr()).thread_count = 0;
+        // The source picks the frame size, and a player can point a display at any file: a header
+        // claiming 32768 x 32768 would have libav allocate gigabytes per frame before anything of
+        // ours got a say. Well above 8K, far below what hurts.
+        (*context.as_mut_ptr()).max_pixels = MAX_DECODED_PIXELS;
     }
     Ok(context)
 }
@@ -1783,6 +1804,28 @@ mod tests {
         }
         assert_eq!(frames, 30, "Expected 30 frames.");
         sessions.close(handle);
+    }
+
+    /// A pasted host must never be told which site the request came from, and a lookalike domain
+    /// must not pass as a platform. The default used to be YouTube for everything.
+    #[test]
+    fn only_platform_hosts_get_a_referer() {
+        assert_eq!(
+            referer_for("https://rr3---sn-oxu.googlevideo.com/videoplayback?x=1"),
+            Some("https://www.youtube.com/"),
+        );
+        assert_eq!(
+            referer_for("https://upos-sz.bilivideo.com/x.m4s"),
+            Some("https://www.bilibili.com/"),
+        );
+        assert_eq!(referer_for("https://example.com/clip.mp4"), None);
+        assert_eq!(referer_for("https://youtube.com.evil.tld/clip.mp4"), None);
+        assert_eq!(referer_for("https://notyoutube.com/clip.mp4"), None);
+        assert_eq!(referer_for("https://evil.tld:8443/clip.mp4"), None);
+        assert_eq!(
+            referer_for("https://user@www.youtube.com:443/watch"),
+            Some("https://www.youtube.com/"),
+        );
     }
 
     /// Pins the per-stage report: it is built from a long argument list where every stage carries

@@ -4,6 +4,7 @@ import com.dreamdisplays.api.media.common.DreamMediaException
 import com.dreamdisplays.api.media.source.*
 import com.dreamdisplays.api.media.stream.MediaStream
 import com.dreamdisplays.api.media.stream.MediaStreamType
+import com.dreamdisplays.api.security.MediaHosts
 import com.dreamdisplays.media.runtime.security.MediaHostGuard
 import com.dreamdisplays.util.net.DreamHttpClient
 import com.github.benmanes.caffeine.cache.Cache
@@ -89,7 +90,10 @@ object DirectStreamResolver : MediaResolver {
             throw DreamMediaException.NotFound("Not a direct media URL: $url.", e)
         }
 
-        val probe = DirectMediaProbe.probe(safeUrl)
+        // A host nobody vouched for has to prove what it serves: its headers are whatever it chose
+        // to write, so the probe reads the leading bytes and names the container itself.
+        val firstParty = MediaHosts.isFirstParty(safeUrl)
+        val probe = DirectMediaProbe.probe(safeUrl, requireBytes = !firstParty)
 
         if (probe == null) {
             // A direct link that cannot even be probed is worth reporting as such; an unrecognized
@@ -105,7 +109,7 @@ object DirectStreamResolver : MediaResolver {
 
         // A refusal on a speculative Remote probe is a permanent fact about that URL, so record it
         // once: re-probing on every quality switch would tax every extractor video in the game.
-        runCatching { rejectNonVideo(probe, declaredKind, effectiveKind) }.onFailure {
+        runCatching { rejectNonVideo(probe, declaredKind, effectiveKind, firstParty) }.onFailure {
             if (!declaredKind.isDirect) notDirect.put(url, true)
             throw it
         }
@@ -130,6 +134,7 @@ object DirectStreamResolver : MediaResolver {
      */
     private fun rejectNonVideo(
         probe: DirectMediaProbe.Result, declared: CustomMediaKind, effective: CustomMediaKind,
+        firstParty: Boolean,
     ) {
         if (probe.isHtml) {
             throw DreamMediaException.NotFound(
@@ -147,6 +152,14 @@ object DirectStreamResolver : MediaResolver {
             // Speculative Remote probe that came back as something else entirely: nothing
             // user-facing to say, just step aside for the extractor chain.
             throw DreamMediaException.NotFound("Not direct media.")
+        }
+        // The link looking like a file is not evidence that it is one: a URL ending in .mp4 can
+        // serve anything at all, and until now nothing checked. Everything a display will decode
+        // off a pasted host must have been recognized from its own leading bytes.
+        if (!firstParty && !probe.verifiedByBytes) {
+            throw DreamMediaException.NotFound(
+                "This link does not serve a video file. Check that it points straight at the media.",
+            )
         }
     }
 

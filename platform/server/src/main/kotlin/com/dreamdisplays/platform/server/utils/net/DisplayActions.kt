@@ -89,6 +89,7 @@ object DisplayActions {
             url,
             PaperServer.config.settings.customMediaPolicy,
             player.hasPermission(PaperServer.config.permissions.custom),
+            player.uniqueId,
         )?.let { return MessageUtil.sendMessage(player, it) }
         // Checked before the throttle below: an attacker who is never nearby must not be able to
         // burn the per-display cooldown window against the display's real, present owner.
@@ -157,6 +158,7 @@ object DisplayActions {
             url,
             PaperServer.config.settings.customMediaPolicy,
             player.hasPermission(PaperServer.config.permissions.custom),
+            player.uniqueId,
         )?.let { return MessageUtil.sendMessage(player, it) }
         if (!DisplayManager.isPlayerInRange(player, displayData)) return
         WatchPartyManager.start(displayData, player.uniqueId, url, MediaUrlPolicy.sanitizeLang(lang))
