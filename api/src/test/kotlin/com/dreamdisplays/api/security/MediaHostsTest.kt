@@ -40,6 +40,12 @@ class MediaHostsTest {
         assertNull(MediaHosts.platformOf("https://d1234.cloudfront.net/clip.mp4"))
         assertNull(MediaHosts.platformOf("https://x.akamaized.net/clip.mp4"))
         assertNull(MediaHosts.platformOf("https://storage.googleapis.com.evil.tld/clip.mp4"))
+        assertNull(MediaHosts.platformOf("https://storage.googleapis.com/bucket/clip.mp4"))
+        assertNull(MediaHosts.platformOf("https://commondatastorage.googleapis.com/x/clip.mp4"))
+        assertEquals(
+            MediaPlatform.YOUTUBE,
+            MediaHosts.platformOf("https://youtubei.googleapis.com/youtubei/v1/player"),
+        )
     }
 
     @Test

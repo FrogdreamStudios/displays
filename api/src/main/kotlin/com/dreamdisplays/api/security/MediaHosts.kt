@@ -23,7 +23,7 @@ object MediaHosts {
     private val PLATFORM_DOMAINS: List<Pair<MediaPlatform, List<String>>> = listOf(
         MediaPlatform.YOUTUBE to listOf(
             "youtube.com", "youtu.be", "youtube-nocookie.com", "ytimg.com", "ggpht.com",
-            "googlevideo.com", "googleusercontent.com", "googleapis.com",
+            "googlevideo.com", "googleusercontent.com", "youtubei.googleapis.com",
         ),
         MediaPlatform.TWITCH to listOf("twitch.tv", "ttvnw.net", "jtvnw.net", "live-video.net"),
         MediaPlatform.VIMEO to listOf("vimeo.com", "vimeocdn.com"),
