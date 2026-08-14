@@ -28,6 +28,7 @@ import com.dreamdisplays.platform.proxy.NetworkDisplayIndex
 import com.dreamdisplays.platform.proxy.NetworkFullscreenManager
 import com.dreamdisplays.platform.proxy.NetworkTokenResolutions
 import com.dreamdisplays.platform.proxy.NetworkWatchPartyManager
+import com.google.inject.Inject
 import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.connection.DisconnectEvent
 import com.velocitypowered.api.event.connection.PluginMessageEvent
@@ -42,7 +43,6 @@ import io.github.arnodoelinger.platformweaver.VelocityOnly
 import org.slf4j.Logger
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
-import javax.inject.Inject
 
 /**
  * `dreamdisplays:proxy` channel id, shared verbatim by the `BungeeCord` sibling
