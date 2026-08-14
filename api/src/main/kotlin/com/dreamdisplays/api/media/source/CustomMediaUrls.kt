@@ -68,13 +68,12 @@ object CustomMediaUrls {
             // Drive share pages ("/file/d/<id>/view") and the legacy "/open?id=" shape
             host == "drive.google.com" || host == "docs.google.com" -> {
                 val id = DRIVE_PATH_ID.find(uri.path ?: "")?.groupValues?.get(1)
-                    ?: queryParam(uri, "id")
+                    ?: driveIdQueryParam(uri)
                 id?.let { "https://drive.google.com/uc?export=download&id=$it" }
             }
 
             // Dropbox serves the file itself only with raw=1; ?dl=0/1 still lands on the preview page
-            host == "dropbox.com" || host.endsWith(".dropbox.com") ->
-                withQueryParam(uri, "raw", "1", drop = setOf("dl"))
+            host == "dropbox.com" || host.endsWith(".dropbox.com") -> asDropboxRawLink(uri)
 
             // github.com/<owner>/<repo>/blob/<ref>/<path> -> raw.githubusercontent.com/<owner>/<repo>/<ref>/<path>
             host == "github.com" && segments.size >= 5 && segments[2] == "blob" ->
@@ -140,24 +139,22 @@ object CustomMediaUrls {
         return withoutExtension.replace('_', ' ').replace('+', ' ').trim()
     }
 
-    /** Returns the first value of query parameter [name] in [uri], or null when absent. */
-    @Suppress("SameParameterValue")
-    private fun queryParam(uri: URI, name: String): String? =
+    /** Returns the value of the legacy Drive `id` query parameter in [uri], or null when absent. */
+    private fun driveIdQueryParam(uri: URI): String? =
         uri.query
             ?.split('&')
-            ?.firstOrNull { it.substringBefore('=') == name }
+            ?.firstOrNull { it.substringBefore('=') == "id" }
             ?.substringAfter('=', "")
             ?.takeIf { it.isNotEmpty() }
 
-    /** Rebuilds [uri] with [name]=[value] set and every parameter in [drop] removed. */
-    @Suppress("SameParameterValue")
-    private fun withQueryParam(uri: URI, name: String, value: String, drop: Set<String>): String {
+    /** Rewrites [uri] to a Dropbox direct-download link: `raw=1` set, `dl` removed. */
+    private fun asDropboxRawLink(uri: URI): String {
         val kept = uri.query
             ?.split('&')
             ?.filter { it.isNotBlank() }
-            ?.filterNot { it.substringBefore('=') == name || it.substringBefore('=') in drop }
+            ?.filterNot { it.substringBefore('=') == "raw" || it.substringBefore('=') == "dl" }
             ?: emptyList()
-        val query = (kept + "$name=$value").joinToString("&")
+        val query = (kept + "raw=1").joinToString("&")
         return "${uri.scheme}://${uri.authority}${uri.path.orEmpty()}?$query"
     }
 }

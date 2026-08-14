@@ -65,7 +65,7 @@ object YouTubeUrls {
             return null
         }
 
-        queryParameter(uri.rawQuery, "v")?.let { YouTubeVideoId.parse(it) }?.let { return it }
+        videoIdQueryParameter(uri.rawQuery)?.let { YouTubeVideoId.parse(it) }?.let { return it }
 
         if (pathSegments.size >= 2 && pathSegments[0].lowercase(Locale.ROOT) in VIDEO_PATH_PREFIXES) {
             return YouTubeVideoId.parse(pathSegments[1])
@@ -89,15 +89,14 @@ object YouTubeUrls {
     private fun isHost(host: String, root: String): Boolean =
         host == root || host.endsWith(".$root")
 
-    /** Returns first query parameter value with [name], or null if not found. */
-    @Suppress("SameParameterValue")
-    private fun queryParameter(rawQuery: String?, name: String): String? =
+    /** Returns the `v` (video id) query parameter value in [rawQuery], or null if not found. */
+    private fun videoIdQueryParameter(rawQuery: String?): String? =
         rawQuery
             ?.split('&')
             ?.firstNotNullOfOrNull { part ->
                 val separator = part.indexOf('=')
                 val rawKey = if (separator >= 0) part.substring(0, separator) else part
-                if (decode(rawKey) != name) return@firstNotNullOfOrNull null
+                if (decode(rawKey) != "v") return@firstNotNullOfOrNull null
                 val rawValue = if (separator >= 0) part.substring(separator + 1) else ""
                 decode(rawValue)
             }

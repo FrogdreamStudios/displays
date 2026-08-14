@@ -86,7 +86,7 @@ object LavFfmpeg {
 
     @Throws(IOException::class)
     private fun resolveLatestAssetUrl(source: Source): String {
-        val json = readUrl(LATEST_RELEASE_API)
+        val json = readLatestReleaseJson()
         val urls = Regex(""""browser_download_url"\s*:\s*"([^"]+)"""")
             .findAll(json)
             .map { it.groupValues[1].replace("\\/", "/") }
@@ -179,12 +179,11 @@ object LavFfmpeg {
         }
     }
 
-    /** Reads [url], following up to 10 redirect hops. */
-    @Suppress("SameParameterValue")
+    /** Reads the BtbN latest-release API response, following up to 10 redirect hops. */
     @Throws(IOException::class)
-    private fun readUrl(url: String): String {
+    private fun readLatestReleaseJson(): String {
         return DreamHttpClient.readText(
-            url,
+            LATEST_RELEASE_API,
             DreamHttpClient.RequestOptions(
                 headers = DreamHttpClient.headersOf(
                     "User-Agent" to "DreamDisplays-lav-ffmpeg",

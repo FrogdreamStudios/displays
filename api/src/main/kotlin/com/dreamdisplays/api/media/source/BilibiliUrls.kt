@@ -45,7 +45,7 @@ object BilibiliUrls {
         if (host != "bilibili.com") return null
         if (segments.getOrNull(0) != "video") return null
         val id = segments.getOrNull(1) ?: return null
-        val part = queryParam(parsed.uri.rawQuery, "p")?.toIntOrNull()
+        val part = partQueryParam(parsed.uri.rawQuery)?.toIntOrNull()
 
         if (BVID_RE.matches(id)) return MediaSource.Bilibili(url = normalized, bvid = id, part = part)
         AVID_RE.matchEntire(id)?.let { m ->
@@ -55,11 +55,10 @@ object BilibiliUrls {
         return null
     }
 
-    /** Returns the value of query parameter [key] in [rawQuery], or null when absent. */
-    @Suppress("SameParameterValue")
-    private fun queryParam(rawQuery: String?, key: String): String? =
+    /** Returns the value of the `p` (part index) query parameter in [rawQuery], or null when absent. */
+    private fun partQueryParam(rawQuery: String?): String? =
         rawQuery?.split('&')?.firstNotNullOfOrNull { pair ->
             val idx = pair.indexOf('=')
-            if (idx < 0) null else pair.substring(0, idx).takeIf { it == key }?.let { pair.substring(idx + 1) }
+            if (idx < 0) null else pair.substring(0, idx).takeIf { it == "p" }?.let { pair.substring(idx + 1) }
         }
 }
