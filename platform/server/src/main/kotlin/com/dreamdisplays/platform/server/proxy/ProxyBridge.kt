@@ -104,14 +104,13 @@ object ProxyBridge : PluginMessageListener {
     }
 
     /** Called from the v2 handshake when a player finishes negotiation; sends hello and display index. */
-    @Suppress("DEPRECATION")
     fun onPlayerReady(player: Player) {
         if (!enabled) return
         if (helloSent.compareAndSet(false, true)) {
             send(
                 player,
                 BackendHello(
-                    pluginVersion = plugin.description.version,
+                    pluginVersion = plugin.pluginMeta.version,
                     mcVersion = Bukkit.getMinecraftVersion(),
                     platform = "paper",
                 ),

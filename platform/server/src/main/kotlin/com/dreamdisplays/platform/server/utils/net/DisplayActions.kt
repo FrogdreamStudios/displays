@@ -274,13 +274,12 @@ object DisplayActions {
     }
 
     /** Tells privileged [player] about a newer plugin release; skipped for `-SNAPSHOT` builds. */
-    @Suppress("DEPRECATION")
     private fun checkPluginUpdate(player: Player) {
         val latestPluginVersion = VersionState.pluginLatestVersion ?: return
 
         if (PlayerManager.hasBeenNotifiedAboutPluginUpdate(player)) return
 
-        val currentVersionString = PaperServer.getInstance().description.version
+        val currentVersionString = PaperServer.getInstance().pluginMeta.version
         if (currentVersionString.contains("-SNAPSHOT", ignoreCase = true) ||
             currentVersionString.contains("-DEV", ignoreCase = true)
         ) {

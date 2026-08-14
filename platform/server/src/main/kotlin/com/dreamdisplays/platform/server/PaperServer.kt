@@ -50,7 +50,6 @@ class PaperServer : JavaPlugin() {
 
     /** Initializes scheduler, storage, listeners, channels, and metrics. Safe to call from a reload. */
     fun doEnable() {
-        @Suppress("DEPRECATION")
         Scheduler.init(this)
 
         val s = Companion.config.storage

@@ -10,6 +10,7 @@ import com.dreamdisplays.platform.client.Initializer
 import com.dreamdisplays.util.GeneralUtil
 import net.fabricmc.loader.api.FabricLoader
 import java.nio.file.Path
+import kotlin.jvm.optionals.getOrNull
 
 /** Fabric client [Platform]. Versions and paths come from [FabricLoader] metadata. */
 object FabricPlatform : Platform {
@@ -18,18 +19,14 @@ object FabricPlatform : Platform {
     override val id: String get() = platformId.wire
     override val side: PlatformSide = PlatformSide.CLIENT
 
-    @Suppress("TYPE_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
     override val minecraftVersion: String by lazy {
-        FabricLoader.getInstance().getModContainer("minecraft")
-            .map { it.metadata.version.friendlyString }
-            .orElse("unknown")
+        FabricLoader.getInstance().getModContainer("minecraft").getOrNull()
+            ?.metadata?.version?.friendlyString ?: "unknown"
     }
 
-    @Suppress("TYPE_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
     override val modVersion: String by lazy {
-        FabricLoader.getInstance().getModContainer(Initializer.MOD_ID)
-            .map { it.metadata.version.friendlyString }
-            .orElse(GeneralUtil.getModVersion())
+        FabricLoader.getInstance().getModContainer(Initializer.MOD_ID).getOrNull()
+            ?.metadata?.version?.friendlyString ?: GeneralUtil.getModVersion()
     }
 
     override val scheduler: PlatformScheduler = MinecraftClientScheduler

@@ -58,8 +58,7 @@ class HelpCommand : SubCommand {
 @ModLoaderOnly
 object VanillaHelpCommand {
     /** Prints the help message listing every `/display` subcommand. */
-    @Suppress("SameReturnValue")
-    fun execute(ctx: CommandContext<CommandSourceStack>): Int {
+    fun execute(ctx: CommandContext<CommandSourceStack>) {
         val player = ctx.source.entity as? ServerPlayer
         val config = VanillaServerState.config
 
@@ -72,7 +71,7 @@ object VanillaHelpCommand {
         val header = config.getMessageForPlayer(player, "displayHelpHeader")
         MessageUtil.sendColoredMessage(player ?: run {
             ctx.source.sendSystemMessage(Component.literal("D | Help"))
-            return 1
+            return
         }, header)
 
         line("displayHelpCreate")
@@ -87,6 +86,5 @@ object VanillaHelpCommand {
         line("displayHelpOff")
         line("displayHelpFullscreen")
         line("displayHelpHelp")
-        return 1
     }
 }

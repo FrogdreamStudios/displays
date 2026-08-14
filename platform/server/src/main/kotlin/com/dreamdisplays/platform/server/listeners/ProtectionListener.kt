@@ -36,7 +36,6 @@ import org.bukkit.event.entity.EntityExplodeEvent
  * Listener for protecting display areas from modifications.
  * Handles block breaking, explosions, and piston movements.
  */
-@Suppress("UNUSED")
 @PaperOnly
 class ProtectionListener : Listener {
     /**

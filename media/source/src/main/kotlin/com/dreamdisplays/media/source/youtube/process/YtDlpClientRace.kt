@@ -9,6 +9,7 @@ import com.dreamdisplays.media.source.youtube.model.YtStreams
 import com.dreamdisplays.util.DreamCoroutines
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
@@ -66,7 +67,6 @@ class YtDlpClientRace(private val cookies: YtCookieManager) {
      * immediately and the still-running losers are killed; otherwise, once every client finishes,
      * [bestResult] picks the strongest result. Returns null when every client failed.
      */
-    @Suppress("CoroutineContextWithJob")
     private suspend fun raceParallel(
         videoUrl: String,
         clients: List<String?>,
@@ -76,11 +76,12 @@ class YtDlpClientRace(private val cookies: YtCookieManager) {
         val results = CopyOnWriteArrayList<List<YtStream>>()
         val winner = CompletableDeferred<List<YtStream>>()
         val remaining = AtomicInteger(clients.size)
+        val ioContext = DreamCoroutines.clientIo.coroutineContext.minusKey(Job)
 
         val runRace: suspend () -> List<YtStream> = {
             coroutineScope {
                 for (client in clients) {
-                    launch(DreamCoroutines.clientIo.coroutineContext) {
+                    launch(ioContext) {
                         runCatching {
                             val streams = runClientFetch(videoUrl, client) { proc ->
                                 processes.add(proc)
