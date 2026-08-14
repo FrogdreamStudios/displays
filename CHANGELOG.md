@@ -1,3 +1,38 @@
+# 1.9.1 Release
+
+## Highlights
+
+- Native playback improvements, more smooth playback and near-instant seeking
+- Low connection client improvements
+- Minor fixes and improvements
+
+## Client
+
+### Improvements
+
+- Native playback improvements
+- Seeking is now near-instant, even when jumping far ahead or across a long video
+- Videos now start playing with a small head start instead of racing the stream from the first frame, so an
+  uneven connection no longer shows up as stutter
+- Reduced the CPU work a playing display costs per video frame
+- Stability improvements for low connection clients
+- Security improvements for custom media
+- Updated project dependencies and its usages
+- Simplified codebase documentation
+- Some codebase improvements and refactoring
+
+### Fixes
+
+- Fixed stuttering during the first seconds of playback, and again for several seconds after each seek
+- Fixed the picture freezing, or crawling at a few frames per second, whenever playback fell behind the sound
+- Fixed playback occasionally stopping with an unrecoverable stream error after seeking
+
+## Server
+
+### Improvements
+
+- Security improvements for custom media
+
 # 1.9.0 Release
 
 ## Highlights
