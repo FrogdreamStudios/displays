@@ -9,7 +9,7 @@
 use anyhow::{Context as AnyhowContext, Result, anyhow, bail};
 use log::{LevelFilter, debug, error, info, warn};
 use std::collections::{HashMap, VecDeque};
-use std::ffi::c_void;
+use std::ffi::{c_int, c_void};
 use std::sync::atomic::{AtomicBool, AtomicI64, Ordering};
 use std::sync::{Arc, Mutex, Once};
 use std::{mem, ptr};
@@ -65,6 +65,8 @@ const PREROLL_FAST_CUTOFF_NANOS: i64 = 1_000_000_000;
 const SLOW_SEEK_WARN_MS: u128 = 1_000;
 const SLOW_PREROLL_WARN_MS: u128 = 2_000;
 const SLOW_READ_WARN_MS: u128 = 1_000;
+const STATS_WINDOW_SECS: u64 = 5;
+const WIRE_READ_NANOS: u128 = 1_000_000;
 
 /// Limited-range black for the padding borders.
 const BLACK_Y: u8 = 16;
@@ -94,6 +96,26 @@ fn init_ffmpeg() -> Result<()> {
         ffmpeg::util::log::set_level(level);
     });
     Ok(())
+}
+
+/// Query parameters that identify a googlevideo format class — which decides whether the source
+/// paces a single long GET at the video's own bitrate. Never includes the signature or any token.
+fn url_class_for_log(url: &str) -> String {
+    const KEYS: [&str; 6] = ["itag", "mime", "gir", "ratebypass", "clen", "dur"];
+    let Some(query) = url.split_once('?').map(|(_, q)| q) else {
+        return "no query".to_string();
+    };
+    let shown: Vec<String> = query
+        .split('&')
+        .filter_map(|pair| pair.split_once('='))
+        .filter(|(k, _)| KEYS.contains(k))
+        .map(|(k, v)| format!("{k}={v}"))
+        .collect();
+    if shown.is_empty() {
+        "no format params".to_string()
+    } else {
+        shown.join(" ")
+    }
 }
 
 /// Strips the query string (stream URLs carry expiring tokens) and caps the length, keeping log
@@ -241,8 +263,6 @@ struct ReadState {
     scaler: Option<(Pixel, u32, u32, scaling::Context)>,
     /// Scratch frame for hardware -> system memory transfers.
     sw_frame: VideoFrame,
-    /// Scaled YUV420P output frame.
-    scaled: VideoFrame,
     draining: bool,
     /// Live seek target in normalized nanoseconds. Frames substantially before this target are
     /// decoded only as pre-roll and are not returned to the JVM.
@@ -256,7 +276,87 @@ struct ReadState {
     /// (network-free) and then continues with live reads — the demuxer position was never moved,
     /// so the stream stays contiguous after the replayed span.
     pending_replay: VecDeque<CachedPacket>,
+    /// Rolling cost of the three stages of a read, logged periodically.
+    stats: ReadStats,
     source: PacketSource,
+}
+
+/// Per-stage cost of one delivered frame, averaged over [STATS_WINDOW_SECS]. A pipe that cannot
+/// keep the source's cadence shows up here as a stage whose own budget exceeds the frame interval,
+/// which is what decides between hardware decode, a cheaper conversion and a lower stream quality.
+#[derive(Default)]
+struct ReadStats {
+    frames: u64,
+    reads: u64,
+    slow_reads: u64,
+    wait_nanos: u128,
+    demux_cpu_nanos: u128,
+    send_nanos: u128,
+    decode_nanos: u128,
+    transfer_nanos: u128,
+    scale_nanos: u128,
+    write_nanos: u128,
+    demux_bytes: u64,
+    window: Option<std::time::Instant>,
+}
+
+impl ReadStats {
+    /// Accounts one `packet.read`, classifying it by whether it reached the network.
+    fn record_read(&mut self, nanos: u128, bytes: u64) {
+        self.reads += 1;
+        self.demux_bytes += bytes;
+        if nanos >= WIRE_READ_NANOS {
+            self.slow_reads += 1;
+            self.wait_nanos += nanos;
+        } else {
+            self.demux_cpu_nanos += nanos;
+        }
+    }
+
+    /// Accounts one delivered frame, returning a report once the window is up.
+    fn record_frame(&mut self, write_nanos: u128) -> Option<String> {
+        self.write_nanos += write_nanos;
+        self.frames += 1;
+        let elapsed = self
+            .window
+            .get_or_insert_with(std::time::Instant::now)
+            .elapsed();
+        if elapsed.as_secs() < STATS_WINDOW_SECS || self.frames == 0 {
+            return None;
+        }
+        let per_frame = |total: u128| total as f64 / self.frames as f64 / 1_000_000.0;
+        let wait = per_frame(self.wait_nanos);
+        let demux_cpu = per_frame(self.demux_cpu_nanos);
+        let send = per_frame(self.send_nanos);
+        let decode = per_frame(self.decode_nanos);
+        let transfer = per_frame(self.transfer_nanos);
+        let scale = per_frame(self.scale_nanos);
+        let write = per_frame(self.write_nanos);
+        let waited_secs = self.wait_nanos as f64 / 1e9;
+        let mbits = if waited_secs > 0.0 {
+            self.demux_bytes as f64 * 8.0 / waited_secs / 1e6
+        } else {
+            0.0
+        };
+        let report = format!(
+            "{} frames in {:.1} s ({:.1} fps delivered); per frame: network wait {wait:.2} ms, \
+             demux CPU {demux_cpu:.2} ms, send {send:.2} ms, decoder {decode:.2} ms, \
+             hw transfer {transfer:.2} ms, swscale {scale:.2} ms (convert total {write:.2} ms) \
+             — ceiling {:.1} fps; {:.1} KiB/frame over {} reads, {} of them on the wire \
+             at {:.1} Mbit/s ({:.1} MiB total).",
+            self.frames,
+            elapsed.as_secs_f64(),
+            self.frames as f64 / elapsed.as_secs_f64(),
+            1_000.0 / (wait + demux_cpu + send + decode + write).max(0.001),
+            self.demux_bytes as f64 / self.frames as f64 / 1024.0,
+            self.reads,
+            self.slow_reads,
+            mbits,
+            self.demux_bytes as f64 / 1_048_576.0,
+        );
+        *self = ReadStats::default();
+        Some(report)
+    }
 }
 
 /// Applies (or clears) the aggressive pre-roll decode mode: skip non-reference frames and the loop
@@ -383,9 +483,10 @@ impl LavSessions {
             Ok(session) => {
                 let handle = self.insert(session);
                 info!(
-                    "Opened LAV session #{handle}: {} ({w}x{h}, start {} ms).",
+                    "Opened LAV session #{handle}: {} ({w}x{h}, start {} ms) [{}].",
                     url_for_log(url),
                     start_micros / 1_000,
+                    url_class_for_log(url),
                 );
                 handle
             }
@@ -616,6 +717,7 @@ impl LavSession {
         opts.set("reconnect_on_network_error", "1");
         opts.set("reconnect_on_http_error", "5xx");
         opts.set("rw_timeout", "15000000");
+        opts.set("recv_buffer_size", "4194304");
 
         // Single-video HTTP sources don't need the default ~5 MB / 5 s stream probe; a tightened
         // probe window (mirroring the external ffmpeg path's -probesize 1M -analyzeduration
@@ -626,8 +728,12 @@ impl LavSession {
         let mut ictx =
             ffmpeg::format::input_with_dictionary(&url, opts).context("open input stream")?;
 
-        // Route blocked network I/O through an interrupt callback so a kill() / teardown aborts the
-        // current read promptly instead of waiting out the 15 s rw_timeout.
+        // Route blocked network I / O through an interrupt callback so a kill() / teardown aborts the
+        // current read promptly instead of waiting out the 15 s rw_timeout. Deliberately armed
+        // after the open: the protocols underneath were opened without it, so an interrupt stops
+        // the demuxer between reads instead of tearing down a request mid-response — which is what
+        // makes reconnect re-splice the byte stream at a stale offset (corrupt packets, partial
+        // atoms) every time a seek kills the reader.
         let interrupted = Arc::new(AtomicBool::new(false));
         unsafe {
             let p = ictx.as_mut_ptr();
@@ -675,12 +781,12 @@ impl LavSession {
                 time_base,
                 scaler: None,
                 sw_frame: VideoFrame::empty(),
-                scaled: VideoFrame::empty(),
                 draining: false,
                 seek_target_nanos: start_micros.checked_mul(1_000).filter(|_| start_micros > 0),
                 seek_debug: (start_micros > 0).then(SeekDebug::begin),
                 preroll_fast,
                 pending_replay: VecDeque::new(),
+                stats: ReadStats::default(),
                 source: PacketSource::Live {
                     ictx,
                     stream_index,
@@ -731,12 +837,12 @@ impl LavSession {
                 time_base,
                 scaler: None,
                 sw_frame: VideoFrame::empty(),
-                scaled: VideoFrame::empty(),
                 draining: false,
                 seek_target_nanos: None,
                 seek_debug: None,
                 preroll_fast: false,
                 pending_replay: VecDeque::new(),
+                stats: ReadStats::default(),
                 source: PacketSource::Replay {
                     packets,
                     next_packet: 0,
@@ -904,7 +1010,6 @@ impl LavSession {
         unsafe {
             ffi::avcodec_flush_buffers(state.decoder.as_mut_ptr());
             ffi::av_frame_unref(state.sw_frame.as_mut_ptr());
-            ffi::av_frame_unref(state.scaled.as_mut_ptr());
         }
         state.seek_target_nanos = Some(target_nanos);
         state.seek_debug = Some(SeekDebug::begin());
@@ -994,7 +1099,14 @@ impl LavSession {
                     }
                 }
             }
+            let write_started = std::time::Instant::now();
             self.write_i420(state, &decoded, dst)?;
+            if let Some(report) = state.stats.record_frame(write_started.elapsed().as_nanos()) {
+                debug!(
+                    "LAV session #{}: {report}",
+                    self.id.load(Ordering::Relaxed),
+                );
+            }
             return Ok(Some((pts_nanos, false)));
         }
     }
@@ -1007,7 +1119,10 @@ impl LavSession {
                 return Ok(None);
             }
 
-            if state.decoder.receive_frame(&mut decoded).is_ok() {
+            let receive_started = std::time::Instant::now();
+            let received = state.decoder.receive_frame(&mut decoded).is_ok();
+            state.stats.decode_nanos += receive_started.elapsed().as_nanos();
+            if received {
                 return Ok(Some(decoded));
             }
             if state.draining {
@@ -1015,6 +1130,9 @@ impl LavSession {
             }
 
             let time_base = state.time_base;
+            let mut read_nanos = 0u128;
+            let mut demux_bytes = 0u64;
+            let mut send_nanos = 0u128;
             match &mut state.source {
                 PacketSource::Live {
                     ictx,
@@ -1026,16 +1144,20 @@ impl LavSession {
                     // They are already in the ring, so they are not re-captured.
                     if let Some(cached) = state.pending_replay.pop_front() {
                         let packet = packet_from_cached(&cached, time_base, *stream_start_time);
+                        let send_started = std::time::Instant::now();
                         state
                             .decoder
                             .send_packet(&packet)
                             .context("send cached packet to live decoder.")?;
+                        state.stats.send_nanos += send_started.elapsed().as_nanos();
                         continue;
                     }
                     let mut packet = ffmpeg::Packet::empty();
                     let read_started = std::time::Instant::now();
                     let read_result = packet.read(ictx);
-                    let read_ms = read_started.elapsed().as_millis();
+                    let read_elapsed = read_started.elapsed();
+                    read_nanos = read_elapsed.as_nanos();
+                    let read_ms = read_elapsed.as_millis();
                     if read_ms >= SLOW_READ_WARN_MS {
                         warn!(
                             "LAV session #{}: demuxer read blocked for {read_ms} ms (network stall).",
@@ -1044,15 +1166,18 @@ impl LavSession {
                     }
                     match read_result {
                         Ok(()) => {
+                            demux_bytes += packet.size() as u64;
                             if let Some(dbg) = state.seek_debug.as_mut() {
                                 dbg.bytes += packet.size() as u64;
                             }
                             if packet.stream() == *stream_index {
                                 self.capture_packet(time_base, *stream_start_time, &packet);
+                                let send_started = std::time::Instant::now();
                                 state
                                     .decoder
                                     .send_packet(&packet)
                                     .context("send demuxed packet to decoder.")?;
+                                send_nanos += send_started.elapsed().as_nanos();
                             }
                         }
                         Err(ffmpeg::Error::Eof) => {
@@ -1061,6 +1186,8 @@ impl LavSession {
                         }
                         Err(ffmpeg::Error::Other { errno })
                             if errno == ffmpeg::util::error::EAGAIN => {}
+                        Err(ffmpeg::Error::Exit) => return Ok(None),
+                        Err(_) if self.interrupted.load(Ordering::Relaxed) => return Ok(None),
                         Err(e) => return Err(e).context("read packet from input."),
                     }
                 }
@@ -1082,6 +1209,10 @@ impl LavSession {
                     }
                 }
             }
+            if read_nanos > 0 {
+                state.stats.record_read(read_nanos, demux_bytes);
+            }
+            state.stats.send_nanos += send_nanos;
         }
     }
 
@@ -1090,6 +1221,7 @@ impl LavSession {
         // Hardware frames live outside normal CPU memory; pull them down to the best software
         // format FFmpeg can provide before scaling to the target I420 frame.
         let src: &VideoFrame = if is_hardware_frame(frame.format()) {
+            let started = std::time::Instant::now();
             unsafe {
                 ffi::av_frame_unref(state.sw_frame.as_mut_ptr());
                 let rc =
@@ -1099,6 +1231,7 @@ impl LavSession {
                         .context("transfer hardware frame to system memory.");
                 }
             }
+            state.stats.transfer_nanos += started.elapsed().as_nanos();
             &state.sw_frame
         } else {
             frame
@@ -1138,53 +1271,53 @@ impl LavSession {
             .with_context(|| format!("create swscale context {format:?} {sw} x {sh} -> {fw} x {fh}."))?;
             state.scaler = Some((format, sw, sh, ctx));
         }
-        let scaler = &mut state.scaler.as_mut().unwrap().3;
-        scaler.run(src, &mut state.scaled).context("scale frame")?;
-
         // Compose into the caller's buffer: black background, fitted frame centered
         let (tw, th) = (self.w, self.h);
         let cw = (tw + 1) / 2;
         let ch = (th + 1) / 2;
         let y_size = tw * th;
         let c_size = cw * ch;
-        dst[..y_size].fill(BLACK_Y);
-        dst[y_size..y_size + 2 * c_size].fill(BLACK_C);
+        if dst.len() < y_size + 2 * c_size {
+            bail!(
+                "destination holds {} bytes, a {tw} x {th} I420 frame needs {}.",
+                dst.len(),
+                y_size + 2 * c_size,
+            );
+        }
+        if fw as usize != tw || fh as usize != th {
+            dst[..y_size].fill(BLACK_Y);
+            dst[y_size..y_size + 2 * c_size].fill(BLACK_C);
+        }
 
         // Even offsets keep luma and chroma alignment consistent
         let x0 = ((tw - fw as usize) / 2) & !1;
         let y0 = ((th - fh as usize) / 2) & !1;
 
-        copy_plane(
-            state.scaled.data(0),
-            state.scaled.stride(0),
-            fw as usize,
-            fh as usize,
-            &mut dst[..y_size],
-            tw,
-            x0,
-            y0,
-        );
-        let (u_dst, v_dst) = dst[y_size..y_size + 2 * c_size].split_at_mut(c_size);
-        copy_plane(
-            state.scaled.data(1),
-            state.scaled.stride(1),
-            fw as usize / 2,
-            fh as usize / 2,
-            u_dst,
-            cw,
-            x0 / 2,
-            y0 / 2,
-        );
-        copy_plane(
-            state.scaled.data(2),
-            state.scaled.stride(2),
-            fw as usize / 2,
-            fh as usize / 2,
-            v_dst,
-            cw,
-            x0 / 2,
-            y0 / 2,
-        );
+        let scale_started = std::time::Instant::now();
+        let scaler = &mut state.scaler.as_mut().unwrap().3;
+        unsafe {
+            let base = dst.as_mut_ptr();
+            let planes: [*mut u8; 4] = [
+                base.add(y0 * tw + x0),
+                base.add(y_size + (y0 / 2) * cw + x0 / 2),
+                base.add(y_size + c_size + (y0 / 2) * cw + x0 / 2),
+                ptr::null_mut(),
+            ];
+            let strides: [c_int; 4] = [tw as c_int, cw as c_int, cw as c_int, 0];
+            let rc = ffi::sws_scale(
+                scaler.as_mut_ptr(),
+                (*src.as_ptr()).data.as_ptr().cast::<*const u8>(),
+                (*src.as_ptr()).linesize.as_ptr(),
+                0,
+                sh as c_int,
+                planes.as_ptr(),
+                strides.as_ptr(),
+            );
+            if rc < 0 {
+                return Err(ffmpeg::Error::from(rc)).context("scale frame");
+            }
+        }
+        state.stats.scale_nanos += scale_started.elapsed().as_nanos();
         Ok(())
     }
 }
@@ -1379,24 +1512,6 @@ fn is_hardware_frame(format: Pixel) -> bool {
     )
 }
 
-/// Copies a `w` x `h` plane from strided `src` into a tightly packed `dst` plane of width
-/// `dst_w`, at offset (`x0`, `y0`).
-fn copy_plane(
-    src: &[u8],
-    stride: usize,
-    w: usize,
-    h: usize,
-    dst: &mut [u8],
-    dst_w: usize,
-    x0: usize,
-    y0: usize,
-) {
-    for row in 0..h {
-        let s = &src[row * stride..row * stride + w];
-        let d_start = (y0 + row) * dst_w + x0;
-        dst[d_start..d_start + w].copy_from_slice(s);
-    }
-}
 
 fn open_video_decoder(
     parameters: &codec::Parameters,
@@ -1628,6 +1743,105 @@ mod tests {
         }
         assert_eq!(frames, 30, "Expected 30 frames.");
         sessions.close(handle);
+    }
+
+    /// Pins the per-stage report: it is built from a long argument list where every stage carries
+    /// the same unit, so a reordering would read as plausible numbers against the wrong labels.
+    #[test]
+    fn stats_report_attributes_each_stage() {
+        let mut stats = ReadStats {
+            window: Some(
+                std::time::Instant::now()
+                    - std::time::Duration::from_secs(STATS_WINDOW_SECS + 1),
+            ),
+            ..Default::default()
+        };
+        stats.record_read(10_000_000, 1024 * 1024); // Went to the wire, 1 MiB
+        stats.record_read(100_000, 0); // Served from the AVIO buffer
+        stats.send_nanos = 1_000_000;
+        stats.decode_nanos = 2_000_000;
+        stats.transfer_nanos = 3_000_000;
+        stats.scale_nanos = 4_000_000;
+        let report = stats.record_frame(5_000_000).expect("the window has elapsed");
+
+        for expected in [
+            "network wait 10.00 ms",
+            "demux CPU 0.10 ms",
+            "send 1.00 ms",
+            "decoder 2.00 ms",
+            "hw transfer 3.00 ms",
+            "swscale 4.00 ms",
+            "convert total 5.00 ms",
+            "2 reads, 1 of them on the wire",
+        ] {
+            assert!(report.contains(expected), "{expected:?} missing from: {report}");
+        }
+    }
+
+    /// Fits a clip into targets that need horizontal and then vertical bars. swscale writes
+    /// straight into the destination planes, so the padding and the centering offsets are its
+    /// own address arithmetic — an off-by-one there shows up as a shifted or torn picture.
+    /// Requires the FFmpeg CLI to generate the input (skipped when unavailable).
+    #[test]
+    fn padded_targets_keep_bars_and_center_the_picture() {
+        let ffmpeg_bin = std::env::var("DD_TEST_FFMPEG").unwrap_or_else(|_| "ffmpeg".into());
+        let dir = std::env::temp_dir().join("dd-lav-padding-test");
+        std::fs::create_dir_all(&dir).unwrap();
+        let clip = dir.join("clip.mp4");
+        let status = std::process::Command::new(&ffmpeg_bin)
+            .args([
+                "-y",
+                "-f",
+                "lavfi",
+                "-i",
+                "testsrc2=size=320x180:rate=30:duration=1",
+                "-pix_fmt",
+                "yuv420p",
+                clip.to_str().unwrap(),
+            ])
+            .status();
+        let Ok(status) = status else { return };
+        if !status.success() {
+            return;
+        }
+
+        for (tw, th, x0, y0, fw, fh) in [(640usize, 480usize, 0usize, 60usize, 640usize, 360usize),
+                                         (1280, 360, 320, 0, 640, 360)] {
+            let sessions = LavSessions::new();
+            let handle = sessions.open(clip.to_str().unwrap(), tw, th, 0, 0);
+            assert_ne!(handle, 0, "Open failed for {tw} x {th}.");
+
+            let mut dst = vec![0u8; tw * th * 3 / 2];
+            assert_eq!(
+                sessions.read_frame(handle, &mut dst),
+                READ_OK,
+                "Read failed for {tw} x {th}.",
+            );
+            let luma = &dst[..tw * th];
+            for row in 0..th {
+                let line = &luma[row * tw..(row + 1) * tw];
+                let in_picture = row >= y0 && row < y0 + fh;
+                if !in_picture {
+                    assert!(
+                        line.iter().all(|&b| b == BLACK_Y),
+                        "{tw} x {th}: row {row} is a bar and must be black.",
+                    );
+                    continue;
+                }
+                assert!(
+                    line[..x0].iter().all(|&b| b == BLACK_Y)
+                        && line[x0 + fw..].iter().all(|&b| b == BLACK_Y),
+                    "{tw} x {th}: row {row} has a non-black side bar.",
+                );
+            }
+            assert!(
+                luma[(y0 + fh / 2) * tw + x0..(y0 + fh / 2) * tw + x0 + fw]
+                    .iter()
+                    .any(|&b| b != BLACK_Y),
+                "{tw} x {th}: the middle of the picture decoded as flat black.",
+            );
+            sessions.close(handle);
+        }
     }
 
     /// Captures packets while decoding a local clip, then snapshots and re-parses the cache blob.
