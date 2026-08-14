@@ -18,6 +18,7 @@
 //! handles, blocking reads unblocked by `dd_lav_kill`.
 
 pub mod cache;
+pub mod chunked;
 pub mod session;
 pub mod surface;
 

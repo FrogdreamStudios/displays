@@ -86,7 +86,7 @@ unsafe extern "C" fn interrupt_cb(opaque: *mut c_void) -> i32 {
     if flag.load(Ordering::Relaxed) { 1 } else { 0 }
 }
 
-fn init_ffmpeg() -> Result<()> {
+pub(crate) fn init_ffmpeg() -> Result<()> {
     ffmpeg::init().context("initialize libav")?;
     FFMPEG_LOG_INIT.call_once(|| {
         let level = match log::max_level() {
@@ -96,6 +96,14 @@ fn init_ffmpeg() -> Result<()> {
         ffmpeg::util::log::set_level(level);
     });
     Ok(())
+}
+
+/// False when `DD_LAV_CHUNKED=0` turns bounded requests off.
+fn chunked_enabled() -> bool {
+    !matches!(
+        std::env::var("DD_LAV_CHUNKED").as_deref(),
+        Ok("0") | Ok("false") | Ok("off")
+    )
 }
 
 /// Query parameters that identify a googlevideo format class — which decides whether the source
@@ -279,6 +287,11 @@ struct ReadState {
     /// Rolling cost of the three stages of a read, logged periodically.
     stats: ReadStats,
     source: PacketSource,
+    /// Bounded-request reader backing `source`, when the source is one that needs it. Held only
+    /// to own it: libavformat reads through it by pointer. Declared last on purpose — it must be
+    /// dropped after the demuxer that reads through it.
+    #[allow(dead_code, reason = "owned for its lifetime, read through the AVIO pointer")]
+    chunked: Option<crate::chunked::ChunkedIo>,
 }
 
 /// Per-stage cost of one delivered frame, averaged over [STATS_WINDOW_SECS]. A pipe that cannot
@@ -702,22 +715,29 @@ impl LavSession {
     fn open(url: &str, w: usize, h: usize, start_micros: i64, hw_accel: u32) -> Result<LavSession> {
         init_ffmpeg()?;
 
+        // Kept as a list because every bounded request the chunked reader makes repeats them; the
+        // format dictionary below passes the same set down to the protocol on the direct path.
+        let net_opts: Vec<(&str, String)> = vec![
+            ("user_agent", USER_AGENT.to_string()),
+            ("headers", format!("Referer: {}\r\n", referer_for(url))),
+            ("reconnect", "1".into()),
+            ("reconnect_streamed", "1".into()),
+            ("reconnect_delay_max", "10".into()),
+            ("reconnect_on_network_error", "1".into()),
+            ("reconnect_on_http_error", "5xx".into()),
+            ("rw_timeout", "15000000".into()),
+            ("recv_buffer_size", "4194304".into()),
+        ];
+
         let mut opts = Dictionary::new();
-        opts.set("user_agent", USER_AGENT);
-        opts.set("headers", &format!("Referer: {}\r\n", referer_for(url)));
+        for (key, value) in &net_opts {
+            opts.set(key, value);
+        }
 
         #[cfg(not(test))]
         opts.set("protocol_whitelist", "https,tls,tcp,crypto,data,http");
         #[cfg(test)]
         opts.set("protocol_whitelist", "https,tls,tcp,crypto,data,http,file");
-
-        opts.set("reconnect", "1");
-        opts.set("reconnect_streamed", "1");
-        opts.set("reconnect_delay_max", "10");
-        opts.set("reconnect_on_network_error", "1");
-        opts.set("reconnect_on_http_error", "5xx");
-        opts.set("rw_timeout", "15000000");
-        opts.set("recv_buffer_size", "4194304");
 
         // Single-video HTTP sources don't need the default ~5 MB / 5 s stream probe; a tightened
         // probe window (mirroring the external ffmpeg path's -probesize 1M -analyzeduration
@@ -725,8 +745,27 @@ impl LavSession {
         opts.set("probesize", "1048576");
         opts.set("analyzeduration", "1000000");
 
-        let mut ictx =
-            ffmpeg::format::input_with_dictionary(&url, opts).context("open input stream")?;
+        // A seek on a paced source has to fetch everything from the landing keyframe to the target
+        // before it can show a frame, and a single long request hands that over at playback speed.
+        // Bounded requests lift that; a source that doesn't pace, or a failure setting it up, just
+        // opens directly.
+        let interrupted = Arc::new(AtomicBool::new(false));
+        let chunked = if chunked_enabled() {
+            crate::chunked::open_input(url, &net_opts, opts.clone(), &interrupted)
+                .unwrap_or_else(|e| {
+                    warn!("Bounded-request open failed ({e:#}); opening the source directly.");
+                    None
+                })
+        } else {
+            None
+        };
+        let (mut ictx, chunked) = match chunked {
+            Some((ictx, io)) => (ictx, Some(io)),
+            None => (
+                ffmpeg::format::input_with_dictionary(&url, opts).context("open input stream")?,
+                None,
+            ),
+        };
 
         // Route blocked network I / O through an interrupt callback so a kill() / teardown aborts the
         // current read promptly instead of waiting out the 15 s rw_timeout. Deliberately armed
@@ -734,7 +773,6 @@ impl LavSession {
         // the demuxer between reads instead of tearing down a request mid-response — which is what
         // makes reconnect re-splice the byte stream at a stale offset (corrupt packets, partial
         // atoms) every time a seek kills the reader.
-        let interrupted = Arc::new(AtomicBool::new(false));
         unsafe {
             let p = ictx.as_mut_ptr();
             (*p).interrupt_callback.callback = Some(interrupt_cb);
@@ -792,6 +830,7 @@ impl LavSession {
                     stream_index,
                     stream_start_time,
                 },
+                chunked,
             }),
             ring: Mutex::new(None),
             interrupted,
@@ -843,6 +882,7 @@ impl LavSession {
                 preroll_fast: false,
                 pending_replay: VecDeque::new(),
                 stats: ReadStats::default(),
+                chunked: None,
                 source: PacketSource::Replay {
                     packets,
                     next_packet: 0,
