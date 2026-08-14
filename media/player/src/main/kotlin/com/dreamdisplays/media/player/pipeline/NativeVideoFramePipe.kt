@@ -120,8 +120,7 @@ internal class NativeVideoFramePipe(
     @Volatile
     var firstRawPtsNanos: Long = Long.MIN_VALUE; private set
 
-    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
-    private val lavSeekMonitor = Object()
+    private val lavSeekMonitor = Any()
 
     @Volatile
     private var pendingLavSeek: LavSeekCommand? = null
@@ -337,7 +336,6 @@ internal class NativeVideoFramePipe(
             }
             pendingLavSeek = cmd
             NativeMedia.lavKill(lh)
-            lavSeekMonitor.notifyAll()
         }
         activePrebuffer?.requestFlush()
         return true
@@ -398,7 +396,6 @@ internal class NativeVideoFramePipe(
             val ok = NativeMedia.lavSeek(lavHandle, seek.offsetNanos / 1_000L)
             synchronized(lavSeekMonitor) {
                 if (ok) seek.applied = true else seek.failed = true
-                lavSeekMonitor.notifyAll()
             }
             if (!ok) {
                 logger.warn(
@@ -623,7 +620,6 @@ internal class NativeVideoFramePipe(
         synchronized(lavSeekMonitor) {
             val cmd = pendingLavSeek ?: return null
             pendingLavSeek = null
-            lavSeekMonitor.notifyAll()
             return cmd
         }
     }
@@ -683,7 +679,6 @@ internal class NativeVideoFramePipe(
         synchronized(lavSeekMonitor) {
             pendingLavSeek?.failed = true
             pendingLavSeek = null
-            lavSeekMonitor.notifyAll()
         }
         val h = handle
         handle = 0L
