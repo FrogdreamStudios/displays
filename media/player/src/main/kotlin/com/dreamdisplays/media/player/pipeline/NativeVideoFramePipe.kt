@@ -156,7 +156,7 @@ internal class NativeVideoFramePipe(
         args: List<String>, w: Int, h: Int, nv12: Boolean, seekOffsetNanos: Long, sourceFps: Double,
         stopFlag: AtomicBoolean, terminated: AtomicBoolean, getAudioClock: () -> Long, onFirstFrame: () -> Unit,
         getBrightness: () -> Double, onEos: (stderr: String, normalEos: Boolean) -> Unit,
-        parkFlag: AtomicBoolean? = null, presentPreview: Boolean = true,
+        parkFlag: AtomicBoolean? = null, presentPreview: Boolean = true, tolerateLateness: Boolean = true,
     ): Thread? {
         release()
         clear()
@@ -175,6 +175,7 @@ internal class NativeVideoFramePipe(
         val frameNs = (1_000_000_000.0 / MediaProcess.outputFps(sourceFps)).toLong()
         val prebuffer = FramePrebuffer.createIfEnabled(
             surface, frameNs, getAudioClock, onFirstFrame, terminated, stopFlag, debugLabel, presentPreview,
+            tolerateLateness,
         ).also { activePrebuffer = it }
         return daemon(
             {
@@ -218,6 +219,7 @@ internal class NativeVideoFramePipe(
         onEos: (stderr: String, normalEos: Boolean) -> Unit,
         parkFlag: AtomicBoolean? = null,
         presentPreview: Boolean = true,
+        tolerateLateness: Boolean = true,
     ): Thread? {
         if (!planarOutput) return null
         release()
@@ -238,6 +240,7 @@ internal class NativeVideoFramePipe(
         val frameNs = (1_000_000_000.0 / MediaProcess.outputFps(sourceFps)).toLong()
         val prebuffer = FramePrebuffer.createIfEnabled(
             surface, frameNs, getAudioClock, onFirstFrame, terminated, stopFlag, debugLabel, presentPreview,
+            tolerateLateness,
         ).also { activePrebuffer = it }
         return daemon(
             {
@@ -543,10 +546,14 @@ internal class NativeVideoFramePipe(
                 continue
             }
 
-            if (passFirstFrameAfterSeek) {
+            if (passFirstFrameAfterSeek && (prebuffer == null || !MediaPlayer.captureSamples)) {
                 // As soon as the first acceptable post-seek frame exists, start the playback clock and
                 // release the audio start gate before pacing. Otherwise, video waits for an audio clock
                 // that itself is waiting for this callback, producing the visible ~3 s seek delay.
+                // With a prebuffer that arming belongs to it instead — it fires the callback as its own
+                // first frame goes out to pace, so the clock starts when playout does and the cushion it
+                // filled is not spent as lateness before the first frame is even shown. Its prefill
+                // deadline keeps the seek bounded, so the delay this guards against cannot come back.
                 armFirstFrameClock()
             }
             passFirstFrameAfterSeek = false

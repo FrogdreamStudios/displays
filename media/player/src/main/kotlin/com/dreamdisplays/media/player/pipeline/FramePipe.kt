@@ -123,14 +123,19 @@ internal object FramePacing {
     private val logger = LoggerFactory.getLogger("DreamDisplays/FramePacing")
 
     /**
-     * Paces the reader thread against the audio clock: parks/spins until [videoPts] is due, then re-samples the clock to
+     * Paces the reader thread against the audio clock: parks / spins until [videoPts] is due, then re-samples the clock to
      * decide whether to present or drop the frame.
+     *
+     * [dropWhenBehind] is consulted only for a frame that ended up behind the clock: dropping one pays off when a
+     * fresher frame is already decoded, and is pure loss when it is the newest picture there is (the decoder is behind,
+     * and dropping freezes the screen without helping it catch up).
      */
     fun pace(
         videoPts: Long,
         audioClock: () -> Long,
         abort: () -> Boolean = { false },
-        dropStaleTimeline: Boolean = true
+        dropStaleTimeline: Boolean = true,
+        dropWhenBehind: () -> Boolean = { true },
     ): Boolean {
         val started = System.nanoTime()
         while (true) {
@@ -193,6 +198,6 @@ internal object FramePacing {
         }
         val latestClock = audioClock()
         val latestDiff = videoPts - if (latestClock >= 0) latestClock else videoPts
-        return latestDiff < -DROP_THRESHOLD_NS
+        return latestDiff < -DROP_THRESHOLD_NS && dropWhenBehind()
     }
 }

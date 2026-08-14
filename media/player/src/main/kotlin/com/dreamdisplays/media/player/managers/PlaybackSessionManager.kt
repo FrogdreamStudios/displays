@@ -118,7 +118,7 @@ internal class PlaybackSessionManager(
             ffmpeg: String, streamSet: ActiveStreams, w: Int, h: Int, offsetNanos: Long,
             hwAccel: HwAccelBackend, onFirstFrame: () -> Unit, onEos: (String, Boolean) -> Unit,
             getAudioClock: () -> Long = ::pacingClockNanos, parkFlag: AtomicBoolean? = null,
-            presentPreview: Boolean = true,
+            presentPreview: Boolean = true, tolerateLateness: Boolean = true,
         ) {
             // SSRF guard for the in-process libav path, which bypasses MediaProcess.baseCommand
             val safeUrl = MediaHostGuard.resolveSafeUrl(streamSet.currentVideo.url)
@@ -134,7 +134,7 @@ internal class PlaybackSessionManager(
                     sourceFps = fps, hwAccel = hwAccel, stopFlag = stop, terminated = terminated,
                     getAudioClock = getAudioClock, onFirstFrame = onFirstFrame,
                     getBrightness = getBrightness, onEos = onEos, parkFlag = parkFlag,
-                    presentPreview = presentPreview,
+                    presentPreview = presentPreview, tolerateLateness = tolerateLateness,
                 )
             } else null
             if (lavThread != null) {
@@ -152,7 +152,7 @@ internal class PlaybackSessionManager(
                     args = args, w = w, h = h, nv12 = nv12, seekOffsetNanos = offsetNanos, sourceFps = fps,
                     stopFlag = stop, terminated = terminated, getAudioClock = getAudioClock,
                     onFirstFrame = onFirstFrame, getBrightness = getBrightness, onEos = onEos,
-                    parkFlag = parkFlag, presentPreview = presentPreview,
+                    parkFlag = parkFlag, presentPreview = presentPreview, tolerateLateness = tolerateLateness,
                 ) ?: throw IOException("Native FFmpeg session failed to start")
                 process = null; thread = vt; return
             }
@@ -164,7 +164,7 @@ internal class PlaybackSessionManager(
                 proc = vp, w = w, h = h, seekOffsetNanos = offsetNanos, sourceFps = fps,
                 stopFlag = stop, terminated = terminated, getAudioClock = getAudioClock,
                 onFirstFrame = onFirstFrame, getBrightness = getBrightness, onEos = onEos,
-                parkFlag = parkFlag, presentPreview = presentPreview,
+                parkFlag = parkFlag, presentPreview = presentPreview, tolerateLateness = tolerateLateness,
             )
             process = vp; thread = vt
         }
@@ -1044,6 +1044,9 @@ internal class PlaybackSessionManager(
                 // session-open time, and presenting it would promote a rewound picture that then holds
                 // until decode catches the clock. Promote on the first *paced* frame instead.
                 presentPreview = false,
+                // Same reason a late frame must not go out here: promotion happens on the first frame
+                // this channel presents, so it has to be one that is actually on the clock.
+                tolerateLateness = false,
             )
             val shouldDiscard = synchronized(switchLock) {
                 !(!terminated.get() && active != null && incoming === channel && incomingGeneration == generation) && if (incoming === channel && incomingGeneration == generation) {

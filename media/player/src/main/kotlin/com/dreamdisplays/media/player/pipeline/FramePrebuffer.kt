@@ -22,10 +22,8 @@ internal class FramePrebuffer(
     private val terminated: AtomicBoolean,
     private val stopFlag: AtomicBoolean,
     private val debugLabel: String,
-    /** When false, the pre-prime preview frame is suppressed: nothing is presented until pacing lets a
-     *  frame through. Off for the quality-switch incoming channel, where presenting the (stale) first
-     *  decoded frame would promote a rewound picture that then holds until decode catches the clock. */
     private val presentPreview: Boolean,
+    private val tolerateLateness: Boolean,
 ) {
     private val logger = LoggerFactory.getLogger("DreamDisplays/FramePrebuffer")
 
@@ -55,6 +53,13 @@ internal class FramePrebuffer(
 
     @Volatile
     private var flushRequested = false
+
+    /**
+     * When the first frame of the current fill was queued, or 0 while none has been. Bounds how long the prefill may
+     * hold playout back when the source trickles in slower than real time (see [PRIME_DEADLINE_NANOS]).
+     */
+    @Volatile
+    private var firstSubmitNanos = 0L
 
     /**
      * Monotonic seek counter. Every [resetForSeek] bumps it; frames are tagged with the current value at submit time so
@@ -88,6 +93,7 @@ internal class FramePrebuffer(
         runCatching {
             while (alive() && !flushRequested) {
                 if (queue.offer(Timed(frame, pts, gen), POLL_MS, TimeUnit.MILLISECONDS)) {
+                    if (firstSubmitNanos == 0L) firstSubmitNanos = System.nanoTime()
                     if (!primed && queue.size >= prefillFrames) primed = true
                     logSlowSubmit(blockedSinceNs)
                     return surface.takeOrAllocate(nextSize)
@@ -136,6 +142,7 @@ internal class FramePrebuffer(
         inputClosed = false
         primed = false
         previewPresented = false
+        firstSubmitNanos = 0L
         firstFramePresented.set(false)
         this.onFirstFrame = onFirstFrame
         flushRequested = false
@@ -156,6 +163,15 @@ internal class FramePrebuffer(
     }
 
     private fun alive(): Boolean = !aborted && !terminated.get() && !stopFlag.get()
+
+    /** Fires [onFirstFrame] once per fill: the playback clock starts and the audio start gate opens here. */
+    private fun armPlayout() {
+        if (!firstFramePresented.compareAndSet(false, true)) return
+        onFirstFrame()
+        if (MediaPlayer.DEBUG) {
+            logger.debug("$debugLabel Playout starting (prebuffered, queued=${queue.size}/$prefillFrames).")
+        }
+    }
 
     private fun consume() {
         try {
@@ -180,6 +196,19 @@ internal class FramePrebuffer(
                             continue
                         }
                     }
+                    // A source that trickles in slower than real time would otherwise hold the start (and
+                    // the audio behind its gate) for as long as it takes to decode the whole cushion.
+                    val since = firstSubmitNanos
+                    if (since != 0L && System.nanoTime() - since >= PRIME_DEADLINE_NANOS) {
+                        primed = true
+                        if (MediaPlayer.DEBUG) {
+                            logger.debug(
+                                "$debugLabel Prefill deadline reached with ${queue.size}/$prefillFrames frames; " +
+                                        "starting playout on a short cushion."
+                            )
+                        }
+                        continue
+                    }
                     Thread.sleep(2); continue
                 }
                 val tf = queue.poll(POLL_MS, TimeUnit.MILLISECONDS)
@@ -191,6 +220,11 @@ internal class FramePrebuffer(
                     surface.recycleFrameBuffer(tf.buf)
                     continue
                 }
+                // Playout begins with this frame, so start the clock (and open the audio gate) *before* pacing
+                // it, not after presenting it: the cushion just filled is meant to be playout lead, and a clock
+                // armed at decode time instead burns all of it as lateness before anything is ever shown — the
+                // whole queue then arrives past the drop threshold and the pipe plays on with no cushion at all.
+                if (tolerateLateness) armPlayout()
                 // Bail out of the pacing wait as soon as a seek flush or teardown is requested;
                 // a pre-seek frame must be dropped, never presented late against the new clock.
                 // dropStaleTimeline=false: the generation check just above already recycled any
@@ -205,7 +239,9 @@ internal class FramePrebuffer(
                     tf.pts,
                     getAudioClock,
                     { flushRequested || !alive() },
-                    dropStaleTimeline = false
+                    dropStaleTimeline = false,
+                    // Only worth skipping a late frame while a fresher one is already decoded behind it
+                    dropWhenBehind = { !tolerateLateness || queue.isNotEmpty() },
                 )
                 if (dropped || flushRequested) {
                     surface.recycleFrameBuffer(tf.buf)
@@ -216,11 +252,7 @@ internal class FramePrebuffer(
                 recordFrame(lateNs, presentedIt = true)
                 onPresent?.invoke(tf.buf)
                 surface.present(tf.buf)
-                if (firstFramePresented.compareAndSet(false, true)) {
-                    onFirstFrame()
-                    if (MediaPlayer.DEBUG)
-                        logger.debug("$debugLabel First frame presented (prebuffered, prefill=$prefillFrames).")
-                }
+                armPlayout()
             }
         } catch (_: InterruptedException) {
             Thread.currentThread().interrupt()
@@ -233,31 +265,40 @@ internal class FramePrebuffer(
      * these track how often that fails.
      */
     private var statPresented = 0L
+    private var statPresentedLate = 0L
     private var statDroppedLate = 0L
     private var statWorstLateNs = 0L
     private var statWindowStartNs = System.nanoTime()
 
-    /** Accounts one paced frame and periodically reports if too many are being dropped. */
+    /** Accounts one paced frame and periodically reports if too many are dropped or run behind the clock. */
     private fun recordFrame(lateNs: Long, presentedIt: Boolean) {
-        if (presentedIt) statPresented++ else statDroppedLate++
+        if (presentedIt) {
+            statPresented++
+            if (lateNs >= BEHIND_WARN_NANOS) statPresentedLate++
+        } else {
+            statDroppedLate++
+        }
         if (lateNs > statWorstLateNs) statWorstLateNs = lateNs
         val now = System.nanoTime()
         if (now - statWindowStartNs < HEALTH_WINDOW_NS) return
         val total = statPresented + statDroppedLate
-        if (total > 0 && statDroppedLate * 100L >= total * DROP_WARN_PERCENT) {
+        val offCadence = statDroppedLate + statPresentedLate
+        if (total > 0 && offCadence * 100L >= total * DROP_WARN_PERCENT) {
             logger.warn(
-                "$debugLabel A/V: dropped $statDroppedLate of $total frames in the last " +
-                        "${(now - statWindowStartNs) / 1_000_000_000L} s to stay with the audio clock " +
+                "$debugLabel A / V: $statDroppedLate of $total frames dropped and $statPresentedLate shown behind " +
+                        "the audio clock in the last ${(now - statWindowStartNs) / 1_000_000_000L} s " +
                         "(worst lateness ${statWorstLateNs / 1_000_000} ms); decode or upload is not " +
                         "keeping the source's cadence."
             )
         } else if (MediaPlayer.DEBUG && total > 0) {
             logger.debug(
-                "$debugLabel A/V health: presented=$statPresented droppedLate=$statDroppedLate " +
-                        "worstLate=${statWorstLateNs / 1_000_000} ms queue=${queue.size}/$capacityFrames."
+                "$debugLabel A / V health: presented=$statPresented (late=$statPresentedLate) " +
+                        "droppedLate=$statDroppedLate worstLate=${statWorstLateNs / 1_000_000} ms " +
+                        "queue=${queue.size}/$capacityFrames."
             )
         }
         statPresented = 0
+        statPresentedLate = 0
         statDroppedLate = 0
         statWorstLateNs = 0
         statWindowStartNs = now
@@ -277,17 +318,32 @@ internal class FramePrebuffer(
         /** Reporting window for the A / V health counters. */
         private const val HEALTH_WINDOW_NS = 10_000_000_000L
 
-        /** Share of frames dropped inside one window that is worth a warning. */
+        /** Share of frames off the source's cadence inside one window that is worth a warning. */
         private const val DROP_WARN_PERCENT = 20L
+
+        /** Lateness at which a presented frame counts as behind the clock rather than on it. */
+        private const val BEHIND_WARN_NANOS = 80_000_000L
 
         /** Default prebuffer cushion. Smooths cold start / seek / quality-switch; kept under the
          *  TimelineFollower's 1s catch-up tolerance so the added startup latency never reads as drift. */
         private const val DEFAULT_PREBUFFER_MS = 400L
 
+        /** Floor for the prefill deadline, so a slow source still starts within a bounded time. */
+        private const val DEFAULT_PRIME_DEADLINE_MS = 800L
+
         /** Prebuffer depth in ms. On by default; set `-Ddreamdisplays.playback.prebufferMs=0` to disable. */
         val prebufferMs: Long =
             System.getProperty("dreamdisplays.playback.prebufferMs")?.toLongOrNull()?.coerceIn(0, 5_000)
                 ?: DEFAULT_PREBUFFER_MS
+
+        /**
+         * Longest the prefill may hold playout back, `-Ddreamdisplays.playback.prebufferPrimeMs` to override. Only
+         * reached when the source delivers slower than real time (cold network start), where waiting out the whole
+         * cushion would delay the start more than it smooths it.
+         */
+        private val PRIME_DEADLINE_NANOS: Long =
+            (System.getProperty("dreamdisplays.playback.prebufferPrimeMs")?.toLongOrNull()?.coerceIn(0, 5_000)
+                ?: maxOf(DEFAULT_PRIME_DEADLINE_MS, prebufferMs)) * 1_000_000L
 
         /** True when the prebuffer is enabled and the pipes should route frames through it. */
         val enabled: Boolean get() = prebufferMs > 0
@@ -300,7 +356,7 @@ internal class FramePrebuffer(
             surface: FrameSurface, frameNs: Long,
             getAudioClock: () -> Long, onFirstFrame: () -> Unit,
             terminated: AtomicBoolean, stopFlag: AtomicBoolean, debugLabel: String,
-            presentPreview: Boolean = true,
+            presentPreview: Boolean = true, tolerateLateness: Boolean = true,
         ): FramePrebuffer? {
             if (!enabled || frameNs <= 0) return null
             val prefill = ((prebufferMs * 1_000_000L) / frameNs).toInt().coerceIn(2, 240)
@@ -320,6 +376,7 @@ internal class FramePrebuffer(
                 stopFlag,
                 debugLabel,
                 presentPreview,
+                tolerateLateness,
             )
                 .also { it.start() }
         }
