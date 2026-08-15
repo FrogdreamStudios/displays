@@ -1,6 +1,6 @@
 package com.dreamdisplays.platform.client.displays
 
-import com.dreamdisplays.api.playback.WatchPartyAction
+import com.dreamdisplays.api.playback.model.WatchPartyAction
 import com.dreamdisplays.core.protocol.packets.WatchPartyControl
 import com.dreamdisplays.core.protocol.packets.WatchPartyStart
 import com.dreamdisplays.platform.client.Initializer

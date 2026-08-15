@@ -8,11 +8,11 @@ loader-specific APIs.
 - Service implementations of the public `api` contracts: `DefaultDisplayService`, `DefaultPlaybackService`,
   `DefaultWatchPartyService`
 - Internal display ports: `DisplaySystem` / `DefaultDisplaySystem`, `DisplayLookup`, `DisplayMutationPort`,
-  `DisplayCommandExecutor`
+  `DisplayExecutor`
 - Playback / watch-party ports and logic: `PlaybackPort`, `WatchPartyPort`, `PlaybackPermissions`, `Timeline`
 - Protocol v2 wire layer: `DreamPacket`, `Packets`, `PacketRegistry`, `ProtocolVersion`, `TimelineWire`,
   `UuidSerializer`
-- Storage models: `DisplayStorage`, `FullDisplayData`
+- Storage models: `DisplayStorageService`, `FullDisplayData`
 - Security policies / guards: `MediaUrlPolicy`, `MediaHostGuard`
 
 ## Boundaries

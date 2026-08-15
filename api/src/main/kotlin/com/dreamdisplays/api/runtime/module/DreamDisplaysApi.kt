@@ -1,7 +1,7 @@
 package com.dreamdisplays.api.runtime.module
 
 import com.dreamdisplays.api.DreamDisplaysUnstableApi
-import com.dreamdisplays.api.runtime.registry.ServiceRegistry
+import com.dreamdisplays.api.runtime.registry.service.ServiceRegistry
 
 /**
  * Entry point for services exposed to integrations and modules.

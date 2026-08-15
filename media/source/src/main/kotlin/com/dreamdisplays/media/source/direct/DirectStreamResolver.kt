@@ -1,10 +1,15 @@
 package com.dreamdisplays.media.source.direct
 
-import com.dreamdisplays.api.media.common.DreamMediaException
-import com.dreamdisplays.api.media.source.*
-import com.dreamdisplays.api.media.stream.MediaStream
-import com.dreamdisplays.api.media.stream.MediaStreamType
-import com.dreamdisplays.api.security.MediaHosts
+import com.dreamdisplays.api.media.model.DreamMediaException
+import com.dreamdisplays.api.media.source.model.CustomMediaKind
+import com.dreamdisplays.api.media.source.model.MediaMetadata
+import com.dreamdisplays.api.media.source.model.MediaSource
+import com.dreamdisplays.api.media.source.model.ResolvedMedia
+import com.dreamdisplays.api.media.source.service.MediaResolverService
+import com.dreamdisplays.api.media.source.url.CustomMediaUrls
+import com.dreamdisplays.api.media.stream.model.MediaStream
+import com.dreamdisplays.api.media.stream.model.MediaStreamType
+import com.dreamdisplays.api.security.policy.MediaHosts
 import com.dreamdisplays.media.runtime.security.MediaHostGuard
 import com.dreamdisplays.util.net.DreamHttpClient
 import com.github.benmanes.caffeine.cache.Cache
@@ -16,7 +21,7 @@ import kotlin.time.Duration.Companion.nanoseconds
 /**
  * Plays a URL that already is the media: a video file, an HLS playlist, or a DASH manifest.
  */
-object DirectStreamResolver : MediaResolver {
+object DirectStreamResolver : MediaResolverService {
     /** Logger. */
     private val logger = LoggerFactory.getLogger("DreamDisplays/DirectStreamResolver")
 

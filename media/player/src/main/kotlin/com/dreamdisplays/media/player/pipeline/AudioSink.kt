@@ -1,6 +1,6 @@
 package com.dreamdisplays.media.player.pipeline
 
-import com.dreamdisplays.api.media.audio.AudioDspStage
+import com.dreamdisplays.api.media.audio.service.AudioDspStage
 import com.dreamdisplays.media.player.MediaPlayer
 import com.dreamdisplays.media.player.pipeline.AudioSink.Companion.PCM_RING_MAX_BYTES
 import com.dreamdisplays.media.player.util.MediaBufferEffects

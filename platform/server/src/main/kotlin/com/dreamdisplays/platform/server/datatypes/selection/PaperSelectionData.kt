@@ -1,6 +1,6 @@
 package com.dreamdisplays.platform.server.datatypes.selection
 
-import com.dreamdisplays.api.display.model.ContentRotation
+import com.dreamdisplays.api.display.model.property.DisplayRotation
 import com.dreamdisplays.platform.server.datatypes.display.PaperDisplayData
 import com.dreamdisplays.platform.server.utils.RegionUtil
 import io.github.arnodoelinger.platformweaver.PaperOnly
@@ -76,7 +76,7 @@ class PaperSelectionData(player: Player) : BaseSelectionData() {
         val isVertical = f == BlockFace.UP || f == BlockFace.DOWN
         val screenWidth = region.screenWidth(isVertical)
         val screenHeight = region.screenHeight(isVertical)
-        val rotation = if (isVertical) horizontal.toCardinal().toContentRotation() else ContentRotation.NONE
+        val rotation = if (isVertical) horizontal.toCardinal().toContentRotation() else DisplayRotation.NONE
 
         return PaperDisplayData(randomUUID(), playerId, dPos1, dPos2, screenWidth, screenHeight, f, rotation)
     }

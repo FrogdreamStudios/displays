@@ -1,6 +1,6 @@
 package com.dreamdisplays.platform.client.input
 
-import com.dreamdisplays.api.display.model.DisplayId
+import com.dreamdisplays.api.display.model.property.DisplayId
 
 /**
  * Represents the result of a raycast against the displays.

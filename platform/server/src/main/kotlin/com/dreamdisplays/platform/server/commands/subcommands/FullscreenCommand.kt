@@ -1,8 +1,8 @@
 package com.dreamdisplays.platform.server.commands.subcommands
 
 import com.dreamdisplays.platform.server.ModLoaderOnly
-import com.dreamdisplays.api.media.common.VideoQuality
-import com.dreamdisplays.api.playback.FullscreenMode
+import com.dreamdisplays.api.media.model.VideoQuality
+import com.dreamdisplays.api.playback.model.FullscreenMode
 import com.dreamdisplays.platform.server.PaperServer
 import com.dreamdisplays.platform.server.baseMaterial
 import com.dreamdisplays.platform.server.VanillaServerState

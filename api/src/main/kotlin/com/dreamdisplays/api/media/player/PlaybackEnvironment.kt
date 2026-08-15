@@ -1,8 +1,8 @@
 package com.dreamdisplays.api.media.player
 
 import com.dreamdisplays.api.DreamDisplaysUnstableApi
-import com.dreamdisplays.api.media.source.MediaResolverRegistry
-import com.dreamdisplays.api.media.stream.StreamSelector
+import com.dreamdisplays.api.media.source.service.MediaResolverRegistry
+import com.dreamdisplays.api.media.stream.service.StreamSelector
 
 /**
  * Cross-cutting platform services a playback engine depends on, bundled so a player can be created
@@ -17,7 +17,7 @@ interface PlaybackEnvironment {
     val config: PlaybackConfig
 
     /** Runs render-thread (GL) work. */
-    val renderExecutor: RenderThreadExecutor
+    val renderExecutor: RenderExecutor
 
     /** Creates per-channel GPU frame uploaders. */
     val uploaderFactory: FrameUploaderFactory

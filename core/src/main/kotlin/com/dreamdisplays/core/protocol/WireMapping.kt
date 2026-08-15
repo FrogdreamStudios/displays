@@ -1,8 +1,8 @@
 package com.dreamdisplays.core.protocol
 
 import com.dreamdisplays.api.capability.ServerFeature
-import com.dreamdisplays.api.playback.PlaybackMode
-import com.dreamdisplays.api.playback.Timeline
+import com.dreamdisplays.api.playback.model.PlaybackMode
+import com.dreamdisplays.api.playback.model.Timeline
 import com.dreamdisplays.core.protocol.packets.DisplaySync
 import com.dreamdisplays.core.protocol.packets.ServerHello
 import kotlinx.serialization.Serializable

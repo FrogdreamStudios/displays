@@ -10,12 +10,12 @@ package com.dreamdisplays.platform.client.render
 import net.minecraft.client.renderer.rendertype.RenderType
 //?} else
 /*import net.minecraft.client.renderer.RenderType*/
-import com.dreamdisplays.api.display.model.ContentRotation
-import com.dreamdisplays.api.display.model.DisplayFacing
-import com.dreamdisplays.api.display.model.DisplayId
-import com.dreamdisplays.api.render.backend.RenderContext
-import com.dreamdisplays.api.render.texture.TextureHandle
-import com.dreamdisplays.api.runtime.registry.getOrNull
+import com.dreamdisplays.api.display.model.property.DisplayRotation
+import com.dreamdisplays.api.display.model.property.DisplayFacing
+import com.dreamdisplays.api.display.model.property.DisplayId
+import com.dreamdisplays.api.render.backend.service.RenderContext
+import com.dreamdisplays.api.render.texture.model.TextureHandle
+import com.dreamdisplays.api.runtime.registry.service.getOrNull
 import com.dreamdisplays.platform.client.core.DreamServices
 import com.dreamdisplays.platform.client.displays.DisplayRegistry
 import com.dreamdisplays.platform.client.displays.DisplayScreen
@@ -220,7 +220,7 @@ object ScreenRenderer : ClientRenderService {
         r: Int,
         g: Int,
         b: Int,
-        rotation: ContentRotation,
+        rotation: DisplayRotation,
     ) {
         val rot = rotation.quarterTurns
         val uv = Array(4) { baseUv[(it + rot) % 4] }

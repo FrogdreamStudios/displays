@@ -1,6 +1,6 @@
 package com.dreamdisplays.media.source.platform
 
-import com.dreamdisplays.api.media.source.MediaMetadata
+import com.dreamdisplays.api.media.source.model.MediaMetadata
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 

@@ -4,7 +4,7 @@ package com.dreamdisplays.platform.client.render
 import net.minecraft.resources.Identifier
 //?} else
 /*import net.minecraft.resources.ResourceLocation as Identifier*/
-import com.dreamdisplays.api.media.search.YouTubeUrls
+import com.dreamdisplays.api.media.source.url.YouTubeUrls
 import com.dreamdisplays.platform.client.Initializer
 import com.dreamdisplays.util.AsyncMemo
 import com.dreamdisplays.util.DreamCoroutines

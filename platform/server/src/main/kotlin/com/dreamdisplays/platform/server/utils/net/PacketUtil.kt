@@ -1,7 +1,7 @@
 package com.dreamdisplays.platform.server.utils.net
 
-import com.dreamdisplays.api.display.model.ContentRotation
-import com.dreamdisplays.api.playback.PlaybackMode
+import com.dreamdisplays.api.display.model.property.DisplayRotation
+import com.dreamdisplays.api.playback.model.PlaybackMode
 import com.dreamdisplays.core.protocol.packets.ClearCache
 import com.dreamdisplays.core.protocol.packets.DisplayDelete
 import com.dreamdisplays.core.protocol.packets.DisplayInfo
@@ -65,7 +65,7 @@ object PacketUtil {
         isLocked: Boolean = true,
         mode: PlaybackMode = if (isSync) PlaybackMode.SYNCED else PlaybackMode.LOCAL,
         qualityCap: Int = 0,
-        rotation: ContentRotation = ContentRotation.NONE,
+        rotation: DisplayRotation = DisplayRotation.NONE,
         virtual: Boolean = false,
         forced: Boolean = false,
         scheduledStartEpochMillis: Long = 0,

@@ -1,7 +1,7 @@
 package com.dreamdisplays.media.source.youtube.model
 
-import com.dreamdisplays.api.media.stream.MediaStream
-import com.dreamdisplays.api.media.stream.MediaStreamType
+import com.dreamdisplays.api.media.stream.model.MediaStream
+import com.dreamdisplays.api.media.stream.model.MediaStreamType
 import kotlinx.serialization.Serializable
 
 /**
@@ -39,7 +39,7 @@ class YtStream(
     /** Returns true if the stream has audio, even if it's not a video stream. */
     fun hasAudio(): Boolean = hasAudio
 
-    /** Maps this internal stream descriptor to the media-api contract type used by [MediaResolver]. */
+    /** Maps this internal stream descriptor to the media-api contract type used by [MediaResolverService]. */
     fun toMediaStream(): MediaStream = MediaStream(
         url = url,
         type = when {

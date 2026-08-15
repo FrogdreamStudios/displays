@@ -1,11 +1,11 @@
 package com.dreamdisplays.platform.client.ui.widgets
 
-import com.dreamdisplays.api.media.common.MediaServices
-import com.dreamdisplays.api.media.search.MediaSearchResult
-import com.dreamdisplays.api.media.search.YouTubeUrls
-import com.dreamdisplays.api.media.source.CustomMediaUrls
-import com.dreamdisplays.api.media.source.MediaPlatform
-import com.dreamdisplays.api.media.source.MediaSource
+import com.dreamdisplays.api.media.service.keys.MediaServices
+import com.dreamdisplays.api.media.search.model.MediaSearchResult
+import com.dreamdisplays.api.media.source.url.YouTubeUrls
+import com.dreamdisplays.api.media.source.url.CustomMediaUrls
+import com.dreamdisplays.api.media.source.model.MediaPlatform
+import com.dreamdisplays.api.media.source.model.MediaSource
 import com.dreamdisplays.media.source.bilibili.BilibiliApi
 import com.dreamdisplays.media.source.bilibili.BilibiliMetadataCache
 import com.dreamdisplays.media.source.bilibili.BilibiliSearchItem

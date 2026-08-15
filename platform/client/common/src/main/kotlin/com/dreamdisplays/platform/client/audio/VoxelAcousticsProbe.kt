@@ -1,9 +1,9 @@
 package com.dreamdisplays.platform.client.audio
 
-import com.dreamdisplays.api.media.audio.AcousticEnvironment
-import com.dreamdisplays.api.media.audio.AcousticMaterial
-import com.dreamdisplays.api.media.audio.ListenerPose
-import com.dreamdisplays.api.media.audio.SourcePlane
+import com.dreamdisplays.api.media.audio.model.AcousticEnvironment
+import com.dreamdisplays.api.media.audio.model.AcousticMaterial
+import com.dreamdisplays.api.media.audio.model.ListenerPose
+import com.dreamdisplays.api.media.audio.model.SourcePlane
 import com.dreamdisplays.platform.client.audio.VoxelAcousticsProbe.MAX_OCCLUSION
 import com.dreamdisplays.platform.client.audio.VoxelAcousticsProbe.REVERB_RAYS
 import com.dreamdisplays.platform.client.audio.VoxelAcousticsProbe.TRANSPARENT_TAGS

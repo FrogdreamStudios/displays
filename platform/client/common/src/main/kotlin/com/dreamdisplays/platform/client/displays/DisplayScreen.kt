@@ -9,15 +9,26 @@ import net.minecraft.resources.Identifier
 //?} else
 /*import net.minecraft.resources.ResourceLocation as Identifier*/
 import com.dreamdisplays.api.capability.ServerFeature
-import com.dreamdisplays.api.display.model.ContentRotation
-import com.dreamdisplays.api.display.model.DisplayFacing
-import com.dreamdisplays.api.media.common.DreamMediaException
-import com.dreamdisplays.api.media.common.VideoQuality
-import com.dreamdisplays.api.media.audio.*
-import com.dreamdisplays.api.media.stream.MediaStream
-import com.dreamdisplays.api.playback.*
-import com.dreamdisplays.api.display.model.ClientDisplaySettings
-import com.dreamdisplays.api.watchparty.WatchPartySession
+import com.dreamdisplays.api.display.model.property.DisplayRotation
+import com.dreamdisplays.api.display.model.property.DisplayFacing
+import com.dreamdisplays.api.media.model.DreamMediaException
+import com.dreamdisplays.api.media.model.VideoQuality
+import com.dreamdisplays.api.media.audio.model.AcousticEnvironment
+import com.dreamdisplays.api.media.audio.model.AcousticQuality
+import com.dreamdisplays.api.media.audio.model.SourceAcousticState
+import com.dreamdisplays.api.media.audio.model.SourcePlane
+import com.dreamdisplays.api.media.audio.service.keys.AudioAcousticsServices
+import com.dreamdisplays.api.media.stream.model.MediaStream
+import com.dreamdisplays.api.playback.model.FullscreenMode
+import com.dreamdisplays.api.playback.model.PlaybackAction
+import com.dreamdisplays.api.playback.model.PlaybackContext
+import com.dreamdisplays.api.playback.model.PlaybackMode
+import com.dreamdisplays.api.playback.model.Timeline
+import com.dreamdisplays.api.playback.model.WatchPartyAction
+import com.dreamdisplays.api.playback.model.WatchPartySessionState
+import com.dreamdisplays.api.playback.policy.PlaybackPermissions
+import com.dreamdisplays.api.display.model.settings.ClientDisplaySettings
+import com.dreamdisplays.api.watchparty.model.WatchPartySession
 import com.dreamdisplays.core.protocol.*
 import com.dreamdisplays.core.protocol.packets.*
 import com.dreamdisplays.media.player.MediaPlayer
@@ -81,7 +92,7 @@ class DisplayScreen(
     var qualityCap: Int = 0,
 
     /** Content rotation; only used for floor/ceiling (`UP`/`DOWN`) screens. */
-    var rotation: ContentRotation = ContentRotation.NONE,
+    var rotation: DisplayRotation = DisplayRotation.NONE,
 ) {
     /** Per-display client settings (volume, quality, mute, ...) loaded from disk. */
     private val savedSettings = ClientSettingsStore.getSettings(uuid, defaultVolume())
@@ -98,7 +109,7 @@ class DisplayScreen(
     /** Epoch millis of a pending scheduled play / pause, or `0` when none is set (see [com.dreamdisplays.core.protocol.packets.DisplayInfo]). */
     var scheduledStartEpochMillis: Long = 0
 
-    /** Wire ordinal of the scheduled [com.dreamdisplays.api.playback.PlaybackAction] (`PLAY`/`PAUSE`), or `-1` when none is set. */
+    /** Wire ordinal of the scheduled [com.dreamdisplays.api.playback.model.PlaybackAction] (`PLAY`/`PAUSE`), or `-1` when none is set. */
     var scheduledAction: Int = -1
 
     /** Monotonic mark of the last [retryVideo], or `null` if never retried this session. */
@@ -552,7 +563,7 @@ class DisplayScreen(
         z = packet.z
         blockPos = null
         facing = FacingUtil.fromPacket(packet.facing.toByte()).toDisplayFacing()
-        rotation = ContentRotation.fromQuarterTurns(packet.rotation)
+        rotation = DisplayRotation.fromQuarterTurns(packet.rotation)
         width = packet.width
         height = packet.height
 

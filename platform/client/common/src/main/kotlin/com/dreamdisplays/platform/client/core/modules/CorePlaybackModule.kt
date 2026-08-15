@@ -1,14 +1,14 @@
 package com.dreamdisplays.platform.client.core.modules
 
-import com.dreamdisplays.api.display.service.DisplayServices
-import com.dreamdisplays.api.playback.PlaybackPort
-import com.dreamdisplays.api.playback.PlaybackServices
+import com.dreamdisplays.api.display.service.keys.DisplayServices
+import com.dreamdisplays.api.playback.service.PlaybackPort
+import com.dreamdisplays.api.playback.service.keys.PlaybackServices
 import com.dreamdisplays.api.runtime.module.DreamDisplaysModule
 import com.dreamdisplays.api.runtime.module.ModuleContext
-import com.dreamdisplays.api.runtime.registry.get
-import com.dreamdisplays.api.runtime.registry.register
-import com.dreamdisplays.api.watchparty.WatchPartyPort
-import com.dreamdisplays.api.watchparty.WatchPartyServices
+import com.dreamdisplays.api.runtime.registry.service.get
+import com.dreamdisplays.api.runtime.registry.service.register
+import com.dreamdisplays.api.watchparty.service.WatchPartyPort
+import com.dreamdisplays.api.watchparty.service.keys.WatchPartyServices
 import com.dreamdisplays.core.services.DefaultPlaybackService
 import com.dreamdisplays.core.services.DefaultWatchPartyService
 import com.dreamdisplays.media.runtime.session.DefaultMediaSessionManager

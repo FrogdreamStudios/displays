@@ -1,10 +1,10 @@
 package com.dreamdisplays.platform.client.core.modules
 
-import com.dreamdisplays.api.media.common.MediaServices
-import com.dreamdisplays.api.media.stream.StreamSelector
+import com.dreamdisplays.api.media.service.keys.MediaServices
+import com.dreamdisplays.api.media.stream.service.StreamSelector
 import com.dreamdisplays.api.runtime.module.DreamDisplaysModule
 import com.dreamdisplays.api.runtime.module.ModuleContext
-import com.dreamdisplays.api.runtime.registry.register
+import com.dreamdisplays.api.runtime.registry.service.register
 import com.dreamdisplays.media.source.DefaultMediaResolverProvider
 import com.dreamdisplays.media.source.DefaultMediaResolverRegistry
 import com.dreamdisplays.media.source.DefaultStreamSelector

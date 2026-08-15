@@ -1,7 +1,7 @@
 package com.dreamdisplays.platform.client.input
 
-import com.dreamdisplays.api.display.model.DisplayFacing
-import com.dreamdisplays.api.display.model.DisplayId
+import com.dreamdisplays.api.display.model.property.DisplayFacing
+import com.dreamdisplays.api.display.model.property.DisplayId
 import com.dreamdisplays.platform.client.displays.DisplayRegistry
 import com.dreamdisplays.platform.client.managers.ClientTickManager
 import com.dreamdisplays.platform.client.utils.RayCastingUtil

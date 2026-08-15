@@ -1,6 +1,6 @@
 package com.dreamdisplays.media.player.process
 
-import com.dreamdisplays.api.security.MediaHosts
+import com.dreamdisplays.api.security.policy.MediaHosts
 import com.dreamdisplays.media.player.pipeline.VideoFramePipe
 import com.dreamdisplays.media.runtime.security.MediaHostGuard
 import kotlinx.io.IOException

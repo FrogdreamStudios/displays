@@ -1,10 +1,10 @@
 package com.dreamdisplays.media.source.youtube
 
-import com.dreamdisplays.api.media.search.YouTubeUrls
-import com.dreamdisplays.api.media.source.MediaMetadata
-import com.dreamdisplays.api.media.source.MediaResolver
-import com.dreamdisplays.api.media.source.MediaSource
-import com.dreamdisplays.api.media.source.ResolvedMedia
+import com.dreamdisplays.api.media.source.url.YouTubeUrls
+import com.dreamdisplays.api.media.source.model.MediaMetadata
+import com.dreamdisplays.api.media.source.service.MediaResolverService
+import com.dreamdisplays.api.media.source.model.MediaSource
+import com.dreamdisplays.api.media.source.model.ResolvedMedia
 import com.dreamdisplays.media.source.youtube.cache.FormatDiskCache
 import com.dreamdisplays.media.source.youtube.model.YtStream
 import com.dreamdisplays.media.source.youtube.model.YtStreams
@@ -24,10 +24,10 @@ import kotlin.time.Duration.Companion.nanoseconds
 /**
  * In-process YouTube stream resolver backed by `NewPipeExtractor`; fast path before `yt-dlp`
  * fallback. Extraction lives in [NewPipeStreamExtraction], the overlap heuristic in
- * [NewPipeLadderTracker]; this class owns the resolve cache and the [MediaResolver] contract that
+ * [NewPipeLadderTracker]; this class owns the resolve cache and the [MediaResolverService] contract that
  * ties them together.
  */
-object NewPipeResolver : MediaResolver {
+object NewPipeResolver : MediaResolverService {
     /** Logger. */
     private val logger = LoggerFactory.getLogger("DreamDisplays/NewPipe")
 

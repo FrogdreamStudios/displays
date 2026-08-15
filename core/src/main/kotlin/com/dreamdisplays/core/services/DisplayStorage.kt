@@ -1,8 +1,8 @@
 package com.dreamdisplays.core.services
 
-import com.dreamdisplays.api.storage.FullDisplayData
+import com.dreamdisplays.api.storage.model.FullDisplayData
 import java.util.*
-import com.dreamdisplays.api.storage.DisplayStorage as DisplayStorageContract
+import com.dreamdisplays.api.storage.service.DisplayStorageService as DisplayStorageContract
 
 /**
  * In-memory registry for server-authoritative display snapshots.

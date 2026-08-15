@@ -6,7 +6,7 @@ model.
 ## Contents
 
 - `session/` — `MediaSessionManager`, `DefaultMediaSessionManager`, `DisplayMediaSession`: session runtime, translating
-  `api` display / playback services into `MediaSession` views
+  `api` display / playback services into `MediaSessionService` views
 - `system/` — `Processes`: subprocess plumbing shared by the external binaries the mod drives (`yt-dlp`, `ffmpeg`).
   OS/architecture detection itself lives in `util`'s `OsInfo`, since it has no session-runtime dependencies and is
   needed by modules that don't otherwise depend on `media:runtime`

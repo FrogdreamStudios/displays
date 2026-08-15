@@ -1,6 +1,6 @@
 package com.dreamdisplays.platform.server.utils.net
 
-import com.dreamdisplays.api.security.CustomMediaPolicy
+import com.dreamdisplays.api.security.policy.CustomMediaPolicy
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 

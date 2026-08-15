@@ -1,7 +1,7 @@
 package com.dreamdisplays.platform.client.ui.menu
 
-import com.dreamdisplays.api.media.common.MediaServices
-import com.dreamdisplays.api.media.search.MediaChapter
+import com.dreamdisplays.api.media.service.keys.MediaServices
+import com.dreamdisplays.api.media.search.model.MediaChapter
 import com.dreamdisplays.media.source.youtube.cache.YouTubeChapterCache
 import com.dreamdisplays.platform.client.core.DreamServices
 import com.dreamdisplays.platform.client.displays.DisplayScreen

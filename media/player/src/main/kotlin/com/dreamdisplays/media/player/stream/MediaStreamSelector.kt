@@ -1,8 +1,8 @@
 package com.dreamdisplays.media.player.stream
 
-import com.dreamdisplays.api.media.stream.MediaStream
-import com.dreamdisplays.api.media.stream.MediaStreamType
-import com.dreamdisplays.api.media.stream.SupportedCodec
+import com.dreamdisplays.api.media.stream.model.MediaStream
+import com.dreamdisplays.api.media.stream.model.MediaStreamType
+import com.dreamdisplays.api.media.stream.model.SupportedCodec
 import com.dreamdisplays.util.OsInfo
 import kotlin.math.abs
 

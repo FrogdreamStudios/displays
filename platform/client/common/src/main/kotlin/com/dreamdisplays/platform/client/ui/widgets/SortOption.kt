@@ -1,6 +1,6 @@
 package com.dreamdisplays.platform.client.ui.widgets
 
-import com.dreamdisplays.api.media.search.SortOrder
+import com.dreamdisplays.api.media.search.model.SortOrder
 import net.minecraft.network.chat.Component
 
 /** Sort / filter choices offered by the suggestions panel's sort dropdown. [RELEVANCE] / [POPULARITY] / [NEWEST] / [STREAMS] re-query; the rest filter locally. */

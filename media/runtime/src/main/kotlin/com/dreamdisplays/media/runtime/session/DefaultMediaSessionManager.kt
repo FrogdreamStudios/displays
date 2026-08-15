@@ -1,9 +1,9 @@
 package com.dreamdisplays.media.runtime.session
 
-import com.dreamdisplays.api.display.model.DisplayId
+import com.dreamdisplays.api.display.model.property.DisplayId
 import com.dreamdisplays.api.display.service.DisplayService
-import com.dreamdisplays.api.media.session.MediaSession
-import com.dreamdisplays.api.playback.PlaybackService
+import com.dreamdisplays.api.media.session.service.MediaSessionService
+import com.dreamdisplays.api.playback.service.PlaybackService
 
 /**
  * Default [MediaSessionManager] backed by the core [DisplayService] (display snapshots) and
@@ -14,11 +14,11 @@ class DefaultMediaSessionManager(
     private val displays: DisplayService,
 ) : MediaSessionManager {
     /** Opens a [DisplayMediaSession] for [displayId], or null if the display is not known. */
-    override fun open(displayId: DisplayId): MediaSession? =
+    override fun open(displayId: DisplayId): MediaSessionService? =
         displays.getDisplay(displayId)?.let { DisplayMediaSession(displayId, playback, displays) }
 
     /** Sessions for every known display that has media assigned. */
-    override fun activeSessions(): List<MediaSession> =
+    override fun activeSessions(): List<MediaSessionService> =
         displays.listDisplays()
             .filter { it.hasUrl }
             .map { DisplayMediaSession(it.id, playback, displays) }

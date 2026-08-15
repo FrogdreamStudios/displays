@@ -1,11 +1,11 @@
 package com.dreamdisplays.platform.client.displays
 
 import com.dreamdisplays.api.display.model.Display
-import com.dreamdisplays.api.display.model.DisplayId
-import com.dreamdisplays.api.display.model.DisplaySettings
-import com.dreamdisplays.api.display.service.DisplayCommandExecutor
-import com.dreamdisplays.api.media.common.VideoQuality
-import com.dreamdisplays.api.playback.PlaybackMode
+import com.dreamdisplays.api.display.model.property.DisplayId
+import com.dreamdisplays.api.display.model.settings.DisplaySettings
+import com.dreamdisplays.api.display.service.DisplayExecutor
+import com.dreamdisplays.api.media.model.VideoQuality
+import com.dreamdisplays.api.playback.model.PlaybackMode
 import com.dreamdisplays.core.protocol.packets.DisplayDelete
 import com.dreamdisplays.core.protocol.packets.ReportDisplay
 import com.dreamdisplays.core.protocol.packets.SetLocked
@@ -14,11 +14,11 @@ import com.dreamdisplays.platform.client.Initializer
 import kotlin.time.Duration
 
 /**
- * Client-side [DisplayCommandExecutor]: resolves each command to the live [DisplayScreen] in the
+ * Client-side [DisplayExecutor]: resolves each command to the live [DisplayScreen] in the
  * [DisplayRegistry] and applies it, returning the updated [Display] snapshot (or `null` when the
  * display is not present locally).
  */
-class MinecraftDisplayCommands : DisplayCommandExecutor {
+class MinecraftDisplayCommands : DisplayExecutor {
     /** Applies a full [settings] snapshot to the display, optionally swapping in a URL override. */
     override fun updateSettings(id: DisplayId, settings: DisplaySettings): Display? {
         val screen = DisplayRegistry.screens[id.uuid] ?: return null

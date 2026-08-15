@@ -1,6 +1,6 @@
 package com.dreamdisplays.platform.client.render
 
-import com.dreamdisplays.api.render.backend.RenderContext
+import com.dreamdisplays.api.render.backend.service.RenderContext
 import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.Camera
 

@@ -1,9 +1,9 @@
 package com.dreamdisplays.platform.client.player.platform
 
-import com.dreamdisplays.api.media.common.DreamMediaException
-import com.dreamdisplays.api.media.common.VideoQuality
+import com.dreamdisplays.api.media.model.DreamMediaException
+import com.dreamdisplays.api.media.model.VideoQuality
 import com.dreamdisplays.api.media.player.PlaybackHost
-import com.dreamdisplays.api.playback.PlaybackMode
+import com.dreamdisplays.api.playback.model.PlaybackMode
 import com.dreamdisplays.platform.client.displays.DisplayScreen
 import java.util.*
 

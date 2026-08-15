@@ -1,6 +1,6 @@
 package com.dreamdisplays.platform.client.capabilities
 
-import com.dreamdisplays.api.media.stream.SupportedCodec
+import com.dreamdisplays.api.media.stream.model.SupportedCodec
 import com.dreamdisplays.core.protocol.packets.ClientHello
 
 /**

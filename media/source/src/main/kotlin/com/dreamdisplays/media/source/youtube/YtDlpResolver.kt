@@ -1,14 +1,18 @@
 package com.dreamdisplays.media.source.youtube
 
-import com.dreamdisplays.api.media.source.*
+import com.dreamdisplays.api.media.source.model.MediaMetadata
+import com.dreamdisplays.api.media.source.model.MediaSource
+import com.dreamdisplays.api.media.source.model.ResolvedMedia
+import com.dreamdisplays.api.media.source.service.MediaResolverService
+import com.dreamdisplays.api.media.source.service.MediaResolverRegistry
 import kotlin.time.Duration.Companion.nanoseconds
 
 /**
- * Subprocess-backed [MediaResolver] wrapping the [YtDlp] orchestrator. This is the slow, robust
+ * Subprocess-backed [MediaResolverService] wrapping the [YtDlp] orchestrator. This is the slow, robust
  * fallback behind [NewPipeResolver]: a lower [priority] means [MediaResolverRegistry]
  * only reaches it after the in-process fast path has declined or failed.
  */
-object YtDlpResolver : MediaResolver {
+object YtDlpResolver : MediaResolverService {
     /** Below [NewPipeResolver] (10) so the in-process path is always tried first. */
     override val priority: Int = 0
 

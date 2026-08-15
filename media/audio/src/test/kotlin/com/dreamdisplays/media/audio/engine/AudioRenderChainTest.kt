@@ -1,8 +1,8 @@
 package com.dreamdisplays.media.audio.engine
 
-import com.dreamdisplays.api.media.audio.AcousticQuality
-import com.dreamdisplays.api.media.audio.SourceAcousticState
-import com.dreamdisplays.api.media.audio.SourcePlane
+import com.dreamdisplays.api.media.audio.model.AcousticQuality
+import com.dreamdisplays.api.media.audio.model.SourceAcousticState
+import com.dreamdisplays.api.media.audio.model.SourcePlane
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue

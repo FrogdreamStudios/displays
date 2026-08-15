@@ -1,9 +1,9 @@
 package com.dreamdisplays.media.source.bilibili
 
-import com.dreamdisplays.api.media.common.DreamMediaException
-import com.dreamdisplays.api.media.source.MediaResolver
-import com.dreamdisplays.api.media.source.MediaSource
-import com.dreamdisplays.api.media.source.ResolvedMedia
+import com.dreamdisplays.api.media.model.DreamMediaException
+import com.dreamdisplays.api.media.source.service.MediaResolverService
+import com.dreamdisplays.api.media.source.model.MediaSource
+import com.dreamdisplays.api.media.source.model.ResolvedMedia
 import com.dreamdisplays.media.source.platform.LiveAwareResolvedMediaCache
 import org.slf4j.LoggerFactory
 
@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory
  * In-process Bilibili resolver: one site-API call (see [BilibiliApi]) instead of a `yt-dlp` subprocess, mirroring the
  * other first-party resolvers.
  */
-object BilibiliResolver : MediaResolver {
+object BilibiliResolver : MediaResolverService {
     /** Logger. */
     private val logger = LoggerFactory.getLogger("DreamDisplays/BilibiliResolver")
 

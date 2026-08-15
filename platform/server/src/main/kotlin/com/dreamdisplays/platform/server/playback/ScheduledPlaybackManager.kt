@@ -1,7 +1,7 @@
 package com.dreamdisplays.platform.server.playback
 
-import com.dreamdisplays.api.playback.PlaybackAction
-import com.dreamdisplays.api.playback.PlaybackMode
+import com.dreamdisplays.api.playback.model.PlaybackAction
+import com.dreamdisplays.api.playback.model.PlaybackMode
 import com.dreamdisplays.core.protocol.packets.RemotePlaybackToggle
 import com.dreamdisplays.platform.server.datatypes.display.DisplayData
 import com.dreamdisplays.platform.server.managers.DisplayManager

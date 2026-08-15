@@ -2,7 +2,7 @@ package com.dreamdisplays.core.protocol.proxy
 
 /**
  * Direction a `dreamdisplays:proxy` packet travels (registry metadata, never serialized).
- * Separate from [com.dreamdisplays.api.protocol.PacketDirection] which handles `dreamdisplays:v2`.
+ * Separate from [com.dreamdisplays.api.protocol.model.PacketDirection] which handles `dreamdisplays:v2`.
  */
 enum class ProxyPacketDirection {
     /** Sent by a backend server, handled on the proxy. */

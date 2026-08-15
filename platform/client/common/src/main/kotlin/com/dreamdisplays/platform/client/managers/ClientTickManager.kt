@@ -1,8 +1,8 @@
 package com.dreamdisplays.platform.client.managers
 
-import com.dreamdisplays.api.display.model.DisplayId
-import com.dreamdisplays.api.media.audio.AudioAcousticsServices
-import com.dreamdisplays.api.runtime.registry.getOrNull
+import com.dreamdisplays.api.display.model.property.DisplayId
+import com.dreamdisplays.api.media.audio.service.keys.AudioAcousticsServices
+import com.dreamdisplays.api.runtime.registry.service.getOrNull
 import com.dreamdisplays.platform.client.audio.ListenerPoseTracker
 import com.dreamdisplays.platform.client.capabilities.CapabilityNegotiationService
 import com.dreamdisplays.platform.client.core.ClientApplication

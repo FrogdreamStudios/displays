@@ -1,8 +1,8 @@
 package com.dreamdisplays.media.source.kick
 
-import com.dreamdisplays.api.media.source.MediaSource
-import com.dreamdisplays.api.media.stream.MediaStream
-import com.dreamdisplays.api.media.stream.MediaStreamType
+import com.dreamdisplays.api.media.source.model.MediaSource
+import com.dreamdisplays.api.media.stream.model.MediaStream
+import com.dreamdisplays.api.media.stream.model.MediaStreamType
 import com.dreamdisplays.media.source.direct.DirectHlsPlaylist
 import com.dreamdisplays.media.source.platform.PlatformVideoMetadata
 import com.dreamdisplays.util.*

@@ -1,10 +1,10 @@
 package com.dreamdisplays.platform.server.playback
 
-import com.dreamdisplays.api.playback.PlaybackPermissions
-import com.dreamdisplays.api.playback.Timeline
-import com.dreamdisplays.api.playback.WatchPartyAction
-import com.dreamdisplays.api.playback.WatchPartySessionState
-import com.dreamdisplays.api.playback.WatchPartySessionState.*
+import com.dreamdisplays.api.playback.policy.PlaybackPermissions
+import com.dreamdisplays.api.playback.model.Timeline
+import com.dreamdisplays.api.playback.model.WatchPartyAction
+import com.dreamdisplays.api.playback.model.WatchPartySessionState
+import com.dreamdisplays.api.playback.model.WatchPartySessionState.*
 import com.dreamdisplays.core.protocol.packets.DisplayDelete
 import com.dreamdisplays.core.protocol.packets.WatchPartyState
 import com.dreamdisplays.platform.server.datatypes.display.DisplayData

@@ -1,12 +1,12 @@
 package com.dreamdisplays.platform.client.displays
 
 import com.dreamdisplays.api.display.event.DisplayEvent
-import com.dreamdisplays.api.display.model.DisplayId
+import com.dreamdisplays.api.display.model.property.DisplayId
 import com.dreamdisplays.api.display.service.DisplaySystem
-import com.dreamdisplays.api.media.common.VideoQuality
-import com.dreamdisplays.api.media.audio.AudioAcousticsServices
-import com.dreamdisplays.api.runtime.registry.getOrNull
-import com.dreamdisplays.api.storage.FullDisplayData
+import com.dreamdisplays.api.media.model.VideoQuality
+import com.dreamdisplays.api.media.audio.service.keys.AudioAcousticsServices
+import com.dreamdisplays.api.runtime.registry.service.getOrNull
+import com.dreamdisplays.api.storage.model.FullDisplayData
 import com.dreamdisplays.core.services.DisplayStorage
 import com.dreamdisplays.platform.client.core.DreamServices
 import com.dreamdisplays.platform.client.storage.ClientSettingsStore

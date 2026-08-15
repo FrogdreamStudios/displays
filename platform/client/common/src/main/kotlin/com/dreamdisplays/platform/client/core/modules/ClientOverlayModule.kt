@@ -2,7 +2,7 @@ package com.dreamdisplays.platform.client.core.modules
 
 import com.dreamdisplays.api.runtime.module.DreamDisplaysModule
 import com.dreamdisplays.api.runtime.module.ModuleContext
-import com.dreamdisplays.api.runtime.registry.register
+import com.dreamdisplays.api.runtime.registry.service.register
 import com.dreamdisplays.platform.client.managers.ClientStateManager
 import com.dreamdisplays.platform.client.overlay.CrosshairPolicy
 import com.dreamdisplays.platform.client.overlay.OverlayManager

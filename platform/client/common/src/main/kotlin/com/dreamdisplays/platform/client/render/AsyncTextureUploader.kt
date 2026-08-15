@@ -4,9 +4,9 @@ package com.dreamdisplays.platform.client.render
 import com.mojang.blaze3d.opengl.GlStateManager
 //?} else
 /*import com.mojang.blaze3d.platform.GlStateManager*/
-import com.dreamdisplays.api.media.sink.DecodedVideoFrame
-import com.dreamdisplays.api.render.texture.TextureHandle
-import com.dreamdisplays.api.render.texture.TextureUploader
+import com.dreamdisplays.api.media.sink.model.DecodedVideoFrame
+import com.dreamdisplays.api.render.texture.model.TextureHandle
+import com.dreamdisplays.api.render.texture.service.TextureUploaderService
 import com.dreamdisplays.platform.client.render.AsyncTextureUploader.Companion.PBO_COUNT
 import org.lwjgl.opengl.*
 import org.lwjgl.system.MemoryUtil
@@ -31,7 +31,7 @@ import java.nio.ByteBuffer
  * On contexts without it (e.g. macOS GL 4.1) the classic map-with-`GL_MAP_UNSYNCHRONIZED_BIT` path is used,
  * which the fences also make safe.
  */
-class AsyncTextureUploader(private val stateCache: Boolean) : TextureUploader {
+class AsyncTextureUploader(private val stateCache: Boolean) : TextureUploaderService {
     /** One ring entry: a PBO with its allocated size, guarding fence and optional persistent mapping. */
     private class Slot {
         /** GL buffer id (0 until created). */

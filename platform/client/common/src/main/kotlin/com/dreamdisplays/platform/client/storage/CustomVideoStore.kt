@@ -1,8 +1,8 @@
 package com.dreamdisplays.platform.client.storage
 
-import com.dreamdisplays.api.media.search.MediaSearchResult
-import com.dreamdisplays.api.media.source.CustomMediaUrls
-import com.dreamdisplays.api.media.source.CustomVideoRecord
+import com.dreamdisplays.api.media.search.model.MediaSearchResult
+import com.dreamdisplays.api.media.source.url.CustomMediaUrls
+import com.dreamdisplays.api.media.source.model.CustomVideoRecord
 import com.dreamdisplays.util.json.JsonFileStore
 import kotlinx.serialization.builtins.ListSerializer
 import org.slf4j.LoggerFactory

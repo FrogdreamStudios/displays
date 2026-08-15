@@ -3,19 +3,19 @@ package com.dreamdisplays.platform.client.ui
 //? if >=1.21.11 {
 import net.minecraft.client.input.MouseButtonEvent
 //?}
-import com.dreamdisplays.api.display.model.DisplayId
-import com.dreamdisplays.api.display.service.DisplayServices
-import com.dreamdisplays.api.media.common.MediaServices
-import com.dreamdisplays.api.media.common.VideoQuality
-import com.dreamdisplays.api.media.audio.AcousticQuality
-import com.dreamdisplays.api.media.audio.AudioAcousticsServices
-import com.dreamdisplays.api.media.search.MediaSearchResult
-import com.dreamdisplays.api.playback.FullscreenMode
-import com.dreamdisplays.api.playback.PlaybackAction
-import com.dreamdisplays.api.playback.PlaybackMode
-import com.dreamdisplays.api.playback.PlaybackServices
-import com.dreamdisplays.api.runtime.registry.get
-import com.dreamdisplays.api.watchparty.WatchPartyServices
+import com.dreamdisplays.api.display.model.property.DisplayId
+import com.dreamdisplays.api.display.service.keys.DisplayServices
+import com.dreamdisplays.api.media.service.keys.MediaServices
+import com.dreamdisplays.api.media.model.VideoQuality
+import com.dreamdisplays.api.media.audio.model.AcousticQuality
+import com.dreamdisplays.api.media.audio.service.keys.AudioAcousticsServices
+import com.dreamdisplays.api.media.search.model.MediaSearchResult
+import com.dreamdisplays.api.playback.model.FullscreenMode
+import com.dreamdisplays.api.playback.model.PlaybackAction
+import com.dreamdisplays.api.playback.model.PlaybackMode
+import com.dreamdisplays.api.playback.service.keys.PlaybackServices
+import com.dreamdisplays.api.runtime.registry.service.get
+import com.dreamdisplays.api.watchparty.service.keys.WatchPartyServices
 import com.dreamdisplays.media.source.youtube.cache.VideoMetadataCache
 import com.dreamdisplays.media.source.youtube.cache.VideoTitleCache
 import com.dreamdisplays.platform.client.core.DreamServices

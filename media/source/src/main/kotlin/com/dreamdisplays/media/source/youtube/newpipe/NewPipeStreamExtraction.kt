@@ -26,7 +26,7 @@ class NewPipeResolved(
 
 /**
  * Drives `NewPipeExtractor`'s [StreamExtractor] directly and maps its output to [YtStream]s. Pure
- * extraction logic, with no caching or [com.dreamdisplays.api.media.source.MediaResolver] contract
+ * extraction logic, with no caching or [com.dreamdisplays.api.media.source.service.MediaResolverService] contract
  * of its own — those live in [com.dreamdisplays.media.source.youtube.NewPipeResolver].
  */
 object NewPipeStreamExtraction {

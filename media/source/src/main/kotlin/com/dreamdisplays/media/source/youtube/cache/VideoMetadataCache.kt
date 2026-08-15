@@ -1,6 +1,6 @@
 package com.dreamdisplays.media.source.youtube.cache
 
-import com.dreamdisplays.api.media.search.MediaSearchResult
+import com.dreamdisplays.api.media.search.model.MediaSearchResult
 import com.dreamdisplays.media.source.youtube.YouTubeInnerTube
 import com.dreamdisplays.util.DreamCoroutines
 import com.github.benmanes.caffeine.cache.Cache

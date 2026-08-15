@@ -1,7 +1,7 @@
 package com.dreamdisplays.core.protocol
 
-import com.dreamdisplays.api.playback.PlaybackMode
-import com.dreamdisplays.api.playback.Timeline
+import com.dreamdisplays.api.playback.model.PlaybackMode
+import com.dreamdisplays.api.playback.model.Timeline
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue

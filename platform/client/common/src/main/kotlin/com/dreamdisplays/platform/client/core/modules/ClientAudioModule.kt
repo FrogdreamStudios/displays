@@ -1,6 +1,6 @@
 package com.dreamdisplays.platform.client.core.modules
 
-import com.dreamdisplays.api.media.audio.AudioAcousticsServices
+import com.dreamdisplays.api.media.audio.service.keys.AudioAcousticsServices
 import com.dreamdisplays.api.runtime.module.DreamDisplaysModule
 import com.dreamdisplays.api.runtime.module.ModuleContext
 import com.dreamdisplays.media.audio.engine.AcousticsEngine

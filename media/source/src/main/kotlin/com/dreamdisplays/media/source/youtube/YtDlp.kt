@@ -1,9 +1,9 @@
 package com.dreamdisplays.media.source.youtube
 
-import com.dreamdisplays.api.media.search.MediaSearchPage
-import com.dreamdisplays.api.media.search.MediaSearchResult
-import com.dreamdisplays.api.media.search.SortOrder
-import com.dreamdisplays.api.security.MediaUrlPolicy
+import com.dreamdisplays.api.media.search.model.MediaSearchPage
+import com.dreamdisplays.api.media.search.model.MediaSearchResult
+import com.dreamdisplays.api.media.search.model.SortOrder
+import com.dreamdisplays.api.security.policy.MediaUrlPolicy
 import com.dreamdisplays.media.runtime.system.Processes
 import com.dreamdisplays.media.source.youtube.binary.YtDlpBinary
 import com.dreamdisplays.media.source.youtube.cache.YtFormatCache

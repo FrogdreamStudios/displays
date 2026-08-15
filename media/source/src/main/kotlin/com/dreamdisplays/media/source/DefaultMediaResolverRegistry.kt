@@ -1,10 +1,10 @@
 package com.dreamdisplays.media.source
 
-import com.dreamdisplays.api.media.common.DreamMediaException
-import com.dreamdisplays.api.media.source.MediaResolver
-import com.dreamdisplays.api.media.source.MediaResolverRegistry
-import com.dreamdisplays.api.media.source.MediaSource
-import com.dreamdisplays.api.media.source.ResolvedMedia
+import com.dreamdisplays.api.media.model.DreamMediaException
+import com.dreamdisplays.api.media.source.service.MediaResolverService
+import com.dreamdisplays.api.media.source.service.MediaResolverRegistry
+import com.dreamdisplays.api.media.source.model.MediaSource
+import com.dreamdisplays.api.media.source.model.ResolvedMedia
 import com.dreamdisplays.media.runtime.security.MediaHostGuard
 import com.dreamdisplays.util.DreamCoroutines
 import kotlinx.coroutines.launch
@@ -16,7 +16,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 /** Default [MediaResolverRegistry]: tries registered resolvers in priority order, returning the first success. */
 class DefaultMediaResolverRegistry : MediaResolverRegistry {
     /** Backing list of resolvers, sorted by priority on every access. */
-    private val backing = CopyOnWriteArrayList<MediaResolver>()
+    private val backing = CopyOnWriteArrayList<MediaResolverService>()
 
     /** Limits concurrent prefetch hints to avoid network/process flooding. */
     private val prefetchPermit = Semaphore(PREFETCH_CONCURRENCY)
@@ -29,16 +29,16 @@ class DefaultMediaResolverRegistry : MediaResolverRegistry {
     private val inFlight = ConcurrentHashMap.newKeySet<String>()
 
     /** Returns the registered resolvers in priority order (highest first). */
-    override val resolvers: List<MediaResolver>
+    override val resolvers: List<MediaResolverService>
         get() = backing.sortedByDescending { it.priority }
 
     /** Adds [resolver] to the chain (btw resolver instance is never registered twice). */
-    override fun register(resolver: MediaResolver) {
+    override fun register(resolver: MediaResolverService) {
         if (resolver !in backing) backing.add(resolver)
     }
 
     /** Removes [resolver] from the chain; no-op if it was never registered. */
-    override fun unregister(resolver: MediaResolver) {
+    override fun unregister(resolver: MediaResolverService) {
         backing.remove(resolver)
     }
 
