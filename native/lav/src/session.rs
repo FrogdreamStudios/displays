@@ -790,12 +790,10 @@ impl LavSession {
         opts.set("protocol_whitelist", "https,tls,tcp,crypto,data,http");
         #[cfg(test)]
         opts.set("protocol_whitelist", "https,tls,tcp,crypto,data,http,file");
-
-        // Single-video HTTP sources don't need the default ~5 MB / 5 s stream probe; a tightened
-        // probe window (mirroring the external ffmpeg path's -probesize 1M -analyzeduration
-        // 1000000) shaves most of the blocking open time.
-        opts.set("probesize", "1048576");
-        opts.set("analyzeduration", "1000000");
+        opts.set("flags", "low_delay");
+        opts.set("probesize", "524288");
+        opts.set("analyzeduration", "500000");
+        opts.set("fpsprobesize", "10");
         opts.set("max_streams", MAX_INPUT_STREAMS);
 
         // A seek on a paced source has to fetch everything from the landing keyframe to the target
