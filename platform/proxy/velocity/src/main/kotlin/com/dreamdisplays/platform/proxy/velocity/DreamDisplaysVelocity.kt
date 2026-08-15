@@ -59,7 +59,7 @@ private const val PRUNE_INTERVAL_MS = 5L * 60L * 1000L
 @Plugin(
     id = "dreamdisplays-proxy",
     name = "Dream Displays Proxy",
-    version = "1.9.0-dev",
+    version = PLUGIN_VERSION,
     authors = ["DreamDisplays"],
 )
 class DreamDisplaysVelocity @Inject constructor(

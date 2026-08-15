@@ -5,10 +5,6 @@ plugins {
     alias(libs.plugins.platformweaver)
 }
 
-sourceSets.main {
-    kotlin.srcDir(project(":platform:proxy").file("src/main/kotlin"))
-}
-
 platformweaver {
     target = "bungeecord"
     chameleonsDir = null
@@ -20,6 +16,7 @@ dependencies {
     compileOnly(libs.bungeecordApi)
     compileOnly(libs.slf4jApi)
 
+    implementation(project(":platform:proxy:common"))
     implementation(project(":core"))
     implementation(libs.kotlinStdlib)
     implementation(libs.kotlinxSerializationProtobuf)
