@@ -629,7 +629,7 @@ jobs:
         if: matrix.mc == needs.metadata.outputs.paper_build_version
         run: |
           ./gradlew \
-            :platform:proxy:shadowJar \
+            :platform:proxy:velocity:shadowJar \
             :platform:proxy:bungeecord:shadowJar \
             --no-daemon \
             --parallel

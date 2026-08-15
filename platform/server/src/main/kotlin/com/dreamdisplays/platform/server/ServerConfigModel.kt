@@ -60,8 +60,8 @@ data class SettingsSection(
     val defaultVolume get() = display.default_volume / 200f
 
     // Custom media (player-pasted links)
-    val customMediaPolicy: com.dreamdisplays.api.security.CustomMediaPolicy.Settings
-        get() = com.dreamdisplays.api.security.CustomMediaPolicy.Settings(
+    val customMediaPolicy: com.dreamdisplays.api.security.policy.CustomMediaPolicy.Settings
+        get() = com.dreamdisplays.api.security.policy.CustomMediaPolicy.Settings(
             enabled = customMedia.enabled,
             allowedHosts = customMedia.allowed_hosts,
             blockedHosts = customMedia.blocked_hosts,
@@ -70,9 +70,9 @@ data class SettingsSection(
     // Fullscreen broadcasts
     val fullscreenAllowForced get() = fullscreen.allow_forced
     val fullscreenQualityCap get() = fullscreen.quality_cap
-    val fullscreenDefaultMode: com.dreamdisplays.api.playback.FullscreenMode
-        get() = runCatching { com.dreamdisplays.api.playback.FullscreenMode.valueOf(fullscreen.default_mode.uppercase()) }
-            .getOrDefault(com.dreamdisplays.api.playback.FullscreenMode.STANDARD)
+    val fullscreenDefaultMode: com.dreamdisplays.api.playback.model.FullscreenMode
+        get() = runCatching { com.dreamdisplays.api.playback.model.FullscreenMode.valueOf(fullscreen.default_mode.uppercase()) }
+            .getOrDefault(com.dreamdisplays.api.playback.model.FullscreenMode.STANDARD)
 
     /** Reports section. */
     data class ReportsConfig(

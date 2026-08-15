@@ -1,8 +1,8 @@
 package com.dreamdisplays.media.audio.engine
 
-import com.dreamdisplays.api.media.audio.AcousticQuality
-import com.dreamdisplays.api.media.audio.AudioDspStage
-import com.dreamdisplays.api.media.audio.SourceAcousticState
+import com.dreamdisplays.api.media.audio.model.AcousticQuality
+import com.dreamdisplays.api.media.audio.service.AudioDspStage
+import com.dreamdisplays.api.media.audio.model.SourceAcousticState
 import com.dreamdisplays.media.audio.dsp.*
 import com.dreamdisplays.media.audio.math.Vec3
 import com.dreamdisplays.media.audio.spatial.EmitterLayout

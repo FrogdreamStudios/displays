@@ -1,12 +1,12 @@
 package com.dreamdisplays.platform.client.displays
 
 import com.dreamdisplays.api.display.event.DisplayEvent
-import com.dreamdisplays.api.display.model.DisplayId
+import com.dreamdisplays.api.display.model.property.DisplayId
 import com.dreamdisplays.api.display.service.DisplaySystem
-import com.dreamdisplays.api.media.common.VideoQuality
-import com.dreamdisplays.api.media.audio.AudioAcousticsServices
-import com.dreamdisplays.api.runtime.registry.getOrNull
-import com.dreamdisplays.api.storage.FullDisplayData
+import com.dreamdisplays.api.media.model.VideoQuality
+import com.dreamdisplays.api.media.audio.service.keys.AudioAcousticsServices
+import com.dreamdisplays.api.runtime.registry.service.getOrNull
+import com.dreamdisplays.api.storage.model.FullDisplayData
 import com.dreamdisplays.core.services.DisplayStorage
 import com.dreamdisplays.platform.client.core.DreamServices
 import com.dreamdisplays.platform.client.storage.ClientSettingsStore
@@ -31,18 +31,8 @@ object DisplayRegistry {
     /** Returns a snapshot of all currently registered screens. */
     fun getScreens(): Collection<DisplayScreen> = screens.values
 
-    /** Number of screens currently parked warm (dormant), used to bound the warm-park pool. */
-    fun dormantCount(): Int = screens.values.count { it.isDormant }
-
     /** Snapshot of screens currently parked fully warm, used by the adaptive warm-park budget. */
     fun dormantScreens(): List<DisplayScreen> = screens.values.filter { it.isDormant }
-
-    /** Subscribes [listener] to display lifecycle events; returns an [AutoCloseable] to unsubscribe. */
-    fun addListener(listener: (DisplayEvent) -> Unit): AutoCloseable {
-        displaySystem?.let { return it.onDisplayEvent(listener) }
-        eventListeners.add(listener)
-        return AutoCloseable { eventListeners.remove(listener) }
-    }
 
     /** Dispatches [event] to all registered listeners. */
     fun emit(event: DisplayEvent) {

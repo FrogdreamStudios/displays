@@ -1,9 +1,9 @@
 package com.dreamdisplays.platform.server.datatypes.display
 
-import com.dreamdisplays.api.display.model.ContentRotation
-import com.dreamdisplays.api.playback.PlaybackAction
-import com.dreamdisplays.api.playback.PlaybackMode
-import com.dreamdisplays.api.playback.PlaybackPermissions
+import com.dreamdisplays.api.display.model.property.DisplayRotation
+import com.dreamdisplays.api.playback.model.PlaybackAction
+import com.dreamdisplays.api.playback.model.PlaybackMode
+import com.dreamdisplays.api.playback.policy.PlaybackPermissions
 import java.util.*
 import kotlin.time.Instant
 
@@ -27,7 +27,7 @@ interface DisplayData {
     val height: Int
 
     /** Content rotation; only meaningful for floor / ceiling (`UP` / `DOWN`) facings. */
-    val rotation: ContentRotation
+    val rotation: DisplayRotation
 
     /** True for synthetic displays backing a URL-only fullscreen broadcast; the world position is a placeholder. */
     val virtual: Boolean

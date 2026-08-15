@@ -1,11 +1,11 @@
 package com.dreamdisplays.platform.server.commands.subcommands
 
 import com.dreamdisplays.platform.server.ModLoaderOnly
-import com.dreamdisplays.api.media.search.YouTubeUrls
-import com.dreamdisplays.api.media.source.CustomMediaUrls
-import com.dreamdisplays.api.playback.PlaybackPermissions
-import com.dreamdisplays.api.security.LanguageTag
-import com.dreamdisplays.api.security.MediaUrlPolicy
+import com.dreamdisplays.api.media.source.url.YouTubeUrls
+import com.dreamdisplays.api.media.source.url.CustomMediaUrls
+import com.dreamdisplays.api.playback.policy.PlaybackPermissions
+import com.dreamdisplays.api.security.model.LanguageTag
+import com.dreamdisplays.api.security.policy.MediaUrlPolicy
 import com.dreamdisplays.platform.server.PaperServer
 import com.dreamdisplays.platform.server.VanillaServerState
 import com.dreamdisplays.platform.server.datatypes.display.PaperDisplayData

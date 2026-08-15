@@ -1,6 +1,6 @@
 package com.dreamdisplays.platform.server.datatypes.selection
 
-import com.dreamdisplays.api.display.model.ContentRotation
+import com.dreamdisplays.api.display.model.property.DisplayRotation
 
 /**
  * Horizontal cardinal. [PaperSelectionData] maps `BlockFace` and [VanillaSelectionData] maps `Direction` onto this so
@@ -13,11 +13,11 @@ enum class Cardinal {
     SOUTH,
     WEST;
 
-    /** Maps this cardinal to the [ContentRotation] used to orient floor / ceiling content. */
-    fun toContentRotation(): ContentRotation = when (this) {
-        NORTH -> ContentRotation.NONE
-        EAST -> ContentRotation.RIGHT
-        SOUTH -> ContentRotation.HALF_TURN
-        WEST -> ContentRotation.LEFT
+    /** Maps this cardinal to the [DisplayRotation] used to orient floor / ceiling content. */
+    fun toContentRotation(): DisplayRotation = when (this) {
+        NORTH -> DisplayRotation.NONE
+        EAST -> DisplayRotation.RIGHT
+        SOUTH -> DisplayRotation.HALF_TURN
+        WEST -> DisplayRotation.LEFT
     }
 }

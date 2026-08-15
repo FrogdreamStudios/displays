@@ -1,14 +1,13 @@
 package com.dreamdisplays.platform.client.render
 
-import com.dreamdisplays.api.render.DisplayRenderer
-import com.dreamdisplays.api.render.backend.RenderContext
-import com.dreamdisplays.api.render.RenderStats
-import com.dreamdisplays.api.render.backend.RenderSurface
+import com.dreamdisplays.api.render.service.DisplayRenderer
+import com.dreamdisplays.api.render.backend.service.RenderContext
+import com.dreamdisplays.api.render.model.RenderStats
+import com.dreamdisplays.api.render.backend.service.RenderSurface
 import java.util.concurrent.CopyOnWriteArrayList
 
 /** Default [DisplayRenderer]: orchestrator for externally registered, self-rendering [RenderSurface]s. */
 class DefaultDisplayRenderer : DisplayRenderer {
-
     /** Registered self-rendering surfaces, drawn each pass. */
     private val surfaces = CopyOnWriteArrayList<RenderSurface>()
 

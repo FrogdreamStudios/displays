@@ -1,6 +1,6 @@
 package com.dreamdisplays.platform.client.ui.menu
 
-import com.dreamdisplays.api.media.stream.MediaStream
+import com.dreamdisplays.api.media.stream.model.MediaStream
 import com.dreamdisplays.platform.client.ui.GuiGraphicsCompat
 import com.dreamdisplays.platform.client.ui.drawText
 import com.dreamdisplays.platform.client.ui.kit.*

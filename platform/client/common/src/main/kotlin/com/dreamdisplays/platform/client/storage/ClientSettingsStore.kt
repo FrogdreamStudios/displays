@@ -1,8 +1,8 @@
 package com.dreamdisplays.platform.client.storage
 
-import com.dreamdisplays.api.media.common.VideoQuality
-import com.dreamdisplays.api.display.model.ClientDisplaySettings
-import com.dreamdisplays.api.display.model.ClientSettingsStorage
+import com.dreamdisplays.api.media.model.VideoQuality
+import com.dreamdisplays.api.display.model.settings.ClientDisplaySettings
+import com.dreamdisplays.api.display.model.settings.ClientSettingsStorage
 import com.dreamdisplays.util.json.JsonFileStore
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer

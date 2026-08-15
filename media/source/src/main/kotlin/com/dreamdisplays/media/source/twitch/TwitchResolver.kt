@@ -1,12 +1,12 @@
 package com.dreamdisplays.media.source.twitch
 
-import com.dreamdisplays.api.media.common.DreamMediaException
-import com.dreamdisplays.api.media.source.MediaMetadata
-import com.dreamdisplays.api.media.source.MediaResolver
-import com.dreamdisplays.api.media.source.MediaSource
-import com.dreamdisplays.api.media.source.ResolvedMedia
-import com.dreamdisplays.api.media.stream.MediaStream
-import com.dreamdisplays.api.media.stream.MediaStreamType
+import com.dreamdisplays.api.media.model.DreamMediaException
+import com.dreamdisplays.api.media.source.model.MediaMetadata
+import com.dreamdisplays.api.media.source.service.MediaResolverService
+import com.dreamdisplays.api.media.source.model.MediaSource
+import com.dreamdisplays.api.media.source.model.ResolvedMedia
+import com.dreamdisplays.api.media.stream.model.MediaStream
+import com.dreamdisplays.api.media.stream.model.MediaStreamType
 import com.dreamdisplays.media.source.platform.LiveAwareResolvedMediaCache
 import com.dreamdisplays.media.source.youtube.YtDlpResolver
 import com.dreamdisplays.util.net.DreamHttpClient
@@ -20,7 +20,7 @@ import kotlin.time.Duration.Companion.seconds
  * In-process Twitch stream resolver: one GQL round trip for the playback access token (plus metadata), then a direct
  * usher request for the stream URLs, no `yt-dlp` subprocess.
  */
-object TwitchResolver : MediaResolver {
+object TwitchResolver : MediaResolverService {
     private val logger = LoggerFactory.getLogger("DreamDisplays/TwitchResolver")
 
     /** Above [YtDlpResolver] (0) so the subprocess is only reached when this path fails. */

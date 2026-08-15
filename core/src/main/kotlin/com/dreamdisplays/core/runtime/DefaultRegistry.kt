@@ -1,8 +1,8 @@
 package com.dreamdisplays.core.runtime
 
 import com.dreamdisplays.api.runtime.module.ModuleContext
-import com.dreamdisplays.api.runtime.registry.ServiceKey
-import com.dreamdisplays.api.runtime.registry.ServiceRegistry
+import com.dreamdisplays.api.runtime.registry.model.ServiceKey
+import com.dreamdisplays.api.runtime.registry.service.ServiceRegistry
 import java.util.concurrent.ConcurrentHashMap
 
 /**

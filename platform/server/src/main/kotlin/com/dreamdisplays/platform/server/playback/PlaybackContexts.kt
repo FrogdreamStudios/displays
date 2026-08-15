@@ -1,8 +1,8 @@
 package com.dreamdisplays.platform.server.playback
 
-import com.dreamdisplays.api.playback.PlaybackContext
-import com.dreamdisplays.api.playback.PlaybackMode
-import com.dreamdisplays.api.playback.PlaybackPermissions
+import com.dreamdisplays.api.playback.model.PlaybackContext
+import com.dreamdisplays.api.playback.model.PlaybackMode
+import com.dreamdisplays.api.playback.policy.PlaybackPermissions
 import com.dreamdisplays.platform.server.datatypes.display.DisplayData
 import java.util.*
 

@@ -1,9 +1,9 @@
 package com.dreamdisplays.platform.client.managers
 
-import com.dreamdisplays.api.display.model.DisplayId
+import com.dreamdisplays.api.display.model.property.DisplayId
 import com.dreamdisplays.api.display.service.DisplaySystem
-import com.dreamdisplays.api.runtime.registry.getOrNull
-import com.dreamdisplays.core.protocol.packets.*
+import com.dreamdisplays.api.runtime.registry.service.getOrNull
+import com.dreamdisplays.core.protocol.common.packets.*
 import com.dreamdisplays.core.services.DisplayStorage
 import com.dreamdisplays.platform.client.Mod
 import com.dreamdisplays.platform.client.capabilities.CapabilityNegotiationService
@@ -37,7 +37,7 @@ object ClientPacketManager {
         mod.sendPacket(packet)
     }
 
-    /** Applies an incoming packet to the client state; non-clientbound packets are ignored. */
+    /** Applies an incoming packet to the client state; non-client-bound packets are ignored. */
     fun handle(packet: DreamPacket) {
         when (packet) {
             is ServerHello -> applyServerHello(packet)
@@ -57,7 +57,7 @@ object ClientPacketManager {
             is RemotePlaybackToggle -> DisplayRegistry.screens[packet.id]?.setPaused(packet.paused)
             is DisplayDelete -> handleDelete(packet)
             is ClearCache -> handleClearCache(packet)
-            else -> logger.debug("Ignoring non-clientbound packet {}.", packet::class.simpleName)
+            else -> logger.debug("Ignoring non-client-bound packet {}.", packet::class.simpleName)
         }
     }
 

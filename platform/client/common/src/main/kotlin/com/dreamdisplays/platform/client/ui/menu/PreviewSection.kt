@@ -7,10 +7,10 @@ import net.minecraft.client.renderer.RenderPipelines
 import net.minecraft.resources.Identifier
 //?} else
 /*import net.minecraft.resources.ResourceLocation as Identifier*/
-import com.dreamdisplays.api.media.common.MediaServices
-import com.dreamdisplays.api.media.source.CustomMediaUrls
-import com.dreamdisplays.api.media.source.MediaPlatform
-import com.dreamdisplays.api.media.source.MediaSource
+import com.dreamdisplays.api.media.service.keys.MediaServices
+import com.dreamdisplays.api.media.source.url.CustomMediaUrls
+import com.dreamdisplays.api.media.source.model.MediaPlatform
+import com.dreamdisplays.api.media.source.model.MediaSource
 import com.dreamdisplays.media.source.bilibili.BilibiliMetadataCache
 import com.dreamdisplays.media.source.kick.KickMetadataCache
 import com.dreamdisplays.media.source.platform.PlatformVideoMetadata

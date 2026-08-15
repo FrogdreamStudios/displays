@@ -3,9 +3,9 @@
 package com.dreamdisplays.media.source
 
 import com.dreamdisplays.api.DreamDisplaysUnstableApi
-import com.dreamdisplays.api.media.stream.MediaStream
-import com.dreamdisplays.api.media.stream.MediaStreamType
-import com.dreamdisplays.api.media.stream.StreamPreferences
+import com.dreamdisplays.api.media.stream.model.MediaStream
+import com.dreamdisplays.api.media.stream.model.MediaStreamType
+import com.dreamdisplays.api.media.stream.model.StreamPreferences
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

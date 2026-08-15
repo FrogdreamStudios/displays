@@ -9,17 +9,27 @@ import net.minecraft.resources.Identifier
 //?} else
 /*import net.minecraft.resources.ResourceLocation as Identifier*/
 import com.dreamdisplays.api.capability.ServerFeature
-import com.dreamdisplays.api.display.model.ContentRotation
-import com.dreamdisplays.api.display.model.DisplayFacing
-import com.dreamdisplays.api.media.common.DreamMediaException
-import com.dreamdisplays.api.media.common.VideoQuality
-import com.dreamdisplays.api.media.audio.*
-import com.dreamdisplays.api.media.stream.MediaStream
-import com.dreamdisplays.api.playback.*
-import com.dreamdisplays.api.display.model.ClientDisplaySettings
-import com.dreamdisplays.api.watchparty.WatchPartySession
-import com.dreamdisplays.core.protocol.*
-import com.dreamdisplays.core.protocol.packets.*
+import com.dreamdisplays.api.display.model.property.DisplayRotation
+import com.dreamdisplays.api.display.model.property.DisplayFacing
+import com.dreamdisplays.api.media.model.DreamMediaException
+import com.dreamdisplays.api.media.model.VideoQuality
+import com.dreamdisplays.api.media.audio.model.AcousticEnvironment
+import com.dreamdisplays.api.media.audio.model.AcousticQuality
+import com.dreamdisplays.api.media.audio.model.SourceAcousticState
+import com.dreamdisplays.api.media.audio.model.SourcePlane
+import com.dreamdisplays.api.media.audio.service.keys.AudioAcousticsServices
+import com.dreamdisplays.api.media.stream.model.MediaStream
+import com.dreamdisplays.api.playback.model.FullscreenMode
+import com.dreamdisplays.api.playback.model.PlaybackAction
+import com.dreamdisplays.api.playback.model.PlaybackContext
+import com.dreamdisplays.api.playback.model.PlaybackMode
+import com.dreamdisplays.api.playback.model.WatchPartyAction
+import com.dreamdisplays.api.playback.model.WatchPartySessionState
+import com.dreamdisplays.api.playback.policy.PlaybackPermissions
+import com.dreamdisplays.api.display.model.settings.ClientDisplaySettings
+import com.dreamdisplays.api.watchparty.model.WatchPartySession
+import com.dreamdisplays.core.protocol.common.hasFeature
+import com.dreamdisplays.core.protocol.common.packets.*
 import com.dreamdisplays.media.player.MediaPlayer
 import com.dreamdisplays.platform.client.Initializer
 import com.dreamdisplays.platform.client.audio.ListenerPoseTracker
@@ -81,7 +91,7 @@ class DisplayScreen(
     var qualityCap: Int = 0,
 
     /** Content rotation; only used for floor/ceiling (`UP`/`DOWN`) screens. */
-    var rotation: ContentRotation = ContentRotation.NONE,
+    var rotation: DisplayRotation = DisplayRotation.NONE,
 ) {
     /** Per-display client settings (volume, quality, mute, ...) loaded from disk. */
     private val savedSettings = ClientSettingsStore.getSettings(uuid, defaultVolume())
@@ -95,10 +105,10 @@ class DisplayScreen(
     /** Server-reported lock state, or `null` until the server reports it. */
     var isLocked: Boolean? = null
 
-    /** Epoch millis of a pending scheduled play / pause, or `0` when none is set (see [com.dreamdisplays.core.protocol.packets.DisplayInfo]). */
+    /** Epoch millis of a pending scheduled play / pause, or `0` when none is set (see [com.dreamdisplays.core.protocol.common.packets.DisplayInfo]). */
     var scheduledStartEpochMillis: Long = 0
 
-    /** Wire ordinal of the scheduled [com.dreamdisplays.api.playback.PlaybackAction] (`PLAY`/`PAUSE`), or `-1` when none is set. */
+    /** Wire ordinal of the scheduled [com.dreamdisplays.api.playback.model.PlaybackAction] (`PLAY`/`PAUSE`), or `-1` when none is set. */
     var scheduledAction: Int = -1
 
     /** Monotonic mark of the last [retryVideo], or `null` if never retried this session. */
@@ -204,6 +214,7 @@ class DisplayScreen(
     val isYuvTexture: Boolean get() = textureResource.isYuv
 
     /** [RenderType] for the loading / error color quads (differs from [renderType] in YUV mode). */
+    @Suppress("UNUSED")
     val fallbackRenderType: RenderType? get() = textureResource.fallbackRenderType
 
     // During a quality handoff the new decoder must target the pending (new-resolution) texture,
@@ -458,13 +469,6 @@ class DisplayScreen(
         loadVideoInternal(videoUrl, lang, true)
     }
 
-    /** Loads and immediately starts [videoUrl] from the beginning, ignoring the saved paused state. */
-    fun playVideoNow(videoUrl: String, lang: String) {
-        paused = false
-        savedTimeNanos = 0L
-        loadVideoInternal(videoUrl, lang, false)
-    }
-
     /** Re-attempts current video after failure; purely local, no server packet. */
     fun retryVideo() {
         val url = videoUrl ?: return
@@ -552,7 +556,7 @@ class DisplayScreen(
         z = packet.z
         blockPos = null
         facing = FacingUtil.fromPacket(packet.facing.toByte()).toDisplayFacing()
-        rotation = ContentRotation.fromQuarterTurns(packet.rotation)
+        rotation = DisplayRotation.fromQuarterTurns(packet.rotation)
         width = packet.width
         height = packet.height
 
@@ -699,7 +703,7 @@ class DisplayScreen(
         frameUploader.upload(mp, textureResource, ::markRendered)
     }
 
-    /** Renders frame to popout; call after all Minecraft/mod rendering to avoid GL-context corruption. */
+    /** Renders frame to popout; call after all Minecraft / mod rendering to avoid GL-context corruption. */
     fun renderPopout() {
         popoutManager.renderFrame()
     }
@@ -893,13 +897,6 @@ class DisplayScreen(
         applyEffectiveVolume()
         ClientSettingsStore.updateSettings(uuid, volume, quality, brightness, muted, paused)
         DisplayRegistry.recordScreen(this)
-    }
-
-    /** Enables or disables the 3D acoustics engine for this display; no-op if already in that state. */
-    fun setAcoustics(enabled: Boolean) {
-        if (acousticsEnabled == enabled) return
-        acousticsEnabled = enabled
-        ClientSettingsStore.setAcousticsEnabled(uuid, enabled)
     }
 
     /** Applies temporary focus mute without changing the user's persisted mute setting. */

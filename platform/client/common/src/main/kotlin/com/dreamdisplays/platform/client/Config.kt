@@ -1,6 +1,6 @@
 package com.dreamdisplays.platform.client
 
-import com.dreamdisplays.api.media.audio.AcousticQuality
+import com.dreamdisplays.api.media.audio.model.AcousticQuality
 import com.dreamdisplays.media.source.youtube.cookie.CookieSource
 import java.io.File
 import kotlin.math.roundToInt

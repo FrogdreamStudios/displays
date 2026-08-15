@@ -11,9 +11,4 @@ import com.dreamdisplays.api.DreamDisplaysUnstableApi
 fun interface TaskHandle {
     /** Cancels future executions when the platform scheduler supports cancellation. */
     fun cancel()
-
-    companion object {
-        /** Handle for work that cannot or does not need to be canceled. */
-        val NOOP: TaskHandle = TaskHandle { }
-    }
 }

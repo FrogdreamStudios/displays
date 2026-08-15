@@ -1,6 +1,6 @@
 package com.dreamdisplays.platform.server.datatypes.selection
 
-import com.dreamdisplays.api.display.model.ContentRotation
+import com.dreamdisplays.api.display.model.property.DisplayRotation
 import com.dreamdisplays.platform.server.datatypes.display.VanillaDisplayData
 import com.dreamdisplays.platform.server.utils.RegionUtil
 import net.minecraft.core.BlockPos
@@ -79,7 +79,7 @@ class VanillaSelectionData : BaseSelectionData() {
             width = r.screenWidth(isVertical),
             height = r.screenHeight(isVertical),
             facing = facing,
-            rotation = if (isVertical) horizontalFacing.toCardinal().toContentRotation() else ContentRotation.NONE,
+            rotation = if (isVertical) horizontalFacing.toCardinal().toContentRotation() else DisplayRotation.NONE,
         )
     }
 

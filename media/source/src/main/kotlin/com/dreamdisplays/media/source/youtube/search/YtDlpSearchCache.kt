@@ -1,9 +1,9 @@
 package com.dreamdisplays.media.source.youtube.search
 
-import com.dreamdisplays.api.media.search.MediaSearchPage
-import com.dreamdisplays.api.media.search.MediaSearchResult
-import com.dreamdisplays.api.media.search.SortOrder
-import com.dreamdisplays.api.media.search.YouTubeUrls
+import com.dreamdisplays.api.media.search.model.MediaSearchPage
+import com.dreamdisplays.api.media.search.model.MediaSearchResult
+import com.dreamdisplays.api.media.search.model.SortOrder
+import com.dreamdisplays.api.media.source.url.YouTubeUrls
 import com.dreamdisplays.media.source.youtube.YouTubeInnerTube
 import com.dreamdisplays.util.AsyncMemo
 import com.dreamdisplays.util.DreamCoroutines

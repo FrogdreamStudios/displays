@@ -1,6 +1,6 @@
 package com.dreamdisplays.platform.server.playback
 
-import com.dreamdisplays.core.protocol.packets.DreamPacket
+import com.dreamdisplays.core.protocol.common.packets.DreamPacket
 import com.dreamdisplays.platform.server.datatypes.display.DisplayData
 import com.dreamdisplays.platform.server.datatypes.display.VanillaDisplayData
 import com.dreamdisplays.platform.server.VanillaServerState

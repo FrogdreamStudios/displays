@@ -1,6 +1,6 @@
 package com.dreamdisplays.media.source.bilibili
 
-import com.dreamdisplays.api.media.source.MediaSource
+import com.dreamdisplays.api.media.source.model.MediaSource
 import com.dreamdisplays.media.source.platform.PlatformMetadataCache
 import com.dreamdisplays.media.source.platform.PlatformVideoMetadata
 import com.dreamdisplays.media.source.platform.YtDlpMetadataFallback

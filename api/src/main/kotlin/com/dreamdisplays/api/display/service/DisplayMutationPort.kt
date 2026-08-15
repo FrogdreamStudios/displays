@@ -1,8 +1,8 @@
 package com.dreamdisplays.api.display.service
 
 import com.dreamdisplays.api.DreamDisplaysUnstableApi
-import com.dreamdisplays.api.display.model.DisplayId
-import com.dreamdisplays.api.display.model.DisplaySettings
+import com.dreamdisplays.api.display.model.property.DisplayId
+import com.dreamdisplays.api.display.model.settings.DisplaySettings
 
 /**
  * Display mutation port.

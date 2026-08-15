@@ -1,8 +1,8 @@
 package com.dreamdisplays.platform.client.net
 
-import com.dreamdisplays.api.protocol.PacketDirection
-import com.dreamdisplays.core.protocol.*
-import com.dreamdisplays.core.protocol.packets.*
+import com.dreamdisplays.api.protocol.model.PacketDirection
+import com.dreamdisplays.core.protocol.common.PacketRegistry
+import com.dreamdisplays.core.protocol.common.packets.*
 import com.dreamdisplays.platform.client.managers.ClientPacketManager
 import org.slf4j.LoggerFactory
 

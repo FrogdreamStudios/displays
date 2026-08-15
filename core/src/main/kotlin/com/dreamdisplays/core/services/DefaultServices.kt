@@ -2,19 +2,19 @@ package com.dreamdisplays.core.services
 
 import com.dreamdisplays.api.display.event.DisplayEvent
 import com.dreamdisplays.api.display.model.Display
-import com.dreamdisplays.api.display.model.DisplayId
-import com.dreamdisplays.api.display.model.DisplayRuntimeState
-import com.dreamdisplays.api.display.model.DisplaySettings
+import com.dreamdisplays.api.display.model.property.DisplayId
+import com.dreamdisplays.api.display.model.property.DisplayState
+import com.dreamdisplays.api.display.model.settings.DisplaySettings
 import com.dreamdisplays.api.display.service.DisplayLookup
 import com.dreamdisplays.api.display.service.DisplayMutationPort
 import com.dreamdisplays.api.display.service.DisplayService
-import com.dreamdisplays.api.media.common.VideoQuality
-import com.dreamdisplays.api.playback.PlaybackMode
-import com.dreamdisplays.api.playback.PlaybackPort
-import com.dreamdisplays.api.playback.PlaybackService
-import com.dreamdisplays.api.watchparty.WatchPartyPort
-import com.dreamdisplays.api.watchparty.WatchPartyService
-import com.dreamdisplays.api.watchparty.WatchPartySession
+import com.dreamdisplays.api.media.model.VideoQuality
+import com.dreamdisplays.api.playback.model.PlaybackMode
+import com.dreamdisplays.api.playback.service.PlaybackPort
+import com.dreamdisplays.api.playback.service.PlaybackService
+import com.dreamdisplays.api.watchparty.service.WatchPartyPort
+import com.dreamdisplays.api.watchparty.service.WatchPartyService
+import com.dreamdisplays.api.watchparty.model.WatchPartySession
 import kotlin.time.Duration
 
 /**
@@ -86,7 +86,7 @@ class DefaultPlaybackService(
     override fun mute(displayId: DisplayId, muted: Boolean) = playback.mute(displayId, muted)
 
     /** Get the runtime state for a display. */
-    override fun getState(displayId: DisplayId): DisplayRuntimeState = playback.getState(displayId)
+    override fun getState(displayId: DisplayId): DisplayState = playback.getState(displayId)
 
     /** Restart the playback for a display. */
     override fun restart(displayId: DisplayId) = playback.restart(displayId)

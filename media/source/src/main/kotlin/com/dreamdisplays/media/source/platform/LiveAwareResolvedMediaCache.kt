@@ -1,6 +1,6 @@
 package com.dreamdisplays.media.source.platform
 
-import com.dreamdisplays.api.media.source.ResolvedMedia
+import com.dreamdisplays.api.media.source.model.ResolvedMedia
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.github.benmanes.caffeine.cache.Expiry

@@ -1,7 +1,7 @@
 package com.dreamdisplays.util.net
 
 import kotlinx.io.IOException
-import com.dreamdisplays.api.security.MediaHosts
+import com.dreamdisplays.api.security.policy.MediaHosts
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request

@@ -1,11 +1,11 @@
 package com.dreamdisplays.media.player.managers
 
-import com.dreamdisplays.api.media.common.DreamMediaException
-import com.dreamdisplays.api.media.common.FramePixelFormat
-import com.dreamdisplays.api.media.audio.AudioDspStage
+import com.dreamdisplays.api.media.model.DreamMediaException
+import com.dreamdisplays.api.media.model.FramePixelFormat
+import com.dreamdisplays.api.media.audio.service.AudioDspStage
 import com.dreamdisplays.api.media.player.FrameUploaderFactory
 import com.dreamdisplays.api.media.player.GpuTextureRef
-import com.dreamdisplays.api.media.player.RenderThreadExecutor
+import com.dreamdisplays.api.media.player.RenderExecutor
 import com.dreamdisplays.media.player.MediaPlayer
 import com.dreamdisplays.media.player.events.PlayerEvents
 import com.dreamdisplays.media.player.nativebridge.NativeMedia
@@ -54,7 +54,7 @@ internal class PlaybackSessionManager(
     private val onAudioTrackSwitchSettled: () -> Unit = {},
 
     /** Runs render-thread (GL) cleanup work. */
-    private val renderExecutor: RenderThreadExecutor,
+    private val renderExecutor: RenderExecutor,
 
     /** Creates per-channel GPU frame uploaders. */
     private val uploaderFactory: FrameUploaderFactory,

@@ -1,7 +1,7 @@
 package com.dreamdisplays.platform.client.render
 
-import com.dreamdisplays.api.render.backend.RenderBackend
-import com.dreamdisplays.api.render.texture.TextureUploadPath
+import com.dreamdisplays.api.render.backend.model.RenderBackend
+import com.dreamdisplays.api.render.texture.model.TextureUploadPath
 import com.mojang.blaze3d.systems.RenderSystem
 
 /** Small runtime probes for renderer backends that replace or virtualize OpenGL. */

@@ -1,13 +1,13 @@
 package com.dreamdisplays.media.player
 
-import com.dreamdisplays.api.media.common.DreamMediaException
-import com.dreamdisplays.api.media.common.FramePixelFormat
-import com.dreamdisplays.api.media.common.VideoQuality
-import com.dreamdisplays.api.media.audio.AudioDspStage
+import com.dreamdisplays.api.media.model.DreamMediaException
+import com.dreamdisplays.api.media.model.FramePixelFormat
+import com.dreamdisplays.api.media.model.VideoQuality
+import com.dreamdisplays.api.media.audio.service.AudioDspStage
 import com.dreamdisplays.api.media.player.GpuTextureRef
 import com.dreamdisplays.api.media.player.PlaybackEnvironment
 import com.dreamdisplays.api.media.player.PlaybackHost
-import com.dreamdisplays.api.media.stream.MediaStream
+import com.dreamdisplays.api.media.stream.model.MediaStream
 import com.dreamdisplays.media.player.MediaPlayer.Companion.INIT_EXECUTOR
 import com.dreamdisplays.media.player.events.PlayerEvents
 import com.dreamdisplays.media.player.managers.PlaybackSessionManager

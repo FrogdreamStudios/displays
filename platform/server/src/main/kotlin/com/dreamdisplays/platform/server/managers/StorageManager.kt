@@ -1,8 +1,8 @@
 package com.dreamdisplays.platform.server.managers
 
-import com.dreamdisplays.api.playback.PlaybackAction
-import com.dreamdisplays.api.playback.PlaybackMode
-import com.dreamdisplays.api.security.MediaUrlPolicy
+import com.dreamdisplays.api.playback.model.PlaybackAction
+import com.dreamdisplays.api.playback.model.PlaybackMode
+import com.dreamdisplays.api.security.policy.MediaUrlPolicy
 import com.dreamdisplays.platform.server.datatypes.display.DisplayData
 import com.dreamdisplays.platform.server.datatypes.display.PaperDisplayData
 import com.dreamdisplays.platform.server.datatypes.display.VanillaDisplayData
@@ -92,7 +92,7 @@ class DisplaysTable(prefix: String = "") : Table("${prefix}displays") {
     /** Epoch millis of a pending scheduled-playback start, or null when no schedule is set. */
     val scheduledStart = long("scheduledStart").nullable()
 
-    /** Wire ordinal of the [com.dreamdisplays.api.playback.PlaybackAction] [scheduledStart] will apply, or null. */
+    /** Wire ordinal of the [com.dreamdisplays.api.playback.model.PlaybackAction] [scheduledStart] will apply, or null. */
     val scheduledAction = integer("scheduledAction").nullable()
 
     /** Primary key for the displays table, which is the unique identifier of the display. */

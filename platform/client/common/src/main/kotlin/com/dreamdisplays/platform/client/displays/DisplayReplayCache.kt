@@ -21,6 +21,7 @@ internal object DisplayReplayCache {
     private const val POSITION_TOLERANCE_NS = 1_000_000_000L
 
     /** One retained replay snapshot: the encoded video bytes, optional audio PCM, and resolved streams. */
+    @Suppress("ArrayInDataClass")
     private data class Entry(
         val url: String,
         val positionNanos: Long,

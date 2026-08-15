@@ -1,7 +1,7 @@
 package com.dreamdisplays.platform.client.ui.kit
 
-import com.dreamdisplays.api.media.search.MediaSearchResult
-import com.dreamdisplays.api.media.source.MediaPlatform
+import com.dreamdisplays.api.media.search.model.MediaSearchResult
+import com.dreamdisplays.api.media.source.model.MediaPlatform
 
 /**
  * The single source of truth for the little coloured platform tag ("Twitch", "Vimeo", "Kick", "Link") drawn on search

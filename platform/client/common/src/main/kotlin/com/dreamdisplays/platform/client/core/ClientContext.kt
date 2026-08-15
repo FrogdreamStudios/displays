@@ -2,7 +2,7 @@ package com.dreamdisplays.platform.client.core
 
 import com.dreamdisplays.api.platform.identity.Platform
 import com.dreamdisplays.api.runtime.module.ModuleContext
-import com.dreamdisplays.api.runtime.registry.ServiceRegistry
+import com.dreamdisplays.api.runtime.registry.service.ServiceRegistry
 
 /**
  * Context for a client application.

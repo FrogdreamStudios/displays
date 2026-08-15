@@ -1,8 +1,8 @@
 package com.dreamdisplays.platform.client.storage
 
-import com.dreamdisplays.api.media.search.MediaSearchResult
-import com.dreamdisplays.api.media.source.CustomMediaUrls
-import com.dreamdisplays.api.media.source.CustomVideoRecord
+import com.dreamdisplays.api.media.search.model.MediaSearchResult
+import com.dreamdisplays.api.media.source.url.CustomMediaUrls
+import com.dreamdisplays.api.media.source.model.CustomVideoRecord
 import com.dreamdisplays.util.json.JsonFileStore
 import kotlinx.serialization.builtins.ListSerializer
 import org.slf4j.LoggerFactory
@@ -14,8 +14,6 @@ object CustomVideoStore {
 
     private const val FILE_NAME = "custom-videos.json"
     private const val SCHEMA_VERSION = 1
-
-    /** Plenty for a personal list, small enough that the whole file stays trivial to read and write. */
     private const val MAX_ENTRIES = 100
 
     private val jsonFiles = JsonFileStore()

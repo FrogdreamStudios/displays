@@ -1,10 +1,10 @@
 package com.dreamdisplays.platform.client.player.platform
 
-import com.dreamdisplays.api.media.common.MediaServices
+import com.dreamdisplays.api.media.service.keys.MediaServices
 import com.dreamdisplays.api.media.player.*
-import com.dreamdisplays.api.media.source.MediaResolverRegistry
-import com.dreamdisplays.api.media.stream.StreamSelector
-import com.dreamdisplays.api.runtime.registry.get
+import com.dreamdisplays.api.media.source.service.MediaResolverRegistry
+import com.dreamdisplays.api.media.stream.service.StreamSelector
+import com.dreamdisplays.api.runtime.registry.service.get
 import com.dreamdisplays.media.player.MediaPlayer
 import com.dreamdisplays.media.source.bilibili.BilibiliResolver
 import com.dreamdisplays.media.source.direct.DirectStreamResolver
@@ -41,8 +41,8 @@ object DreamPlaybackEnvironment : PlaybackEnvironment {
     }
 
     /** Runs tasks on Minecraft's render/main thread. */
-    override val renderExecutor: RenderThreadExecutor =
-        RenderThreadExecutor { task -> Minecraft.getInstance().execute(task) }
+    override val renderExecutor: RenderExecutor =
+        RenderExecutor { task -> Minecraft.getInstance().execute(task) }
 
     /** Creates per-player GPU frame uploaders. */
     override val uploaderFactory: FrameUploaderFactory = FrameUploaderFactory { GpuFrameUploader() as FrameUploader }

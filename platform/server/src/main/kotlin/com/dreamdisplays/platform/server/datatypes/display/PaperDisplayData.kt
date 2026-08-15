@@ -1,6 +1,6 @@
 package com.dreamdisplays.platform.server.datatypes.display
 
-import com.dreamdisplays.api.display.model.ContentRotation
+import com.dreamdisplays.api.display.model.property.DisplayRotation
 import com.dreamdisplays.platform.server.utils.RegionUtil
 import io.github.arnodoelinger.platformweaver.PaperOnly
 import org.bukkit.Location
@@ -37,7 +37,7 @@ class PaperDisplayData(
     val facing: BlockFace = BlockFace.NORTH,
 
     /** Content rotation; only meaningful for floor / ceiling (`UP` / `DOWN`) facings. */
-    override val rotation: ContentRotation = ContentRotation.NONE,
+    override val rotation: DisplayRotation = DisplayRotation.NONE,
 
     /** True for the synthetic display backing a URL-only fullscreen broadcast. */
     virtual: Boolean = false,

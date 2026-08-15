@@ -1,6 +1,6 @@
 package com.dreamdisplays.media.source.twitch
 
-import com.dreamdisplays.api.media.source.MediaSource
+import com.dreamdisplays.api.media.source.model.MediaSource
 import com.dreamdisplays.util.DreamCoroutines
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine

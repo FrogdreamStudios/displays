@@ -1,6 +1,6 @@
 package com.dreamdisplays.platform.client.net
 
-import com.dreamdisplays.core.protocol.PacketRegistry
+import com.dreamdisplays.core.protocol.common.PacketRegistry
 import com.dreamdisplays.platform.client.Initializer
 import net.minecraft.network.RegistryFriendlyByteBuf
 import net.minecraft.network.codec.StreamCodec

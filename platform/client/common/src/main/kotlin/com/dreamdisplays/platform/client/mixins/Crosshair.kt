@@ -1,6 +1,6 @@
 package com.dreamdisplays.platform.client.mixins
 
-import com.dreamdisplays.api.runtime.registry.getOrNull
+import com.dreamdisplays.api.runtime.registry.service.getOrNull
 import com.dreamdisplays.platform.client.core.DreamServices
 import com.dreamdisplays.platform.client.managers.ClientStateManager
 import com.dreamdisplays.platform.client.overlay.CrosshairPolicy

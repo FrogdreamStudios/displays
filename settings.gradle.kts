@@ -70,6 +70,8 @@ include(":platform:client:common")
 include(":platform:client:fabric")
 include(":platform:server")
 include(":platform:proxy")
+include(":platform:proxy:common")
+include(":platform:proxy:velocity")
 include(":platform:proxy:bungeecord")
 
 // ModDevGradle issue, ask them wtf is going here

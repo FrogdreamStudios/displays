@@ -1,9 +1,9 @@
 package com.dreamdisplays.media.source
 
-import com.dreamdisplays.api.media.source.MediaMetadata
-import com.dreamdisplays.api.media.source.MediaResolver
-import com.dreamdisplays.api.media.source.MediaSource
-import com.dreamdisplays.api.media.source.ResolvedMedia
+import com.dreamdisplays.api.media.source.model.MediaMetadata
+import com.dreamdisplays.api.media.source.service.MediaResolverService
+import com.dreamdisplays.api.media.source.model.MediaSource
+import com.dreamdisplays.api.media.source.model.ResolvedMedia
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
@@ -19,7 +19,7 @@ class DefaultMediaResolverRegistryTest {
         private val warms: Boolean,
         val calls: AtomicInteger = AtomicInteger(),
         private val onPrefetch: () -> Unit = {},
-    ) : MediaResolver {
+    ) : MediaResolverService {
         override fun canResolve(source: MediaSource): Boolean = true
 
         override fun resolve(source: MediaSource): ResolvedMedia =
@@ -100,7 +100,7 @@ class DefaultMediaResolverRegistryTest {
 
     @Test
     fun `resolve returns the first successful resolver in priority order`() {
-        val failing = object : MediaResolver {
+        val failing = object : MediaResolverService {
             override val priority: Int = 20
             override fun canResolve(source: MediaSource): Boolean = true
             override fun resolve(source: MediaSource): ResolvedMedia = error("nope")

@@ -1,6 +1,6 @@
 package com.dreamdisplays.platform.server.utils
 
-import com.dreamdisplays.api.display.model.ContentRotation
+import com.dreamdisplays.api.display.model.property.DisplayRotation
 import net.minecraft.core.Direction
 import java.nio.ByteBuffer
 import java.util.*
@@ -24,15 +24,15 @@ object StoragePackingUtil {
     )
 
     /** Packs the facing ordinal (low byte) and content rotation (next byte) into one column int. */
-    fun packFacing(facingOrdinal: Int, rotation: ContentRotation): Int =
+    fun packFacing(facingOrdinal: Int, rotation: DisplayRotation): Int =
         (facingOrdinal and 0xFF) or ((rotation.quarterTurns and 0xFF) shl 8)
 
     /** Extracts the facing ordinal from a [packFacing] value; legacy rows (rotation=0) decode unchanged. */
     fun unpackFacingOrdinal(packed: Int): Int = packed and 0xFF
 
     /** Extracts the content rotation from a [packFacing] value. */
-    fun unpackRotation(packed: Int): ContentRotation =
-        ContentRotation.fromQuarterTurns((packed shr 8) and 0xFF)
+    fun unpackRotation(packed: Int): DisplayRotation =
+        DisplayRotation.fromQuarterTurns((packed shr 8) and 0xFF)
 
     /** Packs a 3D position into a 64-bit long. */
     fun packPos(x: Int, y: Int, z: Int): Long =

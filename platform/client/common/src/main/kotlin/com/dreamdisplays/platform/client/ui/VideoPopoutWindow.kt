@@ -1,6 +1,6 @@
 package com.dreamdisplays.platform.client.ui
 
-import com.dreamdisplays.api.media.sink.VideoFrameSink
+import com.dreamdisplays.api.media.sink.service.VideoFrameSink
 import com.dreamdisplays.platform.client.Initializer
 import com.dreamdisplays.platform.client.popout.PopoutEvent
 import com.dreamdisplays.platform.client.popout.PopoutWindow

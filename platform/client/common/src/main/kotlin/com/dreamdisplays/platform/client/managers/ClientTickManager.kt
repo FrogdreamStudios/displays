@@ -1,8 +1,8 @@
 package com.dreamdisplays.platform.client.managers
 
-import com.dreamdisplays.api.display.model.DisplayId
-import com.dreamdisplays.api.media.audio.AudioAcousticsServices
-import com.dreamdisplays.api.runtime.registry.getOrNull
+import com.dreamdisplays.api.display.model.property.DisplayId
+import com.dreamdisplays.api.media.audio.service.keys.AudioAcousticsServices
+import com.dreamdisplays.api.runtime.registry.service.getOrNull
 import com.dreamdisplays.platform.client.audio.ListenerPoseTracker
 import com.dreamdisplays.platform.client.capabilities.CapabilityNegotiationService
 import com.dreamdisplays.platform.client.core.ClientApplication
@@ -25,8 +25,6 @@ import java.util.*
  * Handles per-tick client display state: level changes, hover, unloading, and shortcuts.
  */
 object ClientTickManager {
-    private val logger = org.slf4j.LoggerFactory.getLogger("DreamDisplays/ClientTickManager")
-
     /**
      * Deadband around a display's renderDistance so a player lingering near the boundary doesn't
      * flip park / wake every tick (block-quantized position drift across a single threshold).

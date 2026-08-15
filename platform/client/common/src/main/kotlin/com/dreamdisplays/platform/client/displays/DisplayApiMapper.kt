@@ -1,15 +1,15 @@
 package com.dreamdisplays.platform.client.displays
 
 import com.dreamdisplays.api.display.model.Display
-import com.dreamdisplays.api.display.model.DisplayBounds
-import com.dreamdisplays.api.display.model.DisplayId
-import com.dreamdisplays.api.display.model.DisplayRuntimeState
-import com.dreamdisplays.api.storage.FullDisplayData
-import com.dreamdisplays.api.display.model.DisplaySettings as ApiDisplaySettings
+import com.dreamdisplays.api.display.model.property.DisplayBounds
+import com.dreamdisplays.api.display.model.property.DisplayId
+import com.dreamdisplays.api.display.model.property.DisplayState
+import com.dreamdisplays.api.storage.model.FullDisplayData
+import com.dreamdisplays.api.display.model.settings.DisplaySettings as ApiDisplaySettings
 
 /**
  * Mapping between the internal mutable [DisplayScreen] and the immutable public API / persistence types
- * ([Display], [DisplayRuntimeState], [FullDisplayData]). Kept separate from [DisplayRegistry] so the manager
+ * ([Display], [DisplayState], [FullDisplayData]). Kept separate from [DisplayRegistry] so the manager
  * stays focused on registry and event concerns.
  */
 
@@ -32,13 +32,13 @@ internal fun DisplayScreen.toDisplay(): Display = Display(
     watchParty = watchParty,
 )
 
-/** Derives the current [DisplayRuntimeState] from the screen's media / error / playback state. */
-internal fun DisplayScreen.toRuntimeState(): DisplayRuntimeState = when {
-    mediaError != null -> DisplayRuntimeState.Failed(mediaError!!)
-    videoUrl.isNullOrEmpty() -> DisplayRuntimeState.Idle
-    !isVideoStarted -> DisplayRuntimeState.Preparing
-    isPaused -> DisplayRuntimeState.Paused(uuid.toString(), currentTimeNanos / 1_000_000L)
-    else -> DisplayRuntimeState.Playing(
+/** Derives the current [DisplayState] from the screen's media / error / playback state. */
+internal fun DisplayScreen.toRuntimeState(): DisplayState = when {
+    mediaError != null -> DisplayState.Failed(mediaError!!)
+    videoUrl.isNullOrEmpty() -> DisplayState.Idle
+    !isVideoStarted -> DisplayState.Preparing
+    isPaused -> DisplayState.Paused(uuid.toString(), currentTimeNanos / 1_000_000L)
+    else -> DisplayState.Playing(
         sessionId = uuid.toString(),
         positionMs = currentTimeNanos / 1_000_000L,
         durationMs = mediaPlayerDurationNanos.takeIf { it > 0L }?.let { it / 1_000_000L },

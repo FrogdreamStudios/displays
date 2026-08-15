@@ -1,10 +1,10 @@
 package com.dreamdisplays.platform.client.capabilities
 
-import com.dreamdisplays.api.media.stream.SupportedCodec
-import com.dreamdisplays.api.render.backend.RenderBackend
-import com.dreamdisplays.api.render.backend.ShaderBackend
-import com.dreamdisplays.api.render.texture.TextureUploadPath
-import com.dreamdisplays.core.protocol.packets.ClientHello
+import com.dreamdisplays.api.media.stream.model.SupportedCodec
+import com.dreamdisplays.api.render.backend.model.RenderBackend
+import com.dreamdisplays.api.render.backend.model.ShaderBackend
+import com.dreamdisplays.api.render.texture.model.TextureUploadPath
+import com.dreamdisplays.core.protocol.common.packets.ClientHello
 import com.dreamdisplays.media.player.nativebridge.NativeMedia
 import com.dreamdisplays.media.player.process.HwAccelBackend
 import com.dreamdisplays.platform.client.managers.WarmParkPolicy
@@ -18,10 +18,9 @@ import java.time.ZoneId
 /**
  * Probes the running client for [ClientHello] capabilities. Popout support comes from the `GLFW`
  * shared-context check in [VideoPopoutWindow], hardware decode from the per-OS
- * [HwAccelBackend] default, and codec support from what the FFmpeg pipeline decodes.
+ * [HwAccelBackend] default, and codec support from what the `FFmpeg` pipeline decodes.
  */
 object MinecraftClientCapabilityDetector : ClientCapabilityDetector {
-
     /** Matches [AsyncTextureUploader]; a GL query needs a current context, which detect-time can't guarantee. */
     override val maxTextureSize: Int = 8192
 

@@ -1,7 +1,7 @@
 package com.dreamdisplays.platform.client.input
 
-import com.dreamdisplays.api.display.model.DisplayFacing
-import com.dreamdisplays.api.display.model.DisplayId
+import com.dreamdisplays.api.display.model.property.DisplayFacing
+import com.dreamdisplays.api.display.model.property.DisplayId
 import com.dreamdisplays.platform.client.displays.DisplayRegistry
 import com.dreamdisplays.platform.client.managers.ClientTickManager
 import com.dreamdisplays.platform.client.utils.RayCastingUtil
@@ -9,9 +9,9 @@ import net.minecraft.client.Minecraft
 import net.minecraft.core.Direction
 import java.util.concurrent.CopyOnWriteArrayList
 
-/** Minecraft-backed display interaction service via raycasting from the player's eye. */
+/** Minecraft-backed display interaction service via ray-casting from the player's eye. */
 object MinecraftDisplayInteractionService : DisplayInteractionService {
-    /** Max reach, in blocks, for the look raycast. Mirrors the value used by [ClientTickManager]. */
+    /** Max reach, in blocks, for the look ray-cast. Mirrors the value used by [ClientTickManager]. */
     private const val MAX_REACH: Double = 64.0
 
     /** Thread-safe list of listeners subscribed to [DisplayInteraction] events. */

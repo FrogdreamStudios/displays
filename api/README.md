@@ -7,22 +7,22 @@ modules can use without depending on `core` internals. Public contracts are mark
 ## Contents
 
 - `display` — domain models (`DisplayId`, `Display`, `DisplayBounds`, `DisplayFacing`, `DisplaySettings`,
-  `DisplayRuntimeState`, `ContentRotation`, `DisplayEvent`) and the `DisplayService` contract /
+  `DisplayState`, `DisplayRotation`, `DisplayEvent`) and the `DisplayService` contract /
   `DisplayServices` keys
 - `playback` — `PlaybackService`, `PlaybackServices`, plus `PlaybackMode` / `PlaybackAction` in `PlaybackTypes`
 - `watchparty` — `WatchPartyService`, `WatchPartyServices`, `WatchPartySession`, `WatchPartyAction`,
   `WatchPartySessionState`
 - `capability` — typed server feature names (`ServerFeature`) used around protocol capability negotiation
-- `media.source` — resolver contracts: `MediaSource`, `MediaResolver`, `MediaResolverRegistry`, `ResolvedMedia`,
+- `media.source` — resolver contracts: `MediaSource`, `MediaResolverService`, `MediaResolverRegistry`, `ResolvedMedia`,
   `MediaMetadata`
 - `media.stream` — `MediaStream`, `MediaStreamType`, `SupportedCodec`
-- `media.session` — `MediaSession`, `MediaSessionState`, `MediaSessionEvent`
+- `media.session` — `MediaSessionService`, `MediaSessionState`, `MediaSessionEvent`
 - `media.search` — `MediaSearchService`, `MediaSearchResult`, `YouTubeUrls`
 - `media.sink` — decoder output contracts: `VideoFrameSink`, `DecodedVideoFrame`, `AudioSink`
 - `media` — shared media service keys (`MediaServices`)
-- `media.player` — playback host hooks: `PlaybackHost`, `FrameUploader`, `GpuTextureRef`, `RenderThreadExecutor`
+- `media.player` — playback host hooks: `PlaybackHost`, `FrameUploader`, `GpuTextureRef`, `RenderExecutor`
 - `render` — render/upload contracts: `DisplayRenderer`, `RenderContext`, `RenderSurface`, `RenderStats`,
-  `TextureUploader` / `TextureUploaderFactory`, `TextureHandle`, `UploadBudget`, `FrameDropPolicy`,
+  `TextureUploaderService` / `TextureUploaderFactory`, `TextureHandle`, `UploadBudget`, `FrameDropPolicy`,
   `RenderBackend`, `ShaderBackend`, `TextureUploadPath`, `RenderServices`
 - `runtime` — construction contracts: `DreamDisplaysApi`, `DreamDisplaysRuntime`, `DreamDisplaysModule`,
   `ModuleContext`, `ServiceRegistry`, `ServiceKey`

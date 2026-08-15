@@ -1,6 +1,6 @@
 package com.dreamdisplays.platform.server.utils.net
 
-import com.dreamdisplays.core.protocol.packets.DreamPacket
+import com.dreamdisplays.core.protocol.common.packets.DreamPacket
 import io.github.arnodoelinger.platformweaver.FabricOnly
 import io.github.arnodoelinger.platformweaver.NeoForgeOnly
 

@@ -1,7 +1,7 @@
 package com.dreamdisplays.platform.client.core
 
 import com.dreamdisplays.api.platform.identity.Platform
-import com.dreamdisplays.api.runtime.registry.ServiceRegistry
+import com.dreamdisplays.api.runtime.registry.service.ServiceRegistry
 import com.dreamdisplays.platform.client.managers.ClientStateManager
 
 /**

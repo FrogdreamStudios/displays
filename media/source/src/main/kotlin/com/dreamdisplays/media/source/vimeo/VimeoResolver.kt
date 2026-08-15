@@ -1,16 +1,16 @@
 package com.dreamdisplays.media.source.vimeo
 
-import com.dreamdisplays.api.media.common.DreamMediaException
-import com.dreamdisplays.api.media.source.MediaResolver
-import com.dreamdisplays.api.media.source.MediaSource
-import com.dreamdisplays.api.media.source.ResolvedMedia
+import com.dreamdisplays.api.media.model.DreamMediaException
+import com.dreamdisplays.api.media.source.service.MediaResolverService
+import com.dreamdisplays.api.media.source.model.MediaSource
+import com.dreamdisplays.api.media.source.model.ResolvedMedia
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
 import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
 
 /** In-process Vimeo resolver: one call to the player config endpoint (see [VimeoApi]) instead of a `yt-dlp` subprocess spawn. */
-object VimeoResolver : MediaResolver {
+object VimeoResolver : MediaResolverService {
     /** Logger. */
     private val logger = LoggerFactory.getLogger("DreamDisplays/VimeoResolver")
 

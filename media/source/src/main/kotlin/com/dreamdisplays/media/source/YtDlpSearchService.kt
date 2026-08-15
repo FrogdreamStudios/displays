@@ -1,9 +1,9 @@
 package com.dreamdisplays.media.source
 
-import com.dreamdisplays.api.media.search.MediaSearchPage
-import com.dreamdisplays.api.media.search.MediaSearchResult
-import com.dreamdisplays.api.media.search.MediaSearchService
-import com.dreamdisplays.api.media.search.SortOrder
+import com.dreamdisplays.api.media.search.model.MediaSearchPage
+import com.dreamdisplays.api.media.search.model.MediaSearchResult
+import com.dreamdisplays.api.media.search.service.MediaSearchService
+import com.dreamdisplays.api.media.search.model.SortOrder
 import com.dreamdisplays.media.source.youtube.YouTubeInnerTube
 import com.dreamdisplays.media.source.youtube.YtDlp
 

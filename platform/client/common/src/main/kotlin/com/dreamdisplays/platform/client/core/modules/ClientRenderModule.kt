@@ -1,9 +1,9 @@
 package com.dreamdisplays.platform.client.core.modules
 
-import com.dreamdisplays.api.render.RenderServices
+import com.dreamdisplays.api.render.service.keys.RenderServices
 import com.dreamdisplays.api.runtime.module.DreamDisplaysModule
 import com.dreamdisplays.api.runtime.module.ModuleContext
-import com.dreamdisplays.api.runtime.registry.register
+import com.dreamdisplays.api.runtime.registry.service.register
 import com.dreamdisplays.platform.client.render.*
 
 /** Installs client render services, API surface renderer, and texture uploader factory. */

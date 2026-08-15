@@ -1,6 +1,6 @@
 package com.dreamdisplays.platform.client.audio
 
-import com.dreamdisplays.api.media.audio.ListenerPose
+import com.dreamdisplays.api.media.audio.model.ListenerPose
 import net.minecraft.client.Camera
 import net.minecraft.client.Minecraft
 import org.joml.Vector3f

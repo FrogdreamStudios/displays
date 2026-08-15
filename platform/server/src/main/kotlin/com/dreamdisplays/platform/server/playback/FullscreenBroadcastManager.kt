@@ -1,14 +1,14 @@
 package com.dreamdisplays.platform.server.playback
 
-import com.dreamdisplays.api.media.source.MediaSource
-import com.dreamdisplays.api.playback.FullscreenAckAction
-import com.dreamdisplays.api.playback.FullscreenMode
-import com.dreamdisplays.api.playback.PlaybackMode
-import com.dreamdisplays.api.playback.Timeline
-import com.dreamdisplays.api.playback.FullscreenSessionRecord
-import com.dreamdisplays.core.protocol.packets.DisplayDelete
-import com.dreamdisplays.core.protocol.packets.FullscreenState
-import com.dreamdisplays.core.protocol.toSync
+import com.dreamdisplays.api.media.source.model.MediaSource
+import com.dreamdisplays.api.playback.model.FullscreenAckAction
+import com.dreamdisplays.api.playback.model.FullscreenMode
+import com.dreamdisplays.api.playback.model.PlaybackMode
+import com.dreamdisplays.api.playback.model.Timeline
+import com.dreamdisplays.api.playback.model.FullscreenSessionRecord
+import com.dreamdisplays.core.protocol.common.packets.DisplayDelete
+import com.dreamdisplays.core.protocol.common.packets.FullscreenState
+import com.dreamdisplays.core.protocol.common.toSync
 import com.dreamdisplays.platform.server.datatypes.display.DisplayData
 import com.dreamdisplays.platform.server.datatypes.display.shortLabel
 import com.dreamdisplays.platform.server.managers.DisplayManager

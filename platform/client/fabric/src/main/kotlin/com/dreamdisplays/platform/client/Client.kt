@@ -24,7 +24,7 @@ import net.minecraft.client.renderer.rendertype.RenderType
 import net.minecraft.resources.Identifier
 //?} else
 /*import net.minecraft.resources.ResourceLocation as Identifier*/
-import com.dreamdisplays.api.platform.integration.PlatformServices
+import com.dreamdisplays.api.platform.service.keys.PlatformServices
 import com.dreamdisplays.platform.client.core.DreamServices
 import com.dreamdisplays.platform.client.displays.DisplayRegistry
 import com.dreamdisplays.platform.client.net.Packets
@@ -86,7 +86,7 @@ class Client : ClientModInitializer, Mod {
             val mc = Minecraft.getInstance()
             if (mc.level != null && mc.player != null) {
                 renderBufferedScreens(context, mc)
-                // Render popout windows after all Minecraft/mod rendering is submitted,
+                // Render popout windows after all Minecraft / mod rendering is submitted,
                 // so any GL-context switch (macOS GLFW backend) does not disturb in-flight commands.
                 DisplayRegistry.getScreens().forEach { it.renderPopout() }
             }
