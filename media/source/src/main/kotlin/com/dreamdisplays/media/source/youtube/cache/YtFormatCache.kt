@@ -6,7 +6,9 @@ import com.dreamdisplays.util.AsyncMemo
 import com.dreamdisplays.util.DreamCoroutines
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
+import kotlinx.coroutines.CancellationException
 import kotlinx.io.IOException
+import org.slf4j.LoggerFactory
 
 /**
  * In-memory -> disk -> [resolve] cache for resolved YouTube stream lists, with separate staleness
@@ -15,6 +17,9 @@ import kotlinx.io.IOException
  * to isolate caching from the `NewPipeExtractor` / `yt-dlp` resolution strategy itself.
  */
 class YtFormatCache(private val resolve: suspend (String) -> List<YtStream>) {
+    /** Logger. */
+    private val logger = LoggerFactory.getLogger("DreamDisplays/YtFormatCache")
+
     /** Shared 5h format-cache TTL: the on-disk default and this cache's in-memory format TTL. */
     private val cacheTtlMs: Long = FormatDiskCache.DEFAULT_TTL_MS
 
@@ -36,12 +41,15 @@ class YtFormatCache(private val resolve: suspend (String) -> List<YtStream>) {
     }
 
     /** Fires a background fetch for [videoUrl] if not already cached, so it is ready before [fetch] is called. */
-    @Suppress("DeferredResultUnused")
     fun prefetch(videoUrl: String) {
         val cached = formatMemo.peekFresh(videoUrl) ?: loadFromDisk(videoUrl)
         if (cached != null && !isStaleLive(videoUrl, cached) && !isStalePartial(videoUrl, cached)) return
         if (cached != null) invalidate(videoUrl)
-        formatMemo.load(videoUrl) { fetchAndPersist(it) }
+        formatMemo.load(videoUrl) { fetchAndPersist(it) }.invokeOnCompletion { e ->
+            if (e != null && e !is CancellationException) {
+                logger.debug("Prefetch failed for {}: {}", videoUrl, e.message)
+            }
+        }
     }
 
     /** Removes [videoUrl] from the in-memory format cache, in-flight map, and disk cache. */

@@ -92,7 +92,6 @@ class Config(private val plugin: PaperServer) {
      * Resolves [key] in [player]'s locale, then in the configured default, then in the English fallback.
      * Returns null when no translation exists in any language.
      */
-    @Suppress("DEPRECATION")
     fun getMessageForPlayer(player: Player?, key: String): Any? =
-        langStore.getMessage(player?.locale ?: "en_us", language.default_language, key)
+        langStore.getMessage(player?.locale()?.toString() ?: "en_us", language.default_language, key)
 }

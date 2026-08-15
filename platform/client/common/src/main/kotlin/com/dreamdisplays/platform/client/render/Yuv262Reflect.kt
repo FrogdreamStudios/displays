@@ -32,8 +32,7 @@ internal object Yuv262Reflect {
 
     /** The `GpuFormat.R8_UNORM` enum constant, resolved reflectively. */
     private val gpuFormatR8: Any by lazy {
-        @Suppress("UNCHECKED_CAST")
-        java.lang.Enum.valueOf(gpuFormatClass as Class<out Enum<*>>, "R8_UNORM")
+        RenderPipelineCompat.reflectiveEnumValue(gpuFormatClass, "R8_UNORM")
     }
 
     /** Looks up a vanilla [net.minecraft.client.renderer.BindGroupLayouts] constant. */
@@ -70,8 +69,7 @@ internal object Yuv262Reflect {
 
         val topologyClass = Class.forName("com.mojang.blaze3d.PrimitiveTopology")
 
-        @Suppress("UNCHECKED_CAST")
-        val quads = java.lang.Enum.valueOf(topologyClass as Class<out Enum<*>>, "QUADS")
+        val quads = RenderPipelineCompat.reflectiveEnumValue(topologyClass, "QUADS")
         builderClass.getMethod("withPrimitiveTopology", topologyClass).invoke(builder, quads)
 
         builder.withLocation(Identifier.fromNamespaceAndPath(Initializer.MOD_ID, "pipeline/display_yuv"))

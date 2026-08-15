@@ -6,6 +6,8 @@ import com.mojang.brigadier.arguments.ArgumentType
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType
 import io.github.arnodoelinger.platformweaver.FabricOnly
 import io.github.arnodoelinger.platformweaver.NeoForgeOnly
+import net.fabricmc.fabric.api.command.v2.ArgumentTypeRegistry.registerArgumentType
+import net.minecraft.commands.synchronization.ArgumentTypeInfos
 import net.minecraft.commands.synchronization.SingletonArgumentInfo
 import net.minecraft.core.Registry
 import net.minecraft.core.registries.BuiltInRegistries
@@ -42,7 +44,7 @@ object FabricBareTokenArgumentType {
         if (registered) return
         registered = true
         val info = SingletonArgumentInfo.contextFree { BareTokenArgumentType }
-        net.fabricmc.fabric.api.command.v2.ArgumentTypeRegistry.registerArgumentType(
+        registerArgumentType(
             BareTokenArgumentType.ID, BareTokenArgumentType::class.java, info,
         )
     }
@@ -59,13 +61,12 @@ object NeoForgeBareTokenArgumentType {
     fun register() {
         if (registered) return
         registered = true
-        val field = net.minecraft.commands.synchronization.ArgumentTypeInfos::class.java.getDeclaredField("BY_CLASS")
+        val field = ArgumentTypeInfos::class.java.getDeclaredField("BY_CLASS")
         field.isAccessible = true
-        @Suppress("UNCHECKED_CAST")
-        val byClass =
-            field.get(null) as MutableMap<Class<*>, net.minecraft.commands.synchronization.ArgumentTypeInfo<*, *>>
+        val byClass = field.get(null)!!
         val info = SingletonArgumentInfo.contextFree { BareTokenArgumentType }
-        byClass.putIfAbsent(BareTokenArgumentType::class.java, info)
+        byClass.javaClass.getMethod("putIfAbsent", Any::class.java, Any::class.java)
+            .invoke(byClass, BareTokenArgumentType::class.java, info)
         Registry.register(BuiltInRegistries.COMMAND_ARGUMENT_TYPE, BareTokenArgumentType.ID, info)
     }
 }

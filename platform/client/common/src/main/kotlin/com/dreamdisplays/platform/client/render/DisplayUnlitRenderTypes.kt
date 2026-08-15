@@ -53,8 +53,7 @@ object DisplayUnlitRenderTypes {
             val programClass = Class.forName("net.irisshaders.iris.api.v0.IrisProgram")
             val api = apiClass.getMethod("getInstance").invoke(null)
 
-            @Suppress("UNCHECKED_CAST")
-            val textured = java.lang.Enum.valueOf(programClass as Class<out Enum<*>>, "TEXTURED")
+            val textured = RenderPipelineCompat.reflectiveEnumValue(programClass, "TEXTURED")
             apiClass.getMethod("assignPipeline", RenderPipeline::class.java, programClass)
                 .invoke(api, pipeline, textured)
         }

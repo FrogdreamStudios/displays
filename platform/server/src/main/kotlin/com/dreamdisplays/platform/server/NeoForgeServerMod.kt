@@ -31,7 +31,6 @@ import org.slf4j.LoggerFactory
  * `NeoForge`-specific implementation of [PaperServer]. See `FabricServer.kt` for the `Fabric`
  * mirror and `VanillaBootstrap.kt` for the storage / playback bring-up shared by both.
  */
-@Suppress("UNUSED")
 @NeoForgeOnly
 @Mod(Initializer.MOD_ID)
 class NeoForgeServer(modEventBus: IEventBus) {

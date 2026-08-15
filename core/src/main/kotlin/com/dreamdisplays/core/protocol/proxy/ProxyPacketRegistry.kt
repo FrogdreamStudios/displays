@@ -32,6 +32,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoBuf
 import kotlinx.serialization.protobuf.ProtoNumber
 import kotlin.reflect.KClass
+import kotlin.reflect.cast
 
 /** Wire frame for the `dreamdisplays:proxy` channel: a type id plus the encoded packet bytes. */
 @Serializable
@@ -58,6 +59,9 @@ object ProxyPacketRegistry {
     ) {
         val id: Int get() = packetType.id
         val direction: ProxyPacketDirection get() = packetType.direction
+
+        /** Encodes [packet], which [entryOf] guarantees is an instance of [type]. */
+        fun encode(proto: ProtoBuf, packet: ProxyPacket): ByteArray = proto.encodeToByteArray(serializer, type.cast(packet))
     }
 
     private val entries: List<Entry<out ProxyPacket>> = listOf(
@@ -106,9 +110,7 @@ object ProxyPacketRegistry {
     /** Encodes [packet] into envelope bytes ready for the `dreamdisplays:proxy` channel. */
     fun encode(packet: ProxyPacket): ByteArray {
         val entry = entryOf(packet)
-
-        @Suppress("UNCHECKED_CAST")
-        val payload = proto.encodeToByteArray(entry.serializer as KSerializer<ProxyPacket>, packet)
+        val payload = entry.encode(proto, packet)
         return proto.encodeToByteArray(ProxyEnvelope.serializer(), ProxyEnvelope(entry.id, payload))
     }
 

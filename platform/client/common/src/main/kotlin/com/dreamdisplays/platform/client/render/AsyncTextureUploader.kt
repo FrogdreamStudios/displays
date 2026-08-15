@@ -85,7 +85,7 @@ class AsyncTextureUploader(private val stateCache: Boolean) : TextureUploader {
             GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR)
             GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0)
         }
-        val w = frame.width;
+        val w = frame.width
         val h = frame.height
         val buf = ByteBuffer.wrap(frame.data)
         if (w != managedTexW || h != managedTexH) {
@@ -136,7 +136,7 @@ class AsyncTextureUploader(private val stateCache: Boolean) : TextureUploader {
         // Make sure the GPU is done reading this slot's PBO before we overwrite it
         waitSlotFence(slot)
 
-        bindBuffer(GL21.GL_PIXEL_UNPACK_BUFFER, slot.pbo)
+        bindBuffer(id = slot.pbo)
         ensureCapacity(slot, size)
 
         val persistent = slot.persistent
@@ -160,7 +160,7 @@ class AsyncTextureUploader(private val stateCache: Boolean) : TextureUploader {
 
         // Restore default alignment (4 bytes) and unbind the buffer.
         pixelStore(GL11.GL_UNPACK_ALIGNMENT, 4)
-        bindBuffer(GL21.GL_PIXEL_UNPACK_BUFFER, 0)
+        bindBuffer(id = 0)
     }
 
     /** Uploads one packed I420 frame (Y plane, then U, then V) from [src] into three plane textures in a single PBO. */
@@ -181,7 +181,7 @@ class AsyncTextureUploader(private val stateCache: Boolean) : TextureUploader {
 
         waitSlotFence(slot)
 
-        bindBuffer(GL21.GL_PIXEL_UNPACK_BUFFER, slot.pbo)
+        bindBuffer(id = slot.pbo)
         ensureCapacity(slot, total)
 
         val persistent = slot.persistent
@@ -208,7 +208,7 @@ class AsyncTextureUploader(private val stateCache: Boolean) : TextureUploader {
         slot.fence = GL32.glFenceSync(GL32.GL_SYNC_GPU_COMMANDS_COMPLETE, 0)
 
         pixelStore(GL11.GL_UNPACK_ALIGNMENT, 4)
-        bindBuffer(GL21.GL_PIXEL_UNPACK_BUFFER, 0)
+        bindBuffer(id = 0)
     }
 
     /** Releases `PBO` IDs. Must be called in the same OpenGL context where they were created. */
@@ -219,9 +219,9 @@ class AsyncTextureUploader(private val stateCache: Boolean) : TextureUploader {
                 slot.fence = 0L
             }
             if (slot.persistent != null) {
-                bindBuffer(GL21.GL_PIXEL_UNPACK_BUFFER, slot.pbo)
+                bindBuffer(id = slot.pbo)
                 GL30.glUnmapBuffer(GL21.GL_PIXEL_UNPACK_BUFFER)
-                bindBuffer(GL21.GL_PIXEL_UNPACK_BUFFER, 0)
+                bindBuffer(id = 0)
                 slot.persistent = null
             }
             if (slot.pbo != 0) GL15.glDeleteBuffers(slot.pbo)
@@ -239,9 +239,9 @@ class AsyncTextureUploader(private val stateCache: Boolean) : TextureUploader {
         val fence = slot.fence
         if (fence == 0L) return
         // Cheap non-blocking poll first; only flush + wait if the GPU is actually behind
-        var status = GL32.glClientWaitSync(fence, 0, 0L)
+        val status = GL32.glClientWaitSync(fence, 0, 0L)
         if (status == GL32.GL_TIMEOUT_EXPIRED) {
-            status = GL32.glClientWaitSync(fence, GL32.GL_SYNC_FLUSH_COMMANDS_BIT, FENCE_TIMEOUT_NS)
+            GL32.glClientWaitSync(fence, GL32.GL_SYNC_FLUSH_COMMANDS_BIT, FENCE_TIMEOUT_NS)
         }
         GL32.glDeleteSync(fence)
         slot.fence = 0L
@@ -259,10 +259,10 @@ class AsyncTextureUploader(private val stateCache: Boolean) : TextureUploader {
                 // Immutable storage can't be resized: unmap and replace the buffer object
                 GL30.glUnmapBuffer(GL21.GL_PIXEL_UNPACK_BUFFER)
                 slot.persistent = null
-                bindBuffer(GL21.GL_PIXEL_UNPACK_BUFFER, 0)
+                bindBuffer(id = 0)
                 GL15.glDeleteBuffers(slot.pbo)
                 slot.pbo = GL15.glGenBuffers()
-                bindBuffer(GL21.GL_PIXEL_UNPACK_BUFFER, slot.pbo)
+                bindBuffer(id = slot.pbo)
             }
             val flags = GL44.GL_MAP_WRITE_BIT or GL44.GL_MAP_PERSISTENT_BIT or GL44.GL_MAP_COHERENT_BIT
             if (GL.getCapabilities().OpenGL44) {
@@ -282,8 +282,7 @@ class AsyncTextureUploader(private val stateCache: Boolean) : TextureUploader {
     }
 
     /** Binds a buffer to the specified target. */
-    @Suppress("SameParameterValue")
-    private fun bindBuffer(target: Int, id: Int) {
+    private fun bindBuffer(target: Int = GL21.GL_PIXEL_UNPACK_BUFFER, id: Int) {
         if (stateCache) GlStateManager._glBindBuffer(target, id) else GL15.glBindBuffer(target, id)
     }
 

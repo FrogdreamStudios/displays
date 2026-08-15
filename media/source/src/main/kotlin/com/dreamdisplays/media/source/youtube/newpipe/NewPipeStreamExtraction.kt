@@ -96,7 +96,6 @@ object NewPipeStreamExtraction {
     private inline fun <T> safe(block: () -> T): T? = runCatching(block).getOrNull()
 
     /** Converts a `NewPipeExtractor` [VideoStream] to a [YtStream]. */
-    @Suppress("DEPRECATION")
     private fun videoToYt(
         s: VideoStream,
         hasAudio: Boolean,
@@ -111,7 +110,7 @@ object NewPipeStreamExtraction {
             mime,
             ext,
             protocolOf(s),
-            s.resolution.ifBlank { null },
+            s.getResolution().ifBlank { null },
             s.width.takeIf { it > 0 },
             s.height.takeIf { it > 0 },
             null,

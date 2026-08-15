@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.At
 import org.spongepowered.asm.mixin.injection.Inject
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable
 
-@Suppress("UNUSED", "NonJavaMixin")
+@Suppress("NonJavaMixin")
 @Mixin(PistonStructureResolver::class)
 open class PistonProtectionMixin {
     @Shadow

@@ -44,7 +44,6 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload
 import org.slf4j.LoggerFactory
 import java.lang.reflect.Proxy
 
-@Suppress("UNUSED")
 class Client : ClientModInitializer, Mod {
     /** If the `LevelRenderContext` has a `BufferSource` API, this is set to true. */
     private var customGeometryUnavailable = false

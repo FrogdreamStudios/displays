@@ -5,7 +5,6 @@ import com.dreamdisplays.api.media.audio.AcousticMaterial
 import com.dreamdisplays.api.media.audio.ListenerPose
 import com.dreamdisplays.api.media.audio.SourcePlane
 import com.dreamdisplays.platform.client.audio.VoxelAcousticsProbe.MAX_OCCLUSION
-import com.dreamdisplays.platform.client.audio.VoxelAcousticsProbe.REVERB_MAX_DISTANCE
 import com.dreamdisplays.platform.client.audio.VoxelAcousticsProbe.REVERB_RAYS
 import com.dreamdisplays.platform.client.audio.VoxelAcousticsProbe.TRANSPARENT_TAGS
 import net.minecraft.client.Minecraft
@@ -176,7 +175,7 @@ object VoxelAcousticsProbe {
     /** Looks up the [AcousticMaterial] for [state], defaulting when the sound type is unknown. */
     @Suppress("DEPRECATION")
     private fun materialFor(state: BlockState): AcousticMaterial {
-        val soundType = runCatching { state.soundType }.getOrNull() ?: return AcousticMaterial.DEFAULT
+        val soundType = runCatching { state.soundType }.getOrNull() ?: return AcousticMaterial.DEFAULT // TODO: replace soundType in future
         return MATERIALS[soundType] ?: AcousticMaterial.DEFAULT
     }
 

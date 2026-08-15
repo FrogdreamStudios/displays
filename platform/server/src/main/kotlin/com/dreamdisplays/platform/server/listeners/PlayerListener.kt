@@ -32,7 +32,6 @@ import java.util.*
  * Handles player join and leave events. If mod detection is enabled, schedules a delayed `modRequired` message for
  * vanilla clients.
  */
-@Suppress("UNUSED")
 @PaperOnly
 @NullMarked
 class PlayerListener : Listener {

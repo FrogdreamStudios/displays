@@ -33,6 +33,7 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.protobuf.ProtoBuf
 import kotlinx.serialization.protobuf.ProtoNumber
 import kotlin.reflect.KClass
+import kotlin.reflect.cast
 
 /** Wire frame for the `dreamdisplays:v2` channel: a type id plus the encoded packet bytes. */
 @Serializable
@@ -57,6 +58,9 @@ object PacketRegistry {
     ) {
         val id: Int get() = packetType.id
         val direction: PacketDirection get() = packetType.direction
+
+        /** Encodes [packet], which [entryOf] guarantees is an instance of [type]. */
+        fun encode(proto: ProtoBuf, packet: DreamPacket): ByteArray = proto.encodeToByteArray(serializer, type.cast(packet))
     }
 
     private val entries: List<Entry<out DreamPacket>> = listOf(
@@ -104,9 +108,7 @@ object PacketRegistry {
     /** Encodes [packet] into envelope bytes ready for the `dreamdisplays:v2` channel. */
     fun encode(packet: DreamPacket): ByteArray {
         val entry = entryOf(packet)
-
-        @Suppress("UNCHECKED_CAST")
-        val payload = proto.encodeToByteArray(entry.serializer as KSerializer<DreamPacket>, packet)
+        val payload = entry.encode(proto, packet)
         return proto.encodeToByteArray(Envelope.serializer(), Envelope(entry.id, payload))
     }
 

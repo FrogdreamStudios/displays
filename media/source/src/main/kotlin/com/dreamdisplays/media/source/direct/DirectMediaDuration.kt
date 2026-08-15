@@ -125,7 +125,7 @@ internal object DirectMediaDuration {
      */
     private fun matroska(url: String): Long? {
         val head = range(url, 0, MATROSKA_HEAD_BYTES - 1L) ?: return null
-        val infoAt = indexOf(head, byteArrayOf(0x15, 0x49.toByte(), 0xA9.toByte(), 0x66), 0) ?: return null
+        val infoAt = indexOf(head, byteArrayOf(0x15, 0x49.toByte(), 0xA9.toByte(), 0x66)) ?: return null
 
         var cursor = infoAt + 4
         val infoSize = readVint(head, cursor, stripMarker = true) ?: return null
@@ -195,10 +195,9 @@ internal object DirectMediaDuration {
         }
     }
 
-    /** Index of [pattern] in [data] at or after [from], or null when absent. */
-    @Suppress("SameParameterValue")
-    private fun indexOf(data: ByteArray, pattern: ByteArray, from: Int): Int? {
-        outer@ for (i in from..data.size - pattern.size) {
+    /** Index of [pattern] in [data], or null when absent. */
+    private fun indexOf(data: ByteArray, pattern: ByteArray): Int? {
+        outer@ for (i in 0..data.size - pattern.size) {
             for (j in pattern.indices) if (data[i + j] != pattern[j]) continue@outer
             return i
         }

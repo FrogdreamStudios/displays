@@ -29,7 +29,6 @@ import java.io.File
  * `Fabric`-specific implementation of [PaperServer]. See `NeoForgeServerMod.kt` for the `NeoForge`
  * mirror and `VanillaBootstrap.kt` for the storage / playback bring-up shared by both.
  */
-@Suppress("UNUSED")
 @FabricOnly
 class Server : ModInitializer {
     /**
