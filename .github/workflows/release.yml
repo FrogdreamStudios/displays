@@ -247,6 +247,8 @@ jobs:
             purpur
           game-versions: ${{ steps.versions.outputs.paper_versions }}
           game-version-filter: none
+          dependencies: |
+            luckperms(optional){modrinth:Vebnzrzj}
 
       - name: Download all build artifacts for GitHub Release
         if: needs.build.outputs.is_marketplace_publishable == 'true' && needs.build.outputs.is_release == 'true'
@@ -422,6 +424,7 @@ jobs:
           game-version-filter: none
           dependencies: |
             fabric-api(required){modrinth:P7dR8mSH}
+            luckperms(optional){modrinth:Vebnzrzj}
 
       - name: Publish Fabric to CurseForge
         if: needs.build.outputs.is_marketplace_publishable == 'true' && matrix.task.kind == 'fabric' && steps.versions.outputs.curseforge_publishable == 'true'
@@ -440,6 +443,7 @@ jobs:
           game-versions: ${{ steps.versions.outputs.mc_versions }}
           dependencies: |
             fabric-api(required){curseforge:306612}
+            luckperms(optional){curseforge:431733}
 
       - name: Publish NeoForge to Modrinth
         if: needs.build.outputs.is_marketplace_publishable == 'true' && matrix.task.kind == 'neoforge'
@@ -455,6 +459,8 @@ jobs:
           loaders: neoforge
           game-versions: ${{ steps.versions.outputs.mc_versions }}
           game-version-filter: none
+          dependencies: |
+            luckperms(optional){modrinth:Vebnzrzj}
 
       - name: Publish NeoForge to CurseForge
         if: needs.build.outputs.is_marketplace_publishable == 'true' && matrix.task.kind == 'neoforge' && steps.versions.outputs.curseforge_publishable == 'true'
@@ -469,6 +475,8 @@ jobs:
           curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
           loaders: neoforge
           game-versions: ${{ steps.versions.outputs.mc_versions }}
+          dependencies: |
+            luckperms(optional){curseforge:431733}
 
   discord-announce:
     name: Announce release on Discord

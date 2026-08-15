@@ -27,6 +27,9 @@
     "minecraft": "${minecraftVersion}",
     "java": ">=${javaVersion}"
   },
+  "suggests": {
+    "luckperms": "*"
+  },
   "custom": {
     "modmenu": {
       "badges": [

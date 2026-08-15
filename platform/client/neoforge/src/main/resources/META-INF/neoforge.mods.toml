@@ -30,3 +30,10 @@ type = "required"
 versionRange = "${minecraftRange}"
 ordering = "NONE"
 side = "BOTH"
+
+[[dependencies.dreamdisplays]]
+modId = "luckperms"
+type = "optional"
+versionRange = "[5,)"
+ordering = "AFTER"
+side = "BOTH"
