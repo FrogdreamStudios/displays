@@ -20,7 +20,7 @@ import org.spongepowered.asm.mixin.injection.Inject
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
 
 /** Mixin that injects PiP overlay rendering at the tail of every Screen render call. Unsafe to change. */
-@Suppress("UNUSED", "NonJavaMixin")
+@Suppress("NonJavaMixin")
 @Mixin(Screen::class)
 open class ScreenOverlay {
     //? if >=26 {

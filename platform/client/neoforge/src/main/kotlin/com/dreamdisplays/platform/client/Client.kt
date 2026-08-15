@@ -23,7 +23,6 @@ import net.neoforged.neoforge.client.event.lifecycle.ClientStoppingEvent
 //?}
 import net.neoforged.neoforge.common.NeoForge
 
-@Suppress("UNUSED")
 @Mod(value = Initializer.MOD_ID, dist = [Dist.CLIENT])
 class Client(modEventBus: IEventBus) : DreamMod {
     init {
