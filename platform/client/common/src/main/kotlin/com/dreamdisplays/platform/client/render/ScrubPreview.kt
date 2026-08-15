@@ -10,7 +10,6 @@ import com.dreamdisplays.api.security.policy.MediaHosts
 import com.dreamdisplays.media.runtime.security.MediaHostGuard
 import com.dreamdisplays.platform.client.render.ScrubPreview.EXTRACT_CONCURRENCY
 import com.dreamdisplays.platform.client.render.ScrubPreview.FRAMES
-import com.dreamdisplays.platform.client.render.ScrubPreview.SAMPLE_COUNT
 import com.dreamdisplays.platform.client.render.ScrubPreview.generate
 import com.dreamdisplays.util.DreamCoroutines
 import com.github.benmanes.caffeine.cache.Cache

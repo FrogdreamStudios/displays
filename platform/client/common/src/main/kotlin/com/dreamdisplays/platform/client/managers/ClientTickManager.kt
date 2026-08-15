@@ -25,8 +25,6 @@ import java.util.*
  * Handles per-tick client display state: level changes, hover, unloading, and shortcuts.
  */
 object ClientTickManager {
-    private val logger = org.slf4j.LoggerFactory.getLogger("DreamDisplays/ClientTickManager")
-
     /**
      * Deadband around a display's renderDistance so a player lingering near the boundary doesn't
      * flip park / wake every tick (block-quantized position drift across a single threshold).

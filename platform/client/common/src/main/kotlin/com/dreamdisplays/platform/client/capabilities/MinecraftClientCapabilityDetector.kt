@@ -18,10 +18,9 @@ import java.time.ZoneId
 /**
  * Probes the running client for [ClientHello] capabilities. Popout support comes from the `GLFW`
  * shared-context check in [VideoPopoutWindow], hardware decode from the per-OS
- * [HwAccelBackend] default, and codec support from what the FFmpeg pipeline decodes.
+ * [HwAccelBackend] default, and codec support from what the `FFmpeg` pipeline decodes.
  */
 object MinecraftClientCapabilityDetector : ClientCapabilityDetector {
-
     /** Matches [AsyncTextureUploader]; a GL query needs a current context, which detect-time can't guarantee. */
     override val maxTextureSize: Int = 8192
 

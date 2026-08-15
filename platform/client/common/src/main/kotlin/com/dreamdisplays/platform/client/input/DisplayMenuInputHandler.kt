@@ -33,7 +33,7 @@ class DisplayMenuInputHandler : InputHandler {
     }
 
     companion object {
-        /** Id of the menu-open binding in the [KeyBindingRegistry]. */
+        /** ID of the menu-open binding in the [KeyBindingRegistry]. */
         const val OPEN_MENU_BINDING_ID = "dreamdisplays.open_menu"
 
         /** Default menu-open binding: right mouse button (with sneak held). */

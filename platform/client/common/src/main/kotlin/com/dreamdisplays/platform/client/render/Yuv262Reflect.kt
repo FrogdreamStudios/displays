@@ -11,7 +11,7 @@ import net.minecraft.client.renderer.texture.AbstractTexture
 import net.minecraft.resources.Identifier
 
 /**
- * Reflective GPU-YUV backend for the 26.2+ Blaze3D API. It rebuilds the same pipeline through
+ * Reflective GPU-YUV backend for the 26.2+ `Blaze3D` API. It rebuilds the same pipeline through
  * reflection over the new `BindGroupLayout` / `GpuFormat` API, so one binary serves every loader
  * and version.
  */

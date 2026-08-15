@@ -108,6 +108,7 @@ class DisplayTextureResource(private val uuid: UUID) {
      * in YUV mode a plain unlit type over a white texture (the YUV shader would
      * misinterpret a flat color quad as chroma).
      */
+    @Suppress("UNUSED")
     val fallbackRenderType: RenderType? get() = current?.fallbackRenderType
 
     /** True while a pending (new-resolution) allocation is staged, waiting for its first frame. */

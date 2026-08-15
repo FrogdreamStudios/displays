@@ -66,6 +66,7 @@ class GpuFrameUploader : FrameUploader {
     }
 
     /** Lazily creates the interleaved GL uploader. */
+    @Suppress("UNUSED")
     private fun glUploader(): AsyncTextureUploader =
         uploader ?: AsyncTextureUploader(stateCache = true).also { uploader = it }
 

@@ -23,7 +23,6 @@ import com.dreamdisplays.api.playback.model.FullscreenMode
 import com.dreamdisplays.api.playback.model.PlaybackAction
 import com.dreamdisplays.api.playback.model.PlaybackContext
 import com.dreamdisplays.api.playback.model.PlaybackMode
-import com.dreamdisplays.api.playback.model.Timeline
 import com.dreamdisplays.api.playback.model.WatchPartyAction
 import com.dreamdisplays.api.playback.model.WatchPartySessionState
 import com.dreamdisplays.api.playback.policy.PlaybackPermissions
@@ -215,6 +214,7 @@ class DisplayScreen(
     val isYuvTexture: Boolean get() = textureResource.isYuv
 
     /** [RenderType] for the loading / error color quads (differs from [renderType] in YUV mode). */
+    @Suppress("UNUSED")
     val fallbackRenderType: RenderType? get() = textureResource.fallbackRenderType
 
     // During a quality handoff the new decoder must target the pending (new-resolution) texture,
@@ -469,13 +469,6 @@ class DisplayScreen(
         loadVideoInternal(videoUrl, lang, true)
     }
 
-    /** Loads and immediately starts [videoUrl] from the beginning, ignoring the saved paused state. */
-    fun playVideoNow(videoUrl: String, lang: String) {
-        paused = false
-        savedTimeNanos = 0L
-        loadVideoInternal(videoUrl, lang, false)
-    }
-
     /** Re-attempts current video after failure; purely local, no server packet. */
     fun retryVideo() {
         val url = videoUrl ?: return
@@ -710,7 +703,7 @@ class DisplayScreen(
         frameUploader.upload(mp, textureResource, ::markRendered)
     }
 
-    /** Renders frame to popout; call after all Minecraft/mod rendering to avoid GL-context corruption. */
+    /** Renders frame to popout; call after all Minecraft / mod rendering to avoid GL-context corruption. */
     fun renderPopout() {
         popoutManager.renderFrame()
     }
@@ -904,13 +897,6 @@ class DisplayScreen(
         applyEffectiveVolume()
         ClientSettingsStore.updateSettings(uuid, volume, quality, brightness, muted, paused)
         DisplayRegistry.recordScreen(this)
-    }
-
-    /** Enables or disables the 3D acoustics engine for this display; no-op if already in that state. */
-    fun setAcoustics(enabled: Boolean) {
-        if (acousticsEnabled == enabled) return
-        acousticsEnabled = enabled
-        ClientSettingsStore.setAcousticsEnabled(uuid, enabled)
     }
 
     /** Applies temporary focus mute without changing the user's persisted mute setting. */

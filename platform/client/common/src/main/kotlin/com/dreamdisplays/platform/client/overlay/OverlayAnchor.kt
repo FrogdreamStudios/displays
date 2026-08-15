@@ -5,21 +5,6 @@ package com.dreamdisplays.platform.client.overlay
  * (0 = left / top, 1 = right / bottom).
  */
 enum class OverlayAnchor(val snapX: Float, val snapY: Float) {
-    /** Docked to the top-left corner. */
-    TOP_LEFT(0f, 0f),
-
-    /** Docked to the top-right corner. */
-    TOP_RIGHT(1f, 0f),
-
-    /** Docked to the bottom-left corner. */
-    BOTTOM_LEFT(0f, 1f),
-
-    /** Docked to the bottom-right corner. */
-    BOTTOM_RIGHT(1f, 1f),
-
     /** Freely positioned; ignores snapping. */
     FREE(-1f, -1f);
-
-    /** True for any corner anchor, i.e. anything except [FREE]. */
-    val isSnapped: Boolean get() = this != FREE
 }

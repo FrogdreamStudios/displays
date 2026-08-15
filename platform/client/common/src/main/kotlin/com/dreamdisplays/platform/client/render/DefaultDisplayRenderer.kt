@@ -8,7 +8,6 @@ import java.util.concurrent.CopyOnWriteArrayList
 
 /** Default [DisplayRenderer]: orchestrator for externally registered, self-rendering [RenderSurface]s. */
 class DefaultDisplayRenderer : DisplayRenderer {
-
     /** Registered self-rendering surfaces, drawn each pass. */
     private val surfaces = CopyOnWriteArrayList<RenderSurface>()
 

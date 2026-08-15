@@ -14,8 +14,6 @@ object CustomVideoStore {
 
     private const val FILE_NAME = "custom-videos.json"
     private const val SCHEMA_VERSION = 1
-
-    /** Plenty for a personal list, small enough that the whole file stays trivial to read and write. */
     private const val MAX_ENTRIES = 100
 
     private val jsonFiles = JsonFileStore()
