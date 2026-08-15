@@ -4,7 +4,7 @@ import com.dreamdisplays.api.media.service.keys.MediaServices
 import com.dreamdisplays.api.media.audio.service.keys.AudioAcousticsServices
 import com.dreamdisplays.api.media.source.model.MediaSource
 import com.dreamdisplays.api.playback.model.PlaybackMode
-import com.dreamdisplays.core.protocol.packets.ReportDuration
+import com.dreamdisplays.core.protocol.common.packets.ReportDuration
 import com.dreamdisplays.media.player.MediaPlayer
 import com.dreamdisplays.platform.client.Initializer
 import com.dreamdisplays.platform.client.core.DreamServices

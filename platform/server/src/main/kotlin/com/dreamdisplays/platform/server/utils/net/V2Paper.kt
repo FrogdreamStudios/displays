@@ -6,8 +6,8 @@ import com.dreamdisplays.api.playback.model.PlaybackAction
 import com.dreamdisplays.api.playback.model.PlaybackMode
 import com.dreamdisplays.api.playback.model.WatchPartyAction
 import com.dreamdisplays.api.protocol.model.PacketDirection
-import com.dreamdisplays.core.protocol.*
-import com.dreamdisplays.core.protocol.packets.*
+import com.dreamdisplays.core.protocol.common.PacketRegistry
+import com.dreamdisplays.core.protocol.common.packets.*
 import com.dreamdisplays.platform.server.PaperServer
 import com.dreamdisplays.platform.server.managers.DisplayManager
 import com.dreamdisplays.platform.server.managers.PlayerManager

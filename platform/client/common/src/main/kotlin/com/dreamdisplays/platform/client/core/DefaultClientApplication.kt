@@ -2,7 +2,7 @@ package com.dreamdisplays.platform.client.core
 
 import com.dreamdisplays.api.runtime.module.DreamDisplaysModule
 import com.dreamdisplays.api.runtime.registry.service.ServiceRegistry
-import com.dreamdisplays.core.runtime.DefaultDreamDisplaysRuntime
+import com.dreamdisplays.core.runtime.DefaultRuntime
 import java.util.concurrent.CopyOnWriteArrayList
 
 /**
@@ -10,7 +10,7 @@ import java.util.concurrent.CopyOnWriteArrayList
  * torn down in reverse on stop.
  */
 class DefaultClientApplication(override val context: ClientContext) : ClientApplication {
-    private val runtime = DefaultDreamDisplaysRuntime(context)
+    private val runtime = DefaultRuntime(context)
     private val clientModules = LinkedHashMap<String, ClientModule>()
 
     /** Listeners for lifecycle events. */

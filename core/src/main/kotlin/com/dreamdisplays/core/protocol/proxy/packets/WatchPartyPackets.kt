@@ -35,7 +35,7 @@ data class JoinNetworkWatchParty(
     @ProtoNumber(6) val lang: String = "",
 ) : ProxyPacket
 
-/** Bidirectional: network watch party state; mirrors [com.dreamdisplays.core.protocol.packets.WatchPartyState]. */
+/** Bidirectional: network watch party state; mirrors [com.dreamdisplays.core.protocol.common.packets.WatchPartyState]. */
 @Serializable
 data class NetworkWatchPartyState(
     @ProtoNumber(1) val partyId: String = "",

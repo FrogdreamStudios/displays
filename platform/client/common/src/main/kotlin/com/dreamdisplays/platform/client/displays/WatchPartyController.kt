@@ -1,8 +1,8 @@
 package com.dreamdisplays.platform.client.displays
 
 import com.dreamdisplays.api.playback.model.WatchPartyAction
-import com.dreamdisplays.core.protocol.packets.WatchPartyControl
-import com.dreamdisplays.core.protocol.packets.WatchPartyStart
+import com.dreamdisplays.core.protocol.common.packets.WatchPartyControl
+import com.dreamdisplays.core.protocol.common.packets.WatchPartyStart
 import com.dreamdisplays.platform.client.Initializer
 
 /** Emits the local player's watch-party control intents for a [DisplayScreen]. Pure outbound command emission: no local state mutation, the server echoes back the authoritative state. */

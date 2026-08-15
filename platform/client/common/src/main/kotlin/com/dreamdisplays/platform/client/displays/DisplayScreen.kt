@@ -29,8 +29,8 @@ import com.dreamdisplays.api.playback.model.WatchPartySessionState
 import com.dreamdisplays.api.playback.policy.PlaybackPermissions
 import com.dreamdisplays.api.display.model.settings.ClientDisplaySettings
 import com.dreamdisplays.api.watchparty.model.WatchPartySession
-import com.dreamdisplays.core.protocol.*
-import com.dreamdisplays.core.protocol.packets.*
+import com.dreamdisplays.core.protocol.common.hasFeature
+import com.dreamdisplays.core.protocol.common.packets.*
 import com.dreamdisplays.media.player.MediaPlayer
 import com.dreamdisplays.platform.client.Initializer
 import com.dreamdisplays.platform.client.audio.ListenerPoseTracker
@@ -106,7 +106,7 @@ class DisplayScreen(
     /** Server-reported lock state, or `null` until the server reports it. */
     var isLocked: Boolean? = null
 
-    /** Epoch millis of a pending scheduled play / pause, or `0` when none is set (see [com.dreamdisplays.core.protocol.packets.DisplayInfo]). */
+    /** Epoch millis of a pending scheduled play / pause, or `0` when none is set (see [com.dreamdisplays.core.protocol.common.packets.DisplayInfo]). */
     var scheduledStartEpochMillis: Long = 0
 
     /** Wire ordinal of the scheduled [com.dreamdisplays.api.playback.model.PlaybackAction] (`PLAY`/`PAUSE`), or `-1` when none is set. */

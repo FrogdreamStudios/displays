@@ -1,4 +1,4 @@
-package com.dreamdisplays.core.protocol
+package com.dreamdisplays.core.protocol.common
 
 import com.dreamdisplays.api.playback.model.PlaybackMode
 import com.dreamdisplays.api.playback.model.Timeline

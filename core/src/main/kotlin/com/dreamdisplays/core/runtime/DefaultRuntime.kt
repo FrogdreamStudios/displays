@@ -8,7 +8,7 @@ import com.dreamdisplays.api.runtime.registry.service.ServiceRegistry
 /**
  * Default module host: registration, dependency ordering, lifecycle.
  */
-class DefaultDreamDisplaysRuntime(
+class DefaultRuntime(
     private val context: ModuleContext = DefaultModuleContext(DefaultServiceRegistry()),
 ) : DreamDisplaysRuntime {
     /** Live module instances. */

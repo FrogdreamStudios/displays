@@ -7,7 +7,7 @@ import com.dreamdisplays.api.media.model.VideoQuality
 import com.dreamdisplays.api.media.source.model.MediaSource
 import com.dreamdisplays.api.playback.model.PlaybackMode
 import com.dreamdisplays.api.storage.model.FullDisplayData
-import com.dreamdisplays.core.protocol.packets.DisplayInfo
+import com.dreamdisplays.core.protocol.common.packets.DisplayInfo
 import com.dreamdisplays.core.services.DisplayStorage
 import com.dreamdisplays.platform.client.core.DreamServices
 import com.dreamdisplays.platform.client.displays.DisplayRegistry

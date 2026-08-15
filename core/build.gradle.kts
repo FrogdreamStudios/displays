@@ -15,6 +15,6 @@ tasks.register<JavaExec>("generateProto") {
     group = "build"
     description = "Regenerates src/main/proto/dreamdisplays.proto from the packet classes."
     classpath = sourceSets.test.get().runtimeClasspath
-    mainClass.set("com.dreamdisplays.core.protocol.SchemaExporterKt")
+    mainClass.set("com.dreamdisplays.core.protocol.common.SchemaExporterKt")
     args(layout.projectDirectory.file("src/main/proto/dreamdisplays.proto").asFile.absolutePath)
 }

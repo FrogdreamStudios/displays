@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalSerializationApi::class)
 
-package com.dreamdisplays.core.protocol
+package com.dreamdisplays.core.protocol.common
 
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.protobuf.schema.ProtoBufSchemaGenerator

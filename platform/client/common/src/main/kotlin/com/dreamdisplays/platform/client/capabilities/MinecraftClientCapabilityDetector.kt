@@ -4,7 +4,7 @@ import com.dreamdisplays.api.media.stream.model.SupportedCodec
 import com.dreamdisplays.api.render.backend.model.RenderBackend
 import com.dreamdisplays.api.render.backend.model.ShaderBackend
 import com.dreamdisplays.api.render.texture.model.TextureUploadPath
-import com.dreamdisplays.core.protocol.packets.ClientHello
+import com.dreamdisplays.core.protocol.common.packets.ClientHello
 import com.dreamdisplays.media.player.nativebridge.NativeMedia
 import com.dreamdisplays.media.player.process.HwAccelBackend
 import com.dreamdisplays.platform.client.managers.WarmParkPolicy

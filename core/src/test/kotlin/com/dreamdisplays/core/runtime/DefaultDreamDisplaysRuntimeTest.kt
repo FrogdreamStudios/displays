@@ -32,7 +32,7 @@ class DefaultDreamDisplaysRuntimeTest {
 
     @Test
     fun runtimeInstallsDependenciesBeforeDependentsAndUninstallsInReverseOrder() {
-        val runtime = DefaultDreamDisplaysRuntime()
+        val runtime = DefaultRuntime()
         val events = mutableListOf<String>()
 
         runtime.registerModule(recordingModule("test:feature", dependencies = listOf("test:base"), events))
@@ -54,7 +54,7 @@ class DefaultDreamDisplaysRuntimeTest {
 
     @Test
     fun runtimeRejectsMissingDependencies() {
-        val runtime = DefaultDreamDisplaysRuntime()
+        val runtime = DefaultRuntime()
         runtime.registerModule(
             recordingModule(
                 "test:feature",
@@ -70,7 +70,7 @@ class DefaultDreamDisplaysRuntimeTest {
 
     @Test
     fun runtimeUninstallsAlreadyInstalledModulesWhenStartFails() {
-        val runtime = DefaultDreamDisplaysRuntime()
+        val runtime = DefaultRuntime()
         val events = mutableListOf<String>()
 
         runtime.registerModule(recordingModule("test:base", events = events))

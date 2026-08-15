@@ -1,10 +1,10 @@
-package com.dreamdisplays.core.protocol
+package com.dreamdisplays.core.protocol.common
 
 import com.dreamdisplays.api.capability.ServerFeature
 import com.dreamdisplays.api.playback.model.PlaybackMode
 import com.dreamdisplays.api.playback.model.Timeline
-import com.dreamdisplays.core.protocol.packets.DisplaySync
-import com.dreamdisplays.core.protocol.packets.ServerHello
+import com.dreamdisplays.core.protocol.common.packets.DisplaySync
+import com.dreamdisplays.core.protocol.common.packets.ServerHello
 import kotlinx.serialization.Serializable
 import java.util.*
 

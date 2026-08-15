@@ -6,9 +6,9 @@ import com.dreamdisplays.api.display.model.settings.DisplaySettings
 import com.dreamdisplays.api.display.service.DisplayExecutor
 import com.dreamdisplays.api.media.model.VideoQuality
 import com.dreamdisplays.api.playback.model.PlaybackMode
-import com.dreamdisplays.core.protocol.packets.DisplayDelete
-import com.dreamdisplays.core.protocol.packets.ReportDisplay
-import com.dreamdisplays.core.protocol.packets.SetLocked
+import com.dreamdisplays.core.protocol.common.packets.DisplayDelete
+import com.dreamdisplays.core.protocol.common.packets.ReportDisplay
+import com.dreamdisplays.core.protocol.common.packets.SetLocked
 import com.dreamdisplays.core.services.DisplayStorage
 import com.dreamdisplays.platform.client.Initializer
 import kotlin.time.Duration

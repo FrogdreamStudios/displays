@@ -1,9 +1,9 @@
 @file:OptIn(ExperimentalSerializationApi::class)
 
-package com.dreamdisplays.core.protocol.packets
+package com.dreamdisplays.core.protocol.common.packets
 
-import com.dreamdisplays.core.protocol.UuidSerializer
-import com.dreamdisplays.core.protocol.ZERO_UUID
+import com.dreamdisplays.core.protocol.common.UuidSerializer
+import com.dreamdisplays.core.protocol.common.ZERO_UUID
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoIntegerType

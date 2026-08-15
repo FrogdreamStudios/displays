@@ -4,8 +4,8 @@ import com.dreamdisplays.api.playback.model.PlaybackAction
 import com.dreamdisplays.api.playback.model.PlaybackMode
 import com.dreamdisplays.api.playback.policy.PlaybackPermissions
 import com.dreamdisplays.api.playback.model.Timeline
-import com.dreamdisplays.core.protocol.packets.PlaybackCommand
-import com.dreamdisplays.core.protocol.toSync
+import com.dreamdisplays.core.protocol.common.packets.PlaybackCommand
+import com.dreamdisplays.core.protocol.common.toSync
 import com.dreamdisplays.platform.server.datatypes.display.DisplayData
 import com.dreamdisplays.platform.server.managers.ActionThrottle
 import com.dreamdisplays.platform.server.managers.DisplayManager

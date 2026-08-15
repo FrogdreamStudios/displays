@@ -1,13 +1,13 @@
 @file:OptIn(ExperimentalSerializationApi::class)
 
-package com.dreamdisplays.core.protocol
+package com.dreamdisplays.core.protocol.common
 
 import com.dreamdisplays.api.playback.model.PlaybackAction
 import com.dreamdisplays.api.playback.model.PlaybackMode
 import com.dreamdisplays.api.playback.model.WatchPartyAction
 import com.dreamdisplays.api.playback.model.WatchPartySessionState
 import com.dreamdisplays.api.protocol.model.PacketDirection
-import com.dreamdisplays.core.protocol.packets.*
+import com.dreamdisplays.core.protocol.common.packets.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.protobuf.ProtoBuf
 import java.util.*

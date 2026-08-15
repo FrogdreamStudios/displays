@@ -46,7 +46,7 @@ data class ProxyEnvelope(
     override fun hashCode(): Int = 31 * type + payload.contentHashCode()
 }
 
-/** Separate proxy packet registry (disjoint id-space from [com.dreamdisplays.core.protocol.PacketRegistry]).
+/** Separate proxy packet registry (disjoint id-space from [com.dreamdisplays.core.protocol.common.PacketRegistry]).
  * Uses direct serializer() references only; reflection breaks under shadow relocation.
  */
 object ProxyPacketRegistry {

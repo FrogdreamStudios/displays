@@ -4,7 +4,7 @@ import com.dreamdisplays.api.display.model.property.DisplayId
 import com.dreamdisplays.api.media.sink.service.VideoFrameSink
 import com.dreamdisplays.api.playback.model.FullscreenMode
 import com.dreamdisplays.api.runtime.registry.service.getOrNull
-import com.dreamdisplays.core.protocol.packets.PipPin
+import com.dreamdisplays.core.protocol.common.packets.PipPin
 import com.dreamdisplays.platform.client.Initializer
 import com.dreamdisplays.platform.client.core.DreamServices
 import com.dreamdisplays.platform.client.displays.DisplayRegistry

@@ -1,4 +1,4 @@
-package com.dreamdisplays.core.protocol
+package com.dreamdisplays.core.protocol.common
 
 
 import kotlinx.serialization.ExperimentalSerializationApi
