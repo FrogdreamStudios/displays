@@ -19,6 +19,7 @@
 
 pub mod cache;
 pub mod chunked;
+pub mod scale;
 pub mod session;
 pub mod surface;
 

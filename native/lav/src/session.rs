@@ -18,13 +18,13 @@ use ffmpeg::ffi;
 use ffmpeg::format::Pixel;
 use ffmpeg::format::context::Input;
 use ffmpeg::media::Type;
-use ffmpeg::software::scaling;
 use ffmpeg::util::frame::video::Video as VideoFrame;
 use ffmpeg::util::log::Level;
 use ffmpeg::{Dictionary, codec};
 use ffmpeg_next as ffmpeg;
 
 use crate::cache::{CachedPacket, CodecParams, PacketRing, packets_from_position};
+use crate::scale::BandedScaler;
 use crate::surface::{ERR_UNSUPPORTED, LavSurfaceDesc, LavSurfaceFrame, LavSurfaceTable};
 
 /// Read result codes shared with the JVM bridge (mirror the main library).
@@ -281,7 +281,7 @@ struct ReadState {
     _hw_selection: Option<Box<HwSelection>>,
     time_base: ffmpeg::Rational,
     /// Cached scaler, rebuilt when the source format or size changes mid-stream.
-    scaler: Option<(Pixel, u32, u32, scaling::Context)>,
+    scaler: Option<BandedScaler>,
     /// Scratch frame for hardware -> system memory transfers.
     sw_frame: VideoFrame,
     draining: bool,
@@ -323,6 +323,7 @@ struct ReadStats {
     scale_nanos: u128,
     write_nanos: u128,
     demux_bytes: u64,
+    scale_geometry: Option<(u32, u32, u32, u32, usize)>,
     window: Option<std::time::Instant>,
 }
 
@@ -367,12 +368,16 @@ impl ReadStats {
         let report = format!(
             "{} frames in {:.1} s ({:.1} fps delivered); per frame: network wait {wait:.2} ms, \
              demux CPU {demux_cpu:.2} ms, send {send:.2} ms, decoder {decode:.2} ms, \
-             hw transfer {transfer:.2} ms, swscale {scale:.2} ms (convert total {write:.2} ms) \
+             hw transfer {transfer:.2} ms, swscale{} {scale:.2} ms (convert total {write:.2} ms) \
              — ceiling {:.1} fps; {:.1} KiB/frame over {} reads, {} of them on the wire \
              at {:.1} Mbit/s ({:.1} MiB total).",
             self.frames,
             elapsed.as_secs_f64(),
             self.frames as f64 / elapsed.as_secs_f64(),
+            match self.scale_geometry {
+                Some((sw, sh, dw, dh, bands)) => format!(" {sw} x {sh}->{dw} x {dh} on {bands} band(s)"),
+                None => String::new(),
+            },
             1_000.0 / (wait + demux_cpu + send + decode + write).max(0.001),
             self.demux_bytes as f64 / self.frames as f64 / 1024.0,
             self.reads,
@@ -382,6 +387,37 @@ impl ReadStats {
         );
         *self = ReadStats::default();
         Some(report)
+    }
+}
+
+/// Paints the letterbox bars around a fitted picture in a target-sized I420 frame. Only the bars:
+/// the scaler overwrites the picture area on the very next call, and on a 1080p frame clearing the
+/// whole buffer costs several times what the bars themselves do.
+fn fill_bars(dst: &mut [u8], tw: usize, th: usize, x0: usize, y0: usize, fw: usize, fh: usize) {
+    let cw = (tw + 1) / 2;
+    let ch = (th + 1) / 2;
+    let c_size = cw * ch;
+    let (luma, chroma) = dst.split_at_mut(tw * th);
+    fill_plane_bars(luma, tw, x0, y0, fw, fh, BLACK_Y);
+    let (u, v) = chroma[..2 * c_size].split_at_mut(c_size);
+    for plane in [u, v] {
+        fill_plane_bars(plane, cw, x0 / 2, y0 / 2, fw / 2, fh / 2, BLACK_C);
+    }
+}
+
+/// Fills everything outside the `(x0, y0, w, h)` rectangle of one plane with `value`.
+fn fill_plane_bars(plane: &mut [u8], stride: usize, x0: usize, y0: usize, w: usize, h: usize, value: u8) {
+    let height = plane.len() / stride;
+    let bottom = (y0 + h).min(height);
+    plane[..y0 * stride].fill(value);
+    plane[bottom * stride..height * stride].fill(value);
+    if x0 == 0 && w >= stride {
+        return;
+    }
+    for row in y0..bottom {
+        let line = &mut plane[row * stride..(row + 1) * stride];
+        line[..x0].fill(value);
+        line[x0 + w..].fill(value);
     }
 }
 
@@ -1306,27 +1342,18 @@ impl LavSession {
 
         let format = src.format();
         let rebuild = match &state.scaler {
-            Some((f, w0, h0, ctx)) => {
-                *f != format
-                    || *w0 != sw
-                    || *h0 != sh
-                    || ctx.output().width != fw
-                    || ctx.output().height != fh
-            }
+            Some(s) => s.src_format != format || s.src_w != sw || s.src_h != sh || s.dst_w != fw || s.dst_h != fh,
             None => true,
         };
         if rebuild {
-            let ctx = scaling::Context::get(
-                format,
-                sw,
-                sh,
-                Pixel::YUV420P,
-                fw,
-                fh,
-                scaling::Flags::FAST_BILINEAR,
-            )
-            .with_context(|| format!("create swscale context {format:?} {sw} x {sh} -> {fw} x {fh}."))?;
-            state.scaler = Some((format, sw, sh, ctx));
+            let scaler = BandedScaler::new(format, sw, sh, fw, fh)
+                .with_context(|| format!("create swscale context {format:?} {sw} x {sh} -> {fw} x {fh}."))?;
+            debug!(
+                "LAV session #{}: scaling {format:?} {sw} x {sh} -> {fw} x {fh} across {} band(s).",
+                self.id.load(Ordering::Relaxed),
+                scaler.bands(),
+            );
+            state.scaler = Some(scaler);
         }
         // Compose into the caller's buffer: black background, fitted frame centered
         let (tw, th) = (self.w, self.h);
@@ -1341,17 +1368,16 @@ impl LavSession {
                 y_size + 2 * c_size,
             );
         }
-        if fw as usize != tw || fh as usize != th {
-            dst[..y_size].fill(BLACK_Y);
-            dst[y_size..y_size + 2 * c_size].fill(BLACK_C);
-        }
-
         // Even offsets keep luma and chroma alignment consistent
         let x0 = ((tw - fw as usize) / 2) & !1;
         let y0 = ((th - fh as usize) / 2) & !1;
 
+        if fw as usize != tw || fh as usize != th {
+            fill_bars(dst, tw, th, x0, y0, fw as usize, fh as usize);
+        }
+
         let scale_started = std::time::Instant::now();
-        let scaler = &mut state.scaler.as_mut().unwrap().3;
+        let scaler = state.scaler.as_ref().unwrap();
         unsafe {
             let base = dst.as_mut_ptr();
             let planes: [*mut u8; 4] = [
@@ -1361,20 +1387,10 @@ impl LavSession {
                 ptr::null_mut(),
             ];
             let strides: [c_int; 4] = [tw as c_int, cw as c_int, cw as c_int, 0];
-            let rc = ffi::sws_scale(
-                scaler.as_mut_ptr(),
-                (*src.as_ptr()).data.as_ptr().cast::<*const u8>(),
-                (*src.as_ptr()).linesize.as_ptr(),
-                0,
-                sh as c_int,
-                planes.as_ptr(),
-                strides.as_ptr(),
-            );
-            if rc < 0 {
-                return Err(ffmpeg::Error::from(rc)).context("scale frame");
-            }
+            scaler.scale(src, planes, strides)?;
         }
         state.stats.scale_nanos += scale_started.elapsed().as_nanos();
+        state.stats.scale_geometry = Some((sw, sh, fw, fh, scaler.bands()));
         Ok(())
     }
 }
