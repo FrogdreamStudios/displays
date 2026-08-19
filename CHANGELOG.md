@@ -1,36 +1,3 @@
-# 1.9.2 Release
-
-## Highlights
-
-- Performance improvements
-- Improved shader support
-- Some minor fixes; fixed crash on new `Velocity` versions
-
-## Client
-
-### Improvements
-
-- Displays completely ignore shaders now
-- Play / pause are instant now
-- Added warming of YouTube connection to cut TLS handshake
-- Now mod scales frames band-parallel instead of on one core
-- Added `LuckPerms` as an optional dependency in release workflow
-- Suggest `LuckPerms` as an optional dependency
-- New README ([#186](https://github.com/arnodoelinger/dreamdisplays/pull/186))
-- Removed some suppression annotations and refactored some minor stuff ([#183](https://github.com/arnodoelinger/dreamdisplays/pull/183))
-- Codebase improvements ([#184](https://github.com/arnodoelinger/dreamdisplays/pull/184))
-
-### Fixes
-
-- Fixed post-pause frame nudge
-- Fixed duplicated translations on Crowdin
-
-## Server
-
-### Fixes
-
-- Fixed `Velocity`; used correct inject annotation for new versions ([#182](https://github.com/arnodoelinger/dreamdisplays/pull/182))
-
 # 1.9.1 Release
 
 ## Highlights
