@@ -910,6 +910,7 @@ internal class PlaybackSessionManager(
         audio.pauseForPark()
         if (!retainBuffered) active?.pipe?.trimForPark()
         frozenPositionNanos = pacingClockNanos().takeIf { it >= 0L } ?: clock.currentTime()
+        clock.moveTo(frozenPositionNanos)
         parkStartNanos = System.nanoTime()
         logger.debug("$debugLabel [park] session parked warm at ${"%.1f".format(frozenPositionNanos / 1_000_000.0)}ms.")
         return true
