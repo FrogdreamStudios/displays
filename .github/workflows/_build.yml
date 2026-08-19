@@ -261,7 +261,8 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          sudo apt-get update
+          sudo sed -i 's|azure\.archive\.ubuntu\.com|archive.ubuntu.com|g' /etc/apt/apt-mirrors.txt 2>/dev/null || true
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=10 -o Acquire::https::Timeout=10 update
           sudo apt-get install -y clang libclang-dev patchelf pkg-config xz-utils curl
           case "${{ matrix.native.target }}" in
             x86_64-*) ffmpeg_arch=linux64 ;;
