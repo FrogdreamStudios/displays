@@ -65,10 +65,12 @@ object DisplayYuvRenderTypes {
 
     /**
      * Single decision point for the GPU-YUV mode: the native library must produce planar frames and the runtime must
-     * support the YUV pipeline, with no active shader pack.
+     * support the YUV pipeline. A shader pack only rules it out while displays still draw inside the level pass,
+     * where the pack would swap this pipeline's program out and read the Y plane as if it were RGB; the
+     * shader-independent pass draws with our own program either way.
      */
     val active: Boolean
-        get() = !ShaderPackCompat.isShaderPackActive
+        get() = (UnshadedDisplayPass.active || !ShaderPackCompat.isShaderPackActive)
                 && (isSupported || Yuv262Reflect.isAvailable)
                 && NativeMedia.yuvGpuEnabled
 

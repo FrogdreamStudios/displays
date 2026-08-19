@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_${javaVersion}",
   "client": [
     "Crosshair",
+    "DisplayLatePass",
     "ScreenOverlay"
   ],
   "injectors": {
