@@ -1,3 +1,36 @@
+# 1.9.2 Release
+
+## Highlights
+
+- Performance improvements to frame scaling and pause / resume
+- Displays now render on top of shaders instead of being affected by them
+- Some improvements like a crash on newer `Velocity` versions
+- Minor fixes and codebase refactoring
+
+## Client
+
+### Improvements
+
+- Displays are no longer affected by shaders
+- Pausing and resuming playback is now instant
+- YouTube connections are pre-warmed on server join, cutting the delay before the first frame resolves
+- Frame scaling now runs band-parallel across cores instead of on a single core
+- Added `LuckPerms` as an optional dependency in the release workflow
+- Removed unused suppression annotations and refactored minor stuff ([#183](https://github.com/arnodoelinger/dreamdisplays/pull/183))
+- General codebase improvements ([#184](https://github.com/arnodoelinger/dreamdisplays/pull/184))
+
+### Fixes
+
+- Fixed clock jumps when pausing
+- Fixed a frame nudge / jump right after resuming from pause
+- Fixed duplicated translations on Crowdin
+
+## Server
+
+### Fixes
+
+- Fixed `Velocity` support by using the correct inject annotation for newer versions ([#182](https://github.com/arnodoelinger/dreamdisplays/pull/182))
+
 # 1.9.1 Release
 
 ## Highlights
