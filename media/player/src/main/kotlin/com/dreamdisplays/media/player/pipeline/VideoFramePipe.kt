@@ -213,6 +213,11 @@ internal class VideoFramePipe(
 
                     lastFrameReceivedNanos.set(System.nanoTime())
 
+                    val pk2 = parked
+                    if (pk2 != null && pk2.get()) {
+                        continue
+                    }
+
                     if (prebuffer != null) {
                         // Producer path: hand the decoded frame to the jitter buffer; the consumer thread
                         // paces and presents it (and feeds the popout via prebuffer.onPresent, and fires
