@@ -937,7 +937,7 @@ class MediaPlayer(
         if (!sessionManager.isPlaying) return
         if (!liveStream) {
             watchdog.stop()
-            if (sessionManager.suspend(allowExternalProcess = true)) {
+            if (sessionManager.suspend(allowExternalProcess = true, retainBuffered = true)) {
                 state.set(PlaybackState.PAUSED)
                 return
             }
