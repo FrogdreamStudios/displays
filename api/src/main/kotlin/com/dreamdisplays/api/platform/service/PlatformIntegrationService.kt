@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.platform.service
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import com.dreamdisplays.api.platform.identity.Platform
 
 /**
@@ -8,7 +8,7 @@ import com.dreamdisplays.api.platform.identity.Platform
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 fun interface PlatformIntegrationService {
     /** Creates the platform adapter instance. */
     fun create(): Platform

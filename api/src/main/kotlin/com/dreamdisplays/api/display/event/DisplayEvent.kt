@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.display.event
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import com.dreamdisplays.api.display.model.Display
 import com.dreamdisplays.api.display.model.property.DisplayId
 import com.dreamdisplays.api.display.model.property.DisplayState
@@ -12,7 +12,7 @@ import com.dreamdisplays.api.media.model.DreamMediaException
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 sealed interface DisplayEvent {
     /** The ID of the display that the event occurred on. */
     val displayId: DisplayId

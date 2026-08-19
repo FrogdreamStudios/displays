@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.playback.policy
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import com.dreamdisplays.api.playback.model.PlaybackContext
 import com.dreamdisplays.api.playback.model.PlaybackMode
 import com.dreamdisplays.api.playback.model.PlaybackMode.*
@@ -10,7 +10,7 @@ import com.dreamdisplays.api.playback.model.PlaybackMode.*
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 object PlaybackPermissions {
     /** Max video height for [BROADCAST] displays; never exceeded, not even by the owner. */
     const val BROADCAST_QUALITY_CAP = 720

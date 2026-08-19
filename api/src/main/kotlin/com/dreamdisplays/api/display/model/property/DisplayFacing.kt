@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.display.model.property
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import kotlinx.serialization.Serializable
 
 /**
@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
  *
  * @since 1.0.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 @Serializable
 enum class DisplayFacing(val byte: Byte) {
     /** Facing north (−Z). */

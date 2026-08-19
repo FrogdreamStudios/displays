@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.media.audio.service.keys
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import com.dreamdisplays.api.media.audio.service.AudioAcousticsService
 import com.dreamdisplays.api.runtime.registry.model.ServiceKey
 import com.dreamdisplays.api.runtime.registry.model.serviceKey
@@ -10,7 +10,7 @@ import com.dreamdisplays.api.runtime.registry.model.serviceKey
  *
  * @since 1.9.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 object AudioAcousticsServices {
     /** The single acoustics engine instance for the client. */
     val ACOUSTICS: ServiceKey<AudioAcousticsService> = serviceKey("dreamdisplays:audio_acoustics")

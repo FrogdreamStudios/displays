@@ -1,13 +1,13 @@
 package com.dreamdisplays.api.runtime.module
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 
 /**
  * Assembler.
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 interface DreamDisplaysRuntime : DreamDisplaysApi, AutoCloseable {
     /** Registered module ids in registration order. */
     val registeredModuleIds: Set<String>

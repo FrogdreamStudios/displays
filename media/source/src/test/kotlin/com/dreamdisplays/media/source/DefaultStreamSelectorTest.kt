@@ -1,8 +1,8 @@
-@file:OptIn(DreamDisplaysUnstableApi::class)
+@file:OptIn(Unstable::class)
 
 package com.dreamdisplays.media.source
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import com.dreamdisplays.api.media.stream.model.MediaStream
 import com.dreamdisplays.api.media.stream.model.MediaStreamType
 import com.dreamdisplays.api.media.stream.model.StreamPreferences

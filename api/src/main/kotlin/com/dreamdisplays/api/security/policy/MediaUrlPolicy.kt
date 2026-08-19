@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.security.policy
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import com.dreamdisplays.api.media.search.model.YouTubeVideoId
 import com.dreamdisplays.api.security.model.LanguageTag
 import com.dreamdisplays.api.security.model.MediaHttpUrl
@@ -10,7 +10,7 @@ import com.dreamdisplays.api.security.model.MediaHttpUrl
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 object MediaUrlPolicy {
     /**
      * Maximum accepted URL length. Comfortably above any legitimate media URL while capping the

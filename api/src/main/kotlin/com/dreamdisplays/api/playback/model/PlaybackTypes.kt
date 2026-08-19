@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.playback.model
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import kotlinx.serialization.Serializable
 
 /**
@@ -9,7 +9,7 @@ import kotlinx.serialization.Serializable
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 @Serializable
 enum class PlaybackMode {
     /** No synchronization: every client plays independently of its own saved position. */
@@ -44,7 +44,7 @@ enum class PlaybackMode {
 }
 
 /** Lifecycle state of a watch-party session (see `WatchPartyStart` / `WatchPartyState`). */
-@DreamDisplaysUnstableApi
+@Unstable
 enum class WatchPartySessionState {
     /** Host started the party and the display is session-locked; URL is being applied. */
     CREATED,
@@ -84,7 +84,7 @@ enum class WatchPartySessionState {
 }
 
 /** A playback intent a client sends to a server-authoritative timeline (`PlaybackCommand`). */
-@DreamDisplaysUnstableApi
+@Unstable
 enum class PlaybackAction {
     PLAY, PAUSE, SEEK, RESTART;
 
@@ -100,7 +100,7 @@ enum class PlaybackAction {
 }
 
 /** A watch-party control sent by a participant ([READY]/[UNREADY]) or the host (everything else). */
-@DreamDisplaysUnstableApi
+@Unstable
 enum class WatchPartyAction {
     READY, UNREADY, BEGIN, PAUSE, RESUME, SEEK, END, RESTART, CLOSE;
 

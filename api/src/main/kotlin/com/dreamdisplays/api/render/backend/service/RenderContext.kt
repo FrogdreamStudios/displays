@@ -1,13 +1,13 @@
 package com.dreamdisplays.api.render.backend.service
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 
 /**
  * Per-frame render input shared with display surfaces.
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 interface RenderContext {
     /** Partial tick / frame interpolation value. */
     val tickDelta: Float

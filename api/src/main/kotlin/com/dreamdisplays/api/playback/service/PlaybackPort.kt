@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.playback.service
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import com.dreamdisplays.api.display.model.property.DisplayId
 import com.dreamdisplays.api.display.model.property.DisplayState
 import com.dreamdisplays.api.playback.model.PlaybackMode
@@ -12,7 +12,7 @@ import kotlin.time.Duration
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 interface PlaybackPort {
     /** Plays the display with the given [displayId]. */
     fun play(displayId: DisplayId)

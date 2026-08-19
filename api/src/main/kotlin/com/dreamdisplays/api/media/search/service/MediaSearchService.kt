@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.media.search.service
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import com.dreamdisplays.api.media.search.model.MediaSearchPage
 import com.dreamdisplays.api.media.search.model.MediaSearchResult
 import com.dreamdisplays.api.media.search.model.SortOrder
@@ -10,7 +10,7 @@ import com.dreamdisplays.api.media.search.model.SortOrder
  *
  * @since 1.6.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 interface MediaSearchService {
     /** Returns up to [limit] videos matching [query]. */
     fun search(query: String, limit: Int): List<MediaSearchResult>

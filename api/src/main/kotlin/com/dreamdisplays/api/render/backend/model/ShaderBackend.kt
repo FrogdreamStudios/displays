@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.render.backend.model
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import com.dreamdisplays.api.util.WireEnum
 import com.dreamdisplays.api.util.wireEnumValueOf
 
@@ -9,7 +9,7 @@ import com.dreamdisplays.api.util.wireEnumValueOf
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 enum class ShaderBackend(override val wire: String) : WireEnum {
     /** No shader pack integration. */
     NONE("none"),

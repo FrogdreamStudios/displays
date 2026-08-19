@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.media.source.model
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import com.dreamdisplays.api.media.source.url.YouTubeUrls
 import com.dreamdisplays.api.media.source.url.BilibiliUrls
 import com.dreamdisplays.api.media.source.url.CustomMediaUrls
@@ -14,7 +14,7 @@ import java.util.*
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 sealed interface MediaSource {
     /** Generic remote URL, passed through to the resolver pipeline. */
     data class Remote(val url: String) : MediaSource

@@ -18,4 +18,4 @@ package com.dreamdisplays.api
     AnnotationTarget.TYPEALIAS,
 )
 
-annotation class DreamDisplaysUnstableApi
+annotation class Unstable

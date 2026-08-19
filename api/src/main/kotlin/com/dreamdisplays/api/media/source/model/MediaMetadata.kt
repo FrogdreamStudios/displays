@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.media.source.model
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import kotlin.time.Duration
 
 /**
@@ -8,7 +8,7 @@ import kotlin.time.Duration
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 data class MediaMetadata(
     /** Human-readable title, if known. */
     val title: String?,

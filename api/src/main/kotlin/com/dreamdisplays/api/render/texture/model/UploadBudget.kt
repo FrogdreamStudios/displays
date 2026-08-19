@@ -1,13 +1,13 @@
 package com.dreamdisplays.api.render.texture.model
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 
 /**
  * Per-frame limits used by render upload queues to avoid starving the game renderer.
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 data class UploadBudget(
     /** Maximum number of frames to upload during one render frame. */
     val maxUploadsPerFrame: Int,

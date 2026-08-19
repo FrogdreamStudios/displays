@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.display.service
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import com.dreamdisplays.api.display.event.DisplayEvent
 import com.dreamdisplays.api.display.model.Display
 import com.dreamdisplays.api.display.model.property.DisplayId
@@ -11,7 +11,7 @@ import com.dreamdisplays.api.display.model.settings.DisplaySettings
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 interface DisplayService {
     /** Returns the latest known display snapshot for [id], or null when absent. */
     fun getDisplay(id: DisplayId): Display?

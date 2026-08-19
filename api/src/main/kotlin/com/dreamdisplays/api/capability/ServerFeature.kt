@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.capability
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import com.dreamdisplays.api.util.WireEnum
 import com.dreamdisplays.api.util.wireEnumValueOfOrNull
 
@@ -9,7 +9,7 @@ import com.dreamdisplays.api.util.wireEnumValueOfOrNull
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 enum class ServerFeature(override val wire: String) : WireEnum {
     /** Server supports selecting playback modes. */
     MODES("modes"),
@@ -33,5 +33,5 @@ enum class ServerFeature(override val wire: String) : WireEnum {
 }
 
 /** Converts feature enums to their wire tokens. */
-@DreamDisplaysUnstableApi
+@Unstable
 fun Iterable<ServerFeature>.toWire(): List<String> = map { it.wire }

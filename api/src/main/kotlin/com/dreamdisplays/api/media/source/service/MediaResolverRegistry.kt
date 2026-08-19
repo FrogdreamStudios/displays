@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.media.source.service
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import com.dreamdisplays.api.media.source.model.MediaSource
 import com.dreamdisplays.api.media.source.model.ResolvedMedia
 
@@ -9,7 +9,7 @@ import com.dreamdisplays.api.media.source.model.ResolvedMedia
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 interface MediaResolverRegistry {
     /** Adds [resolver] to the registry. */
     fun register(resolver: MediaResolverService)

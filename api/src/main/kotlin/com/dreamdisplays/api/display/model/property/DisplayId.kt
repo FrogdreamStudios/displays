@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.display.model.property
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import java.util.*
 
 /**
@@ -9,7 +9,7 @@ import java.util.*
  * @since 1.0.x
  */
 @JvmInline
-@DreamDisplaysUnstableApi
+@Unstable
 value class DisplayId(val uuid: UUID) {
     /** Returns the string representation of the display ID. */
     override fun toString(): String = uuid.toString()

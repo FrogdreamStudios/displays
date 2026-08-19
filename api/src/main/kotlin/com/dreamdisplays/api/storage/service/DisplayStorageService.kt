@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.storage.service
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import com.dreamdisplays.api.storage.model.FullDisplayData
 import java.util.*
 
@@ -9,7 +9,7 @@ import java.util.*
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 interface DisplayStorageService {
     /** Replaces the registry for [serverId] with [displays] and marks it as the current server. */
     fun load(serverId: String, displays: Map<UUID, FullDisplayData> = emptyMap())

@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.media.source.url
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import com.dreamdisplays.api.media.source.model.MediaSource
 import com.dreamdisplays.api.security.model.MediaHttpUrl
 import java.util.*
@@ -10,7 +10,7 @@ import java.util.*
  *
  * @since 1.9.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 object BilibiliUrls {
     /** A `BVID`: `BV` followed by 10 alphanumeric characters. */
     private val BVID_RE = Regex("^BV[0-9A-Za-z]{10}$")

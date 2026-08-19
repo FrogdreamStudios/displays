@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.media.source.model
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 
 /**
  * Which service a [MediaSource] (or a search result) comes from, so the UI can badge it and pick
@@ -8,7 +8,7 @@ import com.dreamdisplays.api.DreamDisplaysUnstableApi
  *
  * @since 1.9.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 enum class MediaPlatform {
     /** A YouTube video. */
     YOUTUBE,

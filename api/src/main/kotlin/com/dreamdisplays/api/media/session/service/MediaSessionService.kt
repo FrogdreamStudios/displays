@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.media.session.service
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import com.dreamdisplays.api.display.model.property.DisplayId
 import com.dreamdisplays.api.media.session.event.MediaSessionEvent
 import com.dreamdisplays.api.media.session.property.MediaSessionState
@@ -12,7 +12,7 @@ import kotlin.time.Duration
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 interface MediaSessionService : AutoCloseable {
     /** Stable session id used to correlate events and display runtime state. */
     val sessionId: String

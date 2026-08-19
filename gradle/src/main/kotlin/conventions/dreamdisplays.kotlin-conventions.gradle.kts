@@ -104,7 +104,7 @@ tasks.withType<JavaCompile>().configureEach {
 /** Unstable API opt-in. */
 tasks.withType<KotlinCompile>().configureEach {
     compilerOptions.jvmTarget.set(JvmTarget.fromTarget(bytecodeTarget.toString()))
-    compilerOptions.optIn.add("com.dreamdisplays.api.DreamDisplaysUnstableApi")
+    compilerOptions.optIn.add("com.dreamdisplays.api.Unstable")
 }
 
 /**

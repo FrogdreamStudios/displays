@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.storage.model
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
@@ -14,7 +14,7 @@ import java.util.*
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 object UuidStringSerializer : KSerializer<UUID> {
     /** Descriptor for this serializer. */
     override val descriptor: SerialDescriptor =

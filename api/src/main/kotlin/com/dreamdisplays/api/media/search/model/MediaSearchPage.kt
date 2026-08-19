@@ -1,13 +1,13 @@
 package com.dreamdisplays.api.media.search.model
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 
 /**
  * One page of search or related-video results, plus the token needed to fetch the next page.
  *
  * @since 1.9.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 data class MediaSearchPage(
     /** Results on this page. */
     val results: List<MediaSearchResult>,

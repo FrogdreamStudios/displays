@@ -1,6 +1,6 @@
 package com.dreamdisplays.core.services
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import com.dreamdisplays.api.display.event.DisplayEvent
 import com.dreamdisplays.api.display.model.Display
 import com.dreamdisplays.api.display.model.property.DisplayId
@@ -20,7 +20,7 @@ import kotlin.time.Duration
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 class DefaultDisplaySystem(
     private val commands: DisplayExecutor = DisplayExecutor.Noop,
 ) : DisplaySystem {

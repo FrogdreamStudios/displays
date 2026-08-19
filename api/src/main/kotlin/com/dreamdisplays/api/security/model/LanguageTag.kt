@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.security.model
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import com.dreamdisplays.api.security.policy.MediaUrlPolicy
 import java.util.*
 
@@ -10,7 +10,7 @@ import java.util.*
  * @since 1.8.x
  */
 @JvmInline
-@DreamDisplaysUnstableApi
+@Unstable
 value class LanguageTag(val value: String) {
     init {
         require(value.none { it.isWhitespace() || it.isISOControl() }) {

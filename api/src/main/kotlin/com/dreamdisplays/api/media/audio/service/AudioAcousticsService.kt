@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.media.audio.service
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import com.dreamdisplays.api.media.audio.model.AcousticQuality
 import com.dreamdisplays.api.media.audio.model.ListenerPose
 import com.dreamdisplays.api.media.audio.model.SourceAcousticState
@@ -11,7 +11,7 @@ import java.util.*
  *
  * @since 1.9.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 interface AudioAcousticsService {
     /** Registers [id] if not already known and returns its [AudioDspStage], creating it on first call. */
     fun registerSource(id: UUID): AudioDspStage

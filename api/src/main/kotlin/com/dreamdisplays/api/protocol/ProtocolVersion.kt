@@ -1,13 +1,13 @@
 package com.dreamdisplays.api.protocol
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 
 /**
  * Protocol constants and compatibility checks.
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 object ProtocolVersion {
     /** Minimum subversion of protocol. */
     const val MINIMUM_SUPPORTED = 2

@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.render.backend.service
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import com.dreamdisplays.api.render.service.DisplayRenderer
 
 /**
@@ -9,7 +9,7 @@ import com.dreamdisplays.api.render.service.DisplayRenderer
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 fun interface RendererProvider {
     /** Creates the renderer instance. */
     fun create(): DisplayRenderer

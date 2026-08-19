@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.runtime.registry.service
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import com.dreamdisplays.api.runtime.registry.model.ServiceKey
 import com.dreamdisplays.api.runtime.registry.model.serviceKey
 
@@ -9,7 +9,7 @@ import com.dreamdisplays.api.runtime.registry.model.serviceKey
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 interface ServiceRegistry {
     /** Registers [instance] under [key], replacing any previous binding for that key. */
     fun <T : Any> register(key: ServiceKey<T>, instance: T)
@@ -37,17 +37,17 @@ interface ServiceRegistry {
 }
 
 /** Registers [instance] under the default key for [T]. */
-@DreamDisplaysUnstableApi
+@Unstable
 inline fun <reified T : Any> ServiceRegistry.register(instance: T): Unit = register(T::class.java, instance)
 
 /** Returns the instance bound to the default key for [T], throwing if absent. */
-@DreamDisplaysUnstableApi
+@Unstable
 inline fun <reified T : Any> ServiceRegistry.get(): T = get(T::class.java)
 
 /** Returns the instance bound to the default key for [T], or null if absent. */
-@DreamDisplaysUnstableApi
+@Unstable
 inline fun <reified T : Any> ServiceRegistry.getOrNull(): T? = getOrNull(T::class.java)
 
 /** Returns true if an instance is bound to the default key for [T]. */
-@DreamDisplaysUnstableApi
+@Unstable
 inline fun <reified T : Any> ServiceRegistry.has(): Boolean = has(T::class.java)

@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.render.texture.service
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import com.dreamdisplays.api.media.sink.model.DecodedVideoFrame
 import com.dreamdisplays.api.render.texture.model.TextureHandle
 
@@ -9,7 +9,7 @@ import com.dreamdisplays.api.render.texture.model.TextureHandle
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 interface TextureUploaderService : AutoCloseable {
     /** True when the implementation can perform upload work asynchronously. */
     val supportsAsync: Boolean
