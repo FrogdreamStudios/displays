@@ -231,6 +231,8 @@ internal class PlaybackSessionManager(
     /** True if audio starts at known position (real -ss seek, not live HLS join). */
     private fun audioOriginKnown(): Boolean = !liveSession && audioFeeder == null
 
+    fun audioPlaylistGone(): Boolean = audioFeeder?.playlistGone == true
+
     /** True once source has no audio (separate from transient gap between processes). */
     @Volatile
     private var silentSession = false

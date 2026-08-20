@@ -25,6 +25,9 @@ internal class HlsAudioFeeder(
     @Volatile
     var firstPtsNanos: Long = -1L; private set
 
+    @Volatile
+    var playlistGone: Boolean = false; private set
+
     /** Parsed live media playlist: the sliding segment window plus the tags the feeder needs. */
     private class MediaPlaylist(
         @JvmField val mediaSequence: Long,
@@ -48,6 +51,7 @@ internal class HlsAudioFeeder(
                     if (!alive()) return
                     if (++playlistFailures > MAX_PLAYLIST_FAILURES) {
                         logger.warn("$debugLabel [audio-hls] playlist failed $playlistFailures times (${e.message}); giving up.")
+                        playlistGone = true
                         return
                     }
                     sleepQuietly(PLAYLIST_RETRY_MS)
