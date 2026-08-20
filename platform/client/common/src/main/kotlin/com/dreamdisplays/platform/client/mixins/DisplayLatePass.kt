@@ -16,15 +16,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
 @Mixin(GameRenderer::class)
 open class DisplayLatePass {
     @Inject(
-        method = ["render"],
-        at = [At(
-            value = "INVOKE",
-            target = "Lnet/minecraft/client/renderer/GameRenderer;renderLevel(Lnet/minecraft/client/DeltaTracker;)V",
-            shift = At.Shift.AFTER,
-        )],
+        method = ["renderLevel"],
+        at = [At(value = "CONSTANT", args = ["stringValue=hand"])],
         require = 0,
     )
-    open fun onLevelRendered(deltaTracker: DeltaTracker, renderLevel: Boolean, ci: CallbackInfo) {
+    open fun onLevelRendered(deltaTracker: DeltaTracker, ci: CallbackInfo) {
         UnshadedDisplayPass.drawPending()
     }
 }
