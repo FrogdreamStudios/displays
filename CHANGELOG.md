@@ -1,3 +1,33 @@
+# 1.9.3 Release
+
+## Highlights
+
+- Hotfix: fixed displays being visible through blocks and losing their fog
+- Fixed "Couldn't place player in world" error on some `Fabric` / `NeoForge` servers
+- Live streams fixes
+
+## Client
+
+### Improvements
+
+- Enlarged default Picture-in-Picture mode from 25% to 33% of screen width
+- Improved shader support (now displays use shader's fog)
+- Update `yt-dlp` binary every day instead of once per weak
+- Shortened the drop-out when a live stream stops serving segments
+- Bumped `NewPipeExtractor` version
+
+### Fixes
+
+- Fixed displays being visible through blocks and losing their fog
+- Fixed live streams jittering in `Synced` / `Broadcast` playback mode ([#191](https://github.com/arnodoelinger/dreamdisplays/issues/191))
+- Keep live streams playing past the first manifest and stop timeline drift correction on them ([#191](https://github.com/arnodoelinger/dreamdisplays/issues/191))
+
+## Server
+
+### Fixes
+
+- Fixed "Couldn't place player in world" error on some `Fabric` / `NeoForge` servers
+
 # 1.9.2 Release
 
 ## Highlights
