@@ -28,4 +28,8 @@ internal object YtStreams {
         val heights = distinctHeights(streams)
         return heights.size >= LADDER_MIN_DISTINCT_HEIGHTS || (heights.maxOrNull() ?: 0) >= LADDER_MIN_SINGLE_HEIGHT
     }
+
+    fun hasAudio(streams: List<YtStream>): Boolean = streams.any { it.hasAudio() }
+
+    fun usable(streams: List<YtStream>): Boolean = streams.isNotEmpty() && hasAudio(streams)
 }

@@ -34,11 +34,10 @@ class YtDlpClientRace(private val cookies: YtCookieManager) {
         /** Per-invocation `yt-dlp` wait (keep short to surface failures fast). */
         const val FETCH_TIMEOUT_SECONDS: Long = 25L
 
-        /** Client tried first (only one YouTube serves full ladder to). */
-        private const val PRIMARY_CLIENT = "android_vr"
+        private const val PRIMARY_CLIENT = "visionos"
 
         /** Token-free clients raced in parallel (hit PO-token wall, but auto-recover if working). */
-        private val FALLBACK_CLIENTS: List<String?> = listOf("ios", "tv", "android")
+        private val FALLBACK_CLIENTS: List<String?> = listOf("android_vr", "ios", "tv", "android")
     }
 
     /**
@@ -48,9 +47,9 @@ class YtDlpClientRace(private val cookies: YtCookieManager) {
      */
     suspend fun resolve(videoUrl: String, onProcess: (Process) -> Unit): List<YtStream>? {
         if (!cookies.disabledByConfig()) {
-            return runCatchingClient(videoUrl, null, onProcess)?.takeIf { it.isNotEmpty() }
+            return runCatchingClient(videoUrl, null, onProcess)?.takeIf { YtStreams.usable(it) }
         }
-        runCatchingClient(videoUrl, PRIMARY_CLIENT, onProcess)?.takeIf { it.isNotEmpty() }?.let { return it }
+        runCatchingClient(videoUrl, PRIMARY_CLIENT, onProcess)?.takeIf { YtStreams.usable(it) }?.let { return it }
         return raceParallel(videoUrl, FALLBACK_CLIENTS, onProcess)
     }
 
@@ -88,8 +87,10 @@ class YtDlpClientRace(private val cookies: YtCookieManager) {
                                 onProcess(proc)
                                 if (winner.isCompleted) Processes.destroyTree(proc)
                             }
-                            if (streams.isNotEmpty()) results.add(streams)
-                            if (YtStreams.offersQualityLadder(streams)) winner.complete(streams)
+                            if (YtStreams.usable(streams)) results.add(streams)
+                            if (YtStreams.usable(streams) && YtStreams.offersQualityLadder(streams)) {
+                                winner.complete(streams)
+                            }
                         }.onFailure { e ->
                             if (e is CancellationException) throw e
                             logger.debug(

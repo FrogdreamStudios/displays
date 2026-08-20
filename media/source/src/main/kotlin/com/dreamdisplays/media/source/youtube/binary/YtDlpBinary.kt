@@ -61,7 +61,7 @@ object YtDlpBinary {
      * Re-run `yt-dlp -U` on the bundled binary once it is older than this; a stale binary is a top
      * cause of "not a bot" / extraction failures since it never self-updates otherwise.
      */
-    private const val BINARY_REFRESH_MS: Long = 7L * 24L * 60L * 60L * 1_000L
+    private const val BINARY_REFRESH_MS: Long = 1L * 24L * 60L * 60L * 1_000L
 
     /** Cached resolved binary path, or null if not yet resolved. */
     @Volatile
