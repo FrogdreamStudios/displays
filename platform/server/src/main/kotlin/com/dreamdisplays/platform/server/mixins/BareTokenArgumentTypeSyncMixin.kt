@@ -1,18 +1,13 @@
 package com.dreamdisplays.platform.server.mixins
 
 import com.dreamdisplays.platform.server.registrar.BareTokenArgumentType
-import com.mojang.brigadier.StringReader
+import com.dreamdisplays.platform.server.registrar.GreedyStringAsAny
 import com.mojang.brigadier.arguments.ArgumentType
-import com.mojang.brigadier.arguments.StringArgumentType
 import com.mojang.brigadier.builder.RequiredArgumentBuilder
-import com.mojang.brigadier.context.CommandContext
-import com.mojang.brigadier.suggestion.Suggestions
-import com.mojang.brigadier.suggestion.SuggestionsBuilder
 import com.mojang.brigadier.tree.ArgumentCommandNode
 import org.spongepowered.asm.mixin.Mixin
 import org.spongepowered.asm.mixin.injection.At
 import org.spongepowered.asm.mixin.injection.Redirect
-import java.util.concurrent.CompletableFuture
 
 /** `Fabric` / `NeoForge` only. */
 @Suppress("NonJavaMixin")
@@ -31,15 +26,4 @@ open class BareTokenArgumentTypeSyncMixin {
         val networkType: ArgumentType<Any> = if (type === BareTokenArgumentType) GreedyStringAsAny else type
         return RequiredArgumentBuilder.argument(name, networkType)
     }
-}
-
-/**
- * Wraps `Brigadier`'s `greedyString()` (`ArgumentType<String>`) as `ArgumentType<Any>`.
- */
-private object GreedyStringAsAny : ArgumentType<Any> {
-    private val delegate = StringArgumentType.greedyString()
-    override fun parse(reader: StringReader): Any = delegate.parse(reader)
-    override fun <S> listSuggestions(context: CommandContext<S>, builder: SuggestionsBuilder): CompletableFuture<Suggestions> =
-        delegate.listSuggestions(context, builder)
-    override fun getExamples(): Collection<String> = delegate.examples
 }

@@ -3,7 +3,11 @@ package com.dreamdisplays.platform.server.registrar
 import com.mojang.brigadier.LiteralMessage
 import com.mojang.brigadier.StringReader
 import com.mojang.brigadier.arguments.ArgumentType
+import com.mojang.brigadier.arguments.StringArgumentType
+import com.mojang.brigadier.context.CommandContext
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType
+import com.mojang.brigadier.suggestion.Suggestions
+import com.mojang.brigadier.suggestion.SuggestionsBuilder
 import io.github.arnodoelinger.platformweaver.FabricOnly
 import io.github.arnodoelinger.platformweaver.NeoForgeOnly
 import net.fabricmc.fabric.api.command.v2.ArgumentTypeRegistry.registerArgumentType
@@ -11,6 +15,7 @@ import net.minecraft.commands.synchronization.ArgumentTypeInfos
 import net.minecraft.commands.synchronization.SingletonArgumentInfo
 import net.minecraft.core.Registry
 import net.minecraft.core.registries.BuiltInRegistries
+import java.util.concurrent.CompletableFuture
 //? if >=1.21.11 {
 import net.minecraft.resources.Identifier
 
@@ -69,4 +74,12 @@ object NeoForgeBareTokenArgumentType {
             .invoke(byClass, BareTokenArgumentType::class.java, info)
         Registry.register(BuiltInRegistries.COMMAND_ARGUMENT_TYPE, BareTokenArgumentType.ID, info)
     }
+}
+
+object GreedyStringAsAny : ArgumentType<Any> {
+    private val delegate = StringArgumentType.greedyString()
+    override fun parse(reader: StringReader): Any = delegate.parse(reader)
+    override fun <S> listSuggestions(context: CommandContext<S>, builder: SuggestionsBuilder): CompletableFuture<Suggestions> =
+        delegate.listSuggestions(context, builder)
+    override fun getExamples(): Collection<String> = delegate.examples
 }
