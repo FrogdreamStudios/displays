@@ -26,7 +26,7 @@ internal class HlsAudioFeeder(
     var firstPtsNanos: Long = -1L; private set
 
     @Volatile
-    var playlistGone: Boolean = false; private set
+    var sourceGone: Boolean = false; private set
 
     /** Parsed live media playlist: the sliding segment window plus the tags the feeder needs. */
     private class MediaPlaylist(
@@ -42,6 +42,7 @@ internal class HlsAudioFeeder(
     private fun run() {
         var nextSeq = -1L
         var playlistFailures = 0
+        var segmentFailures = 0
         var firstSegment = true
         try {
             while (alive()) {
@@ -51,7 +52,7 @@ internal class HlsAudioFeeder(
                     if (!alive()) return
                     if (++playlistFailures > MAX_PLAYLIST_FAILURES) {
                         logger.warn("$debugLabel [audio-hls] playlist failed $playlistFailures times (${e.message}); giving up.")
-                        playlistGone = true
+                        sourceGone = true
                         return
                     }
                     sleepQuietly(PLAYLIST_RETRY_MS)
@@ -81,11 +82,19 @@ internal class HlsAudioFeeder(
                         DreamHttpClient.readBytes(segmentUrl, SEGMENT_OPTIONS)
                     } catch (e: IOException) {
                         if (!alive()) return
-                        // One segment lost is a minor audio blip; the next one keeps the stream going
+                        if (++segmentFailures > MAX_SEGMENT_FAILURES) {
+                            logger.warn(
+                                "$debugLabel [audio-hls] $segmentFailures segments in a row failed " +
+                                        "(${e.message}); giving up so the session re-resolves."
+                            )
+                            sourceGone = true
+                            return
+                        }
                         logger.warn("$debugLabel [audio-hls] segment fetch failed (${e.message}); skipping one.")
                         nextSeq++; index++
                         continue
                     }
+                    segmentFailures = 0
                     if (firstPtsNanos < 0) scanFirstAudioPts(bytes)
                     try {
                         sink.write(bytes) // Blocks on FFmpeg's stdin back-pressure; that pacing is intended
@@ -196,6 +205,8 @@ internal class HlsAudioFeeder(
 
         /** Consecutive playlist failures tolerated before the feeder gives up (URL expired / stream over). */
         private const val MAX_PLAYLIST_FAILURES = 5
+
+        private const val MAX_SEGMENT_FAILURES = 3
 
         /** Pause between playlist retries after a fetch failure. */
         private const val PLAYLIST_RETRY_MS = 1_000L

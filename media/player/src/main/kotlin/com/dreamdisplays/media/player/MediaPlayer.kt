@@ -841,8 +841,8 @@ class MediaPlayer(
             logger.debug("$debugLabel Audio pipe ended near VOD end (pos=${clock.currentTime()}, dur=$durationHintNanos); deferring to video EOS.")
             return
         }
-        if (liveStream && sessionManager.audioPlaylistGone()) {
-            handleSessionStall("live audio playlist stopped serving")
+        if (liveStream && sessionManager.audioSourceGone()) {
+            handleSessionStall("live audio source stopped serving")
             return
         }
         val now = System.nanoTime()
