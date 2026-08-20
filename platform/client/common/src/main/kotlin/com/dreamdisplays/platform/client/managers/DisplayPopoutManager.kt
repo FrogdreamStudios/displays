@@ -123,7 +123,7 @@ class DisplayPopoutManager(
         player: MediaPlayer,
         corner: PipCorner = PipCorner.BOTTOM_RIGHT,
         interactive: Boolean = true,
-        initialSizeFraction: Float = 0.25f,
+        initialSizeFraction: Float = 0.33f,
         contentAspect: () -> Double,
     ) {
         currentPlayer = player
