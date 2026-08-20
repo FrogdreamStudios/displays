@@ -1,7 +1,6 @@
 package com.dreamdisplays.platform.server.mixins
 
 import com.dreamdisplays.platform.server.registrar.BareTokenArgumentType
-import com.dreamdisplays.platform.server.registrar.GreedyStringAsAny
 import com.mojang.brigadier.arguments.ArgumentType
 import com.mojang.brigadier.builder.RequiredArgumentBuilder
 import com.mojang.brigadier.tree.ArgumentCommandNode
@@ -23,7 +22,8 @@ open class BareTokenArgumentTypeSyncMixin {
         ),
     )
     open fun networkSafeArgumentType(name: String, type: ArgumentType<Any>): RequiredArgumentBuilder<Any, Any> {
-        val networkType: ArgumentType<Any> = if (type === BareTokenArgumentType) GreedyStringAsAny else type
+        val networkType: ArgumentType<Any> =
+            if (type === BareTokenArgumentType) BareTokenArgumentType.NETWORK_FALLBACK else type
         return RequiredArgumentBuilder.argument(name, networkType)
     }
 }
