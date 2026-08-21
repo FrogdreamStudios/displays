@@ -92,6 +92,8 @@ class DisplayScreen(
 
     /** Content rotation; only used for floor/ceiling (`UP`/`DOWN`) screens. */
     var rotation: DisplayRotation = DisplayRotation.NONE,
+
+    val dimensionKey: String = "",
 ) {
     /** Per-display client settings (volume, quality, mute, ...) loaded from disk. */
     private val savedSettings = ClientSettingsStore.getSettings(uuid, defaultVolume())
