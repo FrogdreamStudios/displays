@@ -561,7 +561,7 @@ jobs:
                       "description": description,
                       "color": 4088314,
                       "footer": {"text": "@arnodoelinger"},
-                      "thumbnail": {"url": "https://i.imgur.com/p5bOhsj.png"},
+                      "thumbnail": {"url": "https://images-ext-1.discordapp.net/external/L7teYvBTRW891PjoljsmXHxzOv7P6LkxtRB9aT9gY3Y/https/cdn.modrinth.com/data/4IIKQyBu/a5de1fa99c1130c1021e1a83c51e7578f58904ff_96.webp?format=webp"},
                   }
               ],
               "components": [
