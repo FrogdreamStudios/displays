@@ -6,7 +6,7 @@ import com.dreamdisplays.api.security.model.MediaHttpUrl
 import java.util.*
 
 /**
- * Recognizes and dissects Bilibili URLs (VODs, live rooms, `b23.tv` short links).
+ * Recognizes and dissects Bilibili URLs (VODs, bangumi episodes / seasons, live rooms, `b23.tv` short links).
  *
  * @since 1.9.x
  */
@@ -17,6 +17,12 @@ object BilibiliUrls {
 
     /** A legacy `AVID`: `av` followed by digits. */
     private val AVID_RE = Regex("^[aA][vV](\\d+)$")
+
+    /** A bangumi episode id: `ep` followed by digits. */
+    private val EP_ID_RE = Regex("^[eE][pP](\\d+)$")
+
+    /** A bangumi season id: `ss` followed by digits. */
+    private val SEASON_ID_RE = Regex("^[sS][sS](\\d+)$")
 
     /** True when [url] points at a BIlibili VOD, live room, or short link. */
     fun isBilibili(url: String): Boolean = parse(url) != null
@@ -44,6 +50,20 @@ object BilibiliUrls {
         }
 
         if (host != "bilibili.com") return null
+
+        if (segments.getOrNull(0) == "bangumi" && segments.getOrNull(1) == "play") {
+            val token = segments.getOrNull(2) ?: return null
+            EP_ID_RE.matchEntire(token)?.let { m ->
+                val epId = m.groupValues[1].toLongOrNull() ?: return null
+                return MediaSource.Bilibili(url = normalized, epId = epId)
+            }
+            SEASON_ID_RE.matchEntire(token)?.let { m ->
+                val seasonId = m.groupValues[1].toLongOrNull() ?: return null
+                return MediaSource.Bilibili(url = normalized, seasonId = seasonId)
+            }
+            return null
+        }
+
         if (segments.getOrNull(0) != "video") return null
         val id = segments.getOrNull(1) ?: return null
         val part = partQueryParam(parsed.uri.rawQuery)?.toIntOrNull()

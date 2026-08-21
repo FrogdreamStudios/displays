@@ -44,17 +44,14 @@ sealed interface MediaSource {
         val videoUuid: String? = null,
     ) : MediaSource
 
-    /**
-     * BIlibili source: a VOD ([bvid] or legacy [avid], with optional multipart [part]) or a live
-     * [roomId]. An unresolved `b23.tv` short link carries none of these — the resolver follows the
-     * redirect itself, since that needs a network call this synchronous parser cannot make.
-     */
     data class Bilibili(
         val url: String,
         val bvid: String? = null,
         val avid: Long? = null,
         val part: Int? = null,
         val roomId: Long? = null,
+        val epId: Long? = null,
+        val seasonId: Long? = null,
     ) : MediaSource
 
     /** Direct playable stream URL or manifest; [kind] records what [com.dreamdisplays.api.media.source.url.CustomMediaUrls] recognized. */

@@ -62,4 +62,31 @@ class MediaSourceTest {
         assertEquals(CustomMediaKind.PROGRESSIVE, source.kind)
         assertEquals(url, source.toResolvableUrl())
     }
+
+    @Test
+    fun bilibiliBangumiEpisodeUrlParsesEpId() {
+        val url = "https://www.bilibili.com/bangumi/play/ep21484"
+        val source = assertIs<MediaSource.Bilibili>(MediaSource.from(url))
+        assertEquals(21484L, source.epId)
+        assertNull(source.seasonId)
+        assertNull(source.bvid)
+        assertEquals(url, source.toResolvableUrl())
+    }
+
+    @Test
+    fun bilibiliBangumiSeasonUrlParsesSeasonId() {
+        val url = "https://www.bilibili.com/bangumi/play/ss1182"
+        val source = assertIs<MediaSource.Bilibili>(MediaSource.from(url))
+        assertEquals(1182L, source.seasonId)
+        assertNull(source.epId)
+    }
+
+    @Test
+    fun bilibiliVodUrlStillParsesBvid() {
+        val url = "https://www.bilibili.com/video/BV1Lx411w76a"
+        val source = assertIs<MediaSource.Bilibili>(MediaSource.from(url))
+        assertEquals("BV1Lx411w76a", source.bvid)
+        assertNull(source.epId)
+        assertNull(source.seasonId)
+    }
 }
