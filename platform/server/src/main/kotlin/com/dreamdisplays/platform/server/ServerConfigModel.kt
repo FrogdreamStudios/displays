@@ -57,7 +57,7 @@ data class SettingsSection(
     val maxDisplaysPerPlayer get() = display.max_displays_per_player
 
     /** Volume in [0, 1] ready for the wire; config stores 0-100 percent. */
-    val defaultVolume get() = display.default_volume / 200f
+    val defaultVolume get() = display.default_volume / 100f
 
     // Custom media (player-pasted links)
     val customMediaPolicy: com.dreamdisplays.api.security.policy.CustomMediaPolicy.Settings
