@@ -23,15 +23,10 @@ import net.minecraft.resources.ResourceLocation as Identifier*/
  */
 object DisplayUnlitRenderTypes {
     //? if >=1.21.11 {
+    /** Name of the texture sampler uniform in the display shader. */
     private const val SAMPLER_TEXTURE = "Sampler0"
 
-    internal fun occludedFragmentShader(base: String): String =
-        if (RenderPipelineCompat.isReversedZ) "core/${base}_revz" else "core/$base"
-
-    private const val SAMPLER_DEPTH = "Sampler2"
-    private const val SAMPLER_PRE = "Sampler4"
-    private const val SAMPLER_POST = "Sampler5"
-
+    /** Lazily-built unlit textured pipeline for display quads. */
     private val texturedPipeline: RenderPipeline by lazy {
         val pipeline = RenderPipelineCompat.createDisplayPipeline(
             Identifier.fromNamespaceAndPath(Initializer.MOD_ID, "pipeline/display_unlit_textured"),
@@ -43,33 +38,13 @@ object DisplayUnlitRenderTypes {
         pipeline
     }
 
-    private val occludingPipeline: RenderPipeline by lazy {
-        val pipeline = RenderPipelineCompat.createDisplayPipeline(
-            Identifier.fromNamespaceAndPath(Initializer.MOD_ID, "pipeline/display_unlit_textured_occluded"),
-            Identifier.fromNamespaceAndPath(Initializer.MOD_ID, "core/display_fog"),
-            Identifier.fromNamespaceAndPath(Initializer.MOD_ID, occludedFragmentShader("display_fog_occluded")),
-            listOf(SAMPLER_TEXTURE, SAMPLER_DEPTH, SAMPLER_PRE, SAMPLER_POST),
-            occluding = true,
-        )
-        if (!UnshadedDisplayPass.active) assignIrisTexturedProgram(pipeline)
-        pipeline
-    }
-
-    fun create(name: String, id: Identifier): RenderType =
-        if (DisplaySceneSnapshot.usable) RenderType.create(
-            name,
-            RenderSetup.builder(occludingPipeline)
-                .withTexture(SAMPLER_TEXTURE, id)
-                .withTexture(SAMPLER_DEPTH, DisplaySceneSnapshot.DEPTH_ID)
-                .withTexture(SAMPLER_PRE, DisplaySceneSnapshot.PRE_COLOR_ID)
-                .withTexture(SAMPLER_POST, DisplaySceneSnapshot.POST_COLOR_ID)
-                .createRenderSetup(),
-        ) else RenderType.create(
-            name,
-            RenderSetup.builder(texturedPipeline)
-                .withTexture(SAMPLER_TEXTURE, id)
-                .createRenderSetup(),
-        )
+    /** Creates an unlit [RenderType] named [name] that samples texture [id]. */
+    fun create(name: String, id: Identifier): RenderType = RenderType.create(
+        name,
+        RenderSetup.builder(texturedPipeline)
+            .withTexture(SAMPLER_TEXTURE, id)
+            .createRenderSetup(),
+    )
 
     /** Registers [pipeline] with Iris's `TEXTURED` program so shader packs treat it correctly; no-op without Iris. */
     private fun assignIrisTexturedProgram(pipeline: RenderPipeline) {

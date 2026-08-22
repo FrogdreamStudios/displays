@@ -22,11 +22,7 @@ object UnshadedDisplayPass {
 
     private val enabled: Boolean; get() = runCatching { ClientStateManager.config.unshadedDisplays }.getOrDefault(true)
 
-    val active: Boolean
-        get() = tailHookAlive && enabled
-                //? if <1.21.11 {
-                && ShaderPackCompat.isShaderPackActive
-                //?}
+    val active: Boolean get() = tailHookAlive && enabled
 
     fun capture(stack: PoseStack, camera: Camera): Boolean {
         if (!active) {
@@ -46,10 +42,6 @@ object UnshadedDisplayPass {
         val camera = pendingCamera ?: return
         if (Minecraft.getInstance().level == null) return
 
-        //? if >=1.21.11 {
-        DisplaySceneSnapshot.captureBlended()
-        //?}
-
         val modelView = RenderSystem.getModelViewStack()
         modelView.pushMatrix()
         modelView.set(pendingView)
@@ -59,9 +51,6 @@ object UnshadedDisplayPass {
         try {
             ScreenRenderer.render(PoseStack(), camera)
         } finally {
-            //? if >=1.21.11 {
-            DisplaySceneSnapshot.invalidate()
-            //?}
             modelView.popMatrix()
             //? if >=1.21.11 {
             //?} else

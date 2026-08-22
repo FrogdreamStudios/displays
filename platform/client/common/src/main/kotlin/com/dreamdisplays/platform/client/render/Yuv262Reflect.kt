@@ -39,29 +39,22 @@ internal object Yuv262Reflect {
     private fun vanillaLayout(name: String): Any =
         Class.forName("net.minecraft.client.renderer.BindGroupLayouts").getField(name).get(null)
 
-    private fun samplerLayout(names: List<String>): Any {
+    /** Builds the BindGroupLayout holding the three plane samplers. */
+    private fun samplerLayout(): Any {
         val builder = bglClass.getMethod("builder").invoke(null)
         val withSampler = builder.javaClass.getMethod("withSampler", String::class.java)
-        for (name in names) {
+        for (name in listOf("Sampler0", "Sampler1", "Sampler3")) {
             withSampler.invoke(builder, name)
         }
         return builder.javaClass.getMethod("build").invoke(builder)
     }
-
-    private val planeSamplers = listOf("Sampler0", "Sampler1", "Sampler3")
-
-    private val occludingSamplers = planeSamplers + listOf("Sampler2", "Sampler4", "Sampler5")
 
     /**
      * Builds the YUV [RenderPipeline] with the 26.2 builder API. `builder()`, `withLocation`,
      * `withVertexShader`, `withFragmentShader`, and `build()` are binary-stable and called
      * directly; everything 26.2-specific goes through reflection.
      */
-    fun createPipeline(): RenderPipeline = createPipeline(occluding = false)
-
-    fun createOccludingPipeline(): RenderPipeline = createPipeline(occluding = true)
-
-    private fun createPipeline(occluding: Boolean): RenderPipeline {
+    fun createPipeline(): RenderPipeline {
         val builder = RenderPipeline.builder()
         val builderClass = builder.javaClass
 
@@ -69,10 +62,7 @@ internal object Yuv262Reflect {
         withBindGroupLayout.invoke(builder, vanillaLayout("GLOBALS"))
         withBindGroupLayout.invoke(builder, vanillaLayout("MATRICES_PROJECTION"))
         withBindGroupLayout.invoke(builder, vanillaLayout("FOG"))
-        withBindGroupLayout.invoke(
-            builder,
-            samplerLayout(if (occluding) occludingSamplers else planeSamplers),
-        )
+        withBindGroupLayout.invoke(builder, samplerLayout())
 
         builderClass.getMethod("withVertexBinding", Int::class.javaPrimitiveType, VertexFormat::class.java)
             .invoke(builder, 0, DefaultVertexFormat.POSITION_TEX_COLOR)
@@ -82,24 +72,11 @@ internal object Yuv262Reflect {
         val quads = RenderPipelineCompat.reflectiveEnumValue(topologyClass, "QUADS")
         builderClass.getMethod("withPrimitiveTopology", topologyClass).invoke(builder, quads)
 
-        val suffix = if (occluding) "_occluded" else ""
-        builder.withLocation(
-            Identifier.fromNamespaceAndPath(Initializer.MOD_ID, "pipeline/display_yuv$suffix")
-        )
+        builder.withLocation(Identifier.fromNamespaceAndPath(Initializer.MOD_ID, "pipeline/display_yuv"))
         builder.withVertexShader(Identifier.fromNamespaceAndPath(Initializer.MOD_ID, "core/display_fog"))
-        builder.withFragmentShader(
-            Identifier.fromNamespaceAndPath(
-                Initializer.MOD_ID,
-                if (occluding) DisplayUnlitRenderTypes.occludedFragmentShader("display_yuv_occluded")
-                else "core/display_yuv",
-            )
-        )
-        if (occluding) {
-            RenderPipelineCompat.configureNoDepthTest(builder)
-        } else {
-            RenderPipelineCompat.configureDepth(builder)
-            RenderPipelineCompat.configureBlend(builder)
-        }
+        builder.withFragmentShader(Identifier.fromNamespaceAndPath(Initializer.MOD_ID, "core/display_yuv"))
+        RenderPipelineCompat.configureDepth(builder)
+        RenderPipelineCompat.configureBlend(builder)
         builder.withCull(false)
         return builder.build()
     }

@@ -83,10 +83,6 @@ object DisplayYuvRenderTypes {
         if (isSupported) VideoPlaneTexture(label, width, height)
         else Yuv262Reflect.createPlaneTexture(label, width, height)
 
-    private const val SAMPLER_DEPTH = "Sampler2"
-    private const val SAMPLER_PRE = "Sampler4"
-    private const val SAMPLER_POST = "Sampler5"
-
     /** Compiled lazily by the backend on first draw; shared by every YUV display. */
     private val pipeline: RenderPipeline by lazy {
         if (!isSupported) return@lazy Yuv262Reflect.createPipeline()
@@ -98,39 +94,15 @@ object DisplayYuvRenderTypes {
         )
     }
 
-    private val occludingPipeline: RenderPipeline by lazy {
-        if (!isSupported) return@lazy Yuv262Reflect.createOccludingPipeline()
-        RenderPipelineCompat.createDisplayPipeline(
-            Identifier.fromNamespaceAndPath(Initializer.MOD_ID, "pipeline/display_yuv_occluded"),
-            Identifier.fromNamespaceAndPath(Initializer.MOD_ID, "core/display_fog"),
-            Identifier.fromNamespaceAndPath(
-                Initializer.MOD_ID,
-                DisplayUnlitRenderTypes.occludedFragmentShader("display_yuv_occluded"),
-            ),
-            listOf(SAMPLER_Y, SAMPLER_U, SAMPLER_V, SAMPLER_DEPTH, SAMPLER_PRE, SAMPLER_POST),
-            occluding = true,
-        )
-    }
-
-    fun create(yId: Identifier, uId: Identifier, vId: Identifier): RenderType =
-        if ((isSupported || Yuv262Reflect.isAvailable) && DisplaySceneSnapshot.usable) RenderType.create(
-            "dream-displays-yuv",
-            RenderSetup.builder(occludingPipeline)
-                .withTexture(SAMPLER_Y, yId) { planeSampler() }
-                .withTexture(SAMPLER_U, uId) { planeSampler() }
-                .withTexture(SAMPLER_V, vId) { planeSampler() }
-                .withTexture(SAMPLER_DEPTH, DisplaySceneSnapshot.DEPTH_ID)
-                .withTexture(SAMPLER_PRE, DisplaySceneSnapshot.PRE_COLOR_ID)
-                .withTexture(SAMPLER_POST, DisplaySceneSnapshot.POST_COLOR_ID)
-                .createRenderSetup(),
-        ) else RenderType.create(
-            "dream-displays-yuv",
-            RenderSetup.builder(pipeline)
-                .withTexture(SAMPLER_Y, yId) { planeSampler() }
-                .withTexture(SAMPLER_U, uId) { planeSampler() }
-                .withTexture(SAMPLER_V, vId) { planeSampler() }
-                .createRenderSetup(),
-        )
+    /** Creates the [RenderType] drawing a display through the YUV pipeline from its three plane textures. */
+    fun create(yId: Identifier, uId: Identifier, vId: Identifier): RenderType = RenderType.create(
+        "dream-displays-yuv",
+        RenderSetup.builder(pipeline)
+            .withTexture(SAMPLER_Y, yId) { planeSampler() }
+            .withTexture(SAMPLER_U, uId) { planeSampler() }
+            .withTexture(SAMPLER_V, vId) { planeSampler() }
+            .createRenderSetup(),
+    )
 
     /** Shared 1x1 white texture used for the loading / error quads in YUV mode. */
     private var whiteTextureId: Identifier? = null
