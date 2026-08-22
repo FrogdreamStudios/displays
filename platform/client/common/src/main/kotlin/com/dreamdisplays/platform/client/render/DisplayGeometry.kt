@@ -97,9 +97,12 @@ internal object DisplayGeometry {
      */
     private const val SHADER_SURFACE_OFFSET = 0.016f
 
-    /** Surface offset in effect right now: widened while a shader pack owns the depth buffer. */
-    private fun surfaceOffset(): Float =
-        if (ShaderPackCompat.isShaderPackActive) SHADER_SURFACE_OFFSET else SURFACE_OFFSET
+    private fun surfaceOffset(): Float {
+        //? if >=1.21.11 {
+        if (DisplaySceneSnapshot.usable) return 0f
+        //?}
+        return if (ShaderPackCompat.isShaderPackActive) SHADER_SURFACE_OFFSET else SURFACE_OFFSET
+    }
 
     /**
      * Applies the full transform for a screen of [width] x [height] blocks facing [facing]:

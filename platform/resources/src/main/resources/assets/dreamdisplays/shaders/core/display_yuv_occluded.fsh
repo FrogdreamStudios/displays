@@ -34,6 +34,8 @@ out vec4 fragColor;
 // Transmission of a translucent layer covering the display
 const float TRANSLUCENT_TRANSMISSION = 0.75;
 
+const float MIN_DEPTH_TOLERANCE = 2e-6;
+
 float linear_fog_value(float dist, float start, float end) {
     if (dist <= start) return 0.0;
     if (dist >= end) return 1.0;
@@ -44,7 +46,8 @@ void main() {
     ivec2 px = ivec2(gl_FragCoord.xy);
 
     // Standard (non-reversed) depth: a smaller snapshot value means opaque geometry sits in front of us
-    if (texelFetch(Sampler2, px, 0).r < gl_FragCoord.z) {
+    float tolerance = max(MIN_DEPTH_TOLERANCE, fwidth(gl_FragCoord.z) * 2.0);
+    if (texelFetch(Sampler2, px, 0).r < gl_FragCoord.z - tolerance) {
         discard;
     }
 
