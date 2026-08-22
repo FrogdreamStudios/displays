@@ -1,20 +1,11 @@
-[![Latest release](https://img.shields.io/github/release/arnodoelinger/dreamdisplays.svg)](https://github.com/arnodoelinger/dreamdisplays/releases/latest)
-[![Discord](http://img.shields.io/discord/1456716690879676501?label=Discord&style=flat&logo=discord)](https://discord.gg/uwMMZ2KWk6)
-[![Ko-Fi donate](https://shields.io/badge/ko--fi-Buy_me_a_coffee-ff5f5f?logo=ko-fi&style=for-the-badgeKo-fi)](https://ko-fi.com/arnodoelinger)
+![Dream Displays](https://i.imgur.com/oJPS9DB.png)
 
-<div align="left">
-  <img src="https://i.imgur.com/oJPS9DB.png" alt="Dream Displays"> 
-  <div>
-    <a href="https://modrinth.com/plugin/dreamdisplays">Modrinth</a>
-    <span> ∙ </span>
-    <a href="https://www.curseforge.com/minecraft/mc-mods/dreamdisplays">CurseForge</a>
-    <span> ∙ </span>
-    <a href="https://github.com/arnodoelinger/dreamdisplays">GitHub</a>
-    <span> ∙ </span>
-    <a href="https://crowdin.com/project/dreamdisplays">Crowdin</a>
-    <span> ∙ </span>
-    <a href="https://discord.com/invite/uwMMZ2KWk6">Discord</a>
-  </div>
+<div align="center">
+<a href="https://modrinth.com/plugin/dreamdisplays"><img src="https://i.imgur.com/C7yPsgr.png" height="48" alt="Modrinth"></a>
+<a href="https://www.curseforge.com/minecraft/mc-mods/dreamdisplays"><img src="https://i.imgur.com/p3OZHhH.png" height="48" alt="CurseForge"></a>
+<a href="https://github.com/arnodoelinger/dreamdisplays"><img src="https://i.imgur.com/fd254hJ.png" height="48" alt="GitHub"></a>
+<a href="https://discord.com/invite/uwMMZ2KWk6"><img src="https://i.imgur.com/g0O0JSQ.png" height="48" alt="Discord"></a>
+<a href="https://ko-fi.com/arnodoelinger"><img src="https://i.imgur.com/L3Zx1Wu.png" height="48" alt="Ko-Fi"></a>
 </div>
 
 # Your world. Your screen
