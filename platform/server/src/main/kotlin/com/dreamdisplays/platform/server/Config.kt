@@ -53,7 +53,7 @@ class Config(private val plugin: PaperServer) {
     /** Initializes the plugin's configuration. */
     init {
         createDefaultConfig()
-        langStore.extractLangFiles(true)
+        langStore.extractLangFiles()
         load()
         langStore.loadMessages(logger)
     }
@@ -84,7 +84,7 @@ class Config(private val plugin: PaperServer) {
     /** Re-reads `config.toml`, re-extracts language files and refreshes the in-memory message map. */
     fun reload() {
         load()
-        langStore.extractLangFiles(false)
+        langStore.extractLangFiles()
         langStore.loadMessages(logger)
     }
 

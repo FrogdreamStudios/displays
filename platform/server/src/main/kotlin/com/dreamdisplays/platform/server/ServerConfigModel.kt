@@ -374,8 +374,7 @@ internal class LanguageStore(
     val messages = mutableMapOf<String, Any>()
     val languages = mutableMapOf<String, Map<String, Any>>()
 
-    /** Copies bundled language JSONs into [dataDir]/lang; overwrites existing files when [overwrite] is true. */
-    fun extractLangFiles(overwrite: Boolean) {
+    fun extractLangFiles() {
         val langFolder = File(dataDir, "lang")
         if (!langFolder.exists() && !langFolder.mkdirs()) {
             warn("Could not create lang folder")
@@ -384,19 +383,25 @@ internal class LanguageStore(
 
         LANGUAGE_FILES.forEach { fileName ->
             runCatching {
+                val target = File(langFolder, fileName)
+                if (target.exists() && isValidLangFile(target)) return@forEach
+
                 val resource = resourceLookup("assets/dreamdisplays/lang/server/$fileName")
                     ?: resourceLookup("assets/dreamdisplays/lang/$fileName")
                 resource?.use { input ->
-                    val target = File(langFolder, fileName)
-                    if (overwrite || !target.exists()) {
-                        Files.copy(input, target.toPath(), StandardCopyOption.REPLACE_EXISTING)
+                    if (target.exists()) {
+                        warn("Language file $fileName is corrupt; restoring the bundled default.")
                     }
+                    Files.copy(input, target.toPath(), StandardCopyOption.REPLACE_EXISTING)
                 }
             }.onFailure {
                 warn("Could not extract $fileName: ${it.message}")
             }
         }
     }
+
+    private fun isValidLangFile(file: File): Boolean =
+        runCatching { loadLanguageMessages(file) }.isSuccess
 
     /** Parses every language JSON in [dataDir]/lang into [languages] and reseeds the English fallback map. */
     fun loadMessages(logger: Logger) {

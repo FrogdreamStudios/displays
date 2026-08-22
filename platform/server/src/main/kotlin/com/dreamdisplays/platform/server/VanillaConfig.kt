@@ -35,7 +35,7 @@ class VanillaConfig(private val configDir: File) {
 
     init {
         createDefaultConfig()
-        langStore.extractLangFiles(overwrite = true)
+        langStore.extractLangFiles()
         load()
         langStore.loadMessages(logger)
     }
@@ -68,7 +68,7 @@ class VanillaConfig(private val configDir: File) {
 
     fun reload() {
         load()
-        langStore.extractLangFiles(overwrite = false)
+        langStore.extractLangFiles()
         langStore.loadMessages(logger)
     }
 
