@@ -14,6 +14,7 @@ internal object RenderPipelineCompat {
         vertexShader: Identifier,
         fragmentShader: Identifier,
         samplers: List<String>,
+        occluding: Boolean = false,
     ): RenderPipeline {
         val builder = RenderPipeline.builder()
             .withLocation(location)
@@ -21,8 +22,12 @@ internal object RenderPipelineCompat {
             .withFragmentShader(fragmentShader)
             .withCull(false)
 
-        configureDepth(builder)
-        configureBlend(builder)
+        if (occluding) {
+            configureNoDepthTest(builder)
+        } else {
+            configureDepth(builder)
+            configureBlend(builder)
+        }
         if (supportsBindGroupLayouts()) {
             configure262(builder, samplers)
         } else {
@@ -58,6 +63,33 @@ internal object RenderPipelineCompat {
      * Matches vanilla's own depth-bias constant.
      */
     private const val DEPTH_BIAS = 3.0f
+
+    fun configureNoDepthTest(builder: RenderPipeline.Builder) {
+        val builderClass = builder.javaClass
+
+        val depthStencilStateClass = runCatching {
+            Class.forName("com.mojang.blaze3d.pipeline.DepthStencilState")
+        }.getOrNull()
+        if (depthStencilStateClass != null) {
+            val compareOpClass = Class.forName("com.mojang.blaze3d.platform.CompareOp")
+            val always = reflectiveEnumValue(compareOpClass, "ALWAYS_PASS")
+            val state = depthStencilStateClass
+                .getConstructor(compareOpClass, Boolean::class.javaPrimitiveType)
+                .newInstance(always, true)
+            builderClass.getMethod("withDepthStencilState", depthStencilStateClass).invoke(builder, state)
+            return
+        }
+
+        val depthTestFunctionClass = runCatching {
+            Class.forName("com.mojang.blaze3d.platform.DepthTestFunction")
+        }.getOrNull() ?: return configureDepth(builder)
+
+        val noDepth = reflectiveEnumValue(depthTestFunctionClass, "NO_DEPTH_TEST")
+        builderClass.getMethod("withDepthTestFunction", depthTestFunctionClass).invoke(builder, noDepth)
+        runCatching {
+            builderClass.getMethod("withDepthWrite", Boolean::class.javaPrimitiveType).invoke(builder, true)
+        }
+    }
 
     /** Configures the depth state of the pipeline. */
     fun configureDepth(builder: RenderPipeline.Builder) {
@@ -102,6 +134,15 @@ internal object RenderPipelineCompat {
             Float::class.javaPrimitiveType,
         )
         return ctor.newInstance(depthTest, writeDepth, bias, bias)
+    }
+
+    val isReversedZ: Boolean by lazy {
+        runCatching {
+            val depthStencilStateClass = Class.forName("com.mojang.blaze3d.pipeline.DepthStencilState")
+            val default = depthStencilStateClass.getField("DEFAULT").get(null)
+            val depthTest = depthStencilStateClass.getMethod("depthTest").invoke(default)
+            (depthTest as Enum<*>).name == "GREATER_THAN_OR_EQUAL"
+        }.getOrDefault(false)
     }
 
     /** True if the current version of Minecraft supports `BindGroupLayout`s. */

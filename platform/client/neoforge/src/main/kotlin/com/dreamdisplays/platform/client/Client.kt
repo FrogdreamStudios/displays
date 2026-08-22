@@ -89,7 +89,7 @@ class Client(modEventBus: IEventBus) : DreamMod {
     @SubscribeEvent fun onRenderAfterLevel(event: RenderLevelStageEvent) {
         val mc = Minecraft.getInstance()
         if (mc.level == null || mc.player == null) return
-        if (event.stage != RenderLevelStageEvent.Stage.AFTER_PARTICLES) return
+        if (event.stage != RenderLevelStageEvent.Stage.AFTER_BLOCK_ENTITIES) return
         if (!UnshadedDisplayPass.capture(event.poseStack, event.camera)) {
             ScreenRenderer.render(event.poseStack, event.camera)
         }
