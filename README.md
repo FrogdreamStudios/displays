@@ -82,7 +82,7 @@ Dream Displays is built to make watching videos in Minecraft feel as natural as 
 4. Open the display menu by sneaking and right-clicking it
 5. Paste a video link into the search box
 
-The video starts playing! [Read the full guide in our wiki →]([https://github.com/arnodoelinger/dreamdisplays/wiki](https://github.com/arnodoelinger/dreamdisplays/wiki/%C2%A72.-Using-displays))
+The video starts playing! [Read the full guide in our wiki →](https://github.com/arnodoelinger/dreamdisplays/wiki/%C2%A72.-Using-displays)
 
 ---
 
