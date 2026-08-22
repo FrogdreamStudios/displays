@@ -84,6 +84,7 @@ private fun evaluateCondition(marker: String, minecraftVersion: String): Boolean
     val operator = listOf(">=", "<=", ">", "<", "==").firstOrNull { condition.startsWith(it) }
         ?: error("Unsupported chisel condition '$condition'.")
     val target = condition.removePrefix(operator).trim()
+    require(target.matches(Regex("[0-9.]+"))) { "Unsupported chisel condition '$condition'." }
     val comparison = compareVersions(minecraftVersion, target)
     return when (operator) {
         ">=" -> comparison >= 0

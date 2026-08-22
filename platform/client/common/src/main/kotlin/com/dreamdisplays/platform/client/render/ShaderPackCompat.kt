@@ -7,6 +7,19 @@ internal object ShaderPackCompat {
     /** True when any supported shader pack is currently in use. */
     val isShaderPackActive: Boolean get() = shaderBackend() != ShaderBackend.NONE
 
+    /**
+     * Identity of the current shader state. Changes whenever a pack is enabled, disabled, swapped, or reloaded,
+     * so callers can drop pipeline-bound GPU resources; the backend alone would miss a pack-to-pack switch.
+     */
+    fun shaderStateToken(): Any = shaderBackend() to irisPipelineId()
+
+    /** Identity hash of Iris's live rendering pipeline, or 0 without Iris. A reload replaces that object. */
+    private fun irisPipelineId(): Int = runCatching {
+        val manager = Class.forName("net.irisshaders.iris.Iris").getMethod("getPipelineManager").invoke(null)
+        val pipeline = manager.javaClass.getMethod("getPipelineNullable").invoke(manager)
+        System.identityHashCode(pipeline)
+    }.getOrDefault(0)
+
     /** Active shader backend, or [ShaderBackend.NONE]. */
     fun shaderBackend(): ShaderBackend = when {
         irisShaderPackActive() -> ShaderBackend.IRIS

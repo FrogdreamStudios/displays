@@ -5,7 +5,6 @@ import com.dreamdisplays.platform.client.displays.DisplayRegistry
 import com.dreamdisplays.platform.client.platform.NeoForgePlatformIntegrationProvider
 import com.dreamdisplays.api.platform.service.keys.PlatformServices
 import com.dreamdisplays.platform.client.render.ScreenRenderer
-import com.dreamdisplays.platform.client.render.UnshadedDisplayPass
 import com.dreamdisplays.platform.client.Mod as DreamMod
 import com.mojang.blaze3d.systems.RenderSystem
 import net.minecraft.client.Camera
@@ -66,19 +65,33 @@ class Client(modEventBus: IEventBus) : DreamMod {
     //?}
 
     //? if >=1.21.11 {
-    /** On render events. */
+    //? if >=26 {
+    /** On render events. 26.x calls the last opaque stage `AfterOpaqueFeatures`. */
     @SubscribeEvent
-    fun onRenderAfterLevel(event: RenderLevelStageEvent.AfterLevel) {
+    fun onRenderBeforeTranslucent(event: RenderLevelStageEvent.AfterOpaqueFeatures) {
+        renderWorldScreens(event)
+    }
+    //?} else
+    /*
+    // On render events. 1.21.11 calls the last opaque stage `AfterEntities`.
+    @SubscribeEvent
+    fun onRenderBeforeTranslucent(event: RenderLevelStageEvent.AfterEntities) {
+        renderWorldScreens(event)
+    }
+    */
+
+    /**
+     * Draws every display before the terrain translucency starts, while the level still owns the depth buffer.
+     * `AfterLevel` is past every translucent and composite pass, so the picture would cover water and glass.
+     */
+    private fun renderWorldScreens(event: RenderLevelStageEvent) {
         val mc = Minecraft.getInstance()
         if (mc.level == null || mc.player == null) return
         val modelViewStack = RenderSystem.getModelViewStack()
         modelViewStack.pushMatrix()
         try {
             modelViewStack.mul(event.modelViewMatrix)
-            val camera = mainCamera(mc)
-            if (!UnshadedDisplayPass.capture(event.poseStack, camera)) {
-                ScreenRenderer.render(event.poseStack, camera)
-            }
+            ScreenRenderer.render(event.poseStack, mainCamera(mc))
         } finally {
             modelViewStack.popMatrix()
         }
@@ -89,10 +102,8 @@ class Client(modEventBus: IEventBus) : DreamMod {
     @SubscribeEvent fun onRenderAfterLevel(event: RenderLevelStageEvent) {
         val mc = Minecraft.getInstance()
         if (mc.level == null || mc.player == null) return
-        if (event.stage != RenderLevelStageEvent.Stage.AFTER_PARTICLES) return
-        if (!UnshadedDisplayPass.capture(event.poseStack, event.camera)) {
-            ScreenRenderer.render(event.poseStack, event.camera)
-        }
+        if (event.stage != RenderLevelStageEvent.Stage.AFTER_BLOCK_ENTITIES) return
+        ScreenRenderer.render(event.poseStack, event.camera)
     }*/
 
     /** Main camera accessor. */

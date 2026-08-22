@@ -34,7 +34,7 @@ object DisplayUnlitRenderTypes {
             Identifier.fromNamespaceAndPath(Initializer.MOD_ID, "core/display_fog"),
             listOf(SAMPLER_TEXTURE),
         )
-        if (!UnshadedDisplayPass.active) assignIrisTexturedProgram(pipeline)
+        assignIrisTexturedProgram(pipeline)
         pipeline
     }
 
@@ -46,7 +46,11 @@ object DisplayUnlitRenderTypes {
             .createRenderSetup(),
     )
 
-    /** Registers [pipeline] with Iris's `TEXTURED` program so shader packs treat it correctly; no-op without Iris. */
+    /**
+     * Registers [pipeline] with Iris's `TEXTURED` program so shader packs treat it correctly; no-op without Iris.
+     * Not optional: an unregistered pipeline falls back to its own program and draws into the vanilla target,
+     * which the pack's composite chain then overwrites, so the display never appears at all.
+     */
     private fun assignIrisTexturedProgram(pipeline: RenderPipeline) {
         runCatching {
             val apiClass = Class.forName("net.irisshaders.iris.api.v0.IrisApi")

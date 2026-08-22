@@ -1,3 +1,32 @@
+# 1.9.4 Release
+
+## Highlights
+
+- Added support for Bilibili bangumi URLs (episodes and seasons / movies)
+- Enhanced README file
+- Some visual and config fixes
+
+## Client
+
+### Improvements
+
+- Added support for Bilibili bangumi URLs (episodes and seasons / movies) ([#188](https://github.com/arnodoelinger/dreamdisplays/issues/188))
+- Displays now sit flush against the block they are mounted on instead of floating slightly in front of it
+- Enhanced README file ([#186](https://github.com/arnodoelinger/dreamdisplays/pull/186))
+
+### Fixes
+
+- Fixed displays turning into a black rectangle behind water or glass
+- Fixed displays disappearing until a rejoin after enabling, disabling, or switching a shader pack
+- Fixed displays created in one dimension appearing at the same coordinates in every other dimension ([#192](https://github.com/arnodoelinger/dreamdisplays/issues/192))
+
+## Server
+
+### Fixes
+
+- Fixed server config default volume not applied correctly ([#190](https://github.com/arnodoelinger/dreamdisplays/issues/190))
+- Fixed user-edited language files being overwritten on every server start / reload
+
 # 1.9.3 Release
 
 ## Highlights

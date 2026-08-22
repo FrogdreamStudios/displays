@@ -65,8 +65,27 @@ object ScreenRenderer : ClientRenderService {
     /** Number of live screens with an uploaded texture. Those this renderer will actually draw. */
     override val registeredCount: Int; get() = DisplayRegistry.getScreens().count { it.hasTexture }
 
+    /** Shader state seen on the previous frame; see [refreshOnShaderPackChange]. */
+    private var lastShaderState: Any? = null
+
+    /**
+     * Rebuilds every display's texture and render type when a shader pack is enabled, disabled, or swapped.
+     * Both bindings outlive the change but are stale afterwards: the render type holds a pipeline whose Iris
+     * program was rebuilt, and the RGBA / GPU-YUV choice itself depends on whether a pack is loaded.
+     */
+    private fun refreshOnShaderPackChange() {
+        val state = ShaderPackCompat.shaderStateToken()
+        val previous = lastShaderState
+        if (state == previous) return
+        lastShaderState = state
+        // The first frame only records the baseline; there is nothing allocated to invalidate yet.
+        if (previous == null) return
+        DisplayRegistry.getScreens().forEach { it.invalidateTexture() }
+    }
+
     /** Iterates all registered screens and lets the caller submit quads through the active renderer. */
     fun render(stack: PoseStack, camera: Camera, drawQuad: QuadRenderer) {
+        refreshOnShaderPackChange()
         val cameraPos =
             //? if >=1.21.11 {
             camera.position()

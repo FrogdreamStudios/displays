@@ -705,6 +705,14 @@ class DisplayScreen(
         frameUploader.upload(mp, textureResource, ::markRendered)
     }
 
+    /**
+     * Drops the GPU texture and the render type built on top of it, so the next [fitTexture] rebuilds both.
+     * Render thread only. Used when a shader pack change invalidates the pipeline the render type was bound to.
+     */
+    fun invalidateTexture() {
+        textureResource.release()
+    }
+
     /** Renders frame to popout; call after all Minecraft / mod rendering to avoid GL-context corruption. */
     fun renderPopout() {
         popoutManager.renderFrame()
