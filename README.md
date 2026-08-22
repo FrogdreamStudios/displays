@@ -24,7 +24,7 @@ your friends.
 
 Create a display, paste a link and that's it!
 
-![Player watching on displays](https://i.imgur.com/aKI5EBS.png)
+![Player watching on displays](https://i.imgur.com/Yl09YHs.png)
 
 # Watch anything
 
