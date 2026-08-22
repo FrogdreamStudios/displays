@@ -3,7 +3,7 @@
 [![Ko-Fi donate](https://shields.io/badge/ko--fi-Buy_me_a_coffee-ff5f5f?logo=ko-fi&style=for-the-badgeKo-fi)](https://ko-fi.com/arnodoelinger)
 
 <div align="left">
-  <img src="https://i.imgur.com/isEKMwW.png" alt="Dream Displays"> 
+  <img src="https://i.imgur.com/oJPS9DB.png" alt="Dream Displays"> 
   <div>
     <a href="https://modrinth.com/plugin/dreamdisplays">Modrinth</a>
     <span> ∙ </span>
@@ -50,29 +50,38 @@ broadcast playback depending on how you want your displays to behave.
 
 Dream Displays keeps playback synchronized across the server while keeping network usage extremely low.
 
-Make displays a part of your world!
-
 # Made for you
 
 Dream Displays is built to make watching videos in Minecraft feel as natural as possible.
 
+<table>
+<tr>
+<td valign="top" width="50%">
+
 ## Your experience
 
-- **Seamless multiplayer playback** — local, synced, or broadcast
-- **Powerful media player** — search, suggestions, Picture-in-Picture, etc.
-- **Ad-free YouTube** — uninterrupted playback with multiple audio languages
-- **Immersive audio** — 3D sound, volume up to 200%, and more
-- **Customizable displays** — size, brightness, and orientation
+- **Seamless multiplayer playback** — with several modes
+- **Powerful media player** — search, Picture-in-Picture & more
+- **Ad-free YouTube** — no ads with multiple audio languages
+- **Immersive audio** — 3D sound, volume up to 200% & more
+- **Customizable displays** — size, brightness & orientation
 - **Hardware-accelerated playback** — smooth and efficient video decoding
+
+</td>
+<td valign="top" width="50%">
 
 ## Your server
 
-- **Broad server support** — Paper or its forks, Folia, Fabric, NeoForge
-- **Fullscreen stream mode** — great for events and presentations
-- **Simple configuration** — precise control over displays and playback
+- **Broad server support** — Paper, Folia, Fabric, NeoForge
+- **Fullscreen mode** — great for events and presentations
+- **Simple config** — precise control over displays and playback
 - **Permissions** — fine-grained control with LuckPerms support
 - **Ultra-low network impact** — minimal impact for your traffic
-- **Persistent displays** — settings survive restarts and unloading
+- **Persistent displays** — settings survive server restarts and unloading
+
+</td>
+</tr>
+</table>
 
 # Get started
 
@@ -86,4 +95,4 @@ The video starts playing! [Read the full guide in our wiki →](https://github.c
 
 ---
 
-Thanks to [@whysumi_official](https://t.me/whysumi_official) for renders.
+<sub><img src="https://i.imgur.com/BDbw8NI.png" height="20" alt="Thanks to WHYSUMI for renders"></sub> ∙ Thanks to [@whysumi_official](https://t.me/whysumi_official) for renders.
