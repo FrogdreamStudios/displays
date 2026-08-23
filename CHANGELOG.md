@@ -3,7 +3,6 @@
 ## Highlights
 
 - Added support for Bilibili bangumi URLs (episodes and seasons / movies)
-- Enhanced README file
 - Some visual and config fixes
 
 ## Client
