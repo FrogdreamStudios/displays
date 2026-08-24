@@ -73,6 +73,8 @@ val dreamDisplaysShadedPackages = listOf(
     "com.google.protobuf",
     "org.mozilla.javascript",
     "org.mozilla.classfile",
+    // https://github.com/arnodoelinger/dreamdisplays/issues/201
+    "org.sqlite",
 )
 
 /** Exclude `sqlite-jdbc` native binaries for unsupported platforms. */
