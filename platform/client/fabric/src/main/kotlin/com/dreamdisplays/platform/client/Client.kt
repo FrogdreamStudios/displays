@@ -83,10 +83,16 @@ class Client : ClientModInitializer, Mod {
             }
         }
 
-        LevelRenderEvents.END_MAIN.register { context ->
+        LevelRenderEvents.BEFORE_TRANSLUCENT_TERRAIN.register { context ->
             val mc = Minecraft.getInstance()
             if (mc.level != null && mc.player != null) {
                 renderBufferedScreens(context, mc)
+            }
+        }
+
+        LevelRenderEvents.END_MAIN.register { _ ->
+            val mc = Minecraft.getInstance()
+            if (mc.level != null && mc.player != null) {
                 // Render popout windows after all Minecraft / mod rendering is submitted,
                 // so any GL-context switch (macOS GLFW backend) does not disturb in-flight commands.
                 DisplayRegistry.getScreens().forEach { it.renderPopout() }
@@ -99,9 +105,8 @@ class Client : ClientModInitializer, Mod {
             if (mc.level != null && mc.player != null) {
                 val stack = worldPoseStack(context)
                 val camera = mainCamera(mc)
-                if (!UnshadedDisplayPass.capture(stack, camera)) {
-                    ScreenRenderer.render(stack, camera)
-                }
+                UnshadedDisplayPass.capture(stack, camera)
+                ScreenRenderer.render(stack, camera)
                 DisplayRegistry.getScreens().forEach { it.renderPopout() }
             }
         }*/
@@ -167,9 +172,7 @@ class Client : ClientModInitializer, Mod {
             return
         }
 
-        if (UnshadedDisplayPass.capture(context.poseStack(), camera)) {
-            return
-        }
+        UnshadedDisplayPass.capture(context.poseStack(), camera)
 
         val submitNodeCollector = runCatching {
             val method = submitNodeCollectorMethod
@@ -200,9 +203,7 @@ class Client : ClientModInitializer, Mod {
             return
         }
         val camera = mainCamera(mc)
-        if (UnshadedDisplayPass.capture(context.poseStack(), camera)) {
-            return
-        }
+        UnshadedDisplayPass.capture(context.poseStack(), camera)
         renderWithBufferSource(context, camera)
     }
 

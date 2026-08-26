@@ -34,7 +34,7 @@ object DisplayUnlitRenderTypes {
             Identifier.fromNamespaceAndPath(Initializer.MOD_ID, "core/display_fog"),
             listOf(SAMPLER_TEXTURE),
         )
-        if (!UnshadedDisplayPass.active) assignIrisTexturedProgram(pipeline)
+        assignIrisTexturedProgram(pipeline)
         pipeline
     }
 

@@ -7,7 +7,6 @@ import com.dreamdisplays.api.platform.service.keys.PlatformServices
 import com.dreamdisplays.platform.client.render.ScreenRenderer
 import com.dreamdisplays.platform.client.render.UnshadedDisplayPass
 import com.dreamdisplays.platform.client.Mod as DreamMod
-import com.mojang.blaze3d.systems.RenderSystem
 import net.minecraft.client.Camera
 import net.minecraft.client.Minecraft
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload
@@ -65,35 +64,37 @@ class Client(modEventBus: IEventBus) : DreamMod {
     }
     //?}
 
-    //? if >=1.21.11 {
-    /** On render events. */
+    //? if >=26 {
     @SubscribeEvent
-    fun onRenderAfterLevel(event: RenderLevelStageEvent.AfterLevel) {
+    fun onRenderDisplays(event: RenderLevelStageEvent.AfterOpaqueFeatures) {
         val mc = Minecraft.getInstance()
         if (mc.level == null || mc.player == null) return
-        val modelViewStack = RenderSystem.getModelViewStack()
-        modelViewStack.pushMatrix()
-        try {
-            modelViewStack.mul(event.modelViewMatrix)
-            val camera = mainCamera(mc)
-            if (!UnshadedDisplayPass.capture(event.poseStack, camera)) {
-                ScreenRenderer.render(event.poseStack, camera)
-            }
-        } finally {
-            modelViewStack.popMatrix()
-        }
+        val camera = mainCamera(mc)
+        UnshadedDisplayPass.capture(event.poseStack, camera)
+        ScreenRenderer.render(event.poseStack, camera)
     }
     //?} else
     /*
-    // On render events.
-    @SubscribeEvent fun onRenderAfterLevel(event: RenderLevelStageEvent) {
+    //? if ==1.21.11 {
+    @SubscribeEvent
+    fun onRenderDisplays(event: RenderLevelStageEvent.AfterEntities) {
         val mc = Minecraft.getInstance()
         if (mc.level == null || mc.player == null) return
-        if (event.stage != RenderLevelStageEvent.Stage.AFTER_PARTICLES) return
-        if (!UnshadedDisplayPass.capture(event.poseStack, event.camera)) {
-            ScreenRenderer.render(event.poseStack, event.camera)
-        }
-    }*/
+        val camera = mainCamera(mc)
+        UnshadedDisplayPass.capture(event.poseStack, camera)
+        ScreenRenderer.render(event.poseStack, camera)
+    }
+    //?}
+    //? if <1.21.11 {
+    @SubscribeEvent fun onRenderDisplays(event: RenderLevelStageEvent) {
+        val mc = Minecraft.getInstance()
+        if (mc.level == null || mc.player == null) return
+        if (event.stage != RenderLevelStageEvent.Stage.AFTER_BLOCK_ENTITIES) return
+        UnshadedDisplayPass.capture(event.poseStack, event.camera)
+        ScreenRenderer.render(event.poseStack, event.camera)
+    }
+    //?}
+    */
 
     /** Main camera accessor. */
     private fun mainCamera(mc: Minecraft): Camera {
