@@ -1,3 +1,28 @@
+# 1.9.5 Release
+
+## Highlights
+
+- Enhanced README file
+- Rendering enhancements and fixes
+- `NeoForge` `sqlite-jdbc` fix
+
+## Client
+
+### Improvements
+
+- Enhanced README file ([#186](https://github.com/arnodoelinger/dreamdisplays/pull/186))
+
+### Fixes
+
+- Fixed displays turning into a black rectangle when seen through water or glass
+- Fixed persistently mapped PBO frame uploads occasionally corrupting or freezing display textures on Windows ([#199](https://github.com/arnodoelinger/dreamdisplays/issues/199))
+
+## Server
+
+### Fixes
+
+- Fixed the `NeoForge` server failing to start with a module resolution error when another mod also bundles `sqlite-jdbc` ([#201](https://github.com/arnodoelinger/dreamdisplays/issues/201))
+
 # 1.9.4 Release
 
 ## Highlights
