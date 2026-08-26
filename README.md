@@ -37,9 +37,9 @@ Create a display, paste a link and that's it!
 Watch together with your friends with seamless multiplayer synchronization. Choose between local, synchronized, and
 broadcast playback depending on how you want your displays to behave.
 
-![Cinema](https://i.imgur.com/aKI5EBS.png)
-
 Dream Displays keeps playback synchronized across the server while keeping network usage extremely low.
+
+![Cinema](https://i.imgur.com/PKxe0oG.png)
 
 # Made for you
 
@@ -75,14 +75,11 @@ Dream Displays is built to make watching videos in Minecraft feel as natural as 
 </table>
 
 # Get started
+Now it's your turn! Build your first display, invite your friends, and make displays a part of your world.
 
-1. Install Dream Displays and join your server
-2. Build a screen out of black concrete
-3. Select the area with a diamond axe
-4. Open the display menu by sneaking and right-clicking it
-5. Paste a video link into the search box
-
-The video starts playing! [Read the full guide in our wiki →](https://github.com/arnodoelinger/dreamdisplays/wiki/%C2%A72.-Using-displays)
+- [Install Dream Displays](https://github.com/arnodoelinger/dreamdisplays/wiki/%C2%A71.-Installation)
+- [Create your first display](https://github.com/arnodoelinger/dreamdisplays/wiki/%C2%A72.-Using-displays)
+- [Browse the full wiki](https://github.com/arnodoelinger/dreamdisplays/wiki)
 
 ---
 
