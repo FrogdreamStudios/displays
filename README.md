@@ -47,9 +47,11 @@ Dream Displays is built to make watching videos in Minecraft feel as natural as 
 
 <table>
 <tr>
-<td valign="top" width="50%">
+<td valign="top" width="50%" align="center">
 
 ## Your experience
+
+<div align="left">
 
 - **Seamless multiplayer playback** — with several modes
 - **Powerful media player** — search, Picture-in-Picture & more
@@ -58,10 +60,14 @@ Dream Displays is built to make watching videos in Minecraft feel as natural as 
 - **Customizable displays** — size, brightness & orientation
 - **Hardware-accelerated playback** — smooth and efficient video decoding
 
+</div>
+
 </td>
-<td valign="top" width="50%">
+<td valign="top" width="50%" align="center">
 
 ## Your server
+
+<div align="left">
 
 - **Broad server support** — Paper, Folia, Fabric, NeoForge
 - **Fullscreen mode** — great for events and presentations
@@ -69,6 +75,8 @@ Dream Displays is built to make watching videos in Minecraft feel as natural as 
 - **Permissions** — fine-grained control with LuckPerms support
 - **Ultra-low network impact** — minimal impact for your traffic
 - **Persistent displays** — settings survive server restarts and unloading
+
+</div>
 
 </td>
 </tr>
