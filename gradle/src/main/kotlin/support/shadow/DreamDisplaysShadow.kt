@@ -1,6 +1,7 @@
 package support.shadow
 
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.gradle.api.file.CopySpec
 
 /** Shared modules bundled into every fat loader jar (`Fabric`, `NeoForge`, `Paper`). */
 val dreamDisplaysSharedModules = listOf(
@@ -73,8 +74,6 @@ val dreamDisplaysShadedPackages = listOf(
     "com.google.protobuf",
     "org.mozilla.javascript",
     "org.mozilla.classfile",
-    // https://github.com/arnodoelinger/dreamdisplays/issues/201
-    "org.sqlite",
 )
 
 /** Exclude `sqlite-jdbc` native binaries for unsupported platforms. */
@@ -107,6 +106,6 @@ fun ShadowJar.relocateDreamDisplaysSharedPackages(prefix: String = "com.dreamdis
 }
 
 /** Excludes sqlite-jdbc's native binaries for platforms this project never runs on. */
-fun ShadowJar.excludeDreamDisplaysSqliteNativeExtras() {
+fun CopySpec.excludeDreamDisplaysSqliteNativeExtras() {
     dreamDisplaysSqliteNativeExcludes.forEach { exclude(it) }
 }
