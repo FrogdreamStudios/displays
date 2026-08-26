@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.display.model.settings
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import com.dreamdisplays.api.media.model.VideoQuality
 import java.util.*
 
@@ -9,7 +9,7 @@ import java.util.*
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 interface ClientSettingsStorage {
     /** Loads all client display settings from disk into memory, replacing any current state. */
     fun load()

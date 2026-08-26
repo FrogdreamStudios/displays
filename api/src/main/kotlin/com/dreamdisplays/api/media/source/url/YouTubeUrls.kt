@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.media.source.url
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import com.dreamdisplays.api.media.search.model.YouTubeVideoId
 import java.net.URI
 import java.net.URLDecoder
@@ -12,7 +12,7 @@ import java.util.*
  *
  * @since 1.0.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 object YouTubeUrls {
     private val VIDEO_PATH_PREFIXES = setOf("shorts", "embed", "live", "v")
 

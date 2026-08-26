@@ -22,6 +22,7 @@ internal object RenderPipelineCompat {
             .withCull(false)
 
         configureDepth(builder)
+        configureBlend(builder)
         if (supportsBindGroupLayouts()) {
             configure262(builder, samplers)
         } else {
@@ -29,6 +30,27 @@ internal object RenderPipelineCompat {
         }
 
         return builder.build()
+    }
+
+    fun configureBlend(builder: RenderPipeline.Builder) {
+        val builderClass = builder.javaClass
+        val blendFunctionClass = runCatching {
+            Class.forName("com.mojang.blaze3d.pipeline.BlendFunction")
+        }.getOrNull() ?: return
+        val translucent = blendFunctionClass.getField("TRANSLUCENT").get(null)
+
+        val colorTargetStateClass = runCatching {
+            Class.forName("com.mojang.blaze3d.pipeline.ColorTargetState")
+        }.getOrNull()
+        if (colorTargetStateClass != null) {
+            val state = colorTargetStateClass.getConstructor(blendFunctionClass).newInstance(translucent)
+            builderClass.getMethod("withColorTargetState", colorTargetStateClass).invoke(builder, state)
+            return
+        }
+
+        runCatching {
+            builderClass.getMethod("withBlend", blendFunctionClass).invoke(builder, translucent)
+        }
     }
 
     /**

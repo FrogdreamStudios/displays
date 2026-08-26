@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.media.service.keys
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import com.dreamdisplays.api.media.search.service.MediaSearchService
 import com.dreamdisplays.api.media.source.service.MediaResolverRegistry
 import com.dreamdisplays.api.runtime.registry.model.ServiceKey
@@ -11,7 +11,7 @@ import com.dreamdisplays.api.runtime.registry.model.serviceKey
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 object MediaServices {
     /** Ordered resolver chain for media sources. */
     val RESOLVER_REGISTRY: ServiceKey<MediaResolverRegistry> = serviceKey("dreamdisplays:media_resolver_registry")

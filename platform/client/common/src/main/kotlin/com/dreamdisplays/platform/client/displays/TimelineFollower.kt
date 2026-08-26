@@ -67,6 +67,12 @@ internal class TimelineFollower(private val screen: DisplayScreen) {
             if (packet.paused && !screen.isPaused) screen.applyServerPaused(true)
             if (!packet.paused && screen.isPaused) screen.applyServerPaused(false)
 
+            if (screen.isLive) {
+                screen.markInitialTimelineReady()
+                pending = null
+                return@waitForMFInit
+            }
+
             if (!screen.canSeek()) {
                 screen.markInitialTimelineReady()
                 pending = null

@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.media.search.model
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 
 /**
  * A validated 11-character YouTube video id.
@@ -8,7 +8,7 @@ import com.dreamdisplays.api.DreamDisplaysUnstableApi
  * @since 1.8.x
  */
 @JvmInline
-@DreamDisplaysUnstableApi
+@Unstable
 value class YouTubeVideoId(val value: String) {
     init {
         require(isValid(value)) { "Invalid YouTube video id: $value" }

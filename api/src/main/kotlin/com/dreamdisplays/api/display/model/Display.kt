@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.display.model
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import com.dreamdisplays.api.display.model.property.DisplayBounds
 import com.dreamdisplays.api.display.model.property.DisplayId
 import com.dreamdisplays.api.display.model.property.DisplayState
@@ -13,7 +13,7 @@ import com.dreamdisplays.api.watchparty.model.WatchPartySession
  *
  * @since 1.0.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 data class Display(
     /** The unique identifier of the display. */
     val id: DisplayId,

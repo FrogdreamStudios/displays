@@ -26,9 +26,8 @@ internal class NativeVideoFramePipe(
     private val logger = LoggerFactory.getLogger("DreamDisplays/NativeVideoFramePipe")
 
     companion object {
-        /** How long to wait for FFmpeg's exit code after EOF, mirroring the JVM pipe. */
         private const val EXIT_WAIT_MILLIS = 500
-
+        internal const val PARK_POLL_MS = 2L
         private const val LAV_HW_AUTO = 1
         private const val LAV_PTS_ORIGIN_TOLERANCE_NS = 10_000_000_000L
         private const val LAV_PREROLL_MARGIN_NS = 50_000_000L
@@ -174,7 +173,7 @@ internal class NativeVideoFramePipe(
         val frameNs = (1_000_000_000.0 / MediaProcess.outputFps(sourceFps)).toLong()
         val prebuffer = FramePrebuffer.createIfEnabled(
             surface, frameNs, getAudioClock, onFirstFrame, terminated, stopFlag, debugLabel, presentPreview,
-            tolerateLateness,
+            tolerateLateness, parkFlag,
         ).also { activePrebuffer = it }
         return daemon(
             {
@@ -239,7 +238,7 @@ internal class NativeVideoFramePipe(
         val frameNs = (1_000_000_000.0 / MediaProcess.outputFps(sourceFps)).toLong()
         val prebuffer = FramePrebuffer.createIfEnabled(
             surface, frameNs, getAudioClock, onFirstFrame, terminated, stopFlag, debugLabel, presentPreview,
-            tolerateLateness,
+            tolerateLateness, parkFlag,
         ).also { activePrebuffer = it }
         return daemon(
             {
@@ -430,7 +429,7 @@ internal class NativeVideoFramePipe(
             if (pk != null && pk.get()) {
                 while (pk.get() && !terminated.get() && !stopFlag.get()) {
                     try {
-                        Thread.sleep(20)
+                        Thread.sleep(PARK_POLL_MS)
                     } catch (_: InterruptedException) {
                         Thread.currentThread().interrupt(); break
                     }

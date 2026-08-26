@@ -1,13 +1,13 @@
 package com.dreamdisplays.api.runtime.module
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 
 /**
  * `Dream Displays` module; registers services, providers, or listeners through [ModuleContext].
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 interface DreamDisplaysModule {
     /** Unique module id, preferably in `namespace:name` form. */
     val id: String

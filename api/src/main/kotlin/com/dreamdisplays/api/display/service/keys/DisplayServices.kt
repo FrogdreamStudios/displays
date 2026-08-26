@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.display.service.keys
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import com.dreamdisplays.api.display.service.DisplayService
 import com.dreamdisplays.api.runtime.registry.model.ServiceKey
 import com.dreamdisplays.api.runtime.registry.model.serviceKey
@@ -11,7 +11,7 @@ import com.dreamdisplays.api.runtime.registry.model.serviceKey
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 object DisplayServices {
     /** Public display registry and command surface. */
     val DISPLAY: ServiceKey<DisplayService> = serviceKey("dreamdisplays:display")

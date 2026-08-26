@@ -8,6 +8,7 @@ import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicReference
 
 /**
  * Optional jitter buffer that decouples decoding from playout, eliminating the cold-start / network-stall freeze by
@@ -24,6 +25,7 @@ internal class FramePrebuffer(
     private val debugLabel: String,
     private val presentPreview: Boolean,
     private val tolerateLateness: Boolean,
+    private val parkFlag: AtomicBoolean? = null,
 ) {
     private val logger = LoggerFactory.getLogger("DreamDisplays/FramePrebuffer")
 
@@ -61,14 +63,10 @@ internal class FramePrebuffer(
     @Volatile
     private var firstSubmitNanos = 0L
 
-    /**
-     * Monotonic seek counter. Every [resetForSeek] bumps it; frames are tagged with the current value at submit time so
-     * stale ones can be dropped.
-     */
     private val generation = AtomicInteger(0)
-
     private val firstFramePresented = AtomicBoolean(false)
     private var consumer: Thread? = null
+    private val pending = AtomicReference<Timed?>(null)
 
     /**
      * Invoked on the consumer thread for each frame right after it passes pacing and before it is presented, with the raw
@@ -164,6 +162,8 @@ internal class FramePrebuffer(
 
     private fun alive(): Boolean = !aborted && !terminated.get() && !stopFlag.get()
 
+    private fun parked(): Boolean = parkFlag?.get() == true
+
     /** Fires [onFirstFrame] once per fill: the playback clock starts and the audio start gate opens here. */
     private fun armPlayout() {
         if (!firstFramePresented.compareAndSet(false, true)) return
@@ -176,6 +176,9 @@ internal class FramePrebuffer(
     private fun consume() {
         try {
             while (alive()) {
+                if (parked()) {
+                    Thread.sleep(PARK_POLL_MS); continue
+                }
                 if (!primed) {
                     // Show the very first decoded frame immediately instead of sitting on a black /
                     // stale picture for the whole prefill: the viewer gets instant visual feedback on
@@ -211,7 +214,7 @@ internal class FramePrebuffer(
                     }
                     Thread.sleep(2); continue
                 }
-                val tf = queue.poll(POLL_MS, TimeUnit.MILLISECONDS)
+                val tf = pending.getAndSet(null) ?: queue.poll(POLL_MS, TimeUnit.MILLISECONDS)
                 if (tf == null) {
                     if (inputClosed) break // Tail drained
                     continue
@@ -235,14 +238,19 @@ internal class FramePrebuffer(
                 // until a seek reset the audio clock (the picture reads as frozen indefinitely).
                 val clockAtHead = getAudioClock()
                 val lateNs = if (clockAtHead >= 0L) clockAtHead - tf.pts else 0L
+                var abortedByPark = false
                 val dropped = FramePacing.pace(
                     tf.pts,
                     getAudioClock,
-                    { flushRequested || !alive() },
+                    { flushRequested || !alive() || parked().also { if (it) abortedByPark = true } },
                     dropStaleTimeline = false,
                     // Only worth skipping a late frame while a fresher one is already decoded behind it
                     dropWhenBehind = { !tolerateLateness || queue.isNotEmpty() },
                 )
+                if (abortedByPark && !flushRequested && alive()) {
+                    pending.set(tf)
+                    continue
+                }
                 if (dropped || flushRequested) {
                     surface.recycleFrameBuffer(tf.buf)
                     // A drop caused by a flush or a teardown says nothing about A / V health
@@ -305,6 +313,7 @@ internal class FramePrebuffer(
     }
 
     private fun drainAndRecycle() {
+        pending.getAndSet(null)?.let { surface.recycleFrameBuffer(it.buf) }
         while (true) {
             val tf = queue.poll() ?: break
             surface.recycleFrameBuffer(tf.buf)
@@ -314,6 +323,8 @@ internal class FramePrebuffer(
     companion object {
         private const val POLL_MS = 50L
         private const val JOIN_MS = 500L
+
+        private const val PARK_POLL_MS = 2L
 
         /** Reporting window for the A / V health counters. */
         private const val HEALTH_WINDOW_NS = 10_000_000_000L
@@ -357,6 +368,7 @@ internal class FramePrebuffer(
             getAudioClock: () -> Long, onFirstFrame: () -> Unit,
             terminated: AtomicBoolean, stopFlag: AtomicBoolean, debugLabel: String,
             presentPreview: Boolean = true, tolerateLateness: Boolean = true,
+            parkFlag: AtomicBoolean? = null,
         ): FramePrebuffer? {
             if (!enabled || frameNs <= 0) return null
             val prefill = ((prebufferMs * 1_000_000L) / frameNs).toInt().coerceIn(2, 240)
@@ -377,6 +389,7 @@ internal class FramePrebuffer(
                 debugLabel,
                 presentPreview,
                 tolerateLateness,
+                parkFlag,
             )
                 .also { it.start() }
         }

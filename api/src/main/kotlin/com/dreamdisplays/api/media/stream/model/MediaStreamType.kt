@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.media.stream.model
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 
 /**
  * What a [MediaStream] carries. Drives track selection: a video-only and an audio-only stream are
@@ -8,7 +8,7 @@ import com.dreamdisplays.api.DreamDisplaysUnstableApi
  *
  * @since 1.6.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 enum class MediaStreamType {
     /** Video track only (no audio). */
     VIDEO,

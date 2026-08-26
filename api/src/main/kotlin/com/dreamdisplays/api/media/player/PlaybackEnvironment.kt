@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.media.player
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import com.dreamdisplays.api.media.source.service.MediaResolverRegistry
 import com.dreamdisplays.api.media.stream.service.StreamSelector
 
@@ -11,7 +11,7 @@ import com.dreamdisplays.api.media.stream.service.StreamSelector
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 interface PlaybackEnvironment {
     /** Read-only playback configuration. */
     val config: PlaybackConfig

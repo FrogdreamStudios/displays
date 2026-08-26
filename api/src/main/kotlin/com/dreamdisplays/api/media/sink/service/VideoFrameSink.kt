@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.media.sink.service
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import com.dreamdisplays.api.media.sink.model.DecodedVideoFrame
 
 /**
@@ -8,7 +8,7 @@ import com.dreamdisplays.api.media.sink.model.DecodedVideoFrame
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 fun interface VideoFrameSink {
     /** Accepts one decoded [frame]. */
     fun onFrame(frame: DecodedVideoFrame)

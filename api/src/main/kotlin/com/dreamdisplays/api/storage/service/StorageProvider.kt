@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.storage.service
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import com.dreamdisplays.api.display.model.settings.ClientSettingsStorage
 
 /**
@@ -8,7 +8,7 @@ import com.dreamdisplays.api.display.model.settings.ClientSettingsStorage
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 interface StorageProvider {
     /** The server-authoritative display snapshot registry. */
     fun displayStorage(): DisplayStorageService

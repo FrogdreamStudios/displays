@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.media.source.url
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import com.dreamdisplays.api.media.source.model.CustomMediaKind
 import com.dreamdisplays.api.security.model.MediaHttpUrl
 import java.net.URI
@@ -13,7 +13,7 @@ import java.util.*
  *
  * @since 1.9.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 object CustomMediaUrls {
     /** Video containers (muxed or video-only). */
     private val VIDEO_EXTENSIONS = setOf(

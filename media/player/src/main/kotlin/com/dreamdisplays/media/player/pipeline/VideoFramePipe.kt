@@ -27,6 +27,10 @@ internal class VideoFramePipe(
 ) : FramePipe {
     private val logger = LoggerFactory.getLogger("DreamDisplays/VideoFramePipe")
 
+    private companion object {
+        const val PARK_POLL_MS = 2L
+    }
+
     /** Updated by the reader thread on every frame; used by the watchdog to detect stalls. */
     override val lastFrameReceivedNanos = AtomicLong(0)
 
@@ -108,7 +112,7 @@ internal class VideoFramePipe(
         val frameNs = (1_000_000_000.0 / MediaProcess.outputFps(sourceFps)).toLong()
         val prebuffer = FramePrebuffer.createIfEnabled(
             surface, frameNs, getAudioClock, onFirstFrame, terminated, stopFlag, debugLabel, presentPreview,
-            tolerateLateness,
+            tolerateLateness, parkFlag,
         ).also { activePrebuffer = it }
         // Feed the popout / PiP sink from the prebuffer's paced consumer so it stays in sync with the
         // in-world display; feeding at decode time would run the popout ahead by the buffer depth.
@@ -177,7 +181,7 @@ internal class VideoFramePipe(
                     if (pk != null && pk.get()) {
                         while (pk.get() && !terminated.get() && !stopFlag.get()) {
                             try {
-                                Thread.sleep(20)
+                                Thread.sleep(PARK_POLL_MS)
                             } catch (_: InterruptedException) {
                                 Thread.currentThread().interrupt(); break
                             }
@@ -212,6 +216,11 @@ internal class VideoFramePipe(
                     spare.flip()
 
                     lastFrameReceivedNanos.set(System.nanoTime())
+
+                    val pk2 = parked
+                    if (pk2 != null && pk2.get()) {
+                        continue
+                    }
 
                     if (prebuffer != null) {
                         // Producer path: hand the decoded frame to the jitter buffer; the consumer thread

@@ -76,6 +76,7 @@ internal object Yuv262Reflect {
         builder.withVertexShader(Identifier.fromNamespaceAndPath(Initializer.MOD_ID, "core/display_fog"))
         builder.withFragmentShader(Identifier.fromNamespaceAndPath(Initializer.MOD_ID, "core/display_yuv"))
         RenderPipelineCompat.configureDepth(builder)
+        RenderPipelineCompat.configureBlend(builder)
         builder.withCull(false)
         return builder.build()
     }

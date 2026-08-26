@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.storage.model
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import com.dreamdisplays.api.display.model.property.DisplayFacing
 import com.dreamdisplays.api.playback.model.PlaybackMode
 import kotlinx.serialization.Serializable
@@ -11,7 +11,7 @@ import java.util.*
  *
  * @since 1.0.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 @Serializable
 data class FullDisplayData(
     @Serializable(with = UuidStringSerializer::class)
@@ -35,4 +35,5 @@ data class FullDisplayData(
     var currentTimeNanos: Long = 0,
     var rotation: Int = 0,
     var qualityCap: Int = 0,
+    var dimensionKey: String = "",
 )

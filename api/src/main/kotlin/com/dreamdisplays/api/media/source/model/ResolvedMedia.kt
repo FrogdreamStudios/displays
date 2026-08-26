@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.media.source.model
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import com.dreamdisplays.api.media.stream.model.MediaStream
 
 /**
@@ -8,7 +8,7 @@ import com.dreamdisplays.api.media.stream.model.MediaStream
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 data class ResolvedMedia(
     /** All playable streams returned by the resolver. */
     val streams: List<MediaStream>,

@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.security.policy
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import com.dreamdisplays.api.media.source.model.MediaPlatform
 import java.net.URI
 import java.util.*
@@ -14,7 +14,7 @@ import java.util.*
  *
  * @since 1.9.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 object MediaHosts {
     /**
      * Domains each supported platform serves from, including the CDNs its streams and thumbnails

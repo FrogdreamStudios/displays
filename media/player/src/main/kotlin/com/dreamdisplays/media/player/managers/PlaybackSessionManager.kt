@@ -231,6 +231,8 @@ internal class PlaybackSessionManager(
     /** True if audio starts at known position (real -ss seek, not live HLS join). */
     private fun audioOriginKnown(): Boolean = !liveSession && audioFeeder == null
 
+    fun audioSourceGone(): Boolean = audioFeeder?.sourceGone == true
+
     /** True once source has no audio (separate from transient gap between processes). */
     @Volatile
     private var silentSession = false
@@ -902,15 +904,15 @@ internal class PlaybackSessionManager(
                 bridgeCeilingNanos == Long.MAX_VALUE && incoming == null &&
                 (audioHalf != null || silentSession)
 
-    /** Parks live session: reader threads idle in place (decoder + audio line stay open, position frozen). */
-    fun suspend(allowExternalProcess: Boolean = false): Boolean {
+    fun suspend(allowExternalProcess: Boolean = false, retainBuffered: Boolean = false): Boolean {
         if (!(if (allowExternalProcess) canHoldWarm() else canPark()) || parkFlag.get()) return false
         parkFlag.set(true)
         // Nothing may switch tracks while dormant, so holding idle FFmpeg processes would be pure cost.
         audioWarmPool.invalidateAll()
         audio.pauseForPark()
-        active?.pipe?.trimForPark()
+        if (!retainBuffered) active?.pipe?.trimForPark()
         frozenPositionNanos = pacingClockNanos().takeIf { it >= 0L } ?: clock.currentTime()
+        clock.moveTo(frozenPositionNanos)
         parkStartNanos = System.nanoTime()
         logger.debug("$debugLabel [park] session parked warm at ${"%.1f".format(frozenPositionNanos / 1_000_000.0)}ms.")
         return true
@@ -921,8 +923,8 @@ internal class PlaybackSessionManager(
         if (!parkFlag.get()) return
         clock.addPausedDuration(System.nanoTime() - parkStartNanos)
         frozenPositionNanos = -1L
-        parkFlag.set(false)
         audio.resumeFromPark()
+        parkFlag.set(false)
         logger.debug("$debugLabel [park] session un-parked; resuming from frozen position.")
     }
 

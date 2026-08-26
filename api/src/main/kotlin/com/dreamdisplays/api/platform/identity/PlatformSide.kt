@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.platform.identity
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 
 /**
  * Which logical side of the game a [Platform] runs on. Drives side-aware guards so common code can
@@ -8,7 +8,7 @@ import com.dreamdisplays.api.DreamDisplaysUnstableApi
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 enum class PlatformSide {
     /** The physical client (rendering, input, local). */
     CLIENT,

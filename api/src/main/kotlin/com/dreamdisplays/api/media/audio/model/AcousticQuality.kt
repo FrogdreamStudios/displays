@@ -1,13 +1,13 @@
 package com.dreamdisplays.api.media.audio.model
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 
 /**
  * Acoustics rendering tier, from fully disabled to the highest-fidelity HRIR-based chain.
  *
  * @since 1.9.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 enum class AcousticQuality {
     /** Legacy distance-gain only, no spatialization. */
     OFF,

@@ -1,13 +1,13 @@
 package com.dreamdisplays.api.media.audio.model
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 
 /**
  * Latest known geometry and mix state for one registered source, published every game tick.
  *
  * @since 1.9.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 data class SourceAcousticState(
     /** Source plane */
     val plane: SourcePlane,

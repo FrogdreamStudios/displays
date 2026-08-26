@@ -66,4 +66,5 @@ internal fun DisplayScreen.toFullDisplayData(): FullDisplayData = FullDisplayDat
     currentTimeNanos = currentTimeNanos,
     rotation = rotation.quarterTurns,
     qualityCap = qualityCap,
+    dimensionKey = dimensionKey,
 )

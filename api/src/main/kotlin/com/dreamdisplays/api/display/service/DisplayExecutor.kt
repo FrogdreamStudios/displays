@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.display.service
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import com.dreamdisplays.api.display.model.Display
 import com.dreamdisplays.api.display.model.property.DisplayId
 import com.dreamdisplays.api.display.model.settings.DisplaySettings
@@ -13,7 +13,7 @@ import kotlin.time.Duration
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 interface DisplayExecutor {
     /** Updates the display settings for [id]. */
     fun updateSettings(id: DisplayId, settings: DisplaySettings): Display? = null

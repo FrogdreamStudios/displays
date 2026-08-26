@@ -1,13 +1,13 @@
 package com.dreamdisplays.api.playback.model
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 
 /**
  * Inputs the permission rules need.
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 data class PlaybackContext(
     val mode: PlaybackMode,
     val isOwner: Boolean,

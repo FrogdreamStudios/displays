@@ -1,13 +1,13 @@
 package com.dreamdisplays.api.media.model
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 
 /**
  * Platform-free pixel layout for decoded video frames; platform maps to concrete formats.
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 enum class FramePixelFormat(val bytesPerPixel: Int) {
     /** Single-channel plane of an RGB frame. */
     RGB24(3),

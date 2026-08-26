@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.media.session.event
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import com.dreamdisplays.api.media.model.DreamMediaException
 import com.dreamdisplays.api.media.session.property.MediaSessionState
 import com.dreamdisplays.api.media.source.model.MediaMetadata
@@ -11,7 +11,7 @@ import kotlin.time.Duration
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 sealed interface MediaSessionEvent {
     /** The session changed from [previous] to [current]. */
     data class StateChanged(

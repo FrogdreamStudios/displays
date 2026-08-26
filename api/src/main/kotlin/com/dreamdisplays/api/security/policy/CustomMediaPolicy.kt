@@ -1,8 +1,8 @@
-@file:OptIn(DreamDisplaysUnstableApi::class)
+@file:OptIn(Unstable::class)
 
 package com.dreamdisplays.api.security.policy
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import com.dreamdisplays.api.media.source.model.MediaPlatform
 import com.dreamdisplays.api.media.source.model.MediaSource
 import com.dreamdisplays.api.security.model.MediaHttpUrl
@@ -13,7 +13,7 @@ import java.util.*
  *
  * @since 1.9.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 object CustomMediaPolicy {
     /** The `[custom_media]` config section, in the shape the check needs. */
     data class Settings(

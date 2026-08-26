@@ -5,6 +5,7 @@ import com.dreamdisplays.platform.client.displays.DisplayRegistry
 import com.dreamdisplays.platform.client.platform.NeoForgePlatformIntegrationProvider
 import com.dreamdisplays.api.platform.service.keys.PlatformServices
 import com.dreamdisplays.platform.client.render.ScreenRenderer
+import com.dreamdisplays.platform.client.render.UnshadedDisplayPass
 import com.dreamdisplays.platform.client.Mod as DreamMod
 import com.mojang.blaze3d.systems.RenderSystem
 import net.minecraft.client.Camera
@@ -74,7 +75,10 @@ class Client(modEventBus: IEventBus) : DreamMod {
         modelViewStack.pushMatrix()
         try {
             modelViewStack.mul(event.modelViewMatrix)
-            ScreenRenderer.render(event.poseStack, mainCamera(mc))
+            val camera = mainCamera(mc)
+            if (!UnshadedDisplayPass.capture(event.poseStack, camera)) {
+                ScreenRenderer.render(event.poseStack, camera)
+            }
         } finally {
             modelViewStack.popMatrix()
         }
@@ -86,7 +90,9 @@ class Client(modEventBus: IEventBus) : DreamMod {
         val mc = Minecraft.getInstance()
         if (mc.level == null || mc.player == null) return
         if (event.stage != RenderLevelStageEvent.Stage.AFTER_PARTICLES) return
-        ScreenRenderer.render(event.poseStack, event.camera)
+        if (!UnshadedDisplayPass.capture(event.poseStack, event.camera)) {
+            ScreenRenderer.render(event.poseStack, event.camera)
+        }
     }*/
 
     /** Main camera accessor. */

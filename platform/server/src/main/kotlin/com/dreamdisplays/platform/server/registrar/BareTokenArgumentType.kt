@@ -3,6 +3,7 @@ package com.dreamdisplays.platform.server.registrar
 import com.mojang.brigadier.LiteralMessage
 import com.mojang.brigadier.StringReader
 import com.mojang.brigadier.arguments.ArgumentType
+import com.mojang.brigadier.arguments.StringArgumentType
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType
 import io.github.arnodoelinger.platformweaver.FabricOnly
 import io.github.arnodoelinger.platformweaver.NeoForgeOnly
@@ -23,6 +24,9 @@ import net.minecraft.resources.Identifier
 object BareTokenArgumentType : ArgumentType<String> {
     private val MISSING = SimpleCommandExceptionType(LiteralMessage("Expected a value."))
     val ID: Identifier = Identifier.fromNamespaceAndPath("dreamdisplays", "bare_token")
+
+    @Suppress("UNCHECKED_CAST")
+    val NETWORK_FALLBACK: ArgumentType<Any> = StringArgumentType.greedyString() as ArgumentType<Any>
 
     override fun parse(reader: StringReader): String {
         val start = reader.cursor

@@ -1,13 +1,13 @@
 package com.dreamdisplays.api.media.stream.model
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 
 /**
  * One playable media track or muxed stream produced by a resolver.
  *
  * @since 1.6.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 data class MediaStream(
     /** Direct URL the player can open. */
     val url: String,

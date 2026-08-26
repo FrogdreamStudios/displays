@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.playback.model
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import kotlinx.serialization.Serializable
 
 /**
@@ -9,7 +9,7 @@ import kotlinx.serialization.Serializable
  *
  * @since 1.9.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 @Serializable
 enum class FullscreenMode {
     /** Video letterboxed inside small margins; the game stays visible around the edges. */
@@ -37,7 +37,7 @@ enum class FullscreenMode {
  *
  * @since 1.9.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 enum class FullscreenAckAction {
     /** The overlay was shown to the player. */
     SHOWN,

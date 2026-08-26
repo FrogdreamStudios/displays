@@ -42,6 +42,5 @@ void main() {
         linear_fog_value(sphericalVertexDistance, FogEnvironmentalStart, FogEnvironmentalEnd),
         linear_fog_value(cylindricalVertexDistance, FogRenderDistanceStart, FogRenderDistanceEnd)
     ) * FogColor.a;
-    color.rgb = mix(color.rgb, FogColor.rgb, fogValue);
     fragColor = vec4(color.rgb, color.a * (1.0 - fogValue));
 }

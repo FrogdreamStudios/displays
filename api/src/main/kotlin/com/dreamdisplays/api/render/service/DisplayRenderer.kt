@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.render.service
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import com.dreamdisplays.api.render.backend.service.RenderContext
 import com.dreamdisplays.api.render.backend.service.RenderSurface
 import com.dreamdisplays.api.render.model.RenderStats
@@ -10,7 +10,7 @@ import com.dreamdisplays.api.render.model.RenderStats
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 interface DisplayRenderer {
     /** Adds [surface] to the render set. */
     fun register(surface: RenderSurface)

@@ -13,6 +13,7 @@ import com.dreamdisplays.platform.client.overlay.OverlayManager
 import com.dreamdisplays.platform.client.ui.FullscreenOverlayManager
 import com.dreamdisplays.platform.client.ui.MinecraftOverlayRenderContext
 import com.dreamdisplays.platform.client.utils.MinecraftScreenUtil
+import com.dreamdisplays.media.source.youtube.NewPipeResolver
 import com.dreamdisplays.util.OsInfo
 import net.minecraft.client.Minecraft
 //? if >=26 {
@@ -52,6 +53,7 @@ object Initializer {
     fun onServerJoined(serverId: String) {
         ClientStateManager.connectedServerId = serverId
         DisplayRegistry.loadScreensForServer(serverId)
+        NewPipeResolver.warmConnection()
         DreamServices.registry.getOrNull<ClientApplication>()
             ?.emit(ClientLifecycleEvent.ServerJoined(serverId))
     }

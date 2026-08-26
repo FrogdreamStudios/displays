@@ -65,9 +65,9 @@ object BilibiliApi {
     private var wbiCache: WbiKeys? = null
     private val WBI_TTL = 20.hours
 
-    /** Resolves [source] (a VOD, live room, or unresolved short link), or null when nothing is playable. */
     fun resolve(source: MediaSource.Bilibili): BilibiliPlayback? = when {
         source.bvid != null || source.avid != null -> resolveVod(source.bvid, source.avid, source.part ?: 1)
+        source.epId != null || source.seasonId != null -> resolveBangumi(source.epId, source.seasonId)
         source.roomId != null -> resolveLive(source.roomId!!)
         else -> resolveShortlink(source.url)?.let { resolve(it) }
     }
@@ -133,7 +133,7 @@ object BilibiliApi {
 
     /** True once a BIlibili source carries an actual id, i.e. is no longer a bare `b23.tv` short link. */
     private val MediaSource.Bilibili.isResolved: Boolean
-        get() = bvid != null || avid != null || roomId != null
+        get() = bvid != null || avid != null || roomId != null || epId != null || seasonId != null
 
     /** Resolves a VOD identified by [bvid] or legacy [avid], at part [part] (1-based). */
     private fun resolveVod(bvid: String?, avid: Long?, part: Int): BilibiliPlayback? {
@@ -171,6 +171,43 @@ object BilibiliApi {
             uploaderAvatarUrl = owner?.optString("face"),
             viewCount = stat?.optLong("view"),
             durationSec = data.optLong("duration"),
+            isLive = false,
+        )
+        return BilibiliPlayback(streams = streams, metadata = metadata, isSeekable = true)
+    }
+
+    private fun resolveBangumi(epId: Long?, seasonId: Long?): BilibiliPlayback? {
+        val seasonParams = buildMap {
+            epId?.let { put("ep_id", it.toString()) }
+            seasonId?.let { put("season_id", it.toString()) }
+        }
+        if (seasonParams.isEmpty()) return null
+
+        val seasonRoot = getJson("https://api.bilibili.com/pgc/view/web/season?${plainQuery(seasonParams)}")
+        val result = seasonRoot?.obj("result") ?: return null
+        val episodes = result.array("episodes")?.mapNotNull { it.asJsonObjectOrNull() } ?: return null
+        val episode = epId?.let { id -> episodes.firstOrNull { it.optLong("ep_id") == id } }
+            ?: episodes.firstOrNull()
+            ?: return null
+        val resolvedEpId = episode.optLong("ep_id") ?: return null
+
+        val playurlRoot =
+            getJson("https://api.bilibili.com/pgc/player/web/v2/playurl?fnval=12240&fourk=1&ep_id=$resolvedEpId")
+        val streams = buildStreams(playurlRoot?.obj("result")?.obj("video_info"))
+        if (streams.isEmpty()) return null
+
+        val seasonTitle = result.optString("title")
+        val episodeTitle = episode.optString("long_title")?.takeIf { it.isNotBlank() }
+            ?: episode.optString("show_title")
+        val title = listOfNotNull(seasonTitle, episodeTitle).joinToString(" · ").ifBlank { null }
+
+        val metadata = PlatformVideoMetadata(
+            title = title,
+            uploader = null,
+            thumbnailUrl = episode.optString("cover") ?: result.optString("cover"),
+            uploaderAvatarUrl = null,
+            viewCount = null,
+            durationSec = episode.optLong("duration")?.let { it / 1000 },
             isLive = false,
         )
         return BilibiliPlayback(streams = streams, metadata = metadata, isSeekable = true)
@@ -246,8 +283,10 @@ object BilibiliApi {
             if (streams.isNotEmpty()) return streams
         }
 
-        // Very low quality / old videos have no DASH manifest, only a single progressive URL
-        val durl = playurlData.array("durl")?.firstOrNull()?.asJsonObjectOrNull() ?: return emptyList()
+        // Very low quality / old videos have no DASH manifest, only a single progressive URL.
+        // Regular VODs key this "durl"; bangumi's `video_info` keys the same shape "durls".
+        val durl = (playurlData.array("durl") ?: playurlData.array("durls"))
+            ?.firstOrNull()?.asJsonObjectOrNull() ?: return emptyList()
         val durlUrl = durl.optString("url") ?: return emptyList()
         return listOf(
             MediaStream(

@@ -315,6 +315,8 @@ class AsyncTextureUploader(private val stateCache: Boolean) : TextureUploaderSer
             src.limit(savedLimit)
             src.position(savedPos)
         }
+        // https://github.com/arnodoelinger/dreamdisplays/issues/199
+        GL42.glMemoryBarrier(GL44.GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT)
     }
 
     /**

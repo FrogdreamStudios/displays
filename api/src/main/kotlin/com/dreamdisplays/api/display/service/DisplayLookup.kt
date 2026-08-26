@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.display.service
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import com.dreamdisplays.api.display.event.DisplayEvent
 import com.dreamdisplays.api.display.model.Display
 import com.dreamdisplays.api.display.model.property.DisplayId
@@ -10,7 +10,7 @@ import com.dreamdisplays.api.display.model.property.DisplayId
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 interface DisplayLookup {
     /** Get the display with the given [id], if it exists. */
     fun getDisplay(id: DisplayId): Display?

@@ -1,13 +1,13 @@
 package com.dreamdisplays.api.playback.model
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 
 /**
  * Authoritative playback clock; [positionMs] is position as of [serverTimeMs], advances while running.
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 data class Timeline(
     val positionMs: Long,
     val serverTimeMs: Long,

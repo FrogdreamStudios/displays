@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.media.session.property
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import com.dreamdisplays.api.media.model.DreamMediaException
 
 /**
@@ -8,7 +8,7 @@ import com.dreamdisplays.api.media.model.DreamMediaException
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 sealed interface MediaSessionState {
     /** No media is currently loaded. */
     data object Idle : MediaSessionState

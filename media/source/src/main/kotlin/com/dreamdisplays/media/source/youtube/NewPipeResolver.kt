@@ -12,10 +12,13 @@ import com.dreamdisplays.media.source.youtube.newpipe.NewPipeLadderTracker
 import com.dreamdisplays.media.source.youtube.newpipe.NewPipeResolved
 import com.dreamdisplays.media.source.youtube.newpipe.NewPipeStreamExtraction
 import com.dreamdisplays.media.source.youtube.newpipe.YtHttpDownloader
+import com.dreamdisplays.util.DreamCoroutines
+import com.dreamdisplays.util.net.DreamHttpClient
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.github.benmanes.caffeine.cache.Expiry
 import kotlinx.atomicfu.atomic
+import kotlinx.coroutines.launch
 import org.schabi.newpipe.extractor.NewPipe
 import org.schabi.newpipe.extractor.services.youtube.YoutubeJavaScriptPlayerManager
 import org.slf4j.LoggerFactory
@@ -126,6 +129,20 @@ object NewPipeResolver : MediaResolverService {
         }.onFailure { e ->
             initialized.value = false
             logger.warn("NewPipe init failed: ${e.message}.")
+        }
+    }
+
+    fun warmConnection() {
+        DreamCoroutines.clientIo.launch {
+            runCatching {
+                DreamHttpClient.executeLimited(
+                    "https://www.youtube.com/",
+                    maxBytes = 1,
+                    DreamHttpClient.RequestOptions(method = "HEAD", connectTimeoutMs = 5_000, readTimeoutMs = 5_000),
+                )
+            }.onFailure { e ->
+                logger.debug("Connection warmup to youtube.com failed: {}", e.message)
+            }
         }
     }
 

@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.runtime.module
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import com.dreamdisplays.api.runtime.registry.service.ServiceRegistry
 
 /**
@@ -8,7 +8,7 @@ import com.dreamdisplays.api.runtime.registry.service.ServiceRegistry
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 interface DreamDisplaysApi {
     /** Contract-typed services available in the current runtime. */
     val services: ServiceRegistry

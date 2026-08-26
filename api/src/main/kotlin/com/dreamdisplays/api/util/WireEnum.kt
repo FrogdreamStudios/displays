@@ -1,13 +1,13 @@
 package com.dreamdisplays.api.util
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 
 /**
  * Enum-like value with a stable wire token.
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 interface WireEnum {
     val wire: String
 }
@@ -17,7 +17,7 @@ interface WireEnum {
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 inline fun <reified E> wireEnumValueOf(raw: String?, default: E): E
         where E : Enum<E>, E : WireEnum =
     wireEnumValueOfOrNull<E>(raw) ?: default
@@ -27,7 +27,7 @@ inline fun <reified E> wireEnumValueOf(raw: String?, default: E): E
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 inline fun <reified E> wireEnumValueOfOrNull(raw: String?): E?
         where E : Enum<E>, E : WireEnum {
     val token = raw?.trim()?.lowercase()?.takeIf { it.isNotEmpty() } ?: return null

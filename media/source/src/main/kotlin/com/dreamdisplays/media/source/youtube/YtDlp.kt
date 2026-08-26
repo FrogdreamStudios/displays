@@ -158,7 +158,9 @@ object YtDlp {
             }
             .getOrElse { emptyList() }
 
-        if (YtStreams.offersQualityLadder(viaNewPipe)) {
+        if (YtStreams.usable(viaNewPipe) && YtStreams.offersQualityLadder(viaNewPipe) &&
+            viaNewPipe.none { it.isLive }
+        ) {
             abandonYtDlp()
             return viaNewPipe
         }
@@ -178,7 +180,7 @@ object YtDlp {
         }.getOrElse { emptyList() }
 
         return when {
-            YtStreams.offersQualityLadder(viaYtDlp) -> viaYtDlp
+            YtStreams.usable(viaYtDlp) && YtStreams.offersQualityLadder(viaYtDlp) -> viaYtDlp
             viaNewPipe.isNotEmpty() -> {
                 logger.warn(
                     "yt-dlp only produced a non-ladder fallback-client result for $videoUrl " +

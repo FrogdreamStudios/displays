@@ -20,10 +20,11 @@ object BilibiliMetadataCache {
         fetch = { key -> sourceFor(key)?.let { BilibiliApi.metadata(it) ?: YtDlpMetadataFallback.fetch(it.url) } },
     )
 
-    /** The cache key for [source]: `video:<bvid|av<avid>>:<part>` for a VOD, `room:<id>` for a live room. */
     fun cacheKey(source: MediaSource.Bilibili): String? = when {
         source.bvid != null -> "video:${source.bvid}:${source.part ?: 1}"
         source.avid != null -> "video:av${source.avid}:${source.part ?: 1}"
+        source.epId != null -> "ep:${source.epId}"
+        source.seasonId != null -> "season:${source.seasonId}"
         source.roomId != null -> "room:${source.roomId}"
         else -> "short:${source.url}"
     }
@@ -40,6 +41,14 @@ object BilibiliMetadataCache {
         key.startsWith("video:") -> {
             val (bvid, part) = key.removePrefix("video:").split(':')
             MediaSource.Bilibili(url = "https://www.bilibili.com/video/$bvid", bvid = bvid, part = part.toIntOrNull())
+        }
+
+        key.startsWith("ep:") -> key.removePrefix("ep:").toLongOrNull()?.let {
+            MediaSource.Bilibili(url = "https://www.bilibili.com/bangumi/play/ep$it", epId = it)
+        }
+
+        key.startsWith("season:") -> key.removePrefix("season:").toLongOrNull()?.let {
+            MediaSource.Bilibili(url = "https://www.bilibili.com/bangumi/play/ss$it", seasonId = it)
         }
 
         key.startsWith("room:") -> {

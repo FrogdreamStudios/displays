@@ -1,13 +1,13 @@
 package com.dreamdisplays.api.platform.capability
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 
 /**
  * Scheduler abstraction for crossing between platform main-thread work and background tasks.
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 interface PlatformScheduler {
     /** True when the caller is already running on the platform main thread. */
     val isOnMainThread: Boolean

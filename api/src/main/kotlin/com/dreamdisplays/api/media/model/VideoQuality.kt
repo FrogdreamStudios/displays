@@ -1,13 +1,13 @@
 package com.dreamdisplays.api.media.model
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 
 /**
  * Requested video quality: [Auto] (client picks) or [Fixed] height; persisted as label.
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 sealed interface VideoQuality {
     /** Quality is chosen automatically from the available streams. */
     data object Auto : VideoQuality

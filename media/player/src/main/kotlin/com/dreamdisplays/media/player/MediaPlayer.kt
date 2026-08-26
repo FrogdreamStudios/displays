@@ -79,6 +79,8 @@ class MediaPlayer(
          */
         private const val MAX_AUDIO_RESTARTS = 3
 
+        private const val AUDIO_RESTART_BUDGET_RESET_NS = 120_000_000_000L
+
         /** Hwaccel failures show up within the first few seconds, past this window assume the stream is just unreliable. */
         private const val HWACCEL_FAIL_WINDOW_NS = 5_000_000_000L
 
@@ -194,6 +196,9 @@ class MediaPlayer(
 
     /** In-place audio restarts used by the current session (see [handleAudioFailure]); reset per session. */
     private val audioRestartAttempts = AtomicInteger(0)
+
+    @Volatile
+    private var lastAudioFailureNanos = 0L
 
     /** Guards [dispatchInitialize] so at most one resolve is ever in flight for this player. */
     private val initializing = AtomicBoolean(false)
@@ -669,6 +674,7 @@ class MediaPlayer(
         host.cancelQualityHandoff()
         sessionStartNanos = System.nanoTime()
         audioRestartAttempts.set(0)
+        lastAudioFailureNanos = 0L
         sessionManager.start(
             streamSet,
             offsetNanos,
@@ -835,6 +841,15 @@ class MediaPlayer(
             logger.debug("$debugLabel Audio pipe ended near VOD end (pos=${clock.currentTime()}, dur=$durationHintNanos); deferring to video EOS.")
             return
         }
+        if (liveStream && sessionManager.audioSourceGone()) {
+            handleSessionStall("live audio source stopped serving")
+            return
+        }
+        val now = System.nanoTime()
+        if (lastAudioFailureNanos != 0L && now - lastAudioFailureNanos > AUDIO_RESTART_BUDGET_RESET_NS) {
+            audioRestartAttempts.set(0)
+        }
+        lastAudioFailureNanos = now
         val attempt = audioRestartAttempts.incrementAndGet()
         if (liveStream && sessionManager.isPlaying && attempt <= MAX_AUDIO_RESTARTS) {
             logger.warn(
@@ -937,7 +952,7 @@ class MediaPlayer(
         if (!sessionManager.isPlaying) return
         if (!liveStream) {
             watchdog.stop()
-            if (sessionManager.suspend(allowExternalProcess = true)) {
+            if (sessionManager.suspend(allowExternalProcess = true, retainBuffered = true)) {
                 state.set(PlaybackState.PAUSED)
                 return
             }

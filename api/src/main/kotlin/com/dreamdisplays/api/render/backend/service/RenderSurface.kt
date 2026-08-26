@@ -1,6 +1,6 @@
 package com.dreamdisplays.api.render.backend.service
 
-import com.dreamdisplays.api.DreamDisplaysUnstableApi
+import com.dreamdisplays.api.Unstable
 import com.dreamdisplays.api.display.model.property.DisplayBounds
 import com.dreamdisplays.api.render.texture.model.TextureHandle
 
@@ -9,7 +9,7 @@ import com.dreamdisplays.api.render.texture.model.TextureHandle
  *
  * @since 1.8.x
  */
-@DreamDisplaysUnstableApi
+@Unstable
 interface RenderSurface {
     /** World-space display bounds. */
     val bounds: DisplayBounds
