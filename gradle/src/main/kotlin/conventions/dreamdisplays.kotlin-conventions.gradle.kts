@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import support.chisel.chiselSource
 import support.stonecutter.StonecutterVersions
-import java.util.*
+import support.stonecutter.VersionsJson
 
 plugins {
     java
@@ -16,14 +16,10 @@ private val activeVersion = scVersions.active
 private val javaVersion = scVersion("java.version").toInt()
 private fun scVersion(name: String): String = scVersions.get(name)
 
-private val javaFloor: Int = rootProject.file("versions").listFiles()
-    ?.filter { it.isDirectory }
-    ?.mapNotNull { dir ->
-        dir.resolve("gradle.properties").takeIf { it.isFile }?.let { file ->
-            Properties().apply { file.inputStream().use { load(it) } }.getProperty("java.version")?.toInt()
-        }
-    }
-    ?.minOrNull() ?: javaVersion
+private val allVersionsJson = VersionsJson.load(rootProject.file("versions.json"))
+private val javaFloor: Int = allVersionsJson.allVersions
+    .mapNotNull { version -> allVersionsJson.propertiesFor(version)["java.version"]?.toInt() }
+    .minOrNull() ?: javaVersion
 
 private val platformIndependentModules =
     setOf(

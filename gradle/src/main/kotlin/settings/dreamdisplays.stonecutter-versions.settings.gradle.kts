@@ -1,10 +1,12 @@
 import support.stonecutter.StonecutterVersions
-import java.util.*
+import support.stonecutter.VersionsJson
 
-val active = settingsDir.resolve("versions/active.txt").readText().trim()
+val versionsJson = VersionsJson.load(settingsDir.resolve("versions.json"))
 
-val properties = Properties().apply {
-    settingsDir.resolve("versions/$active/gradle.properties").inputStream().use { load(it) }
+settingsDir.resolve("versions/active.txt").apply {
+    parentFile.mkdirs()
+    writeText(versionsJson.active)
 }
 
-gradle.extensions.add("stonecutterVersions", StonecutterVersions(active, properties))
+gradle.extensions.add("stonecutterVersions", StonecutterVersions(versionsJson.active, versionsJson.activeProperties))
+gradle.extensions.add("stonecutterAllVersions", versionsJson.allVersions.toList())

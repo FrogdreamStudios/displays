@@ -1,113 +1,145 @@
 package support.chisel
 
-/** Process `Stonecutter`-style version directives (`//? if >=26 {...}`), evaluating conditions per target. */
-fun chiselSource(lines: List<String>, minecraftVersion: String): String {
-    val out = StringBuilder()
-    var i = 0
-    while (i < lines.size) {
+fun chiselSource(lines: List<String>, minecraftVersion: String): String =
+    Chisel(lines, minecraftVersion).run()
+
+private class Chisel(
+    private val lines: List<String>,
+    private val minecraftVersion: String,
+) {
+    private val out = StringBuilder()
+    private var i = 0
+
+    fun run(): String {
+        while (i < lines.size) emitNext(stopAt = lines.size)
+        return out.toString()
+    }
+
+    // Copy / transform lines until stop, resolving "//? if" along the way
+    private fun emitNext(stopAt: Int) {
         val line = lines[i]
-        if (line.trimStart().startsWith("//? if")) {
-            // Keep the marker line (it is a harmless // comment)
-            out.appendLine(line)
-            val keepIfBranch = evaluateCondition(line, minecraftVersion)
-            i++
-            // Collect the if-branch up to the matching "//?}" marker, tracking nested directives
-            val ifBranch = mutableListOf<String>()
-            var nestedDepth = 0
-            while (i < lines.size) {
-                val branchLine = lines[i]
-                val trimmed = branchLine.trimStart()
-                if (trimmed.startsWith("//? if")) {
-                    nestedDepth++
-                    ifBranch.add(branchLine)
-                    i++
-                    continue
-                }
-                if (trimmed.startsWith("//?}")) {
-                    if (nestedDepth == 0) break
-                    nestedDepth--
-                    ifBranch.add(branchLine)
-                    i++
-                    continue
-                }
-                ifBranch.add(branchLine)
-                i++
-            }
-            if (keepIfBranch) {
-                // Recurse so nested directives inside the kept branch are resolved too
-                out.append(chiselSource(ifBranch, minecraftVersion))
-            } else {
-                // Comment the inactive branch line-by-line (robust against nested block comments)
-                ifBranch.forEach { out.appendLine("//$$ $it") }
-            }
-            // Handle the closing "//?}" or "//?} else" marker line
-            var hasElse = false
-            if (i < lines.size) {
-                hasElse = lines[i].trimStart().startsWith("//?} else")
-                out.appendLine(lines[i])
-                i++
-            }
-            if (hasElse && i < lines.size) {
-                // The else-branch is a single /* ... */ block
-                var j = i
-                while (j < lines.size && !lines[j].contains("*/")) j++
-                val block = lines.subList(i, minOf(j + 1, lines.size)).toMutableList()
-                if (keepIfBranch) {
-                    // If-branch wins: keep the else block commented out verbatim
-                    block.forEach { out.appendLine(it) }
-                } else if (block.isNotEmpty()) {
-                    // Else-branch wins: strip the surrounding /* */ and resolve any nested directives
-                    val firstIdx = block[0].indexOf("/*")
-                    if (firstIdx >= 0) {
-                        block[0] = block[0].removeRange(firstIdx, firstIdx + 2)
-                    }
-                    val lastLine = block[block.size - 1]
-                    val lastIdx = lastLine.lastIndexOf("*/")
-                    if (lastIdx >= 0) {
-                        block[block.size - 1] = lastLine.removeRange(lastIdx, lastIdx + 2)
-                    }
-                    out.append(chiselSource(block, minecraftVersion))
-                }
-                i = j + 1
-            }
-        } else {
+        if (isIfMarker(line)) emitIf(stopAt) else {
             out.appendLine(line)
             i++
         }
     }
-    return out.toString()
-}
 
-/** Evaluates a `//? if <op><version> {` directive against the target [minecraftVersion]. */
-private fun evaluateCondition(marker: String, minecraftVersion: String): Boolean {
-    val condition = marker.substringAfter("//? if", "").substringBefore("{").trim()
-    val operator = listOf(">=", "<=", ">", "<", "==").firstOrNull { condition.startsWith(it) }
-        ?: error("Unsupported chisel condition '$condition'.")
-    val target = condition.removePrefix(operator).trim()
-    val comparison = compareVersions(minecraftVersion, target)
-    return when (operator) {
-        ">=" -> comparison >= 0
-        "<=" -> comparison <= 0
-        ">" -> comparison > 0
-        "<" -> comparison < 0
-        "==" -> comparison == 0
-        else -> error("Unsupported chisel operator '$operator'.")
+    private fun emitIf(stopAt: Int) {
+        val header = lines[i++]
+        out.appendLine(header)
+        val keepIf = evaluateCondition(header, minecraftVersion)
+
+        val bodyStart = i
+        skipIfBody(stopAt)
+        val bodyEnd = i // Exclusive; [i] is the matching "//?}"
+
+        val closer = lines.getOrNull(i)
+        val hasElse = closer?.trimStart()?.startsWith("//?} else") == true
+        if (closer != null) {
+            out.appendLine(closer)
+            i++
+        }
+
+        if (keepIf) {
+            val resume = i
+            i = bodyStart
+            while (i < bodyEnd) emitNext(stopAt = bodyEnd)
+            i = resume
+        } else {
+            for (k in bodyStart until bodyEnd) out.appendLine("//$$ ${lines[k]}")
+        }
+
+        if (hasElse) emitElse(keepIf)
+    }
+
+    private fun skipIfBody(stopAt: Int) {
+        while (i < stopAt) {
+            val trimmed = lines[i].trimStart()
+            when {
+                isIfMarker(lines[i]) -> skipWholeDirective(stopAt)
+                trimmed.startsWith("//?}") -> return
+                else -> i++
+            }
+        }
+        error("Unclosed \"//? if\" (no matching '//?}').")
+    }
+
+    private fun skipWholeDirective(stopAt: Int) {
+        i++
+        skipIfBody(stopAt)
+        val closer = lines.getOrNull(i) ?: return
+        val hasElse = closer.trimStart().startsWith("//?} else")
+        i++
+        if (hasElse) skipCommentedElse()
+    }
+
+    private fun emitElse(keepIf: Boolean) {
+        val block = takeCommentedElse()
+        if (keepIf) {
+            block.forEach { out.appendLine(it) }
+            return
+        }
+        out.append(chiselSource(uncommentBlock(block), minecraftVersion))
+    }
+
+    private fun skipCommentedElse() {
+        takeCommentedElse()
+    }
+
+    private fun takeCommentedElse(): List<String> {
+        check(i < lines.size) { "Expected a /* else-branch */ after \"//?} else\"." }
+        val start = i
+        while (i < lines.size && !lines[i].contains("*/")) i++
+        check(i < lines.size) { "Unclosed /* else-branch */ starting at line ${start + 1}." }
+        val block = lines.subList(start, i + 1).toList()
+        i++
+        return block
     }
 }
 
-/** Compares two dotted version strings numerically, segment by segment. */
+private fun isIfMarker(line: String): Boolean =
+    line.trimStart().startsWith("//? if")
+
+private fun uncommentBlock(block: List<String>): List<String> {
+    if (block.isEmpty()) return block
+    val copy = block.toMutableList()
+    val first = copy.first().indexOf("/*")
+    if (first >= 0) copy[0] = copy[0].removeRange(first, first + 2)
+    val lastIdx = copy.last().lastIndexOf("*/")
+    if (lastIdx >= 0) copy[copy.lastIndex] = copy.last().removeRange(lastIdx, lastIdx + 2)
+    return copy
+}
+
+private val PREDICATE = Regex("""(>=|<=|==|>|<)\s*([^\s&]+)""")
+
+private fun evaluateCondition(marker: String, minecraftVersion: String): Boolean {
+    val condition = marker.substringAfter("//? if").substringBefore("{").trim()
+    val predicates = PREDICATE.findAll(condition).toList()
+    require(predicates.isNotEmpty()) { "Unsupported chisel condition \"$condition\"." }
+    return predicates.all { match ->
+        val cmp = compareVersions(minecraftVersion, match.groupValues[2])
+        when (match.groupValues[1]) {
+            ">=" -> cmp >= 0
+            "<=" -> cmp <= 0
+            ">" -> cmp > 0
+            "<" -> cmp < 0
+            "==" -> cmp == 0
+            else -> error("unreachable")
+        }
+    }
+}
+
 private fun compareVersions(left: String, right: String): Int {
-    val leftParts = versionParts(left)
-    val rightParts = versionParts(right)
-    val size = maxOf(leftParts.size, rightParts.size)
+    val l = versionParts(left)
+    val r = versionParts(right)
+    val size = maxOf(l.size, r.size)
     for (idx in 0 until size) {
-        val l = leftParts.getOrElse(idx) { 0 }
-        val r = rightParts.getOrElse(idx) { 0 }
-        if (l != r) return l.compareTo(r)
+        val a = l.getOrElse(idx) { 0 }
+        val b = r.getOrElse(idx) { 0 }
+        if (a != b) return a.compareTo(b)
     }
     return 0
 }
 
-/** Extracts the numeric segments of a version string (e.g. `"1.21.11"` -> `[1, 21, 11]`). */
 private fun versionParts(version: String): List<Int> =
     Regex("\\d+").findAll(version).map { it.value.toInt() }.toList()
