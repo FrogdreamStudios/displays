@@ -2,9 +2,9 @@
 
 package com.dreamdisplays.media.player.nativebridge
 
-import com.dreamdisplays.api.media.audio.AcousticQuality
-import com.dreamdisplays.api.media.audio.ListenerPose
-import com.dreamdisplays.api.media.audio.SourceAcousticState
+import com.dreamdisplays.api.media.audio.model.AcousticQuality
+import com.dreamdisplays.api.media.audio.model.ListenerPose
+import com.dreamdisplays.api.media.audio.model.SourceAcousticState
 import com.dreamdisplays.util.OsInfo
 import org.slf4j.LoggerFactory
 import java.io.File

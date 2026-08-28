@@ -10,23 +10,15 @@ import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Default [AudioAcousticsService]: the acoustics DSP itself runs natively (`dreamdisplays_lav`,
- * see `RenderChain` in `native/lav/src/acoustics.rs`), so this only holds each registered
- * source's latest published state (read by [com.dreamdisplays.api.media.audio.AudioDspStage.latestState]
- * and polled across the FFI boundary) and forwards the shared listener pose / quality tier /
- * binaural toggle to the native engine.
+ * Default [AudioAcousticsService]: the acoustics DSP itself runs natively, so this only holds each registered
+ * source's latest published state and forwards the shared listener pose / quality tier / binaural toggle to the
+ * native engine.
  */
 class AcousticsEngine(
-    /** Forwards the listener pose to another consumer (the native audio engine) whenever it changes. */
     private val onListenerChanged: (ListenerPose) -> Unit = {},
-
-    /** Forwards the global quality ceiling to another consumer whenever it changes. */
     private val onQualityChanged: (AcousticQuality) -> Unit = {},
-
-    /** Forwards the binaural toggle to another consumer whenever it changes. */
     private val onBinauralChanged: (Boolean) -> Unit = {},
 ) : AudioAcousticsService {
-    /** Holds one registered source's latest published state. */
     private class SourceStateHolder : AudioDspStage {
         @Volatile
         private var state: SourceAcousticState? = null
@@ -45,7 +37,6 @@ class AcousticsEngine(
     private val qualityRef = atomic(AcousticQuality.ADVANCED)
     private val binauralRef = atomic(true)
 
-    /** Selects binaural (headphone) rendering vs. constant-power stereo pan for every source. */
     fun setBinauralOutput(binaural: Boolean) {
         binauralRef.value = binaural
         onBinauralChanged(binaural)

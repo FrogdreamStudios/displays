@@ -1,7 +1,7 @@
 package com.dreamdisplays.media.player.pipeline
 
-import com.dreamdisplays.api.media.audio.AudioDspStage
-import com.dreamdisplays.api.media.audio.SourceAcousticState
+import com.dreamdisplays.api.media.audio.service.AudioDspStage
+import com.dreamdisplays.api.media.audio.model.SourceAcousticState
 import com.dreamdisplays.media.player.nativebridge.NativeMedia
 import com.dreamdisplays.media.player.util.daemon
 import org.slf4j.LoggerFactory

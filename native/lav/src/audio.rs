@@ -49,22 +49,17 @@ struct AudioShared {
     volume_bits: AtomicU32,
     paused: AtomicBool,
     interrupted: Arc<AtomicBool>,
-    /// Sample-time (`AV_TIME_BASE` microseconds) for direct sources, nanos-into-playlist for HLS.
     seek_target: AtomicI64,
-    /// Bumped on every seek; the cpal callback drains stale ring contents once per bump.
     seek_generation: AtomicU64,
     last_drained_generation: AtomicU64,
-    /// Frames (not samples) handed to the output device, silence included — the position clock.
-    frames_written: AtomicU64,
+    content_samples_played: AtomicU64,
     device_sample_rate: AtomicU32,
     device_channels: AtomicU32,
     closing: AtomicBool,
     error: Mutex<String>,
     acoustics_state: Mutex<Option<SourceAcousticState>>,
-    /// Rolling raw (pre-DSP) PCM, capped at [`PCM_RING_CAP_SECONDS`] — the reappearance bridge's prelude source.
     pcm_ring: Mutex<std::collections::VecDeque<f32>>,
     pcm_ring_cap: usize,
-    /// Total samples ever pushed; combined with `frames_written`, gives the unplayed tail to exclude from a snapshot.
     samples_pushed: AtomicU64,
     bridge_live_url: Mutex<Option<String>>,
 }
@@ -167,8 +162,8 @@ impl AudioSessions {
         let shared = &session.shared;
         let channels = shared.device_channels.load(Ordering::Relaxed).max(1) as u64;
         let pushed = shared.samples_pushed.load(Ordering::Relaxed);
-        let written_samples = shared.frames_written.load(Ordering::Relaxed).saturating_mul(channels);
-        let unplayed = pushed.saturating_sub(written_samples) as usize;
+        let played = shared.content_samples_played.load(Ordering::Relaxed);
+        let unplayed = pushed.saturating_sub(played) as usize;
 
         let Ok(ring) = shared.pcm_ring.lock() else { return Vec::new() };
         let audible_len = ring.len().saturating_sub(unplayed);
@@ -236,7 +231,8 @@ impl AudioSessions {
     pub fn position_nanos(&self, handle: i64) -> i64 {
         let Some(session) = self.get(handle) else { return 0 };
         let rate = session.shared.device_sample_rate.load(Ordering::Relaxed).max(1) as u64;
-        let frames = session.shared.frames_written.load(Ordering::Relaxed);
+        let channels = session.shared.device_channels.load(Ordering::Relaxed).max(1) as u64;
+        let frames = session.shared.content_samples_played.load(Ordering::Relaxed) / channels;
         ((frames as u128 * 1_000_000_000u128) / rate as u128) as i64
     }
 
@@ -306,7 +302,7 @@ fn open_device() -> Result<OpenedDevice> {
         seek_target: AtomicI64::new(NO_SEEK),
         seek_generation: AtomicU64::new(0),
         last_drained_generation: AtomicU64::new(0),
-        frames_written: AtomicU64::new(0),
+        content_samples_played: AtomicU64::new(0),
         device_sample_rate: AtomicU32::new(device_sample_rate),
         device_channels: AtomicU32::new(device_channels),
         closing: AtomicBool::new(false),
@@ -318,7 +314,7 @@ fn open_device() -> Result<OpenedDevice> {
         bridge_live_url: Mutex::new(None),
     });
 
-    let stream = build_output_stream(&device, &config, device_channels, shared.clone(), consumer, legacy_consumer)
+    let stream = build_output_stream(&device, &config, shared.clone(), consumer, legacy_consumer)
         .context("build cpal output stream")?;
     stream.play().context("start cpal output stream")?;
 
@@ -387,7 +383,6 @@ impl AudioSession {
 fn build_output_stream(
     device: &cpal::Device,
     config: &cpal::SupportedStreamConfig,
-    channels: u32,
     shared: Arc<AudioShared>,
     mut consumer: rtrb::Consumer<f32>,
     mut legacy_consumer: rtrb::Consumer<f32>,
@@ -404,14 +399,14 @@ fn build_output_stream(
     let stream = match config.sample_format() {
         cpal::SampleFormat::F32 => device.build_output_stream(
             stream_config,
-            move |out: &mut [f32], _: &cpal::OutputCallbackInfo| fill(out, channels, &shared, &mut consumer, &mut legacy_consumer, |v| v),
+            move |out: &mut [f32], _: &cpal::OutputCallbackInfo| fill(out, &shared, &mut consumer, &mut legacy_consumer, |v| v),
             err_fn,
             None,
         ),
         cpal::SampleFormat::I16 => device.build_output_stream(
             stream_config,
             move |out: &mut [i16], _: &cpal::OutputCallbackInfo| {
-                fill(out, channels, &shared, &mut consumer, &mut legacy_consumer, |v| (v.clamp(-1.0, 1.0) * i16::MAX as f32) as i16)
+                fill(out, &shared, &mut consumer, &mut legacy_consumer, |v| (v.clamp(-1.0, 1.0) * i16::MAX as f32) as i16)
             },
             err_fn,
             None,
@@ -419,7 +414,7 @@ fn build_output_stream(
         cpal::SampleFormat::U16 => device.build_output_stream(
             stream_config,
             move |out: &mut [u16], _: &cpal::OutputCallbackInfo| {
-                fill(out, channels, &shared, &mut consumer, &mut legacy_consumer, |v| {
+                fill(out, &shared, &mut consumer, &mut legacy_consumer, |v| {
                     ((v.clamp(-1.0, 1.0) * 0.5 + 0.5) * u16::MAX as f32) as u16
                 })
             },
@@ -437,7 +432,6 @@ fn build_output_stream(
 /// not baked into samples that may have been queued up to `RING_CAPACITY_SAMPLES` ago.
 fn fill<S: Copy>(
     out: &mut [S],
-    channels: u32,
     shared: &AudioShared,
     consumer: &mut rtrb::Consumer<f32>,
     legacy_consumer: &mut rtrb::Consumer<f32>,
@@ -449,20 +443,29 @@ fn fill<S: Copy>(
         while legacy_consumer.pop().is_ok() {}
     }
 
-    let paused = shared.paused.load(Ordering::Relaxed);
+    if shared.paused.load(Ordering::Relaxed) {
+        for slot in out.iter_mut() {
+            *slot = convert(0.0);
+        }
+        return;
+    }
+
     let use_legacy = acoustics::globals().quality() == AcousticQuality::Off;
+    let mut played = 0u64;
     for slot in out.iter_mut() {
-        let processed = consumer.pop().unwrap_or(0.0);
-        let legacy = legacy_consumer.pop().unwrap_or(0.0);
-        let sample = if paused { 0.0 } else if use_legacy { legacy } else { processed };
+        let processed = consumer.pop();
+        let legacy = legacy_consumer.pop();
+        if processed.is_ok() {
+            played += 1;
+        }
+        let sample = if use_legacy {
+            legacy.unwrap_or(0.0)
+        } else {
+            processed.unwrap_or(0.0)
+        };
         *slot = convert(sample);
     }
-    // Paused must hold position (mirrors a stopped SourceDataLine).
-    if !paused {
-        shared
-            .frames_written
-            .fetch_add((out.len() as u64) / (channels.max(1) as u64), Ordering::Relaxed);
-    }
+    shared.content_samples_played.fetch_add(played, Ordering::Relaxed);
 }
 
 /// Owns the session's [`RenderChain`] for its whole lifetime (not per HLS segment) so filter / reverb
@@ -1102,7 +1105,7 @@ mod tests {
             seek_target: AtomicI64::new(NO_SEEK),
             seek_generation: AtomicU64::new(0),
             last_drained_generation: AtomicU64::new(0),
-            frames_written: AtomicU64::new(0),
+            content_samples_played: AtomicU64::new(0),
             device_sample_rate: AtomicU32::new(device_sample_rate),
             device_channels: AtomicU32::new(device_channels),
             closing: AtomicBool::new(false),
@@ -1115,7 +1118,6 @@ mod tests {
         })
     }
 
-    /// Regression guard for a decode loop that drops / duplicates packets.
     #[test]
     fn decodes_a_clip_to_its_real_duration_worth_of_samples() {
         const SECONDS: u32 = 2;
@@ -1177,8 +1179,6 @@ mod tests {
         );
     }
 
-    /// Regression guard: with both rings pushed in lockstep, flipping the global tier must change
-    /// which one `fill` reads from immediately — no ring-latency delay.
     #[test]
     fn both_rings_receive_the_same_number_of_samples() {
         const RATE: u32 = 48_000;
@@ -1222,12 +1222,57 @@ mod tests {
 
         acoustics::globals().set_quality(AcousticQuality::Off as i32);
         let mut out = [0f32; 4];
-        fill(&mut out, 2, &shared, &mut consumer, &mut legacy_consumer, |v| v);
+        fill(&mut out, &shared, &mut consumer, &mut legacy_consumer, |v| v);
         assert_eq!(out, [-1.0; 4], "Off must play the legacy ring even though the spatial ring already has samples queued.");
 
         acoustics::globals().set_quality(AcousticQuality::Advanced as i32);
         let mut out = [0f32; 4];
-        fill(&mut out, 2, &shared, &mut consumer, &mut legacy_consumer, |v| v);
+        fill(&mut out, &shared, &mut consumer, &mut legacy_consumer, |v| v);
         assert_eq!(out, [1.0; 4], "the very next callback after switching back on must already play the spatial ring.");
+    }
+
+    #[test]
+    fn fill_does_not_advance_the_clock_through_underrun_silence() {
+        acoustics::globals().set_quality(AcousticQuality::Advanced as i32);
+        let shared = test_shared(48_000, 2);
+        let (mut producer, mut consumer) = RingBuffer::<f32>::new(64);
+        let (mut legacy_producer, mut legacy_consumer) = RingBuffer::<f32>::new(64);
+
+        producer.push(1.0).unwrap();
+        producer.push(1.0).unwrap();
+        legacy_producer.push(1.0).unwrap();
+        legacy_producer.push(1.0).unwrap();
+
+        let mut out = [0f32; 6];
+        fill(&mut out, &shared, &mut consumer, &mut legacy_consumer, |v| v);
+
+        assert_eq!(out, [1.0, 1.0, 0.0, 0.0, 0.0, 0.0], "the dry part of the callback must be filled with silence.");
+        assert_eq!(
+            shared.content_samples_played.load(Ordering::Relaxed),
+            2,
+            "only the real content handed to the device may count toward the position clock.",
+        );
+    }
+
+    #[test]
+    fn fill_leaves_the_rings_untouched_while_paused() {
+        acoustics::globals().set_quality(AcousticQuality::Advanced as i32);
+        let shared = test_shared(48_000, 2);
+        let (mut producer, mut consumer) = RingBuffer::<f32>::new(64);
+        let (mut legacy_producer, mut legacy_consumer) = RingBuffer::<f32>::new(64);
+
+        for _ in 0..8 {
+            producer.push(1.0).unwrap();
+            legacy_producer.push(1.0).unwrap();
+        }
+        shared.paused.store(true, Ordering::Relaxed);
+
+        let mut out = [0f32; 4];
+        fill(&mut out, &shared, &mut consumer, &mut legacy_consumer, |v| v);
+
+        assert_eq!(out, [0.0; 4], "a paused session must output silence.");
+        assert_eq!(shared.content_samples_played.load(Ordering::Relaxed), 0, "a paused session must hold its position.");
+        assert_eq!(consumer.slots(), 8, "a paused session must not drain the queued content it will resume on.");
+        assert_eq!(legacy_consumer.slots(), 8, "the legacy ring must stay in lockstep with the spatial one.");
     }
 }
