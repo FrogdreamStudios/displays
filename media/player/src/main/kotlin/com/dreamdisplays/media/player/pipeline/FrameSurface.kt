@@ -58,29 +58,10 @@ internal class FrameSurface(
      * Uploads the ready frame to [target] if one is available. [actualW] / [actualH] must match [expectedW] / [expectedH]
      * or the frame is dropped.
      */
-    fun updateFrame(target: GpuTextureRef, actualW: Int, actualH: Int, expectedW: Int, expectedH: Int): Boolean {
-        val buf = readyBufferRef.getAndSet(null) ?: return false
-        if (actualW != expectedW || actualH != expectedH || !uploader.canUpload()) {
-            if (MediaPlayer.DEBUG) skippedUploads++
-            recycleFrameBuffer(buf)
-            return false
+    fun updateFrame(target: GpuTextureRef, actualW: Int, actualH: Int, expectedW: Int, expectedH: Int): Boolean =
+        uploadReady(actualW, actualH, expectedW, expectedH, "Upload") { buf ->
+            uploader.uploadInterleaved(target, buf, pixelFormat)
         }
-        buf.rewind()
-        val start = System.nanoTime()
-        try {
-            val uploaded = uploader.uploadInterleaved(target, buf, pixelFormat)
-            if (uploaded) {
-                textureReady.set(true)
-                if (MediaPlayer.DEBUG) {
-                    recordUpload(System.nanoTime() - start, "Upload", actualW, actualH)
-                    MediaPlayer.framesToGpu.incrementAndGet()
-                }
-            }
-            return uploaded
-        } finally {
-            recycleFrameBuffer(buf)
-        }
-    }
 
     /**
      * Uploads the ready I420 frame (Y, then U, then V planes) into the three plane textures.
@@ -89,6 +70,13 @@ internal class FrameSurface(
     fun updateFramePlanar(
         y: GpuTextureRef, u: GpuTextureRef, v: GpuTextureRef,
         actualW: Int, actualH: Int, expectedW: Int, expectedH: Int,
+    ): Boolean =
+        uploadReady(actualW, actualH, expectedW, expectedH, "Planar upload") { buf ->
+            uploader.uploadPlanar(y, u, v, buf)
+        }
+
+    private inline fun uploadReady(
+        actualW: Int, actualH: Int, expectedW: Int, expectedH: Int, label: String, upload: (ByteBuffer) -> Boolean,
     ): Boolean {
         val buf = readyBufferRef.getAndSet(null) ?: return false
         if (actualW != expectedW || actualH != expectedH || !uploader.canUpload()) {
@@ -99,11 +87,11 @@ internal class FrameSurface(
         buf.rewind()
         val start = System.nanoTime()
         try {
-            val uploaded = uploader.uploadPlanar(y, u, v, buf)
+            val uploaded = upload(buf)
             if (uploaded) {
                 textureReady.set(true)
                 if (MediaPlayer.DEBUG) {
-                    recordUpload(System.nanoTime() - start, "Planar upload", actualW, actualH)
+                    recordUpload(System.nanoTime() - start, label, actualW, actualH)
                     MediaPlayer.framesToGpu.incrementAndGet()
                 }
             }

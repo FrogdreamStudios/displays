@@ -3,7 +3,7 @@ package support.shadow
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.gradle.api.file.CopySpec
 
-val dreamDisplaysSharedModules = [
+val dreamDisplaysSharedModules: List<String> = [
     ":platform:client:common",
     ":core",
     ":api",
@@ -14,7 +14,7 @@ val dreamDisplaysSharedModules = [
     ":media:audio",
 ]
 
-val dreamDisplaysShadedDependencies = [
+val dreamDisplaysShadedDependencies: List<String> = [
     "org.jetbrains.kotlinx:kotlinx-serialization-core",
     "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm",
     "org.jetbrains.kotlinx:kotlinx-serialization-protobuf",
@@ -50,7 +50,7 @@ val dreamDisplaysShadedDependencies = [
     "org.mozilla:rhino-engine",
 ]
 
-val dreamDisplaysShadedPackages = [
+val dreamDisplaysShadedPackages: List<String> = [
     "org.apache.commons.compress",
     "org.tukaani.xz",
     "kotlin",
@@ -73,7 +73,7 @@ val dreamDisplaysShadedPackages = [
     "org.mozilla.classfile",
 ]
 
-val dreamDisplaysSqliteNativeExcludes = [
+val dreamDisplaysSqliteNativeExcludes: List<String> = [
     "org/sqlite/native/Linux-Android/**",
     "org/sqlite/native/Linux-Musl/x86/**",
     "org/sqlite/native/FreeBSD/**",
@@ -88,6 +88,7 @@ val dreamDisplaysSqliteNativeExcludes = [
     "org/sqlite/native/Windows/aarch64/**",
 ]
 
+@Suppress("UNUSED")
 fun ShadowJar.includeDreamDisplaysSharedContents() {
     dependencies {
         dreamDisplaysSharedModules.forEach { include(project(it)) }
@@ -95,10 +96,12 @@ fun ShadowJar.includeDreamDisplaysSharedContents() {
     }
 }
 
+@Suppress("UNUSED")
 fun ShadowJar.relocateDreamDisplaysSharedPackages(prefix: String = "com.dreamdisplays.libs") {
     dreamDisplaysShadedPackages.forEach { relocate(it, "$prefix.$it") }
 }
 
+@Suppress("UNUSED")
 fun CopySpec.excludeDreamDisplaysSqliteNativeExtras() {
     dreamDisplaysSqliteNativeExcludes.forEach { exclude(it) }
 }

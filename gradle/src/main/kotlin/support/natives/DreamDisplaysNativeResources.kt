@@ -2,7 +2,7 @@ package support.natives
 
 import java.io.File
 
-val nativePlatformKeys = [
+val nativePlatformKeys: List<String> = [
     "linux-x64",
     "linux-aarch64",
     "macos-x64",
@@ -11,7 +11,7 @@ val nativePlatformKeys = [
     "windows-aarch64",
 ]
 
-val nativeLibraryBaseNames = [
+val nativeLibraryBaseNames: List<String> = [
     "dreamdisplays_native",
     "dreamdisplays_lav",
 ]

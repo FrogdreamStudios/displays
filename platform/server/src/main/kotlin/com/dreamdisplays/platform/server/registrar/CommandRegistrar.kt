@@ -114,15 +114,17 @@ object CommandRegistrar {
             )
             .then(
                 Commands.argument("id", PaperBareTokenArgumentType)
-                    .suggests { _, b ->
-                        FullscreenBroadcastManager.displayIdSuggestions().forEach { b.suggest(it) }
-                        b.buildFuture()
-                    }
+                    .suggests { _, b -> suggestDisplayIds(b) }
                     .executes { ctx ->
                         cmd.execute(ctx.source.sender, arrayOf(StringArgumentType.getString(ctx, "id")))
                         Command.SINGLE_SUCCESS
                     }
             )
+    }
+
+    private fun suggestDisplayIds(builder: SuggestionsBuilder): CompletableFuture<Suggestions> {
+        FullscreenBroadcastManager.displayIdSuggestions().forEach { builder.suggest(it) }
+        return builder.buildFuture()
     }
 
     /**
@@ -134,10 +136,7 @@ object CommandRegistrar {
         .then(Commands.literal("this").then(videoUrlArgument { "this" }))
         .then(
             Commands.argument("id", PaperBareTokenArgumentType)
-                .suggests { _, b ->
-                    FullscreenBroadcastManager.displayIdSuggestions().forEach { b.suggest(it) }
-                    b.buildFuture()
-                }
+                .suggests { _, b -> suggestDisplayIds(b) }
                 .then(videoUrlArgument { ctx -> StringArgumentType.getString(ctx, "id") })
         )
 
@@ -177,10 +176,7 @@ object CommandRegistrar {
         )
         .then(
             Commands.argument("id", PaperBareTokenArgumentType)
-                .suggests { _, b ->
-                    FullscreenBroadcastManager.displayIdSuggestions().forEach { b.suggest(it) }
-                    b.buildFuture()
-                }
+                .suggests { _, b -> suggestDisplayIds(b) }
                 .executes { ctx ->
                     NameCommand().execute(ctx.source.sender, arrayOf(StringArgumentType.getString(ctx, "id")))
                     Command.SINGLE_SUCCESS
@@ -221,10 +217,7 @@ object CommandRegistrar {
         )
         .then(
             Commands.argument("id", PaperBareTokenArgumentType)
-                .suggests { _, b ->
-                    FullscreenBroadcastManager.displayIdSuggestions().forEach { b.suggest(it) }
-                    b.buildFuture()
-                }
+                .suggests { _, b -> suggestDisplayIds(b) }
                 .executes { ctx ->
                     ScheduleCommand().execute(
                         ctx.source.sender,

@@ -163,39 +163,19 @@ internal class AudioRenderChain(
             if (binaural) {
                 leftBinaural.renderSample(l)
                 rightBinaural.renderSample(r)
-                var outL = leftBinaural.lastL + rightBinaural.lastL
-                var outR = leftBinaural.lastR + rightBinaural.lastR
-
-                if (reverbActive) {
-                    reverb.process((l + r) * 0.5f)
-                    outL += reverb.lastL * wetGain
-                    outR += reverb.lastR * wetGain
-                }
-
-                if (advanced) {
-                    limiter.process(outL, outR)
-                    outL = limiter.lastL
-                    outR = limiter.lastR
-                }
+                val (outL, outR) = applyReverbAndLimiter(
+                    leftBinaural.lastL + rightBinaural.lastL, leftBinaural.lastR + rightBinaural.lastR,
+                    l, r, reverbActive, wetGain, advanced,
+                )
                 floatL[i] = outL
                 floatR[i] = outR
             } else {
                 leftPanner.pan(l, azL.toDouble())
                 rightPanner.pan(r, azR.toDouble())
-                var outL = leftPanner.lastL + rightPanner.lastL
-                var outR = leftPanner.lastR + rightPanner.lastR
-
-                if (reverbActive) {
-                    reverb.process((l + r) * 0.5f)
-                    outL += reverb.lastL * wetGain
-                    outR += reverb.lastR * wetGain
-                }
-
-                if (advanced) {
-                    limiter.process(outL, outR)
-                    outL = limiter.lastL
-                    outR = limiter.lastR
-                }
+                val (outL, outR) = applyReverbAndLimiter(
+                    leftPanner.lastL + rightPanner.lastL, leftPanner.lastR + rightPanner.lastR,
+                    l, r, reverbActive, wetGain, advanced,
+                )
                 floatL[i] = outL
                 floatR[i] = outR
             }
@@ -217,6 +197,24 @@ internal class AudioRenderChain(
         occlusionCutoff.snap(MAX_CUTOFF_HZ)
         occlusionGain.snap(1f)
         reverbWet.snap(0f)
+    }
+
+    private fun applyReverbAndLimiter(
+        outL: Float, outR: Float, l: Float, r: Float, reverbActive: Boolean, wetGain: Float, advanced: Boolean,
+    ): Pair<Float, Float> {
+        var oL = outL
+        var oR = outR
+        if (reverbActive) {
+            reverb.process((l + r) * 0.5f)
+            oL += reverb.lastL * wetGain
+            oR += reverb.lastR * wetGain
+        }
+        if (advanced) {
+            limiter.process(oL, oR)
+            oL = limiter.lastL
+            oR = limiter.lastR
+        }
+        return oL to oR
     }
 
     private fun ensureCapacity(frames: Int) {

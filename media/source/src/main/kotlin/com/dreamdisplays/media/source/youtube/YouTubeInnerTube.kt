@@ -260,19 +260,16 @@ object YouTubeInnerTube {
             ?: simpleText(vr.obj("title")) ?: id
         val uploader = runsText(vr.obj("ownerText"))
             ?: runsText(vr.obj("longBylineText"))
-        val duration = parseDuration(simpleText(vr.obj("lengthText")))
-        val views = parseViews(simpleText(vr.obj("viewCountText")))
-            ?: parseViews(simpleText(vr.obj("shortViewCountText")))
-        val publishedText = simpleText(vr.obj("publishedTimeText"))
-        val daysAgo = parseDaysAgo(publishedText)
         val avatarUrl = largestThumbnailUrl(
             vr.obj("channelThumbnailSupportedRenderers")?.obj("channelThumbnailWithLinkRenderer")?.obj("thumbnail")
         )
         val isVerified = hasVerifiedBadge(vr.array("ownerBadges"))
-        val isLive = hasLiveBadge(vr.array("badges"))
-        return MediaSearchResult(
-            id, title, uploader, duration, views, null, publishedText, daysAgo,
-            channelAvatarUrl = avatarUrl, isVerified = isVerified, isLive = isLive,
+        return buildVideoResult(
+            id, title, uploader,
+            simpleText(vr.obj("lengthText")),
+            simpleText(vr.obj("viewCountText")) ?: simpleText(vr.obj("shortViewCountText")),
+            simpleText(vr.obj("publishedTimeText")),
+            avatarUrl, isVerified, vr.array("badges"),
         )
     }
 
@@ -365,8 +362,7 @@ object YouTubeInnerTube {
             for (el in resultArray) {
                 val itemObj = el.asJsonObjectOrNull() ?: continue
                 itemObj.obj("continuationItemRenderer")?.let { token = token ?: continuationToken(it) }
-                val info = itemObj.obj("lockupViewModel")?.let(::parseLockupViewModel)
-                    ?: itemObj.obj("compactVideoRenderer")?.let(::parseCompactVideoRenderer)
+                val info = resolveRelatedItem(itemObj)
                 // Keep scanning past `limit` (just stop collecting) instead of returning early — the
                 // continuationItemRenderer that carries the next-page token is the LAST element in this
                 // array, after all the real video items, so an early return here would exit before ever
@@ -396,8 +392,7 @@ object YouTubeInnerTube {
                 for (el in items) {
                     val itemObj = el.asJsonObjectOrNull() ?: continue
                     itemObj.obj("continuationItemRenderer")?.let { token = token ?: continuationToken(it) }
-                    val info = itemObj.obj("lockupViewModel")?.let(::parseLockupViewModel)
-                        ?: itemObj.obj("compactVideoRenderer")?.let(::parseCompactVideoRenderer)
+                    val info = resolveRelatedItem(itemObj)
                     // See extractRelatedPage: don't return early, the token-bearing item can trail the
                     // page's video items and an early exit would strand the list without a next token.
                     if (info != null && out.size < limit) out.add(info)
@@ -408,6 +403,10 @@ object YouTubeInnerTube {
         }
         return MediaSearchPage(out, token)
     }
+
+    private fun resolveRelatedItem(itemObj: JsonObject): MediaSearchResult? =
+        itemObj.obj("lockupViewModel")?.let(::parseLockupViewModel)
+            ?: itemObj.obj("compactVideoRenderer")?.let(::parseCompactVideoRenderer)
 
     /** Parses a `lockupViewModel` JSON object (the current related-video card shape); returns null for non-video content. */
     private fun parseLockupViewModel(lockup: JsonObject): MediaSearchResult? {
@@ -447,14 +446,32 @@ object YouTubeInnerTube {
         val title = simpleText(cvr.obj("title")) ?: id
         val uploader = simpleText(cvr.obj("longBylineText"))
             ?: simpleText(cvr.obj("shortBylineText"))
-        val duration = parseDuration(simpleText(cvr.obj("lengthText")))
-        val views = parseViews(simpleText(cvr.obj("viewCountText")))
-            ?: parseViews(simpleText(cvr.obj("shortViewCountText")))
-        val publishedText = simpleText(cvr.obj("publishedTimeText"))
-        val daysAgo = parseDaysAgo(publishedText)
         val avatarUrl = largestThumbnailUrl(cvr.obj("channelThumbnail"))
         val isVerified = hasVerifiedBadge(cvr.array("ownerBadges") ?: cvr.array("channelBadges"))
-        val isLive = hasLiveBadge(cvr.array("badges"))
+        return buildVideoResult(
+            id, title, uploader,
+            simpleText(cvr.obj("lengthText")),
+            simpleText(cvr.obj("viewCountText")) ?: simpleText(cvr.obj("shortViewCountText")),
+            simpleText(cvr.obj("publishedTimeText")),
+            avatarUrl, isVerified, cvr.array("badges"),
+        )
+    }
+
+    private fun buildVideoResult(
+        id: String,
+        title: String,
+        uploader: String?,
+        durationText: String?,
+        viewsText: String?,
+        publishedText: String?,
+        avatarUrl: String?,
+        isVerified: Boolean,
+        badgesArray: JsonArray?,
+    ): MediaSearchResult {
+        val duration = parseDuration(durationText)
+        val views = parseViews(viewsText)
+        val daysAgo = parseDaysAgo(publishedText)
+        val isLive = hasLiveBadge(badgesArray)
         return MediaSearchResult(
             id, title, uploader, duration, views, null, publishedText, daysAgo,
             channelAvatarUrl = avatarUrl, isVerified = isVerified, isLive = isLive,

@@ -89,15 +89,17 @@ object VanillaCommandTree {
         )
         .then(
             Commands.argument("id", BareTokenArgumentType)
-                .suggests { _, b ->
-                    FullscreenBroadcastManager.displayIdSuggestions().forEach { b.suggest(it) }
-                    b.buildFuture()
-                }
+                .suggests { _, b -> suggestDisplayIds(b) }
                 .executes { ctx ->
                     VanillaDeleteCommand.execute(ctx, StringArgumentType.getString(ctx, "id"))
                     Command.SINGLE_SUCCESS
                 }
         )
+
+    private fun suggestDisplayIds(builder: SuggestionsBuilder): CompletableFuture<Suggestions> {
+        FullscreenBroadcastManager.displayIdSuggestions().forEach { builder.suggest(it) }
+        return builder.buildFuture()
+    }
 
     /** Builds the `/display info this|<id>` subcommand — see [deleteNode] for `this` / id semantics. */
     private fun infoNode() = Commands.literal("info")
@@ -110,10 +112,7 @@ object VanillaCommandTree {
         )
         .then(
             Commands.argument("id", BareTokenArgumentType)
-                .suggests { _, b ->
-                    FullscreenBroadcastManager.displayIdSuggestions().forEach { b.suggest(it) }
-                    b.buildFuture()
-                }
+                .suggests { _, b -> suggestDisplayIds(b) }
                 .executes { ctx ->
                     VanillaInfoCommand.execute(ctx, StringArgumentType.getString(ctx, "id"))
                     Command.SINGLE_SUCCESS
@@ -142,10 +141,7 @@ object VanillaCommandTree {
         .then(Commands.literal("this").then(videoUrlArgument { "this" }))
         .then(
             Commands.argument("id", BareTokenArgumentType)
-                .suggests { _, b ->
-                    FullscreenBroadcastManager.displayIdSuggestions().forEach { b.suggest(it) }
-                    b.buildFuture()
-                }
+                .suggests { _, b -> suggestDisplayIds(b) }
                 .then(videoUrlArgument { ctx -> StringArgumentType.getString(ctx, "id") })
         )
 
@@ -180,10 +176,7 @@ object VanillaCommandTree {
         )
         .then(
             Commands.argument("id", BareTokenArgumentType)
-                .suggests { _, b ->
-                    FullscreenBroadcastManager.displayIdSuggestions().forEach { b.suggest(it) }
-                    b.buildFuture()
-                }
+                .suggests { _, b -> suggestDisplayIds(b) }
                 .executes { ctx -> VanillaNameCommand.execute(ctx, StringArgumentType.getString(ctx, "id"), null) }
                 .then(nameArgument { ctx -> StringArgumentType.getString(ctx, "id") })
         )
@@ -211,10 +204,7 @@ object VanillaCommandTree {
         )
         .then(
             Commands.argument("id", BareTokenArgumentType)
-                .suggests { _, b ->
-                    FullscreenBroadcastManager.displayIdSuggestions().forEach { b.suggest(it) }
-                    b.buildFuture()
-                }
+                .suggests { _, b -> suggestDisplayIds(b) }
                 .executes { ctx ->
                     VanillaScheduleCommand.execute(
                         ctx,
