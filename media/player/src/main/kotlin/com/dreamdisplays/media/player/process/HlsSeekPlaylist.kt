@@ -31,10 +31,10 @@ internal object HlsSeekPlaylist {
     private const val CACHE_LIMIT = 8
 
     /** Tags that describe the playlist as a whole and must survive the trim. */
-    private val HEADER_TAGS = listOf(
+    private val HEADER_TAGS = [
         "#EXTM3U", "#EXT-X-VERSION", "#EXT-X-TARGETDURATION", "#EXT-X-PLAYLIST-TYPE",
         "#EXT-X-INDEPENDENT-SEGMENTS", "#EXT-X-MAP",
-    )
+    ]
 
     /** Matches the `URI="..."` attribute of `#EXT-X-MAP`, the one reference in a header tag. */
     private val URI_ATTRIBUTE = Regex("""URI="([^"]*)"""")

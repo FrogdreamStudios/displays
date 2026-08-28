@@ -32,7 +32,7 @@ object DisplayUnlitRenderTypes {
             Identifier.fromNamespaceAndPath(Initializer.MOD_ID, "pipeline/display_unlit_textured"),
             Identifier.fromNamespaceAndPath(Initializer.MOD_ID, "core/display_fog"),
             Identifier.fromNamespaceAndPath(Initializer.MOD_ID, "core/display_fog"),
-            listOf(SAMPLER_TEXTURE),
+            [SAMPLER_TEXTURE],
         )
         assignIrisTexturedProgram(pipeline)
         pipeline

@@ -468,38 +468,29 @@ class PipOverlay(
         }
     }
 
-    /** Returns the (x, y) top-left position of the resize handle in PiP-local coords. */
-    private fun handlePixelPos(pipW: Int, pipH: Int): Pair<Int, Int> {
-        val (sx, sy) = anchor.centerFacingCorner()
+    private fun cornerPixelPos(sx: Int, sy: Int, pipW: Int, pipH: Int, sz: Int): Pair<Int, Int> {
         val x = when {
-            sx > 0 -> pipW - RESIZE_SZ - RESIZE_INSET
+            sx > 0 -> pipW - sz - RESIZE_INSET
             sx < 0 -> RESIZE_INSET
-            else -> (pipW - RESIZE_SZ) / 2
+            else -> (pipW - sz) / 2
         }
         val y = when {
-            sy > 0 -> pipH - RESIZE_SZ - RESIZE_INSET
+            sy > 0 -> pipH - sz - RESIZE_INSET
             sy < 0 -> RESIZE_INSET
-            else -> (pipH - RESIZE_SZ) / 2
+            else -> (pipH - sz) / 2
         }
         return x to y
+    }
+
+    private fun handlePixelPos(pipW: Int, pipH: Int): Pair<Int, Int> {
+        val (sx, sy) = anchor.centerFacingCorner()
+        return cornerPixelPos(sx, sy, pipW, pipH, RESIZE_SZ)
     }
 
     /** Returns the (x, y) top-left position of the close button, in the corner opposite the resize handle. */
     private fun closeButtonPixelPos(pipW: Int, pipH: Int): Pair<Int, Int> {
         val (cfx, cfy) = anchor.centerFacingCorner()
-        val sx = -cfx
-        val sy = -cfy
-        val x = when {
-            sx > 0 -> pipW - CLOSE_SZ - RESIZE_INSET
-            sx < 0 -> RESIZE_INSET
-            else -> (pipW - CLOSE_SZ) / 2
-        }
-        val y = when {
-            sy > 0 -> pipH - CLOSE_SZ - RESIZE_INSET
-            sy < 0 -> RESIZE_INSET
-            else -> (pipH - CLOSE_SZ) / 2
-        }
-        return x to y
+        return cornerPixelPos(-cfx, -cfy, pipW, pipH, CLOSE_SZ)
     }
 
     /** Draws the close ("cross") icon at ([hx], [hy]), tinted red on hover. */

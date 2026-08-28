@@ -284,16 +284,7 @@ object NativeMedia {
     }
 
     /** Returns the in-process session's last error description, or an empty string. */
-    fun lavError(handle: Long): String {
-        Arena.ofConfined().use { arena ->
-            val seg = arena.allocate(STDERR_CAP)
-            val n = lavErrorHandle!!.invoke(handle, seg, STDERR_CAP) as Int
-            if (n <= 0) return ""
-            val bytes = ByteArray(n)
-            MemorySegment.copy(seg, 0L, MemorySegment.ofArray(bytes), 0L, n.toLong())
-            return String(bytes, Charsets.UTF_8)
-        }
-    }
+    fun lavError(handle: Long): String = readCapturedString(handle, lavErrorHandle!!)
 
     /** Interrupts the in-process session, unblocking a reader stuck in [lavReadFrameI420]. */
     fun lavKill(handle: Long) {
@@ -307,10 +298,12 @@ object NativeMedia {
     }
 
     /** Returns the FFmpeg stderr captured so far for [handle] (capped at 128 KiB). */
-    fun videoStderr(handle: Long): String {
+    fun videoStderr(handle: Long): String = readCapturedString(handle, videoStderr!!)
+
+    private fun readCapturedString(handle: Long, reader: MethodHandle): String {
         Arena.ofConfined().use { arena ->
             val seg = arena.allocate(STDERR_CAP)
-            val n = videoStderr!!.invoke(handle, seg, STDERR_CAP) as Int
+            val n = reader.invoke(handle, seg, STDERR_CAP) as Int
             if (n <= 0) return ""
             val bytes = ByteArray(n)
             MemorySegment.copy(seg, 0L, MemorySegment.ofArray(bytes), 0L, n.toLong())
@@ -361,14 +354,9 @@ object NativeMedia {
             // Global arena: the library stays loaded for the lifetime of the process.
             val lookup = SymbolLookup.libraryLookup(lib.toPath(), Arena.global())
 
-            fun bind(name: String, desc: FunctionDescriptor): MethodHandle =
-                linker.downcallHandle(
-                    lookup.find(name).orElseThrow { IllegalStateException("Symbol $name missing") },
-                    desc,
-                )
-
+            fun bind(name: String, desc: FunctionDescriptor): MethodHandle = bindSymbol(linker, lookup, name, desc)
             fun bindOptional(name: String, desc: FunctionDescriptor): MethodHandle? =
-                lookup.find(name).map { linker.downcallHandle(it, desc) }.orElse(null)
+                bindOptionalSymbol(linker, lookup, name, desc)
 
             val long = ValueLayout.JAVA_LONG
             val int = ValueLayout.JAVA_INT
@@ -426,14 +414,9 @@ object NativeMedia {
             preloadLavDependencies(lib.parentFile)
             val lookup = SymbolLookup.libraryLookup(lib.toPath(), Arena.global())
 
-            fun bind(name: String, desc: FunctionDescriptor): MethodHandle =
-                linker.downcallHandle(
-                    lookup.find(name).orElseThrow { IllegalStateException("Symbol $name missing") },
-                    desc,
-                )
-
+            fun bind(name: String, desc: FunctionDescriptor): MethodHandle = bindSymbol(linker, lookup, name, desc)
             fun bindOptional(name: String, desc: FunctionDescriptor): MethodHandle? =
-                lookup.find(name).map { linker.downcallHandle(it, desc) }.orElse(null)
+                bindOptionalSymbol(linker, lookup, name, desc)
 
             val long = ValueLayout.JAVA_LONG
             val int = ValueLayout.JAVA_INT
@@ -511,6 +494,15 @@ object NativeMedia {
             logger.debug("Could not preload LAV dependency ${lib.name}.")
         }
     }
+
+    private fun bindSymbol(linker: Linker, lookup: SymbolLookup, name: String, desc: FunctionDescriptor): MethodHandle =
+        linker.downcallHandle(
+            lookup.find(name).orElseThrow { IllegalStateException("Symbol $name missing") },
+            desc,
+        )
+
+    private fun bindOptionalSymbol(linker: Linker, lookup: SymbolLookup, name: String, desc: FunctionDescriptor): MethodHandle? =
+        lookup.find(name).map { linker.downcallHandle(it, desc) }.orElse(null)
 
     private fun isSharedLibrary(name: String): Boolean {
         val lower = name.lowercase()

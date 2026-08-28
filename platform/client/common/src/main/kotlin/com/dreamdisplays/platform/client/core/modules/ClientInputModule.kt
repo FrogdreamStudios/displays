@@ -11,7 +11,7 @@ object ClientInputModule : DreamDisplaysModule {
     override val id: String = "dreamdisplays:client_input"
 
     /** Dependencies of this module. */
-    override val dependencies: List<String> = listOf(CoreDisplayModule.id)
+    override val dependencies: List<String> = [CoreDisplayModule.id]
 
     /** Installs the display interaction service, key binding registry, and input dispatch service. */
     override fun install(context: ModuleContext) {

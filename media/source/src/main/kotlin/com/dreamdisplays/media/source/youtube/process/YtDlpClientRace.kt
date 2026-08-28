@@ -37,7 +37,7 @@ class YtDlpClientRace(private val cookies: YtCookieManager) {
         private const val PRIMARY_CLIENT = "visionos"
 
         /** Token-free clients raced in parallel (hit PO-token wall, but auto-recover if working). */
-        private val FALLBACK_CLIENTS: List<String?> = listOf("android_vr", "ios", "tv", "android")
+        private val FALLBACK_CLIENTS: List<String?> = ["android_vr", "ios", "tv", "android"]
     }
 
     /**
@@ -144,11 +144,11 @@ class YtDlpClientRace(private val cookies: YtCookieManager) {
 
         val hasCookieArg = cmd.any { it == "--cookies" || it == "--cookies-from-browser" }
         if (!hasCookieArg && client != null) {
-            cmd.addAll(listOf("--extractor-args", "youtube:player_client=$client"))
+            cmd.addAll(["--extractor-args", "youtube:player_client=$client"])
         }
 
         cmd.addAll(
-            listOf(
+            [
                 "--force-ipv4",
                 "-J", "--no-playlist", "--no-warnings", "--no-check-formats",
                 "--ignore-config", "--no-mark-watched",
@@ -156,7 +156,7 @@ class YtDlpClientRace(private val cookies: YtCookieManager) {
                 "--socket-timeout", "8",
                 "--",
                 videoUrl,
-            )
+            ]
         )
         val pb = ProcessBuilder(cmd)
         pb.redirectErrorStream(false)

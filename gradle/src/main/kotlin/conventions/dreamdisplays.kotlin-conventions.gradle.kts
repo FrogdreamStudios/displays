@@ -70,6 +70,7 @@ tasks.withType<JavaCompile>().configureEach {
 tasks.withType<KotlinCompile>().configureEach {
     compilerOptions.jvmTarget.set(JvmTarget.fromTarget(bytecodeTarget.toString()))
     compilerOptions.optIn.add("com.dreamdisplays.api.Unstable")
+    compilerOptions.freeCompilerArgs.add("-Xcollection-literals")
 }
 
 tasks.withType<Jar>().configureEach {
@@ -83,6 +84,7 @@ run {
     val chiselDir = layout.buildDirectory.dir("generated/chisel/main/kotlin")
 
     val chiselSource = tasks.register("chiselSource") {
+        description = "Generate chisel source."
         val outDir = chiselDir.get().asFile
         if (sourceDir.exists()) {
             inputs.dir(sourceDir).withPathSensitivity(PathSensitivity.RELATIVE)

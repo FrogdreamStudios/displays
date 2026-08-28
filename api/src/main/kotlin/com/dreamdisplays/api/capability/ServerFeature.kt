@@ -22,7 +22,7 @@ enum class ServerFeature(override val wire: String) : WireEnum {
 
     companion object {
         /** Playback-related features enabled by the current server implementation. */
-        val playbackFeatures: List<ServerFeature> = listOf(MODES, WATCH_PARTY, BROADCAST)
+        val playbackFeatures: List<ServerFeature> = [MODES, WATCH_PARTY, BROADCAST]
 
         /** Playback-related feature tokens for string-based wire protocols. */
         val playbackFeatureWires: List<String> = playbackFeatures.toWire()

@@ -43,7 +43,7 @@ internal object Yuv262Reflect {
     private fun samplerLayout(): Any {
         val builder = bglClass.getMethod("builder").invoke(null)
         val withSampler = builder.javaClass.getMethod("withSampler", String::class.java)
-        for (name in listOf("Sampler0", "Sampler1", "Sampler3")) {
+        for (name in ["Sampler0", "Sampler1", "Sampler3"]) {
             withSampler.invoke(builder, name)
         }
         return builder.javaClass.getMethod("build").invoke(builder)

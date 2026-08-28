@@ -292,10 +292,10 @@ class DisplayMenu private constructor(
                 },
                 waitingLabel = { if (!ds.isVideoStarted) Component.translatable("dreamdisplays.ui.waiting").string else null },
                 scheduleLabel = { scheduleCountdownText() },
-                statusLabels = listOf(
+                statusLabels = [
                     { Component.translatable("dreamdisplays.ui.quality_applying").string.takeIf { ds.isApplyingQuality } },
                     { Component.translatable("dreamdisplays.ui.audio_track_loading").string.takeIf { ds.isSwitchingAudioTrack } },
-                ),
+                ],
                 chapters = { DisplayChapters.of(ds) },
             ) { nanos ->
                 if (ds.canSeek() && !ds.isLive && ds.canSeekHere) {
@@ -355,21 +355,21 @@ class DisplayMenu private constructor(
             )
         settings = SettingsSection(
             rows = settingsRows(renderDReset, qualityReset, brightnessReset, audio3dReset, syncReset),
-            ownerActions = listOf(reportButton, deleteButton, lockButton),
-            buttonTooltips = listOf(
+            ownerActions = [reportButton, deleteButton, lockButton],
+            buttonTooltips = [
                 lockButton to {
                     ds.isLocked?.let { locked ->
-                        listOf(
+                        [
                             Component.translatable(if (locked) "dreamdisplays.button.unlock.tooltip.1" else "dreamdisplays.button.lock.tooltip.1")
                                 .withStyle { it.withColor(ChatFormatting.WHITE).withBold(true) },
                             Component.translatable(if (locked) "dreamdisplays.button.unlock.tooltip.2" else "dreamdisplays.button.lock.tooltip.2")
                                 .withStyle { it.withColor(ChatFormatting.GRAY) },
-                        )
+                        ]
                     }
                 },
                 deleteButton to { buttonTooltip("dreamdisplays.button.delete") },
                 reportButton to { buttonTooltip("dreamdisplays.button.report") },
-            ),
+            ],
         )
         errorPanel = ErrorPanel(retryButton, deleteButton, reportButton) { ds.mediaError }
     }
@@ -380,14 +380,14 @@ class DisplayMenu private constructor(
         brightnessReset: IconButton, audio3dReset: IconButton, syncReset: IconButton,
     ): List<SettingsSection.Row> {
         val ds = displayScreen
-        return listOf(
+        return [
             SettingsSection.Row("dreamdisplays.button.render-distance", renderD, renderDReset) {
-                listOf(
+                [
                     tooltipTitle("dreamdisplays.button.render-distance.tooltip.1"),
                     tooltipBody("dreamdisplays.button.render-distance.tooltip.2"),
                     Component.literal(""),
                     tooltipValue("dreamdisplays.button.render-distance.tooltip.7", fractionToChunks(renderD.value)),
-                )
+                ]
             },
             SettingsSection.Row("dreamdisplays.button.quality", quality, qualityReset) {
                 val tip = mutableListOf(
@@ -405,15 +405,15 @@ class DisplayMenu private constructor(
                 tip
             },
             SettingsSection.Row("dreamdisplays.button.brightness", brightness, brightnessReset) {
-                listOf(
+                [
                     tooltipTitle("dreamdisplays.button.brightness.tooltip.1"),
                     tooltipBody("dreamdisplays.button.brightness.tooltip.2"),
                     Component.literal(""),
                     tooltipValue("dreamdisplays.button.brightness.tooltip.3", floor(brightness.value * 100).toInt()),
-                )
+                ]
             },
             SettingsSection.Row("dreamdisplays.button.audio3d", audio3d, audio3dReset) {
-                listOf(
+                [
                     tooltipTitle("dreamdisplays.button.audio3d.tooltip.1"),
                     tooltipBody("dreamdisplays.button.audio3d.tooltip.2"),
                     Component.literal(""),
@@ -425,10 +425,10 @@ class DisplayMenu private constructor(
                         "dreamdisplays.button.audio3d.tooltip.6",
                         Component.translatable(audio3dModeLabel(audio3d.mode)),
                     ),
-                )
+                ]
             },
             SettingsSection.Row("dreamdisplays.button.synchronization", sync, syncReset, extraGapBefore = 6) {
-                listOf(
+                [
                     tooltipTitle("dreamdisplays.button.synchronization.tooltip.1"),
                     tooltipBody("dreamdisplays.button.synchronization.tooltip.2"),
                     Component.literal(""),
@@ -440,9 +440,9 @@ class DisplayMenu private constructor(
                         "dreamdisplays.button.synchronization.tooltip.5",
                         Component.translatable(syncModeLabel(sync.mode)),
                     ),
-                )
+                ]
             },
-        )
+        ]
     }
 
     /**
@@ -479,10 +479,10 @@ class DisplayMenu private constructor(
             .append(Component.translatable(descKey).withStyle { it.withColor(ChatFormatting.GRAY) })
 
     /** Two-line white/gray tooltip used by the delete and report buttons. */
-    private fun buttonTooltip(prefix: String): List<Component> = listOf(
+    private fun buttonTooltip(prefix: String): List<Component> = [
         tooltipTitle("$prefix.tooltip.1"),
         tooltipBody("$prefix.tooltip.2"),
-    )
+    ]
 
     /** Requests [info] as the display video and reloads the related list once the intent is sent. */
     private fun onPickSuggested(info: MediaSearchResult) {
@@ -689,7 +689,7 @@ class DisplayMenu private constructor(
         }
 
         /** The three tiers exposed by the 3D audio slider; BASIC stays an internal-only engine step. */
-        private val AUDIO_3D_MODES = listOf(AcousticQuality.OFF, AcousticQuality.ADVANCED, AcousticQuality.ULTRA)
+        private val AUDIO_3D_MODES = [AcousticQuality.OFF, AcousticQuality.ADVANCED, AcousticQuality.ULTRA]
 
         /** Factory default the 3D audio row's reset button restores. */
         private val AUDIO_3D_DEFAULT = AcousticQuality.ADVANCED
@@ -702,7 +702,7 @@ class DisplayMenu private constructor(
         }
 
         /** The three sync-mode notches exposed by the playback-mode slider. */
-        private val SYNC_MODES = listOf(PlaybackMode.LOCAL, PlaybackMode.SYNCED, PlaybackMode.BROADCAST)
+        private val SYNC_MODES = [PlaybackMode.LOCAL, PlaybackMode.SYNCED, PlaybackMode.BROADCAST]
 
         /** Opens the menu for [displayScreen]. */
         fun open(displayScreen: DisplayScreen) {

@@ -182,11 +182,7 @@ class VideoPopoutWindow(
             val version = frameVersion.value
             val haveNewFrame = version != uploadedVersion
 
-            val prevCtx = GLFW.glfwGetCurrentContext()
-            // Only restore capabilities when there is an active GL context to restore.
-            // Skipping setCapabilities(null) avoids corrupting LWJGL state for mods that
-            // replace the GL pipeline (e.g., Vulkan-based renderers).
-            val prevCaps = if (prevCtx != 0L) runCatching { GL.getCapabilities() }.getOrNull() else null
+            val (prevCtx, prevCaps) = saveGlContext()
 
             GLFW.glfwMakeContextCurrent(handle)
             val caps = popoutCaps
@@ -199,6 +195,16 @@ class VideoPopoutWindow(
             r.draw(vw, vh, contentRect(fw, fh, contentAspect), fw, fh)
             GLFW.glfwSwapBuffers(handle)
 
+            restoreGlContext(prevCtx, prevCaps)
+        }
+
+        private fun saveGlContext(): Pair<Long, GLCapabilities?> {
+            val prevCtx = GLFW.glfwGetCurrentContext()
+            val prevCaps = if (prevCtx != 0L) runCatching { GL.getCapabilities() }.getOrNull() else null
+            return prevCtx to prevCaps
+        }
+
+        private fun restoreGlContext(prevCtx: Long, prevCaps: GLCapabilities?) {
             GLFW.glfwMakeContextCurrent(prevCtx)
             if (prevCaps != null) GL.setCapabilities(prevCaps)
         }
@@ -260,13 +266,11 @@ class VideoPopoutWindow(
             windowHandle = 0L
             if (handle != 0L) {
                 if (renderer != null) {
-                    val prevCtx = GLFW.glfwGetCurrentContext()
-                    val prevCaps = if (prevCtx != 0L) runCatching { GL.getCapabilities() }.getOrNull() else null
+                    val (prevCtx, prevCaps) = saveGlContext()
                     GLFW.glfwMakeContextCurrent(handle)
                     GL.setCapabilities(popoutCaps ?: GL.createCapabilities())
                     renderer?.cleanup(); renderer = null; popoutCaps = null
-                    GLFW.glfwMakeContextCurrent(prevCtx)
-                    if (prevCaps != null) GL.setCapabilities(prevCaps)
+                    restoreGlContext(prevCtx, prevCaps)
                 }
                 GLFW.glfwDestroyWindow(handle)
             }

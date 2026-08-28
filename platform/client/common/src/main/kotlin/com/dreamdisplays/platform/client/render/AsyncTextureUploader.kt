@@ -129,22 +129,7 @@ class AsyncTextureUploader(private val stateCache: Boolean) : TextureUploaderSer
         val size = w * h * format.bytesPerPixel
         if (size <= 0 || src.remaining() < size) return
 
-        // Pick the next slot and advance the ring
-        val slot = slots[ringIndex]
-        ringIndex = (ringIndex + 1) % PBO_COUNT
-
-        // Make sure the GPU is done reading this slot's PBO before we overwrite it
-        waitSlotFence(slot)
-
-        bindBuffer(id = slot.pbo)
-        ensureCapacity(slot, size)
-
-        val persistent = slot.persistent
-        if (persistent != null) {
-            copyIntoPersistentPbo(src, persistent, size)
-        } else {
-            copyIntoMappedPbo(src, size)
-        }
+        val slot = acquireSlot(size, src)
 
         bindTexture(textureId)
 
@@ -176,20 +161,7 @@ class AsyncTextureUploader(private val stateCache: Boolean) : TextureUploaderSer
         val total = ySize + uSize + vSize
         if (total <= 0 || src.remaining() < total) return
 
-        val slot = slots[ringIndex]
-        ringIndex = (ringIndex + 1) % PBO_COUNT
-
-        waitSlotFence(slot)
-
-        bindBuffer(id = slot.pbo)
-        ensureCapacity(slot, total)
-
-        val persistent = slot.persistent
-        if (persistent != null) {
-            copyIntoPersistentPbo(src, persistent, total)
-        } else {
-            copyIntoMappedPbo(src, total)
-        }
+        val slot = acquireSlot(total, src)
 
         pixelStore(GL11.GL_UNPACK_ALIGNMENT, 1)
         pixelStore(GL11.GL_UNPACK_ROW_LENGTH, 0)
@@ -228,6 +200,25 @@ class AsyncTextureUploader(private val stateCache: Boolean) : TextureUploaderSer
             slot.pbo = 0
             slot.capacity = 0
         }
+    }
+
+    private fun acquireSlot(size: Int, src: ByteBuffer): Slot {
+        val slot = slots[ringIndex]
+        ringIndex = (ringIndex + 1) % PBO_COUNT
+
+        // Make sure the GPU is done reading this slot's PBO before we overwrite it
+        waitSlotFence(slot)
+
+        bindBuffer(id = slot.pbo)
+        ensureCapacity(slot, size)
+
+        val persistent = slot.persistent
+        if (persistent != null) {
+            copyIntoPersistentPbo(src, persistent, size)
+        } else {
+            copyIntoMappedPbo(src, size)
+        }
+        return slot
     }
 
     /**

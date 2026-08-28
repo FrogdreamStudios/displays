@@ -20,7 +20,7 @@ object CorePlaybackModule : DreamDisplaysModule {
     override val id: String = "dreamdisplays:core_playback"
 
     /** Dependencies of this module. */
-    override val dependencies: List<String> = listOf(CoreDisplayModule.id)
+    override val dependencies: List<String> = [CoreDisplayModule.id]
 
     /** Installs the playback service, media-session manager, and watch-party service. */
     override fun install(context: ModuleContext) {

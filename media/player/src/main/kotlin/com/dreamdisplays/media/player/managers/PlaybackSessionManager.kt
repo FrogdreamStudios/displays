@@ -526,10 +526,7 @@ internal class PlaybackSessionManager(
 
     /** Replaces audio half of playing session with fresh process on same audio URL, leaving video unchanged. */
     fun restartAudio(streamSet: ActiveStreams, offsetNanos: Long): Boolean {
-        if (!isPlaying || terminated.get() || parkFlag.get()) return false
-        if (bridgeCeilingNanos != Long.MAX_VALUE || bridgeAudio != null) return false
-        synchronized(switchLock) { if (incoming != null) return false }
-        val ffmpeg = FFmpegBinary.getPath() ?: return false
+        val ffmpeg = ffmpegForAudioSwitch() ?: return false
         val oldAudio = audioHalf
         audioHalf = null
         oldAudio?.stop?.set(true)
@@ -570,13 +567,18 @@ internal class PlaybackSessionManager(
 
     /** Seamless audio-track switch for seekable content: spawns new track's FFmpeg on background thread, then swaps. */
     fun beginAudioTrackSwitch(streamSet: ActiveStreams): Boolean {
-        if (!isPlaying || terminated.get() || parkFlag.get()) return false
-        if (bridgeCeilingNanos != Long.MAX_VALUE || bridgeAudio != null) return false
-        synchronized(switchLock) { if (incoming != null) return false }
-        val ffmpeg = FFmpegBinary.getPath() ?: return false
+        val ffmpeg = ffmpegForAudioSwitch() ?: return false
         val generation = audioSwitchGeneration.incrementAndGet()
         daemon({ runAudioTrackSwitch(ffmpeg, streamSet, generation) }, "MediaPlayer-audio-switch").start()
         return true
+    }
+
+    /** Shared entry guard for [restartAudio] / [beginAudioTrackSwitch]: the FFmpeg path when a replacement audio line may be started, or null when the session can't take one right now. */
+    private fun ffmpegForAudioSwitch(): String? {
+        if (!isPlaying || terminated.get() || parkFlag.get()) return null
+        if (bridgeCeilingNanos != Long.MAX_VALUE || bridgeAudio != null) return null
+        synchronized(switchLock) { if (incoming != null) return null }
+        return FFmpegBinary.getPath()
     }
 
     /** True while [generation] is still the newest audio switch and the session can still take it. */

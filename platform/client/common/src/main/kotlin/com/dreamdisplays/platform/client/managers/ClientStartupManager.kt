@@ -45,7 +45,7 @@ object ClientStartupManager {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     /** The default module set installed into every [ClientApplication] built by [start]. */
-    private val defaultModules: List<DreamDisplaysModule> = listOf(
+    private val defaultModules: List<DreamDisplaysModule> = [
         ClientStorageModule,
         CoreDisplayModule,
         CorePlaybackModule,
@@ -55,7 +55,7 @@ object ClientStartupManager {
         ClientInputModule,
         ClientRenderModule,
         ClientCapabilityModule,
-    )
+    ]
 
     /** Loads config, wires services, hosts the application, prewarms backends, and launches maintenance loops. */
     fun start() {

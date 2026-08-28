@@ -114,7 +114,7 @@ object PaperV2Networking : PluginMessageListener {
     private fun handleHello(player: Player, hello: ClientHello) {
         if (V2PlayerTracker.isV2(player.uniqueId)) return
         V2PlayerTracker.markV2(player.uniqueId, hello)
-        send(listOf(player), buildServerHello(player))
+        send([player], buildServerHello(player))
         DisplayActions.recordVersionAndCheckUpdates(player, hello.modVersion)
         DisplayActions.sendAllDisplays(player)
         FullscreenBroadcastManager.onPlayerJoin(player.uniqueId)

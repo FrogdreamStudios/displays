@@ -5,14 +5,10 @@ plugins {
     alias(libs.plugins.platformweaver)
 }
 
-/**
- * Velocity's `@Plugin` annotation requires a compile-time constant, so the project version can't be
- * passed in directly the way [tasks.processResources] expands it into `velocity-plugin.json`. This
- * generates a one-line Kotlin file exposing it as a `const val` that the annotation can reference.
- */
 val generatedVersionDir = layout.buildDirectory.dir("generated/source/pluginVersion/kotlin")
 
 val generatePluginVersion by tasks.registering {
+    description = "Generates version of proxy plugin."
     val outputDir = generatedVersionDir
     val versionValue = rootProject.version.toString()
     inputs.property("version", versionValue)

@@ -65,7 +65,7 @@ object VimeoApi {
         // Prefer the progressive ladder (seekable files) and fall back to the HLS master
         val streams = when {
             progressive.isNotEmpty() -> progressive.sortedByDescending { it.height ?: 0 }
-            hlsUrl != null -> listOf(hlsStream(hlsUrl))
+            hlsUrl != null -> [hlsStream(hlsUrl)]
             else -> return null
         }
 

@@ -8,6 +8,11 @@ plugins {
 repositories {
     mavenCentral()
     maven("https://jitpack.io")
+    all {
+        if (this is MavenArtifactRepository && url.toString().contains("maven.neoforged.net")) {
+            mavenContent { excludeGroup("org.jetbrains.kotlin") }
+        }
+    }
 }
 
 dependencies {

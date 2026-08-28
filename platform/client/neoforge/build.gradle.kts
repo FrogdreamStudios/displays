@@ -21,6 +21,11 @@ repositories {
         name = "fabricLoomRemappedMods"
     }
     maven("https://thedarkcolour.github.io/KotlinForForge/")
+    all {
+        if (this is MavenArtifactRepository && url.toString().contains("maven.neoforged.net")) {
+            mavenContent { excludeGroup("org.jetbrains.kotlin") }
+        }
+    }
 }
 
 sourceSets.main {

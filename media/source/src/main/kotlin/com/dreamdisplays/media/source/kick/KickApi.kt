@@ -108,7 +108,7 @@ object KickApi {
         }.getOrNull()
 
         val variants = parsed?.variants.orEmpty()
-        if (variants.isEmpty()) return listOf(muxed(masterUrl))
+        if (variants.isEmpty()) return [muxed(masterUrl)]
         return variants.map { v ->
             MediaStream(
                 url = v.url,

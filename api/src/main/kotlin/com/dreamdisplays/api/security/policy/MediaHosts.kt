@@ -20,16 +20,16 @@ object MediaHosts {
      * Domains each supported platform serves from, including the CDNs its streams and thumbnails
      * live on.
      */
-    private val PLATFORM_DOMAINS: List<Pair<MediaPlatform, List<String>>> = listOf(
-        MediaPlatform.YOUTUBE to listOf(
+    private val PLATFORM_DOMAINS: List<Pair<MediaPlatform, List<String>>> = [
+        MediaPlatform.YOUTUBE to [
             "youtube.com", "youtu.be", "youtube-nocookie.com", "ytimg.com", "ggpht.com",
             "googlevideo.com", "googleusercontent.com", "youtubei.googleapis.com",
-        ),
-        MediaPlatform.TWITCH to listOf("twitch.tv", "ttvnw.net", "jtvnw.net", "live-video.net"),
-        MediaPlatform.VIMEO to listOf("vimeo.com", "vimeocdn.com"),
-        MediaPlatform.KICK to listOf("kick.com"),
-        MediaPlatform.BILIBILI to listOf("bilibili.com", "hdslb.com", "bilivideo.com"),
-    )
+        ],
+        MediaPlatform.TWITCH to ["twitch.tv", "ttvnw.net", "jtvnw.net", "live-video.net"],
+        MediaPlatform.VIMEO to ["vimeo.com", "vimeocdn.com"],
+        MediaPlatform.KICK to ["kick.com"],
+        MediaPlatform.BILIBILI to ["bilibili.com", "hdslb.com", "bilivideo.com"],
+    ]
 
     /** The site each platform's CDNs expect to be linked from, for the ones that check. */
     private val PLATFORM_REFERERS: Map<MediaPlatform, String> = mapOf(

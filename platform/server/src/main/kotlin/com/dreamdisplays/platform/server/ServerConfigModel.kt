@@ -338,10 +338,10 @@ private fun stringList(t: TomlTable?, key: String): List<String> =
         ?: emptyList()
 
 /** Language files bundled with every server platform's JAR. */
-internal val LANGUAGE_FILES = listOf(
+internal val LANGUAGE_FILES = [
     "en.json", "es.json", "fr.json", "it.json", "pl.json",
     "ru.json", "uk.json", "de.json", "cs.json", "be.json", "he.json",
-)
+]
 
 /** Maps a Minecraft locale string (e.g. `ru_ru`, `ru-ru`) to the plugin's short language code (e.g. `ru`). */
 internal fun mapLocaleToLang(locale: String): String {

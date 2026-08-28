@@ -288,13 +288,13 @@ object BilibiliApi {
         val durl = (playurlData.array("durl") ?: playurlData.array("durls"))
             ?.firstOrNull()?.asJsonObjectOrNull() ?: return emptyList()
         val durlUrl = durl.optString("url") ?: return emptyList()
-        return listOf(
+        return [
             MediaStream(
                 url = durlUrl, type = MediaStreamType.VIDEO_AUDIO,
                 codec = null, width = null, height = null, fps = null, bitrate = durl.optInt("bandwidth"),
                 audioTrackName = null, audioTrackLang = null,
             ),
-        )
+        ]
     }
 
     /** Builds muxed live streams (FLV / HLS) from a `getRoomPlayInfo` response. */

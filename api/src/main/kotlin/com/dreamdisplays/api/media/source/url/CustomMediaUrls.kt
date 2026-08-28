@@ -79,7 +79,7 @@ object CustomMediaUrls {
             // github.com/<owner>/<repo>/blob/<ref>/<path> -> raw.githubusercontent.com/<owner>/<repo>/<ref>/<path>
             host == "github.com" && segments.size >= 5 && segments[2] == "blob" ->
                 "https://raw.githubusercontent.com/" +
-                        (listOf(segments[0], segments[1]) + segments.drop(3)).joinToString("/")
+                        ([segments[0], segments[1]] + segments.drop(3)).joinToString("/")
 
             // GitLab uses the same shape with a "/-/" separator and a "raw" verb
             host == "gitlab.com" && segments.contains("-") && segments.contains("blob") ->

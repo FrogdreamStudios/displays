@@ -209,7 +209,7 @@ object DirectStreamResolver : MediaResolverService {
             originalUrl.take(120), probe.contentType, probe.contentLength, probe.acceptsRanges, durationNanos,
         )
         return ResolvedMedia(
-            streams = listOf(muxedStream(probe.finalUrl)),
+            streams = [muxedStream(probe.finalUrl)],
             metadata = metadataFor(originalUrl, durationNanos, probe.fileName),
             // A file the server will not range-seek behaves like a stream: it can only play forward
             isLive = false,
@@ -241,7 +241,7 @@ object DirectStreamResolver : MediaResolverService {
 
         val streams =
             if (parsed.isMaster) masterStreams(parsed, seekByDecoding)
-            else listOf(muxedStream(playlistUrl, seekByDecoding))
+            else [muxedStream(playlistUrl, seekByDecoding)]
 
         // Summed from the rendition's own segment list. Without it the player has no timeline, and a
         // VOD with no timeline has no seek bar — the stream plays, but it cannot be scrubbed at all.

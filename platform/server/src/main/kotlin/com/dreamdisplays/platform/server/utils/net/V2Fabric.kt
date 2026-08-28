@@ -105,7 +105,7 @@ object FabricV2Networking {
         if (V2PlayerTracker.isV2(player.uuid)) return
         V2PlayerTracker.markV2(player.uuid, hello)
         send(
-            listOf(player),
+            [player],
             ServerHello(
                 isPremium = VanillaDisplayActions.isPremium(player),
                 isAdmin = VanillaDisplayActions.isAdmin(player),

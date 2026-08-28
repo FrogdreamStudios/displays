@@ -42,85 +42,27 @@ object OutlinerUtil {
 
     /** Emits dust particles along the 12 edges of [box] visible only to [player]. */
     private fun drawOutlineBox(player: Player, box: BoundingBox, world: org.bukkit.World) {
-        val color = org.bukkit.Color.fromRGB(0, 255, 255)
+        val color = Color.fromRGB(0, 255, 255)
+
+        fun at(x: Double, y: Double, z: Double) = Location(world, x, y, z)
 
         // Bottom rectangle
-        drawLine(
-            player,
-            Location(world, box.minX, box.minY, box.minZ),
-            Location(world, box.maxX, box.minY, box.minZ),
-            color
-        )
-        drawLine(
-            player,
-            Location(world, box.maxX, box.minY, box.minZ),
-            Location(world, box.maxX, box.minY, box.maxZ),
-            color
-        )
-        drawLine(
-            player,
-            Location(world, box.maxX, box.minY, box.maxZ),
-            Location(world, box.minX, box.minY, box.maxZ),
-            color
-        )
-        drawLine(
-            player,
-            Location(world, box.minX, box.minY, box.maxZ),
-            Location(world, box.minX, box.minY, box.minZ),
-            color
-        )
+        drawLine(player, at(box.minX, box.minY, box.minZ), at(box.maxX, box.minY, box.minZ), color)
+        drawLine(player, at(box.maxX, box.minY, box.minZ), at(box.maxX, box.minY, box.maxZ), color)
+        drawLine(player, at(box.maxX, box.minY, box.maxZ), at(box.minX, box.minY, box.maxZ), color)
+        drawLine(player, at(box.minX, box.minY, box.maxZ), at(box.minX, box.minY, box.minZ), color)
 
         // Top rectangle
-        drawLine(
-            player,
-            Location(world, box.minX, box.maxY, box.minZ),
-            Location(world, box.maxX, box.maxY, box.minZ),
-            color
-        )
-        drawLine(
-            player,
-            Location(world, box.maxX, box.maxY, box.minZ),
-            Location(world, box.maxX, box.maxY, box.maxZ),
-            color
-        )
-        drawLine(
-            player,
-            Location(world, box.maxX, box.maxY, box.maxZ),
-            Location(world, box.minX, box.maxY, box.maxZ),
-            color
-        )
-        drawLine(
-            player,
-            Location(world, box.minX, box.maxY, box.maxZ),
-            Location(world, box.minX, box.maxY, box.minZ),
-            color
-        )
+        drawLine(player, at(box.minX, box.maxY, box.minZ), at(box.maxX, box.maxY, box.minZ), color)
+        drawLine(player, at(box.maxX, box.maxY, box.minZ), at(box.maxX, box.maxY, box.maxZ), color)
+        drawLine(player, at(box.maxX, box.maxY, box.maxZ), at(box.minX, box.maxY, box.maxZ), color)
+        drawLine(player, at(box.minX, box.maxY, box.maxZ), at(box.minX, box.maxY, box.minZ), color)
 
         // Vertical edges
-        drawLine(
-            player,
-            Location(world, box.minX, box.minY, box.minZ),
-            Location(world, box.minX, box.maxY, box.minZ),
-            color
-        )
-        drawLine(
-            player,
-            Location(world, box.maxX, box.minY, box.minZ),
-            Location(world, box.maxX, box.maxY, box.minZ),
-            color
-        )
-        drawLine(
-            player,
-            Location(world, box.maxX, box.minY, box.maxZ),
-            Location(world, box.maxX, box.maxY, box.maxZ),
-            color
-        )
-        drawLine(
-            player,
-            Location(world, box.minX, box.minY, box.maxZ),
-            Location(world, box.minX, box.maxY, box.maxZ),
-            color
-        )
+        drawLine(player, at(box.minX, box.minY, box.minZ), at(box.minX, box.maxY, box.minZ), color)
+        drawLine(player, at(box.maxX, box.minY, box.minZ), at(box.maxX, box.maxY, box.minZ), color)
+        drawLine(player, at(box.maxX, box.minY, box.maxZ), at(box.maxX, box.maxY, box.maxZ), color)
+        drawLine(player, at(box.minX, box.minY, box.maxZ), at(box.minX, box.maxY, box.maxZ), color)
     }
 
     /** Spawns dust particles spaced every 0.5 blocks along the segment from [from] to [to]. */

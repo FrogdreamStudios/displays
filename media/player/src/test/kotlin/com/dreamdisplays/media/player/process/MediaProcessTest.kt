@@ -53,7 +53,7 @@ class MediaProcessTest {
         // FFmpeg is pinned with a fixed-point rendering of this value while the reader derives its
         // frame period from the double. If the two disagreed, the synthesized timeline would run at a
         // slightly different rate than the frames actually arrive and lip sync would drift linearly.
-        for (fps in listOf(23.976, 24.0, 25.0, 29.97, 30.0, 50.0, 59.94, 60.0)) {
+        for (fps in [23.976, 24.0, 25.0, 29.97, 30.0, 50.0, 59.94, 60.0]) {
             val pinned = String.format(java.util.Locale.US, "%.6f", MediaProcess.outputFps(fps)).toDouble()
             val readerFrameNs = (1_000_000_000.0 / MediaProcess.outputFps(fps)).toLong()
             val pinnedFrameNs = 1_000_000_000.0 / pinned

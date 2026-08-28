@@ -20,7 +20,7 @@ class ProxyRoundTripTest {
         roundTrip(
             ProxyWelcome(
                 yourServerName = "lobby",
-                allServerNames = listOf("lobby", "survival"),
+                allServerNames = ["lobby", "survival"],
                 proxyNowMs = 1_700_000_000_000
             )
         )
@@ -57,7 +57,7 @@ class ProxyRoundTripTest {
         roundTrip(ListNetworkSessions())
         roundTrip(
             NetworkSessionList(
-                listOf(
+                [
                     NetworkSessionInfo(
                         sessionId = "a1b2c3d4",
                         scope = "global",
@@ -65,15 +65,15 @@ class ProxyRoundTripTest {
                         totalReach = 12
                     ),
                     NetworkSessionInfo(),
-                )
+                ]
             )
         )
         roundTrip(PlayerReady(playerId = "01234567-89ab-cdef-0123-456789abcdef"))
         roundTrip(
             ReplayForPlayer(
                 playerId = "01234567-89ab-cdef-0123-456789abcdef",
-                sessionIds = listOf("a1b2c3d4", "e5f6a7b8"),
-                minimizedSessionIds = listOf("e5f6a7b8")
+                sessionIds = ["a1b2c3d4", "e5f6a7b8"],
+                minimizedSessionIds = ["e5f6a7b8"]
             )
         )
         roundTrip(
@@ -97,10 +97,10 @@ class ProxyRoundTripTest {
         roundTrip(PlayerLeftNetwork(playerId = "01234567-89ab-cdef-0123-456789abcdef", server = "lobby"))
         roundTrip(
             BackendDisplayIndex(
-                listOf(
+                [
                     DisplayIndexEntry(id = "11111111-2222-3333-4444-555555555555", url = "https://youtu.be/abc"),
                     DisplayIndexEntry(),
-                )
+                ]
             )
         )
         roundTrip(ResolveDisplayToken(requestId = "req12345", token = "1234abcd", originServer = "survival"))

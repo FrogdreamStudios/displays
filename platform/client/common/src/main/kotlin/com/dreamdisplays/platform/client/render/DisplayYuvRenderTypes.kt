@@ -90,7 +90,7 @@ object DisplayYuvRenderTypes {
             Identifier.fromNamespaceAndPath(Initializer.MOD_ID, "pipeline/display_yuv"),
             Identifier.fromNamespaceAndPath(Initializer.MOD_ID, "core/display_fog"),
             Identifier.fromNamespaceAndPath(Initializer.MOD_ID, "core/display_yuv"),
-            listOf(SAMPLER_Y, SAMPLER_U, SAMPLER_V),
+            [SAMPLER_Y, SAMPLER_U, SAMPLER_V],
         )
     }
 

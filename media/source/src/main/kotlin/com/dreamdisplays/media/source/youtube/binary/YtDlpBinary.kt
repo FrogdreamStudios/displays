@@ -125,7 +125,7 @@ object YtDlpBinary {
         synchronized(this) {
             resolvedCommand?.let { return it }
             val zipapp = if (hasOverride()) null else zipappCommand()
-            val command = zipapp ?: listOf(resolve())
+            val command = zipapp ?: [resolve()]
             resolvedCommand = command
             return command
         }
@@ -143,7 +143,7 @@ object YtDlpBinary {
         val python = usablePython() ?: return null
         val pyz = provisionZipapp() ?: return null
         logger.info("yt-dlp fast path active: {} {}.", python, pyz.fileName)
-        return listOf(python, pyz.toString())
+        return [python, pyz.toString()]
     }
 
     /** Returns the first CPython >= 3.[MIN_PYTHON_MINOR] from [PYTHON_CANDIDATES], cached; null if none. */

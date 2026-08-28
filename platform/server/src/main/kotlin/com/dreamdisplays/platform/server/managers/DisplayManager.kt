@@ -215,7 +215,7 @@ object DisplayManager {
     fun broadcastUpdate(display: PaperDisplayData) {
         if (PlatformUtil.isFolia) {
             Scheduler.forEachTrackedPlayer { player ->
-                if (player.isInRange(display)) sendUpdate(display, listOf(player))
+                if (player.isInRange(display)) sendUpdate(display, [player])
             }
         } else {
             sendUpdate(display, getReceivers(display))
@@ -227,7 +227,7 @@ object DisplayManager {
     fun broadcastDelete(display: PaperDisplayData) {
         if (PlatformUtil.isFolia) {
             Scheduler.forEachTrackedPlayer { player ->
-                if (player.isInRange(display)) PacketUtil.sendDelete(listOf(player), display.id)
+                if (player.isInRange(display)) PacketUtil.sendDelete([player], display.id)
             }
         } else {
             PacketUtil.sendDelete(getReceivers(display), display.id)
@@ -241,7 +241,7 @@ object DisplayManager {
             val visible = displays.values.filterIsInstance<PaperDisplayData>()
                 .filter { player.isInRange(it) }
             proximityIndex.update(player.uniqueId, visible.mapTo(mutableSetOf()) { it.id })
-            visible.forEach { display -> sendUpdate(display, listOf(player)) }
+            visible.forEach { display -> sendUpdate(display, [player]) }
         }
     }
 
@@ -257,7 +257,7 @@ object DisplayManager {
                     display
                 )
             ) {
-                PacketUtil.sendSync(listOf(player), packet)
+                PacketUtil.sendSync([player], packet)
             }
         }
     }
@@ -267,7 +267,7 @@ object DisplayManager {
     fun sendV2ToTrackedNearbyPlayers(display: PaperDisplayData, packet: DreamPacket) {
         Scheduler.forEachTrackedPlayer { player ->
             if (V2PlayerTracker.isV2(player.uniqueId) && player.isInRange(display)) {
-                PaperV2Networking.send(listOf(player), packet)
+                PaperV2Networking.send([player], packet)
             }
         }
     }

@@ -1,7 +1,7 @@
 import support.stonecutter.StonecutterVersions
 import support.stonecutter.VersionsJson
 
-val versionsJson = VersionsJson.load(settingsDir.resolve("versions.json"))
+val versionsJson: VersionsJson = VersionsJson.load(settingsDir.resolve("versions.json"))
 
 settingsDir.resolve("versions/active.txt").apply {
     parentFile.mkdirs()

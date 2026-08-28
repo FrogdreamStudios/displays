@@ -245,7 +245,7 @@ object DisplayActions {
     private fun sendDisplayBatch(player: Player, displays: List<PaperDisplayData>) {
         displays.forEach { display ->
             PacketUtil.sendDisplayInfo(
-                listOf(player),
+                [player],
                 display.id,
                 display.ownerId,
                 display.box.min,

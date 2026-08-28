@@ -35,10 +35,10 @@ import java.util.concurrent.CompletableFuture
 @ModLoaderOnly
 object VanillaCommandTree {
     /** Suggestion tokens for the fullscreen `quality` flag. */
-    private val QUALITY_SUGGESTIONS = listOf("auto", "360", "480", "720", "1080")
+    private val QUALITY_SUGGESTIONS = ["auto", "360", "480", "720", "1080"]
 
     /** Selector tokens suggested for the fullscreen `target` argument, alongside online player names. */
-    private val TARGET_SELECTORS = listOf("@a", "@p", "@r", "@s", "@e")
+    private val TARGET_SELECTORS = ["@a", "@p", "@r", "@s", "@e"]
 
     /** Builds the full `/display` command tree, ready to attach to a dispatcher root. */
     fun build(): LiteralCommandNode<CommandSourceStack> =
@@ -89,15 +89,17 @@ object VanillaCommandTree {
         )
         .then(
             Commands.argument("id", BareTokenArgumentType)
-                .suggests { _, b ->
-                    FullscreenBroadcastManager.displayIdSuggestions().forEach { b.suggest(it) }
-                    b.buildFuture()
-                }
+                .suggests { _, b -> suggestDisplayIds(b) }
                 .executes { ctx ->
                     VanillaDeleteCommand.execute(ctx, StringArgumentType.getString(ctx, "id"))
                     Command.SINGLE_SUCCESS
                 }
         )
+
+    private fun suggestDisplayIds(builder: SuggestionsBuilder): CompletableFuture<Suggestions> {
+        FullscreenBroadcastManager.displayIdSuggestions().forEach { builder.suggest(it) }
+        return builder.buildFuture()
+    }
 
     /** Builds the `/display info this|<id>` subcommand — see [deleteNode] for `this` / id semantics. */
     private fun infoNode() = Commands.literal("info")
@@ -110,10 +112,7 @@ object VanillaCommandTree {
         )
         .then(
             Commands.argument("id", BareTokenArgumentType)
-                .suggests { _, b ->
-                    FullscreenBroadcastManager.displayIdSuggestions().forEach { b.suggest(it) }
-                    b.buildFuture()
-                }
+                .suggests { _, b -> suggestDisplayIds(b) }
                 .executes { ctx ->
                     VanillaInfoCommand.execute(ctx, StringArgumentType.getString(ctx, "id"))
                     Command.SINGLE_SUCCESS
@@ -142,10 +141,7 @@ object VanillaCommandTree {
         .then(Commands.literal("this").then(videoUrlArgument { "this" }))
         .then(
             Commands.argument("id", BareTokenArgumentType)
-                .suggests { _, b ->
-                    FullscreenBroadcastManager.displayIdSuggestions().forEach { b.suggest(it) }
-                    b.buildFuture()
-                }
+                .suggests { _, b -> suggestDisplayIds(b) }
                 .then(videoUrlArgument { ctx -> StringArgumentType.getString(ctx, "id") })
         )
 
@@ -180,10 +176,7 @@ object VanillaCommandTree {
         )
         .then(
             Commands.argument("id", BareTokenArgumentType)
-                .suggests { _, b ->
-                    FullscreenBroadcastManager.displayIdSuggestions().forEach { b.suggest(it) }
-                    b.buildFuture()
-                }
+                .suggests { _, b -> suggestDisplayIds(b) }
                 .executes { ctx -> VanillaNameCommand.execute(ctx, StringArgumentType.getString(ctx, "id"), null) }
                 .then(nameArgument { ctx -> StringArgumentType.getString(ctx, "id") })
         )
@@ -211,10 +204,7 @@ object VanillaCommandTree {
         )
         .then(
             Commands.argument("id", BareTokenArgumentType)
-                .suggests { _, b ->
-                    FullscreenBroadcastManager.displayIdSuggestions().forEach { b.suggest(it) }
-                    b.buildFuture()
-                }
+                .suggests { _, b -> suggestDisplayIds(b) }
                 .executes { ctx ->
                     VanillaScheduleCommand.execute(
                         ctx,
@@ -403,7 +393,7 @@ object VanillaCommandTree {
      * narrow who within that scope actually sees it.
      */
     private val FULLSCREEN_FLAGS =
-        listOf("server", "target", "radius", "mode", "forced", "transient", "volume", "looped", "quality")
+        ["server", "target", "radius", "mode", "forced", "transient", "volume", "looped", "quality"]
 
     /**
      * All fullscreen-start flags, any subset of them accepted but only in [FULLSCREEN_FLAGS] order:
@@ -412,7 +402,7 @@ object VanillaCommandTree {
     private fun fullscreenFlagsNode(): List<CommandNode<CommandSourceStack>> {
         var following = emptyList<CommandNode<CommandSourceStack>>()
         for (name in FULLSCREEN_FLAGS.asReversed()) {
-            following = listOf(buildFullscreenFlagNode(name, following)) + following
+            following = [buildFullscreenFlagNode(name, following)] + following
         }
         return following
     }
