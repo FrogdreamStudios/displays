@@ -8,10 +8,9 @@
 <a href="https://ko-fi.com/arnodoelinger"><img src="https://i.imgur.com/L3Zx1Wu.png" height="48" alt="Ko-Fi"></a>
 </div>
 
-# Your world. Your screen
+# Bring real video playback to Minecraft
 
-Bring real video playback to Minecraft. Watch videos, livestreams, and more directly on in-game displays — together with
-your friends.
+Watch videos, livestreams, and more directly on in-game displays — together with your friends.
 
 Create a display, paste a link and that's it!
 
