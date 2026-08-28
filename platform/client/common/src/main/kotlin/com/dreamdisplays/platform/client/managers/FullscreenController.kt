@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap
  * as sessions start and stop.
  */
 object FullscreenController {
-    private val logger = LoggerFactory.getLogger("DreamDisplays/FullscreenController")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /** How long a state waits for its display to load before being given up on. */
     private const val PENDING_TIMEOUT_MS = 5_000L

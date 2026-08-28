@@ -38,7 +38,7 @@ import java.util.*
 @NullMarked
 object DisplayActions {
     /** Logger. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/DisplayActions")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /**
      * Bounds how often one display's video can be changed — each call persists to disk, broadcasts to

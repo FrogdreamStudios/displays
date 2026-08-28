@@ -12,7 +12,7 @@ import java.util.Collections
  */
 internal object HlsSeekPlaylist {
     /** Logger. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/HlsSeekPlaylist")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /** A playlist larger than this is not worth reading; real ones are a few tens of kilobytes. */
     private const val MAX_PLAYLIST_BYTES = 4 * 1024 * 1024

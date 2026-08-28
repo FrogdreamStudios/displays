@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory
  * fullscreen sessions aren't part of a display's own record.
  */
 object FullscreenSessionStore {
-    private val logger = LoggerFactory.getLogger("DreamDisplays/FullscreenSessionStore")
+    private val logger = LoggerFactory.getLogger(javaClass)
     private const val SCHEMA_VERSION = 1
     private const val FILE_NAME = "fullscreen-sessions.json"
     private val jsonFiles = JsonFileStore()

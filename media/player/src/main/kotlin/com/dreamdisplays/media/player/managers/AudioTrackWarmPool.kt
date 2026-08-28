@@ -32,7 +32,7 @@ internal class AudioTrackWarmPool(
         val contentStartNanos: Long,
     )
 
-    private val logger = LoggerFactory.getLogger(AudioTrackWarmPool::class.java)
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     private val lock = Any()
     private val warm = LinkedHashMap<String, Warm>()

@@ -51,7 +51,7 @@ import java.util.concurrent.atomic.AtomicLong
  * implementation for both loaders.
  */
 object VanillaProxyBridge {
-    private val logger = LoggerFactory.getLogger("DreamDisplays/VanillaProxyBridge")
+    private val logger = LoggerFactory.getLogger(javaClass)
     private val helloSent = AtomicBoolean(false)
     private val lastClockProbeMs = AtomicLong(0L)
 

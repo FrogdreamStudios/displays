@@ -19,7 +19,7 @@ internal class AudioMasterClock(
      */
     private val requestAudioResync: (gapNanos: Long) -> Unit = {},
 ) {
-    private val logger = LoggerFactory.getLogger("DreamDisplays/AudioMasterClock")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     private companion object {
         /** No epoch seen yet ([AudioSink] epochs start at 1). */

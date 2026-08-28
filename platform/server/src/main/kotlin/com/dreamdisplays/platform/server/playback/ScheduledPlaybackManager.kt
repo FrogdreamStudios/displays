@@ -21,7 +21,7 @@ import kotlin.time.Instant
  */
 object ScheduledPlaybackManager {
     /** Logger. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/ScheduledPlaybackManager")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /** Live platform transport, injected at startup. */
     private lateinit var transport: PlaybackTransport

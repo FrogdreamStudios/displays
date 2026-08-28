@@ -25,7 +25,7 @@ internal class VideoFramePipe(
     private val debugLabel: String,
     uploaderFactory: FrameUploaderFactory,
 ) : FramePipe {
-    private val logger = LoggerFactory.getLogger("DreamDisplays/VideoFramePipe")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     private companion object {
         const val PARK_POLL_MS = 2L

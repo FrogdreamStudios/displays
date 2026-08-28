@@ -52,7 +52,7 @@ class MediaPlayer(
 
     companion object {
         /** Logger. */
-        private val logger = LoggerFactory.getLogger("DreamDisplays/MediaPlayer")
+        private val logger = LoggerFactory.getLogger(javaClass)
 
         /** Debug. */
         val DEBUG: Boolean = System.getProperty("dreamdisplays.debug")?.toBoolean() == true

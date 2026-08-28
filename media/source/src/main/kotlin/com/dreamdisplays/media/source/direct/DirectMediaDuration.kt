@@ -11,7 +11,7 @@ import java.nio.ByteOrder
  */
 internal object DirectMediaDuration {
 
-    private val logger = LoggerFactory.getLogger("DreamDisplays/DirectMediaDuration")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /** Cap on top-level boxes walked before giving up, so a malformed file cannot loop us. */
     private const val MAX_BOX_HOPS = 24

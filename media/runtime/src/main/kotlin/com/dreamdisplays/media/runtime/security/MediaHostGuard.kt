@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit
  */
 object MediaHostGuard {
     /** Logger. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/MediaHostGuard")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /** Escape hatch for operators who intentionally host media on a private network. */
     private val allowPrivate: Boolean =

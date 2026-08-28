@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit
  */
 object YtDlpBinary {
     /** Logger. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/yt-dlp")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /** Directory holding the bundled binary and its cookie files; shared with [YtCookieManager]. */
     val bundledDir: Path = Path.of("libs", "yt-dlp")

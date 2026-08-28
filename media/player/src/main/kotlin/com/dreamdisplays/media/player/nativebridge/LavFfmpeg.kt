@@ -12,7 +12,7 @@ import java.util.zip.ZipInputStream
 
 /** Downloads and unpacks FFmpeg shared libraries from BtbN for the in-process libav backend. */
 object LavFfmpeg {
-    private val logger = LoggerFactory.getLogger("DreamDisplays/LavFFmpeg")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /** BtbN latest release API; keep the branch suffix in sync with `.github/workflows/_build.yml`. */
     private const val LATEST_RELEASE_API = "https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/latest"

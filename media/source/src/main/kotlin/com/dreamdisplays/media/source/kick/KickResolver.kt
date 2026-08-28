@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory
  */
 object KickResolver : MediaResolverService {
     /** Logger. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/KickResolver")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /** Alongside the other first-party in-process resolvers, above the `yt-dlp` fallback. */
     override val priority: Int = 10

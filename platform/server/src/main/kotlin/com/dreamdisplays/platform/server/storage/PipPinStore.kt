@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory
  * no per-server keying.
  */
 object PipPinStore {
-    private val logger = LoggerFactory.getLogger("DreamDisplays/PipPinStore")
+    private val logger = LoggerFactory.getLogger(javaClass)
     private const val SCHEMA_VERSION = 1
     private const val FILE_NAME = "pip-pins.json"
     private val jsonFiles = JsonFileStore()

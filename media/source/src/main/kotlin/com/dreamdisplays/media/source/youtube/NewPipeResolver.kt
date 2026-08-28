@@ -32,7 +32,7 @@ import kotlin.time.Duration.Companion.nanoseconds
  */
 object NewPipeResolver : MediaResolverService {
     /** Logger. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/NewPipe")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /** Whether `NewPipeExtractor` has been initialized with our HTTP downloader. */
     private val initialized = atomic(false)

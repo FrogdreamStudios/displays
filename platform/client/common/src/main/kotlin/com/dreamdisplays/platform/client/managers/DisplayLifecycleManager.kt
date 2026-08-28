@@ -28,7 +28,7 @@ import kotlin.math.sqrt
  */
 object DisplayLifecycleManager {
     /** Logger. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/DisplayLifecycleManager")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /** Maximum allowed display dimension, in blocks. */
     private const val MAX_DISPLAY_BLOCKS = 256

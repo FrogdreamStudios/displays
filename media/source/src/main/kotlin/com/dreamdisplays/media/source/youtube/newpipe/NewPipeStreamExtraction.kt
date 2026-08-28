@@ -31,7 +31,7 @@ class NewPipeResolved(
  */
 object NewPipeStreamExtraction {
     /** Logger. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/NewPipe")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /** Drives [StreamExtractor] directly: single fetchPage() + reads from live stream. */
     fun extract(url: String): NewPipeResolved? {

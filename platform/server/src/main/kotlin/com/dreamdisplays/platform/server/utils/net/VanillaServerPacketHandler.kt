@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory
  */
 object VanillaServerPacketHandler {
     /** Logger. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/PacketReceiver")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /** Registers all frozen v1 packet receivers for `Fabric` servers. */
     @FabricOnly

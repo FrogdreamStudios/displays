@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit
 /** In-memory cache of [MediaSearchResult] keyed by YouTube video ID. */
 object VideoMetadataCache {
     /** Logger. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/VideoMetadataCache")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /** Time-to-live for cached metadata. */
     private const val CACHE_TTL_MINUTES = 30L

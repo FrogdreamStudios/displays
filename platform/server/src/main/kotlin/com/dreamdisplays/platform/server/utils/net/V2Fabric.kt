@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory
  */
 @FabricOnly
 object FabricV2Networking {
-    private val logger = LoggerFactory.getLogger("DreamDisplays/FabricV2Networking")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /** Encodes [packet] once and sends it to every player in [players]. */
     fun send(players: List<ServerPlayer>, packet: DreamPacket) {

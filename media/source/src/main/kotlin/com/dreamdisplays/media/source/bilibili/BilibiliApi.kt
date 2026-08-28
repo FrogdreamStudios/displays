@@ -40,7 +40,7 @@ data class BilibiliSearchItem(
  */
 object BilibiliApi {
     /** Logger. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/BilibiliApi")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /** BIlibili's API rejects requests without a browser-shaped `Referer` / `User-Agent`. */
     private val HEADERS = DreamHttpClient.headersOf(

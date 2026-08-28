@@ -16,7 +16,7 @@ class DefaultCapabilityNegotiationService(
     private val detector: ClientCapabilityDetector,
 ) : CapabilityNegotiationService {
     /** Logger. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/CapabilityNegotiation")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /** Probed once on first access; capability detection is stable for the process lifetime. */
     override val localCapabilities: ClientHello by lazy {

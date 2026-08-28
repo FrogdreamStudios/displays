@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory
  */
 object VanillaServerState {
     /** Logger shared by both vanilla loaders. */
-    val logger = LoggerFactory.getLogger("DreamDisplays")
+    val logger = LoggerFactory.getLogger(javaClass)
 
     /** Set once during `onLoad` / `init`, before [server] or [storage] exist. */
     lateinit var config: VanillaConfig

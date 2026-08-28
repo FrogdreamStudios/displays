@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory
  */
 class DefaultStreamSelector : StreamSelector {
     /** Logger. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/DefaultStreamSelector")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /** Whether to log debug messages. */
     private val debug: Boolean

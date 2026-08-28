@@ -23,7 +23,7 @@ import kotlin.time.Duration.Companion.nanoseconds
  */
 object DirectStreamResolver : MediaResolverService {
     /** Logger. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/DirectStreamResolver")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /** Above the extractor resolvers: when a URL really is media, no extractor should see it. */
     override val priority: Int = 20

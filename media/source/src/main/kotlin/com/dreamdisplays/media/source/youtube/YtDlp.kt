@@ -43,7 +43,7 @@ private class AbandonFlag {
  */
 object YtDlp {
     /** Logger. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/yt-dlp")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /** Head start (ms) for `NewPipeExtractor` before `yt-dlp` subprocess (skips spawn if full ladder). */
     private val HEDGE_DELAY_MS: Long =

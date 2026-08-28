@@ -28,7 +28,7 @@ import kotlin.time.Duration.Companion.seconds
  */
 class YtDlpClientRace(private val cookies: YtCookieManager) {
     /** Logger. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/yt-dlp")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     companion object {
         /** Per-invocation `yt-dlp` wait (keep short to surface failures fast). */

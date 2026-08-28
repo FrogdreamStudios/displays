@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory
  */
 object ClientPacketManager {
     /** Logger. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/ClientPacketManager")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /** The platform [Mod] used to send raw payloads; set via [bind]. */
     private lateinit var mod: Mod

@@ -21,7 +21,7 @@ class Config(private val plugin: PaperServer) {
     private val configFile = File(plugin.dataFolder, "config.toml")
 
     /** Logger. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/Config")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     private val langStore = LanguageStore(
         dataDir = plugin.dataFolder,

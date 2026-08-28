@@ -55,7 +55,7 @@ const val PROXY_CHANNEL: String = "dreamdisplays:proxy"
 @PaperOnly
 @NullMarked
 object ProxyBridge : PluginMessageListener {
-    private val logger = LoggerFactory.getLogger("DreamDisplays/ProxyBridge")
+    private val logger = LoggerFactory.getLogger(javaClass)
     private val plugin: PaperServer by lazy { PaperServer.getInstance() }
     private val helloSent = AtomicBoolean(false)
     private val lastClockProbeMs = AtomicLong(0L)

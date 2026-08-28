@@ -21,7 +21,7 @@ import kotlin.time.Duration.Companion.seconds
  * usher request for the stream URLs, no `yt-dlp` subprocess.
  */
 object TwitchResolver : MediaResolverService {
-    private val logger = LoggerFactory.getLogger("DreamDisplays/TwitchResolver")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /** Above [YtDlpResolver] (0) so the subprocess is only reached when this path fails. */
     override val priority: Int = 10

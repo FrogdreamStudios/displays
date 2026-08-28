@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit
  * filter list is expensive, so results are cached per path.
  */
 internal object FFmpegCapabilities {
-    private val logger = LoggerFactory.getLogger("DreamDisplays/FFmpegCapabilities")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     private val filterCache = ConcurrentHashMap<String, Set<String>>()
 

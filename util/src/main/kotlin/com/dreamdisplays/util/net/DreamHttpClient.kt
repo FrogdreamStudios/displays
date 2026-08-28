@@ -29,7 +29,7 @@ import java.util.zip.GZIPInputStream
  * remains an implementation detail of `util`.
  */
 object DreamHttpClient {
-    private val logger = LoggerFactory.getLogger("DreamDisplays/Http")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     private const val DEFAULT_CONNECT_TIMEOUT_MS = 10_000L
     private const val DEFAULT_READ_TIMEOUT_MS = 30_000L

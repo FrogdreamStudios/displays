@@ -30,7 +30,7 @@ object Initializer {
     const val MOD_ID: String = "dreamdisplays"
 
     /** Logger for startup and lifecycle messages. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/Initializer")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /** Called once during mod startup; initializes config, `yt-dlp`, `FFmpeg`, disk cache, and the focuser thread. */
     fun onModInit(dreamDisplaysMod: Mod) {

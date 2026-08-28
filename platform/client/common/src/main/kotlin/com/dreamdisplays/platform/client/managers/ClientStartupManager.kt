@@ -30,7 +30,7 @@ import kotlin.time.Duration.Companion.milliseconds
  */
 object ClientStartupManager {
     /** Logger. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/ClientStartupManager")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /** The client configuration, loaded from the mod's config directory. */
     val config: Config = Config(File("./config/${Initializer.MOD_ID}"))

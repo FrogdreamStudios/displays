@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap
  */
 object ClientSettingsStore : ClientSettingsStorage {
     /** Logger. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/ClientSettingsStore")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /** File name for the JSON settings file. */
     private const val FILE_NAME = "client-display-settings.json"

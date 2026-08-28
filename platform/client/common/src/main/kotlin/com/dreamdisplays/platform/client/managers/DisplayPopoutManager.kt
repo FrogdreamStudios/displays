@@ -20,7 +20,7 @@ class DisplayPopoutManager(
     private val displayScreen: DisplayScreen,
 ) {
     /** Logger. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/DisplayPopoutManager")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /** The separate `GLFW` popout window, or `null` when none has been created. */
     private var popoutWindow: VideoPopoutWindow? = null

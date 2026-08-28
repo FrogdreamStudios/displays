@@ -690,7 +690,7 @@ class SuggestionsController {
         private const val KEY_NO_LINKS = "dreamdisplays.suggestions.no_links"
 
         /** Logger. */
-        private val logger = LoggerFactory.getLogger("DreamDisplays/Suggestions")
+        private val logger = LoggerFactory.getLogger(javaClass)
 
         /** Twitch login shape: letters, digits, underscore, 3-25 chars (real handles never contain spaces). */
         private val TWITCH_LOGIN_RE = Regex("^[A-Za-z0-9_]{3,25}$")

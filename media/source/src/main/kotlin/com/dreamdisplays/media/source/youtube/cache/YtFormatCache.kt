@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory
  */
 class YtFormatCache(private val resolve: suspend (String) -> List<YtStream>) {
     /** Logger. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/YtFormatCache")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /** Shared 5h format-cache TTL: the on-disk default and this cache's in-memory format TTL. */
     private val cacheTtlMs: Long = FormatDiskCache.DEFAULT_TTL_MS

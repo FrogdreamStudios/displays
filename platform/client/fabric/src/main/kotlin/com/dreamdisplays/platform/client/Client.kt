@@ -271,6 +271,6 @@ class Client : ClientModInitializer, Mod {
 
     private companion object {
         /** Logger. */
-        private val logger = LoggerFactory.getLogger("DreamDisplays/FabricClient")
+        private val logger = LoggerFactory.getLogger(javaClass)
     }
 }

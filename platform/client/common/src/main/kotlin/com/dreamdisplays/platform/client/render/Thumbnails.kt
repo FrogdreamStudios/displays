@@ -35,7 +35,7 @@ import kotlin.coroutines.cancellation.CancellationException
 /** Downloads, caches, and registers video thumbnails from YouTube and other sources as Minecraft textures. */
 object Thumbnails {
     /** Logger. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/Thumbnails")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /** The Minecraft texture [Identifier] for each video ID, or null if not yet loaded. */
     private val READY: Cache<String, Identifier> = Caffeine.newBuilder()

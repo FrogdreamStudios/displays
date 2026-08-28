@@ -22,7 +22,7 @@ import java.util.regex.Pattern
  */
 object YouTubeInnerTube {
     /** Logger. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/InnerTube")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /** Base URL for the `InnerTube` API. */
     private const val BASE_URL = "https://www.youtube.com/youtubei/v1"

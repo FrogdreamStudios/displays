@@ -22,7 +22,7 @@ internal class FrameSurface(
     uploaderFactory: FrameUploaderFactory,
     private val pixelFormat: FramePixelFormat = FramePixelFormat.RGB24,
 ) {
-    private val logger = LoggerFactory.getLogger("DreamDisplays/FrameSurface")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /** Platform GPU upload sink for this channel; holds persistent upload state (e.g. a PBO ring). */
     private val uploader: FrameUploader = uploaderFactory.create()

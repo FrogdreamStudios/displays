@@ -19,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap
  */
 object TimelineManager {
     /** Logger. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/TimelineManager")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /** Minimum interval between rebroadcasts of the same timeline to nearby players. */
     private const val PERIODIC_BROADCAST_MS = 2_000L

@@ -24,7 +24,7 @@ import java.util.*
 @PaperOnly
 @NullMarked
 class PacketReceiver(private val plugin: PaperServer) : PluginMessageListener {
-    private val logger = LoggerFactory.getLogger("DreamDisplays/PacketReceiver")
+    private val logger = LoggerFactory.getLogger(javaClass)
     private val maxVersionBytes = 128
     private val maxStringBytes = 4096
 

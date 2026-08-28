@@ -38,7 +38,7 @@ internal fun supportsVertical(uuid: UUID): Boolean {
 @PaperOnly
 @NullMarked
 object PacketUtil {
-    private val logger = LoggerFactory.getLogger("DreamDisplays/PacketUtil")
+    private val logger = LoggerFactory.getLogger(javaClass)
     private const val CHANNEL_DISPLAY_INFO = "dreamdisplays:display_info"
     private const val CHANNEL_SYNC = "dreamdisplays:sync"
     private const val CHANNEL_DELETE = "dreamdisplays:delete"

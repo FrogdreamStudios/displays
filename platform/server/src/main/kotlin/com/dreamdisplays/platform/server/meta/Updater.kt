@@ -30,7 +30,7 @@ object VersionState {
  */
 object Updater {
     /** Logger. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/Updater")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /**
      * Fetches GitHub releases and stores the latest mod and plugin versions in [VersionState].

@@ -19,7 +19,7 @@ internal class HlsAudioFeeder(
     private val terminated: AtomicBoolean,
     private val debugLabel: String,
 ) {
-    private val logger = LoggerFactory.getLogger("DreamDisplays/HlsAudioFeeder")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /** PES PTS of the first audio access unit fed into the pipe, in nanos (90 kHz ticks converted), or -1 until the first segment has been scanned. */
     @Volatile

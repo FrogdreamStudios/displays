@@ -23,7 +23,7 @@ import java.util.*
  */
 object FormatDiskCache {
     /** Logger. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/FormatDiskCache")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /** Directory under the config root where the cache is stored. */
     private val CACHE_DIR: Path = Path.of("config", "dreamdisplays", "yt-cache")

@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory
  */
 object ProtocolRouter {
     /** Logger for negotiation and decode diagnostics. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/ProtocolRouter")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /** True once the server has proven v2 support by answering with a [ServerHello]. */
     @Volatile

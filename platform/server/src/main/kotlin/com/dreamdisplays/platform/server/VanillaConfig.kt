@@ -14,7 +14,7 @@ import java.nio.file.Files
  * Different from the `Paper` implementation ([Config]) mainly in resource lookup and locale API.
  */
 class VanillaConfig(private val configDir: File) {
-    private val logger = LoggerFactory.getLogger("DreamDisplays/ServerConfig")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     private val configFile = File(configDir, "config.toml")
 

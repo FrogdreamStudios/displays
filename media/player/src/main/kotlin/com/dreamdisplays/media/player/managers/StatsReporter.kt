@@ -18,7 +18,7 @@ internal class StatsReporter(
     private val isLive: () -> Boolean,
 ) {
     /** Logger. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/StatsReporter")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /** Raw counter values sampled at one reporting interval. */
     data class Snapshot(val samplesIn: Long, val framesToGpu: Long, val framesDropped: Long)

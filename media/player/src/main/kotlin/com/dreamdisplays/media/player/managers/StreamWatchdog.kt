@@ -17,7 +17,7 @@ internal class StreamWatchdog(
     private val checkIntervalMs: Long = 1_000L,
     private val onStall: () -> Unit,
 ) {
-    private val logger = LoggerFactory.getLogger("DreamDisplays/StreamWatchdog")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /** Watchdog task. */
     @Volatile

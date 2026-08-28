@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit
 /** In-process Vimeo resolver: one call to the player config endpoint (see [VimeoApi]) instead of a `yt-dlp` subprocess spawn. */
 object VimeoResolver : MediaResolverService {
     /** Logger. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/VimeoResolver")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /** Above the `yt-dlp` fallback (0), alongside the other first-party in-process resolvers. */
     override val priority: Int = 10

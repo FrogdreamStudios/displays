@@ -20,7 +20,7 @@ import javax.sound.sampled.*
  */
 internal class AudioSink(private val debugLabel: String) {
     /** Logger. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/AudioSink")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     companion object {
         /** The PCM sample rate used by every session: 44.1 kHz, stereo, signed 16-bit little-endian. */

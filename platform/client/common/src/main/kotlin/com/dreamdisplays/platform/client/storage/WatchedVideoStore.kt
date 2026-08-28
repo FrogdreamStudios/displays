@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory
  */
 object WatchedVideoStore {
     /** Logger. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/WatchedVideoStore")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     private const val FILE_NAME = "watched-videos.json"
     private const val SCHEMA_VERSION = 1

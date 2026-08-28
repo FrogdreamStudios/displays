@@ -120,7 +120,7 @@ internal object FramePacing {
     private val lastWarnNanos = AtomicLong(0)
 
     /** Logger. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/FramePacing")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /**
      * Paces the reader thread against the audio clock: parks / spins until [videoPts] is due, then re-samples the clock to

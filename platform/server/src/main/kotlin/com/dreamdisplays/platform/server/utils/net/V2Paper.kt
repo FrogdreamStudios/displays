@@ -31,7 +31,7 @@ const val V2_CHANNEL: String = "dreamdisplays:v2"
 @PaperOnly
 @NullMarked
 object PaperV2Networking : PluginMessageListener {
-    private val logger = LoggerFactory.getLogger("DreamDisplays/PaperV2Networking")
+    private val logger = LoggerFactory.getLogger(javaClass)
     private val plugin: PaperServer by lazy { PaperServer.getInstance() }
 
     /** Encodes [packet] once and sends it to every non-null player in [players]. */

@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit
  */
 object YouTubeChapterCache {
     /** Logger. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/YouTubeChapters")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /** Time-to-live for cached chapter lists. */
     private const val CACHE_TTL_MINUTES = 30L

@@ -22,7 +22,7 @@ data class KickPlayback(
 /** Resolves Kick channels and VODs through Kick's public site API — the same JSON the website uses, no API key or auth required. */
 object KickApi {
     /** Logger. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/KickApi")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /** Cloudflare turns away requests that do not look like a browser, so send browser headers. */
     private val HEADERS = DreamHttpClient.headersOf(

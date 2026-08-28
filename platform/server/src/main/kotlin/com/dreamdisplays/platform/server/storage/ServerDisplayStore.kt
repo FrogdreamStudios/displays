@@ -18,7 +18,7 @@ import java.util.*
  */
 object ServerDisplayStore {
     /** Logger. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/ServerDisplayStore")
+    private val logger = LoggerFactory.getLogger(javaClass)
     private const val SCHEMA_VERSION = 1
     private val jsonFiles = JsonFileStore()
     private val displayMapSerializer = MapSerializer(String.serializer(), FullDisplayData.serializer())

@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory
 @NeoForgeOnly
 object NeoForgeProxyNetworking {
     /** Logger. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/NeoForgeProxyNetworking")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /**
      * Registers the single proxy envelope receiver against [registrar]. Must be called exactly once

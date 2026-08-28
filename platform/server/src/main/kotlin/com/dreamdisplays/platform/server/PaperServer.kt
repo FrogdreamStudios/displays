@@ -98,7 +98,7 @@ class PaperServer : JavaPlugin() {
 
     companion object {
         /** Logger. */
-        val logger = LoggerFactory.getLogger("DreamDisplays/Plugin")
+        val logger = LoggerFactory.getLogger(javaClass)
 
         /** Mod config (`Fabric` server included). */
         lateinit var config: Config

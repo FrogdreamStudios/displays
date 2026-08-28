@@ -14,7 +14,7 @@ import java.nio.ByteBuffer
  */
 object NativeMedia {
     /** Logger. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/NativeMedia")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /** Must match `ABI_VERSION` in `native/src/lib.rs`. */
     private const val ABI_VERSION = 1

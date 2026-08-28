@@ -11,7 +11,7 @@ import java.util.*
  */
 internal object DirectMediaProbe {
     /** Logger. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/DirectMediaProbe")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     private const val CONNECT_TIMEOUT_MS = 8_000L
     private const val READ_TIMEOUT_MS = 8_000L

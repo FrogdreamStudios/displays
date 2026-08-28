@@ -65,7 +65,7 @@ data class TwitchClipPlayback(
  */
 object TwitchApi {
     /** Logger. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/TwitchApi")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /** GQL URL. */
     private const val GQL_URL = "https://gql.twitch.tv/gql"

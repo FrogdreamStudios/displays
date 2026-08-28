@@ -94,7 +94,7 @@ class NeoForgeServer(modEventBus: IEventBus) {
 
     companion object {
         /** Logger. */
-        val logger = LoggerFactory.getLogger("DreamDisplays")
+        val logger = LoggerFactory.getLogger(javaClass)
 
         /** The mod version string, read from the bundled, Gradle-templated `version.txt` resource. */
         val serverVersion: String? by lazy {

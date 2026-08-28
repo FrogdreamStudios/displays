@@ -23,7 +23,7 @@ internal class NativeVideoFramePipe(
     /** True when frames stay as raw I420 planes and the YUV -> RGB conversion happens on the GPU. */
     private val planarOutput: Boolean,
 ) : FramePipe {
-    private val logger = LoggerFactory.getLogger("DreamDisplays/NativeVideoFramePipe")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     companion object {
         private const val EXIT_WAIT_MILLIS = 500
@@ -714,7 +714,7 @@ internal class NativeVideoFramePipe(
         private val h: Int,
         private val frameBytes: Int,
     ) {
-        private val logger = LoggerFactory.getLogger("DreamDisplays/NativeVideoFramePipe")
+        private val logger = LoggerFactory.getLogger(javaClass)
         private var lastLogNs = System.nanoTime()
         private var readCount = 0L
         private var readTotalNs = 0L

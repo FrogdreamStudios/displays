@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit
  */
 class YtCookieManager {
     /** Logger. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/yt-dlp")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /** Cookie file path under the bundled `yt-dlp` dir. This is the "master" file that all processes copy from. */
     private val cookieFile: Path get() = YtDlpBinary.bundledDir.resolve("cookies.txt")

@@ -114,7 +114,7 @@ class StorageManager(
     username: String = "",
     password: String = "",
     useSSL: Boolean = false,
-    private val logger: Logger = LoggerFactory.getLogger("DreamDisplays/Storage"),
+    private val logger: Logger = LoggerFactory.getLogger(javaClass),
 ) {
     private val table = DisplaysTable(tablePrefix)
 

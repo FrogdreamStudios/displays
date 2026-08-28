@@ -23,7 +23,7 @@ data class FullscreenRadiusTarget(val world: String, val x: Double, val y: Doubl
 /** Manages server-forced fullscreen broadcast sessions targeting players by name or radius. */
 object FullscreenBroadcastManager {
     /** Logger. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/FullscreenBroadcastManager")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /** Minimum interval between re-evaluating radius membership and refreshing already-shown targets. */
     private const val TICK_MS = 1_000L

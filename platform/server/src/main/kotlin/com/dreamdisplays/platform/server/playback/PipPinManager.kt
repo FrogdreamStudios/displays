@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * reaching them out of range.
  */
 object PipPinManager {
-    private val logger = LoggerFactory.getLogger("DreamDisplays/PipPinManager")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     private lateinit var transport: PlaybackTransport
 

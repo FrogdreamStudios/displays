@@ -127,7 +127,7 @@ class Server : ModInitializer {
 
     companion object {
         /** Logger. */
-        val logger = LoggerFactory.getLogger("DreamDisplays")
+        val logger = LoggerFactory.getLogger(javaClass)
 
         /** The mod version string, resolved from the `Fabric` mod container. */
         val serverVersion: String? by lazy {

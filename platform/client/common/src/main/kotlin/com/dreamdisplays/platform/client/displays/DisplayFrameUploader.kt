@@ -121,6 +121,6 @@ internal class DisplayFrameUploader(private val uuid: UUID) {
 
     companion object {
         /** Logger for upload failures and quality-handoff diagnostics. */
-        private val logger = LoggerFactory.getLogger("DreamDisplays/DisplayFrameUploader")
+        private val logger = LoggerFactory.getLogger(javaClass)
     }
 }

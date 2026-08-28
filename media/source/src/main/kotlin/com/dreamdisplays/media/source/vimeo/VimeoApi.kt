@@ -24,7 +24,7 @@ data class VimeoPlayback(
  */
 object VimeoApi {
     /** Logger. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/VimeoApi")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /** Vimeo's config endpoint gates some videos on a browser-like request, so mimic one. */
     private val HEADERS = DreamHttpClient.headersOf(

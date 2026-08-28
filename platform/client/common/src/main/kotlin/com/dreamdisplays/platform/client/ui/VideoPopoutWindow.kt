@@ -291,7 +291,7 @@ class VideoPopoutWindow(
         }
 
         companion object {
-            private val logger = LoggerFactory.getLogger("DreamDisplays/VideoPopout")
+            private val logger = LoggerFactory.getLogger(javaClass)
             private val EMPTY_DIRECT = ByteBuffer.allocateDirect(0).order(ByteOrder.nativeOrder())
 
             private fun contentRect(frameW: Int, frameH: Int, contentAspect: Double): ContentRect {
@@ -321,7 +321,7 @@ class VideoPopoutWindow(
         private var frame: JFrame? = null
         private var panel: VideoPanel? = null
 
-        private val logger = LoggerFactory.getLogger("DreamDisplays/VideoPopout")
+        private val logger = LoggerFactory.getLogger(javaClass)
 
         override val isOpen: Boolean get() = frame?.isDisplayable == true
         override val width: Int get() = frame?.width ?: 0

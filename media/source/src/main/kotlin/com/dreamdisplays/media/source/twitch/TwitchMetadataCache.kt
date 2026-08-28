@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit
  * continuously; VOD / clip lookups are static and share [VideoMetadataCache]'s longer TTL.
  */
 object TwitchMetadataCache {
-    private val logger = LoggerFactory.getLogger("DreamDisplays/TwitchMetadataCache")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     private const val LIVE_TTL_SECONDS = 60L
     private const val VOD_TTL_MINUTES = 30L

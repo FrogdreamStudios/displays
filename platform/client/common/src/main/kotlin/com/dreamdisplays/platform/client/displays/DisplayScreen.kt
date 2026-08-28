@@ -1077,7 +1077,7 @@ class DisplayScreen(
 
     companion object {
         /** Logger for replay-capture and diagnostic messages. */
-        private val logger = LoggerFactory.getLogger("DreamDisplays/DisplayScreen")
+        private val logger = LoggerFactory.getLogger(javaClass)
 
         /** Ticks between voxel-acoustics re-probes; the DSP chain smooths across this gap. */
         private const val ENV_PROBE_INTERVAL_TICKS = 2

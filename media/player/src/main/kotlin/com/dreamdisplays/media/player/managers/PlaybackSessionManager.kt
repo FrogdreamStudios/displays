@@ -66,7 +66,7 @@ internal class PlaybackSessionManager(
     audioStage: AudioDspStage? = null,
 ) {
     /** Logger. */
-    private val logger = LoggerFactory.getLogger("DreamDisplays/PlaybackSession")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     private companion object {
         /** Pacing cadence for replay-only video; PTS still drives pacing, this is only the fallback. */

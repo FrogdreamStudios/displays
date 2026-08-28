@@ -35,7 +35,7 @@ import kotlin.time.Duration.Companion.seconds
 
 /** Generates and caches seek-bar scrub-preview thumbnails: sparse frames sampled across video duration via `FFmpeg`. */
 object ScrubPreview {
-    private val logger = LoggerFactory.getLogger("DreamDisplays/ScrubPreview")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /** Fixed frame dimensions (16:9, letterboxed) every sample is encoded to. Used by Vanilla blit rendering. */
     const val FRAME_WIDTH = 256

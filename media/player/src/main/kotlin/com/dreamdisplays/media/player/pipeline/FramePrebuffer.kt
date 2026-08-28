@@ -27,7 +27,7 @@ internal class FramePrebuffer(
     private val tolerateLateness: Boolean,
     private val parkFlag: AtomicBoolean? = null,
 ) {
-    private val logger = LoggerFactory.getLogger("DreamDisplays/FramePrebuffer")
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     private class Timed(
         @JvmField val buf: ByteBuffer,
