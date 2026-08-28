@@ -54,8 +54,7 @@ object DisplayLifecycleManager {
         } else {
             PlaybackMode.fromWire(packet.mode)
         }
-        val renderDistance = DisplayStorage.getDisplayData(packet.id)?.renderDistance
-            ?: persistedRenderDistance(packet.id)
+        val renderDistance = DisplayScreen.clientRenderDistanceBlocks()
 
         if (!packet.forced && !packet.virtual) {
             Minecraft.getInstance().player?.let { player ->
@@ -65,7 +64,7 @@ object DisplayLifecycleManager {
                     player.blockPosition()
                 )
                 if (dist > renderDistance) {
-                    cacheUnloadedDisplay(packet, facing, mode, renderDistance, currentDimensionKey())
+                    cacheUnloadedDisplay(packet, facing, mode, currentDimensionKey())
                     return
                 }
             }
@@ -89,7 +88,7 @@ object DisplayLifecycleManager {
      * the local cache instead of needing another server broadcast once the player is back in range.
      */
     private fun cacheUnloadedDisplay(
-        packet: DisplayInfo, facing: FacingUtil, mode: PlaybackMode, renderDistance: Int, dimensionKey: String,
+        packet: DisplayInfo, facing: FacingUtil, mode: PlaybackMode, dimensionKey: String,
     ) {
         val settings = ClientSettingsStore.getSettings(packet.id, DisplayScreen.defaultVolume())
         DisplayRegistry.unloadedScreens[packet.id] = FullDisplayData(
@@ -100,7 +99,7 @@ object DisplayLifecycleManager {
             videoUrl = packet.url, lang = packet.lang,
             volume = settings.volume, quality = settings.quality, brightness = settings.brightness,
             muted = settings.muted, mode = mode, ownerUuid = packet.ownerId,
-            renderDistance = renderDistance, currentTimeNanos = settings.savedTimeNanos,
+            currentTimeNanos = settings.savedTimeNanos,
             rotation = DisplayRotation.fromQuarterTurns(packet.rotation).quarterTurns,
             qualityCap = packet.qualityCap,
             dimensionKey = dimensionKey,
@@ -119,9 +118,6 @@ object DisplayLifecycleManager {
             width, height, mode, qualityCap, rotation, dimensionKey,
         )
 
-        val savedData = DisplayStorage.getDisplayData(uuid)
-        displayScreen.renderDistance = savedData?.renderDistance ?: persistedRenderDistance(uuid)
-
         displayScreen.createTexture()
         DisplayRegistry.registerScreen(displayScreen)
         if (code != "") displayScreen.loadVideo(code, lang)
@@ -133,8 +129,9 @@ object DisplayLifecycleManager {
 
     fun restoreVisibleUnloadedScreens(playerPos: BlockPos) {
         val dimensionKey = currentDimensionKey()
+        val renderDistance = DisplayScreen.clientRenderDistanceBlocks()
         DisplayRegistry.unloadedScreens.values
-            .filter { sameDimension(it.dimensionKey, dimensionKey) && distanceToData(it, playerPos) <= it.renderDistance }
+            .filter { sameDimension(it.dimensionKey, dimensionKey) && distanceToData(it, playerPos) <= renderDistance }
             .toList()
             .forEach { data ->
                 DisplayRegistry.unloadedScreens.remove(data.uuid)
@@ -168,7 +165,6 @@ object DisplayLifecycleManager {
             qualityCap = data.qualityCap, rotation = DisplayRotation.fromQuarterTurns(data.rotation),
             dimensionKey = data.dimensionKey.ifEmpty { currentDimensionKey() },
         )
-        displayScreen.renderDistance = data.renderDistance
         displayScreen.savedTimeNanos = data.currentTimeNanos
         displayScreen.volume = data.volume
         displayScreen.quality = VideoQuality.parse(data.quality)
@@ -218,10 +214,4 @@ object DisplayLifecycleManager {
     /** True if both dimensions are within `1..`[MAX_DISPLAY_BLOCKS]. */
     private fun isValidDisplaySize(width: Int, height: Int): Boolean =
         width in 1..MAX_DISPLAY_BLOCKS && height in 1..MAX_DISPLAY_BLOCKS
-
-    /** The viewer's disk-persisted render distance for [uuid], or the config default if never customized. */
-    private fun persistedRenderDistance(uuid: UUID): Int {
-        val saved = ClientSettingsStore.getSettings(uuid).renderDistance
-        return if (saved > 0) saved else ClientStateManager.config.defaultDistance
-    }
 }
