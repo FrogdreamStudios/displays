@@ -59,7 +59,6 @@ object PacketRegistry {
         val id: Int get() = packetType.id
         val direction: PacketDirection get() = packetType.direction
 
-        /** Encodes [packet], which [entryOf] guarantees is an instance of [type]. */
         fun encode(proto: ProtoBuf, packet: DreamPacket): ByteArray = proto.encodeToByteArray(serializer, type.cast(packet))
     }
 
@@ -105,21 +104,18 @@ object PacketRegistry {
         }
     }
 
-    /** Encodes [packet] into envelope bytes ready for the `dreamdisplays:v2` channel. */
     fun encode(packet: DreamPacket): ByteArray {
         val entry = entryOf(packet)
         val payload = entry.encode(proto, packet)
         return proto.encodeToByteArray(Envelope.serializer(), Envelope(entry.id, payload))
     }
 
-    /** Decodes envelope bytes; returns null for unknown type ids (newer peer, skip silently). */
     fun decode(bytes: ByteArray): DreamPacket? {
         val envelope = proto.decodeFromByteArray(Envelope.serializer(), bytes)
         val entry = byId[envelope.type] ?: return null
         return proto.decodeFromByteArray(entry.serializer, envelope.payload)
     }
 
-    /** Decodes envelope bytes, validating packet direction matches [inbound]; rejects packets from invalid directions. */
     fun decode(bytes: ByteArray, inbound: PacketDirection): DreamPacket? {
         val packet = decode(bytes) ?: return null
         val direction = directionOf(packet)
@@ -129,10 +125,8 @@ object PacketRegistry {
         return packet
     }
 
-    /** The registered travel direction of [packet]'s type. */
     fun directionOf(packet: DreamPacket): PacketDirection = entryOf(packet).direction
 
-    /** Descriptors of every registered packet, in id order; feeds the .proto schema generator. */
     val schemaDescriptors: List<SerialDescriptor>
         get() = entries.map { it.serializer.descriptor }
 

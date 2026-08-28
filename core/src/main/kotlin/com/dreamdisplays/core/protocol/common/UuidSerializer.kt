@@ -13,10 +13,9 @@ import kotlinx.serialization.protobuf.ProtoNumber
 import kotlinx.serialization.protobuf.ProtoType
 import java.util.*
 
-/** UUID with all-zero bits, used as the wire default. */
 val ZERO_UUID: UUID = UUID(0L, 0L)
 
-/** Wire surrogate for [UUID]: two fixed64 halves (random bits make varint encoding wasteful). */
+/** Wire surrogate for [UUID]. */
 @Serializable
 @SerialName("Uuid")
 @OptIn(ExperimentalSerializationApi::class)
@@ -25,18 +24,15 @@ private data class UuidSurrogate(
     @ProtoNumber(2) @ProtoType(ProtoIntegerType.FIXED) val lsb: Long = 0L,
 )
 
-/** Serializes [UUID] through [UuidSurrogate]; wire bytes are a two-field proto message. */
+/** Serializes [UUID]. */
 object UuidSerializer : KSerializer<UUID> {
-    /** Descriptor is the same as [UuidSurrogate] so that default values are handled correctly. */
     override val descriptor: SerialDescriptor = UuidSurrogate.serializer().descriptor
 
-    /** Serializes [UUID] as a two-field proto message with fixed64 halves. */
     override fun serialize(encoder: Encoder, value: UUID) = encoder.encodeSerializableValue(
         UuidSurrogate.serializer(),
         UuidSurrogate(value.mostSignificantBits, value.leastSignificantBits),
     )
 
-    /** Deserializes a two-field proto message into a [UUID] with the given halves. */
     override fun deserialize(decoder: Decoder): UUID =
         decoder.decodeSerializableValue(UuidSurrogate.serializer()).let { UUID(it.msb, it.lsb) }
 }

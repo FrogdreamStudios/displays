@@ -2,7 +2,6 @@ package support.natives
 
 import java.io.File
 
-/** Native platform keys, e.g. `linux-x64`, `macos-x64`, `windows-x64`. */
 val nativePlatformKeys = listOf(
     "linux-x64",
     "linux-aarch64",
@@ -12,20 +11,17 @@ val nativePlatformKeys = listOf(
     "windows-aarch64",
 )
 
-/** Native library base names. */
 val nativeLibraryBaseNames = listOf(
     "dreamdisplays_native",
     "dreamdisplays_lav",
 )
 
-/** Set the native library name based on the platform key. */
 fun nativeLibraryName(platformKey: String, baseName: String): String = when {
     platformKey.startsWith("windows-") -> "$baseName.dll"
     platformKey.startsWith("macos-") -> "lib$baseName.dylib"
     else -> "lib$baseName.so"
 }
 
-/** Host native key based on the current OS and architecture. */
 fun hostNativeKey(): String {
     val os = System.getProperty("os.name").lowercase()
     val arch = System.getProperty("os.arch").lowercase()
@@ -36,10 +32,8 @@ fun hostNativeKey(): String {
     }
 }
 
-/** Convert a string to a strict boolean. */
 fun String.toStrictBoolean(): Boolean = equals("true", ignoreCase = true)
 
-/** True when a cargo executable is available (default rustup location, or anywhere on PATH). */
 fun cargoAvailable(): Boolean {
     if (File(System.getProperty("user.home"), ".cargo/bin/cargo").canExecute()) return true
     val path = System.getenv("PATH") ?: return false
@@ -48,7 +42,6 @@ fun cargoAvailable(): Boolean {
     }
 }
 
-/** Convert a string to a list of platform keys. */
 fun String.toPlatformList(): List<String> =
     split(',', ' ', '\n', '\t')
         .map { it.trim() }

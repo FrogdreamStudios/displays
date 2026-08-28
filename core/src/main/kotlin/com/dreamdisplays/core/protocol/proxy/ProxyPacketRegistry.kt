@@ -46,9 +46,7 @@ data class ProxyEnvelope(
     override fun hashCode(): Int = 31 * type + payload.contentHashCode()
 }
 
-/** Separate proxy packet registry (disjoint id-space from [com.dreamdisplays.core.protocol.common.PacketRegistry]).
- * Uses direct serializer() references only; reflection breaks under shadow relocation.
- */
+/** Proxy packet registry. */
 object ProxyPacketRegistry {
     private val proto = ProtoBuf { encodeDefaults = false }
 
@@ -60,7 +58,6 @@ object ProxyPacketRegistry {
         val id: Int get() = packetType.id
         val direction: ProxyPacketDirection get() = packetType.direction
 
-        /** Encodes [packet], which [entryOf] guarantees is an instance of [type]. */
         fun encode(proto: ProtoBuf, packet: ProxyPacket): ByteArray = proto.encodeToByteArray(serializer, type.cast(packet))
     }
 
@@ -107,21 +104,18 @@ object ProxyPacketRegistry {
         }
     }
 
-    /** Encodes [packet] into envelope bytes ready for the `dreamdisplays:proxy` channel. */
     fun encode(packet: ProxyPacket): ByteArray {
         val entry = entryOf(packet)
         val payload = entry.encode(proto, packet)
         return proto.encodeToByteArray(ProxyEnvelope.serializer(), ProxyEnvelope(entry.id, payload))
     }
 
-    /** Decodes envelope bytes; returns null for unknown type ids (newer peer, skip silently). */
     fun decode(bytes: ByteArray): ProxyPacket? {
         val envelope = proto.decodeFromByteArray(ProxyEnvelope.serializer(), bytes)
         val entry = byId[envelope.type] ?: return null
         return proto.decodeFromByteArray(entry.serializer, envelope.payload)
     }
 
-    /** Decode with direction validation; throws if direction doesn't match [inbound]. */
     fun decode(bytes: ByteArray, inbound: ProxyPacketDirection): ProxyPacket? {
         val packet = decode(bytes) ?: return null
         val direction = directionOf(packet)
@@ -131,7 +125,6 @@ object ProxyPacketRegistry {
         return packet
     }
 
-    /** The registered travel direction of [packet]'s type. */
     fun directionOf(packet: ProxyPacket): ProxyPacketDirection = entryOf(packet).direction
 
     private fun entryOf(packet: ProxyPacket): Entry<out ProxyPacket> =

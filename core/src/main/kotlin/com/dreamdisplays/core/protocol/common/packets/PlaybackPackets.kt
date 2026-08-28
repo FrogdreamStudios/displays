@@ -9,7 +9,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoNumber
 import java.util.*
 
-/** Client playback intent for server-authoritative timeline (SYNCED or WATCH_PARTY). */
+/** Client playback intent for server-authoritative timeline. */
 @Serializable
 data class PlaybackCommand(
     @ProtoNumber(1) val id: @Serializable(UuidSerializer::class) UUID = ZERO_UUID,
@@ -17,7 +17,7 @@ data class PlaybackCommand(
     @ProtoNumber(3) val positionMs: Long = 0,
 ) : DreamPacket
 
-/** Client sets a display's persistent base mode; [mode] is a [PlaybackMode.wire] (not `WATCH_PARTY`). */
+/** Client sets a display's persistent base mode. */
 @Serializable
 data class SetMode(
     @ProtoNumber(1) val id: @Serializable(UuidSerializer::class) UUID = ZERO_UUID,
@@ -25,7 +25,7 @@ data class SetMode(
     @ProtoNumber(3) val positionMs: Long = -1,
 ) : DreamPacket
 
-/** Client pins/unpins display to PiP overlay; server persists per player. */
+/** Client pins / unpins display to PiP overlay; server persists per player. */
 @Serializable
 data class PipPin(
     @ProtoNumber(1) val id: @Serializable(UuidSerializer::class) UUID = ZERO_UUID,
@@ -39,7 +39,7 @@ data class ReportDuration(
     @ProtoNumber(2) val durationMs: Long = 0,
 ) : DreamPacket
 
-/** Server tells client to pause / resume LOCAL-mode display player (no seek). */
+/** Server tells client to pause / resume local-mode display player (no seek). */
 @Serializable
 data class RemotePlaybackToggle(
     @ProtoNumber(1) val id: @Serializable(UuidSerializer::class) UUID = ZERO_UUID,

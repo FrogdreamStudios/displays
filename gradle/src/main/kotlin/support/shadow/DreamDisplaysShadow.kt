@@ -3,7 +3,6 @@ package support.shadow
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.gradle.api.file.CopySpec
 
-/** Shared modules bundled into every fat loader jar (`Fabric`, `NeoForge`, `Paper`). */
 val dreamDisplaysSharedModules = listOf(
     ":platform:client:common",
     ":core",
@@ -15,7 +14,6 @@ val dreamDisplaysSharedModules = listOf(
     ":media:audio",
 )
 
-/** Third-party dependencies bundled into fat client loader jars (superset safe). */
 val dreamDisplaysShadedDependencies = listOf(
     "org.jetbrains.kotlinx:kotlinx-serialization-core",
     "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm",
@@ -52,7 +50,6 @@ val dreamDisplaysShadedDependencies = listOf(
     "org.mozilla:rhino-engine",
 )
 
-/** Packages relocated under `com.dreamdisplays.libs` in every fat loader jar. */
 val dreamDisplaysShadedPackages = listOf(
     "org.apache.commons.compress",
     "org.tukaani.xz",
@@ -76,7 +73,6 @@ val dreamDisplaysShadedPackages = listOf(
     "org.mozilla.classfile",
 )
 
-/** Exclude `sqlite-jdbc` native binaries for unsupported platforms. */
 val dreamDisplaysSqliteNativeExcludes = listOf(
     "org/sqlite/native/Linux-Android/**",
     "org/sqlite/native/Linux-Musl/x86/**",
@@ -92,7 +88,6 @@ val dreamDisplaysSqliteNativeExcludes = listOf(
     "org/sqlite/native/Windows/aarch64/**",
 )
 
-/** Includes the shared `:core`/`:api`/`:util`/`:media:*` modules and third-party dependencies in a fat loader jar. */
 fun ShadowJar.includeDreamDisplaysSharedContents() {
     dependencies {
         dreamDisplaysSharedModules.forEach { include(project(it)) }
@@ -100,12 +95,10 @@ fun ShadowJar.includeDreamDisplaysSharedContents() {
     }
 }
 
-/** Relocates the shared third-party packages under `com.dreamdisplays.libs` in a fat loader jar. */
 fun ShadowJar.relocateDreamDisplaysSharedPackages(prefix: String = "com.dreamdisplays.libs") {
     dreamDisplaysShadedPackages.forEach { relocate(it, "$prefix.$it") }
 }
 
-/** Excludes sqlite-jdbc's native binaries for platforms this project never runs on. */
 fun CopySpec.excludeDreamDisplaysSqliteNativeExtras() {
     dreamDisplaysSqliteNativeExcludes.forEach { exclude(it) }
 }

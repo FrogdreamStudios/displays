@@ -1,3 +1,5 @@
+@file:Suppress("SameParameterValue")
+
 package com.dreamdisplays.core.runtime
 
 import com.dreamdisplays.api.runtime.module.DreamDisplaysModule

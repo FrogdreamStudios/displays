@@ -5,9 +5,7 @@ import com.dreamdisplays.api.runtime.registry.model.ServiceKey
 import com.dreamdisplays.api.runtime.registry.service.ServiceRegistry
 import java.util.concurrent.ConcurrentHashMap
 
-/**
- * Thread-safe [ServiceRegistry] backed by a [ConcurrentHashMap].
- */
+/** Service. */
 class DefaultServiceRegistry : ServiceRegistry {
     private val instances = ConcurrentHashMap<ServiceKey<*>, Any>()
 
@@ -22,7 +20,6 @@ class DefaultServiceRegistry : ServiceRegistry {
         instances[key]?.let(key.type::cast)
 }
 
-/** Default [ModuleContext] backed by a [ServiceRegistry]. */
 class DefaultModuleContext(
     override val services: ServiceRegistry,
 ) : ModuleContext

@@ -7,7 +7,6 @@ import support.natives.toPlatformList
 import support.natives.toStrictBoolean
 import java.io.File
 
-/** Adds the native libraries to the process resources. */
 tasks.withType<ProcessResources>().configureEach {
     val rootProjectDir = rootProject.projectDir
     val nativeBundleDir = rootProject.file("native/build/ci-bundle/dreamdisplays-natives")

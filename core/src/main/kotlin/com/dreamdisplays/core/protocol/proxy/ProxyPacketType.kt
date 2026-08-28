@@ -26,10 +26,7 @@ import com.dreamdisplays.core.protocol.proxy.packets.StartNetworkWatchParty
 import com.dreamdisplays.core.protocol.proxy.packets.StopNetworkFullscreen
 import kotlin.reflect.KClass
 
-/**
- * Append-only `dreamdisplays:proxy` packet type ids (disjoint from `PacketType`).
- * Wire-protocol stable; never reuse or renumber, only append.
- */
+/** Append-only `dreamdisplays:proxy` packet type ids. */
 enum class ProxyPacketType(
     val id: Int,
     val packetClass: KClass<out ProxyPacket>,
@@ -65,7 +62,5 @@ enum class ProxyPacketType(
         init {
             require(byId.size == entries.size) { "Duplicate proxy packet type ids." }
         }
-
-        fun fromId(id: Int): ProxyPacketType? = byId[id]
     }
 }
