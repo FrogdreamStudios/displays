@@ -64,24 +64,13 @@ jobs:
           python3 - <<'EOF'
           import json, os
 
-          versions = sorted(
-              p for p in os.listdir("versions")
-              if os.path.isfile(os.path.join("versions", p, "gradle.properties"))
-          )
+          with open("versions.json") as f:
+              versions_data = json.load(f)
+
+          versions = sorted(versions_data["versions"].keys())
 
           if not versions:
               raise SystemExit("No Stonecutter versions found")
-
-          def read_props(path):
-              props = {}
-              with open(path) as f:
-                  for line in f:
-                      line = line.strip()
-                      if not line or line.startswith("#") or "=" not in line:
-                          continue
-                      key, value = line.split("=", 1)
-                      props[key.strip()] = value.strip()
-              return props
 
           def version_key(v):
               return tuple(int(x) if x.isdigit() else 0 for x in v.split("."))
@@ -89,7 +78,7 @@ jobs:
           PAPER_MIN = (1, 21, 11)
           paper_build_candidates = sorted(
               v for v in versions
-              if read_props(os.path.join("versions", v, "gradle.properties")).get("java.version") == "21"
+              if versions_data["versions"][v].get("java.version") == "21"
               and version_key(v) >= PAPER_MIN
           )
           if not paper_build_candidates:
@@ -558,7 +547,17 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Select Stonecutter version
-        run: echo "${{ matrix.mc }}" > versions/active.txt
+        run: |
+          python3 - <<'EOF'
+          import json
+
+          with open("versions.json") as f:
+              data = json.load(f)
+          data["active"] = "${{ matrix.mc }}"
+          with open("versions.json", "w") as f:
+              json.dump(data, f, indent=2)
+              f.write("\n")
+          EOF
 
       - name: Download native archives
         uses: actions/download-artifact@v8.0.1

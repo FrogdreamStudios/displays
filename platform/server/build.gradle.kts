@@ -1,6 +1,6 @@
 import support.shadow.excludeDreamDisplaysSqliteNativeExtras
 import support.stonecutter.StonecutterVersions
-import java.util.*
+import support.stonecutter.VersionsJson
 
 plugins {
     id("dreamdisplays.kotlin-conventions")
@@ -33,11 +33,9 @@ if (isLegacyObfuscatedMinecraft) {
 // jar every supported server loads, breaking every Java 21 server (Paper 1.21.1 / 1.21.11).
 val paperPinVersion = "1.21.11"
 run {
-    val pinnedJavaVersion = Properties().apply {
-        rootProject.file("versions/$paperPinVersion/gradle.properties").inputStream().use { input -> load(input) }
-    }.getProperty("java.version")
+    val pinnedJavaVersion = VersionsJson.load(rootProject.file("versions.json")).propertiesFor(paperPinVersion)["java.version"]
     check(pinnedJavaVersion == "21") {
-        "versions/$paperPinVersion/gradle.properties has java.version=$pinnedJavaVersion, expected 21. " +
+        "versions.json's '$paperPinVersion' entry has java.version=$pinnedJavaVersion, expected 21. " +
                 "The paperPinVersion in platform/server/build.gradle.kts must point at a Java 21 version."
     }
 }
@@ -67,13 +65,21 @@ if (activeStonecutterVersion == paperPinVersion) {
         group = "build"
         description = "Builds the cross-version Paper jar, pinning the active Stonecutter version to " +
                 "$paperPinVersion (currently $activeStonecutterVersion) for a nested Gradle invocation."
-        val activeVersionFile = rootProject.file("versions/active.txt")
+        val versionsJsonFile = rootProject.file("versions.json")
         val gradlewPath = rootProject.file("gradlew").absolutePath
         val rootDir = rootProject.projectDir
         val pinVersion = paperPinVersion
+        val currentVersion = activeStonecutterVersion
         doLast {
-            val previousVersion = activeVersionFile.readText()
-            activeVersionFile.writeText(pinVersion)
+            val originalText = versionsJsonFile.readText()
+            val pinnedText = originalText.replaceFirst(
+                "\"active\": \"$currentVersion\"",
+                "\"active\": \"$pinVersion\"",
+            )
+            check(pinnedText != originalText) {
+                "Could not find \"active\": \"$currentVersion\" in versions.json to pin it to $pinVersion."
+            }
+            versionsJsonFile.writeText(pinnedText)
             try {
                 val exitCode = ProcessBuilder(gradlewPath, ":platform:server:shadowJar")
                     .directory(rootDir)
@@ -83,7 +89,7 @@ if (activeStonecutterVersion == paperPinVersion) {
                     .waitFor()
                 check(exitCode == 0) { "Nested Gradle build for the pinned Paper jar failed with exit code $exitCode." }
             } finally {
-                activeVersionFile.writeText(previousVersion)
+                versionsJsonFile.writeText(originalText)
             }
         }
     }

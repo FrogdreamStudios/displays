@@ -1,10 +1,16 @@
+@Suppress("UNCHECKED_CAST")
 pluginManagement {
-    val scVersions = java.util.Properties().apply {
-        val active = file("versions/active.txt").readText().trim()
-        file("versions/$active/gradle.properties").inputStream().use(::load)
-    }
+    val versionsRoot = groovy.json.JsonSlurper().parse(file("versions.json")) as Map<String, Any?>
+    val activeVersion = versionsRoot["active"] as? String
+        ?: error("versions.json is missing an 'active' field.")
+    val allVersions = versionsRoot["versions"] as? Map<String, Map<String, Any?>>
+        ?: error("versions.json is missing a 'versions' object.")
+    val activeProps = allVersions[activeVersion]
+        ?: error("versions.json has no entry for Minecraft version '$activeVersion'.")
 
-    fun scVersion(name: String) = scVersions.getProperty(name) ?: error("Missing Stonecutter version property '$name'.")
+    fun scVersion(name: String): String =
+        activeProps[name]?.toString()
+            ?: error("Missing Stonecutter version property '$name'.")
 
     includeBuild("gradle")
     repositories {
@@ -74,18 +80,15 @@ include(":platform:proxy:common")
 include(":platform:proxy:velocity")
 include(":platform:proxy:bungeecord")
 
-// ModDevGradle issue, ask them wtf is going here
+// Not my problem
 if (!java.lang.Boolean.getBoolean("idea.sync.active")) {
     include(":platform:client:neoforge")
 }
 
+@Suppress("UNCHECKED_CAST")
 stonecutter {
     create(rootProject) {
-        versions(
-            "1.21.1",
-            "1.21.11",
-            "26.1.2",
-            "26.2",
-        )
+        val versionNames = gradle.extensions.getByName("stonecutterAllVersions") as List<String>
+        versions(*versionNames.toTypedArray())
     }
 }
