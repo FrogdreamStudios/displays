@@ -1,5 +1,3 @@
-package settings
-
 import support.stonecutter.StonecutterVersions
 import support.stonecutter.VersionsJson
 
