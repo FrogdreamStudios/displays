@@ -1,7 +1,6 @@
 package com.dreamdisplays.media.player.process
 
 import com.dreamdisplays.api.security.policy.MediaHosts
-import com.dreamdisplays.media.player.pipeline.VideoFramePipe
 import com.dreamdisplays.media.runtime.security.MediaHostGuard
 import kotlinx.io.IOException
 import java.util.*
@@ -49,9 +48,6 @@ object MediaProcess {
 
     /** Wire format the video `FFmpeg` process writes to its stdout pipe. */
     enum class VideoTransport {
-        /** PPM frames (header + RGB24), parsed by the JVM [VideoFramePipe]. */
-        PPM,
-
         /** Headerless RGB24 rawvideo, consumed by the native pipeline. */
         RAW_RGB24,
 
@@ -61,18 +57,6 @@ object MediaProcess {
          */
         RAW_NV12,
     }
-
-    /** Builds FFmpeg process to read video frames from [url] at offset, scaled and cropped to [w]x[h]. */
-    @Throws(IOException::class)
-    fun buildVideo(
-        ffmpeg: String, url: String, w: Int, h: Int, offsetNanos: Long, hwAccel: HwAccelBackend, fps: Double,
-        alreadyResolved: Boolean = false, seekByDecoding: Boolean = false,
-    ): Process =
-        ProcessBuilder(
-            videoArgs(
-                ffmpeg, url, w, h, offsetNanos, hwAccel, VideoTransport.PPM, fps, alreadyResolved, seekByDecoding,
-            ),
-        ).start()
 
     /** Builds full FFmpeg argv for video session emitting [transport] on stdout. Used by native pipeline directly. */
     fun videoArgs(
@@ -97,10 +81,7 @@ object MediaProcess {
         return baseCommand(ffmpeg, url, offsetNanos, hwAccel, alreadyResolved, seekByDecoding).apply {
             addAll(listOf("-an", "-vf", vf))
             addAll(listOf("-r", String.format(Locale.US, "%.6f", outputFps(fps))))
-            when (transport) {
-                VideoTransport.PPM -> addAll(listOf("-f", "image2pipe", "-c:v", "ppm", "-"))
-                VideoTransport.RAW_RGB24, VideoTransport.RAW_NV12 -> addAll(listOf("-f", "rawvideo", "-"))
-            }
+            addAll(listOf("-f", "rawvideo", "-"))
         }
     }
 

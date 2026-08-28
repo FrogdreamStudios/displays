@@ -91,11 +91,10 @@ internal class PlaybackSessionManager(
      * One decode channel: video pipe + process/thread/stop (independent instances per channel).
      */
     private inner class VideoChannel {
-        val nativePipe: NativeVideoFramePipe? =
-            if (NativeMedia.isAvailable) NativeVideoFramePipe(debugLabel, uploaderFactory, gpuYuvActive) else null
-        private val jvmPipe: VideoFramePipe? =
-            if (nativePipe == null) VideoFramePipe(debugLabel, uploaderFactory) else null
-        val pipe: FramePipe = nativePipe ?: jvmPipe!!
+        val nativePipe: NativeVideoFramePipe =
+            if (NativeMedia.isAvailable) NativeVideoFramePipe(debugLabel, uploaderFactory, gpuYuvActive)
+            else error("Native media pipeline unavailable (${NativeMedia.unavailableReason}).")
+        val pipe: FramePipe = nativePipe
 
         @Volatile
         var process: Process? = null
@@ -112,7 +111,7 @@ internal class PlaybackSessionManager(
         val stop = AtomicBoolean()
 
         /**
-         * Launches video decode into channel's pipe (in-process libav, native, or JVM FFmpeg).
+         * Launches video decode into channel's pipe (in-process libav, or native pipe fed by FFmpeg).
          */
         fun launch(
             ffmpeg: String, streamSet: ActiveStreams, w: Int, h: Int, offsetNanos: Long,
@@ -128,7 +127,7 @@ internal class PlaybackSessionManager(
             // The in-process decoder seeks through the same libav demuxer that gets this container
             // wrong, and unlike the process path it has no way to fall back to decoding forward.
             val seekByDecoding = streamSet.currentVideo.seekByDecoding
-            val lavThread = if (nativePipe != null && NativeMedia.lavInProcessEnabled && !seekByDecoding) {
+            val lavThread = if (NativeMedia.lavInProcessEnabled && !seekByDecoding) {
                 nativePipe.startInProcess(
                     url = safeUrl, w = w, h = h, seekOffsetNanos = offsetNanos,
                     sourceFps = fps, hwAccel = hwAccel, stopFlag = stop, terminated = terminated,
@@ -140,49 +139,36 @@ internal class PlaybackSessionManager(
             if (lavThread != null) {
                 process = null; thread = lavThread; inProcess = true; return
             }
-            if (nativePipe != null) {
-                val nv12 = NativeMedia.nv12Enabled
-                val transport =
-                    if (nv12) MediaProcess.VideoTransport.RAW_NV12 else MediaProcess.VideoTransport.RAW_RGB24
-                val args = MediaProcess.videoArgs(
-                    ffmpeg, safeUrl, w, h, offsetNanos, hwAccel, transport, fps,
-                    alreadyResolved = true, seekByDecoding = seekByDecoding,
-                )
-                val vt = nativePipe.start(
-                    args = args, w = w, h = h, nv12 = nv12, seekOffsetNanos = offsetNanos, sourceFps = fps,
-                    stopFlag = stop, terminated = terminated, getAudioClock = getAudioClock,
-                    onFirstFrame = onFirstFrame, getBrightness = getBrightness, onEos = onEos,
-                    parkFlag = parkFlag, presentPreview = presentPreview, tolerateLateness = tolerateLateness,
-                ) ?: throw IOException("Native FFmpeg session failed to start")
-                process = null; thread = vt; return
-            }
-            val vp = MediaProcess.buildVideo(
-                ffmpeg, safeUrl, w, h, offsetNanos, hwAccel, fps,
+            val nv12 = NativeMedia.nv12Enabled
+            val transport =
+                if (nv12) MediaProcess.VideoTransport.RAW_NV12 else MediaProcess.VideoTransport.RAW_RGB24
+            val args = MediaProcess.videoArgs(
+                ffmpeg, safeUrl, w, h, offsetNanos, hwAccel, transport, fps,
                 alreadyResolved = true, seekByDecoding = seekByDecoding,
             )
-            val vt = jvmPipe!!.start(
-                proc = vp, w = w, h = h, seekOffsetNanos = offsetNanos, sourceFps = fps,
+            val vt = nativePipe.start(
+                args = args, w = w, h = h, nv12 = nv12, seekOffsetNanos = offsetNanos, sourceFps = fps,
                 stopFlag = stop, terminated = terminated, getAudioClock = getAudioClock,
                 onFirstFrame = onFirstFrame, getBrightness = getBrightness, onEos = onEos,
                 parkFlag = parkFlag, presentPreview = presentPreview, tolerateLateness = tolerateLateness,
-            )
-            process = vp; thread = vt
+            ) ?: throw IOException("Native FFmpeg session failed to start")
+            process = null; thread = vt
         }
 
         /** Captures this channel's live LAV packet-ring snapshot, when one exists. */
-        fun snapshotCache(positionNanos: Long): ByteArray? = nativePipe?.lavCacheSnapshot(positionNanos)
+        fun snapshotCache(positionNanos: Long): ByteArray? = nativePipe.lavCacheSnapshot(positionNanos)
 
         /** Seeks the in-process LAV decoder without replacing this channel. */
         fun seekInProcess(offsetNanos: Long, onFirstFrame: () -> Unit): Boolean =
-            inProcess && nativePipe?.seekInProcess(offsetNanos, onFirstFrame) == true
+            inProcess && nativePipe.seekInProcess(offsetNanos, onFirstFrame)
 
         /** Stops the decode and joins the reader thread (blocking). Must not run on the render thread. */
         fun teardownProcess() {
             stop.set(true)
-            nativePipe?.kill()
+            nativePipe.kill()
             MediaProcess.gracefulDestroy(process)
             thread?.let { joinSafely(it) }
-            nativePipe?.release()
+            nativePipe.release()
         }
     }
 
@@ -428,7 +414,7 @@ internal class PlaybackSessionManager(
         val ffmpeg = FFmpegBinary.getPath() ?: return false
         val (w, h) = targetDims(streamSet, lastQuality)
 
-        if (old.inProcess && old.nativePipe?.expectedW == w && old.nativePipe.expectedH == h) {
+        if (old.inProcess && old.nativePipe.expectedW == w && old.nativePipe.expectedH == h) {
             val firstVideoFrame = CountDownLatch(1)
             val aStop = AtomicBoolean()
             val ap = try {
@@ -469,7 +455,7 @@ internal class PlaybackSessionManager(
         } else {
             logger.warn(
                 "$debugLabel Seek can't go in place (inProcess=${old.inProcess}, " +
-                        "pipe=${old.nativePipe?.expectedW}x${old.nativePipe?.expectedH}, target=${w} x $h); " +
+                        "pipe=${old.nativePipe.expectedW}x${old.nativePipe.expectedH}, target=${w} x $h); " +
                         "reopening the channel."
             )
         }
@@ -732,7 +718,7 @@ internal class PlaybackSessionManager(
 
         val (w, h) = targetDims(null)
         val channel = VideoChannel()
-        val pipe = channel.nativePipe ?: run { bridgeCeilingNanos = Long.MAX_VALUE; return false }
+        val pipe = channel.nativePipe
         val vt = pipe.startReplay(
             snapshot = snapshot, w = w, h = h, resumeNanos = resumeNanos, sourceFps = REPLAY_FPS,
             stopFlag = channel.stop, terminated = terminated, getAudioClock = ::pacingClockNanos,
@@ -1142,13 +1128,13 @@ internal class PlaybackSessionManager(
         val a = active
         active = null
         audioHalf?.stop?.set(true)
-        a?.let { it.stop.set(true); it.nativePipe?.kill() }
+        a?.let { it.stop.set(true); it.nativePipe.kill() }
         audioHalf?.let { MediaProcess.gracefulDestroy(it.process) }
         audio.stop()
         a?.let {
             MediaProcess.gracefulDestroy(it.process)
             it.thread?.let { t -> joinSafely(t) }
-            it.nativePipe?.release()
+            it.nativePipe.release()
             renderExecutor.execute { it.pipe.cleanup() }
         }
         audioHalf?.thread?.let { joinSafely(it) }
@@ -1167,7 +1153,7 @@ internal class PlaybackSessionManager(
         synchronized(switchLock) { incoming.also { incoming = null } }?.let { discardChannelBlocking(it) }
         active?.let { ch ->
             active = null
-            ch.nativePipe?.release()
+            ch.nativePipe.release()
             renderExecutor.execute { ch.pipe.cleanup() }
         }
     }
