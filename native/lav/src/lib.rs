@@ -1,21 +1,4 @@
-//! In-process libav decode backend, shipped as its own cdylib so the main
-//! `dreamdisplays_native` library stays free of libav link dependencies (this one fails to
-//! load on machines without the `FFmpeg` shared libraries, and the JVM treats that as
-//! "feature unavailable" instead of losing the whole native pipeline).
-//!
-//! One session replaces the video `FFmpeg` process: libavformat reads the network stream,
-//! libavcodec decodes (VideoToolbox / D3D11VA / VAAPI / CUDA where available, software otherwise),
-//! libswscale aspect-fits into the target size, and the frame lands in the caller's direct
-//! buffer as tightly packed I420 — the same wire format `dd_video_read_frame_i420` produces,
-//! so the JVM render path is identical from there on.
-//!
-//! The additive surface ABI keeps decoder hardware frames alive and lets the render thread import
-//! their planes into platform GL textures. macOS VideoToolbox is implemented through
-//! CVPixelBuffer/IOSurface/CGLTexImageIOSurface2D; unsupported platforms/formats cleanly fall back
-//! to the I420 path above.
-//!
-//! ABI mirrors the main library's conventions: panic-safe entry points, opaque `i64`
-//! handles, blocking reads unblocked by `dd_lav_kill`.
+//! In-process libav decode backend.
 
 pub mod cache;
 pub mod chunked;
@@ -336,7 +319,7 @@ pub unsafe extern "C" fn dd_lav_ring_snapshot_at(
     .unwrap_or_else(on_panic("dd_lav_ring_snapshot_at", ERR_IO))
 }
 
-/// Interrupts the session's network/decode loop, unblocking any reader stuck in
+/// Interrupts the session's network / decode loop, unblocking any reader stuck in
 /// [`dd_lav_read_frame_i420`]. The handle stays valid until [`dd_lav_close`].
 #[unsafe(no_mangle)]
 pub extern "C" fn dd_lav_kill(handle: i64) {

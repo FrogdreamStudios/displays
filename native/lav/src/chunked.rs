@@ -10,9 +10,7 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::time::{Duration, Instant};
 
-/// How much of the file one request covers. Large enough that a whole seek's catch-up read is
-/// usually one request, small enough to stay a plausible player-shaped request.
-/// `DD_LAV_CHUNK_BYTES` retunes it without a rebuild.
+/// How much of the file one request covers.
 const CHUNK_BYTES: i64 = 8 * 1024 * 1024;
 
 /// [CHUNK_BYTES], or the environment's override.
@@ -24,35 +22,15 @@ fn chunk_bytes() -> i64 {
         .unwrap_or(CHUNK_BYTES)
 }
 
-/// Buffer libavformat reads through; bigger than the 32 KiB default so the callback runs less.
 const AVIO_BUFFER_BYTES: usize = 64 * 1024;
-
-/// A forward seek shorter than this is served by discarding bytes from the open request instead of
-/// paying a new one — mp4 demuxing does many small forward hops.
 const SKIP_FORWARD_BYTES: i64 = 256 * 1024;
-
-/// Bytes that may be fetched at full speed before pacing starts (one seek's catch-up).
 const BURST_BYTES: f64 = 16.0 * 1024.0 * 1024.0;
-
-/// Sustained ceiling, as a multiple of the video's own bitrate: enough to refill and stay ahead,
-/// far below the bulk-download shape that gets an IP throttled.
 const PACE_MULTIPLIER: f64 = 3.0;
-
-/// Floor for the sustained ceiling, for low-bitrate sources where the multiple alone is tiny.
 const PACE_FLOOR_BYTES_PER_SEC: f64 = 1_500_000.0;
-
-/// Longest single pacing sleep, so a teardown is never waited out.
 const PACE_SLEEP_CAP: Duration = Duration::from_millis(250);
-
-/// How many times a dropped connection is reopened at the same offset before the read fails.
 const REOPEN_ATTEMPTS: u32 = 3;
-
-/// Consecutive failed chunk requests before bounded requests are abandoned for the rest of the
-/// run. The source can start refusing them (an IP that has been asked for too much gets 403s for
-/// a while); one long request still plays, so falling back beats retrying into a wall.
 const FAILURES_BEFORE_GIVING_UP: u32 = 6;
 
-/// Failed chunk requests since the last successful one, across every session.
 static CONSECUTIVE_FAILURES: AtomicU32 = AtomicU32::new(0);
 
 /// True for sources known to pace a single long request: googlevideo's `gir` formats. Everything
@@ -99,8 +77,6 @@ pub struct ChunkedIo {
 unsafe impl Send for ChunkedIo {}
 
 impl ChunkedIo {
-    /// Wires a bounded-range reader for `url` and hands back the AVIO context to demux through.
-    /// `net_opts` are the protocol options every request repeats (user agent, headers, timeouts).
     fn new(
         url: &str,
         net_opts: &[(&str, String)],
@@ -158,8 +134,6 @@ impl Drop for ChunkedIo {
                 (*self.reader).close_inner();
             }
             if !self.avio.is_null() {
-                // The context may have swapped its buffer; free whatever it holds now, then the
-                // context, then the reader it pointed at — libavformat's own teardown order.
                 ffi::av_free((*self.avio).buffer as *mut c_void);
                 ffi::avio_context_free(&mut self.avio);
             }
@@ -175,13 +149,9 @@ impl Drop for ChunkedIo {
 struct ChunkedReader {
     url: CString,
     net_opts: Vec<(CString, CString)>,
-    /// Size of the whole file, from the URL's `clen`.
     total: i64,
-    /// How much of the file one request covers.
     chunk_bytes: i64,
-    /// Next byte the demuxer will read.
     pos: i64,
-    /// End of the request currently open (exclusive); meaningless while [inner] is null.
     chunk_end: i64,
     inner: *mut ffi::AVIOContext,
     interrupted: Arc<AtomicBool>,
@@ -192,7 +162,6 @@ struct ChunkedReader {
 }
 
 impl ChunkedReader {
-    /// Serves one demuxer read, opening the next bounded request when the current one is spent.
     fn read(&mut self, buf: *mut u8, size: c_int) -> c_int {
         if self.interrupted.load(Ordering::Relaxed) {
             return ffi::AVERROR_EXIT;
@@ -221,8 +190,6 @@ impl ChunkedReader {
                 }
                 return n;
             }
-            // Short of the requested end: the connection dropped. Reopening starts a fresh request
-            // at our own offset, so the byte stream can never be spliced at the wrong place.
             self.close_inner();
             if self.interrupted.load(Ordering::Relaxed) {
                 return ffi::AVERROR_EXIT;
@@ -236,7 +203,6 @@ impl ChunkedReader {
         ffi::AVERROR_EOF
     }
 
-    /// Moves the read position, discarding bytes from the open request for short forward hops.
     fn seek_to(&mut self, target: i64) -> i64 {
         let target = target.clamp(0, self.total);
         if target == self.pos {
@@ -253,7 +219,6 @@ impl ChunkedReader {
         self.pos
     }
 
-    /// Reads and throws away `count` bytes; false when the request died mid-skip.
     fn discard(&mut self, count: i64) -> bool {
         let mut left = count;
         while left > 0 {
@@ -269,7 +234,6 @@ impl ChunkedReader {
         true
     }
 
-    /// Opens the request covering [pos]. Returns the error code to hand libavformat on failure.
     fn open_chunk(&mut self) -> Result<(), c_int> {
         self.chunk_end = (self.pos + self.chunk_bytes).min(self.total);
         let rc = unsafe {
@@ -277,7 +241,6 @@ impl ChunkedReader {
             for (key, value) in &self.net_opts {
                 ffi::av_dict_set(&mut dict, key.as_ptr(), value.as_ptr(), 0);
             }
-            // A bounded request is the whole point: an open-ended one is what gets paced.
             let offset = CString::new(self.pos.to_string()).unwrap_or_default();
             let end = CString::new(self.chunk_end.to_string()).unwrap_or_default();
             ffi::av_dict_set(&mut dict, c"offset".as_ptr(), offset.as_ptr(), 0);
@@ -313,7 +276,6 @@ impl ChunkedReader {
         Ok(())
     }
 
-    /// Closes the open request, if any. Safe to call repeatedly.
     fn close_inner(&mut self) {
         if !self.inner.is_null() {
             unsafe { ffi::avio_closep(&mut self.inner) };
@@ -321,8 +283,6 @@ impl ChunkedReader {
         }
     }
 
-    /// Holds the average fetch rate under [PACE_MULTIPLIER] times the video's bitrate once the
-    /// burst is spent: several displays reading flat out is the shape that gets an IP throttled.
     fn pace(&mut self) {
         let allowed = BURST_BYTES + self.bytes_per_sec * self.started.elapsed().as_secs_f64();
         let over = self.read_bytes as f64 - allowed;
@@ -416,8 +376,6 @@ mod tests {
     use std::net::TcpListener;
     use std::sync::Mutex;
 
-    /// Serves `body` over HTTP with byte-range support, recording the ranges it was asked for.
-    /// Returns the port and that record.
     fn serve_ranges(body: Vec<u8>) -> (u16, Arc<Mutex<Vec<(u64, u64)>>>) {
         let listener = TcpListener::bind("127.0.0.1:0").expect("bind a local port");
         let port = listener.local_addr().unwrap().port();

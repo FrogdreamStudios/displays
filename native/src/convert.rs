@@ -1,6 +1,6 @@
 //! Pixel conversion kernels: brightness LUT and NV12 -> RGB24 (BT.709 limited range).
 //!
-//! The NV12 hot path walks 2x2 luma blocks because each UV pair is shared by four
+//! The NV12 hot path walks 2 x 2 luma blocks because each UV pair is shared by four
 //! pixels. That keeps chroma loads, index math, and bounds checks out of the per-pixel
 //! path as much as possible while preserving exact BT.709 limited-range output.
 
@@ -735,7 +735,7 @@ mod tests {
 
     #[test]
     fn nv12_odd_dimensions() {
-        // 3x3: chroma plane is 2x2 blocks of UV pairs (stride 4). Must not panic and
+        // 3 x 3: chroma plane is 2x2 blocks of UV pairs (stride 4). Must not panic and
         // must produce a fully written 3*3*3 output.
         let lut = build_lut(IDENTITY_MILLI);
         let raw = nv12_frame(3, 3, 126, 128, 128);

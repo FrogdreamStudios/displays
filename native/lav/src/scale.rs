@@ -228,7 +228,6 @@ impl BandedScaler {
 mod tests {
     use super::*;
 
-    /// Source with sharp horizontal edges — the pattern a band seam would show up in first.
     fn striped_source(w: u32, h: u32) -> VideoFrame {
         let mut frame = VideoFrame::new(Pixel::YUV420P, w, h);
         let (w, h) = (w as usize, h as usize);
@@ -248,7 +247,6 @@ mod tests {
         frame
     }
 
-    /// Scales the same frame through one whole-picture context, as the reference to compare against.
     fn scale_single(src: &VideoFrame, sw: u32, sh: u32, dw: u32, dh: u32) -> Vec<u8> {
         let mut out = vec![0u8; (dw * dh) as usize * 3 / 2];
         unsafe {
@@ -282,9 +280,6 @@ mod tests {
         out
     }
 
-    /// Band-parallel output has to match the single-context picture. Each band is scaled from its
-    /// own slice, so a band edge may round to a neighboring source row; anything past that means
-    /// the band geometry is wrong and the picture is torn or shifted, not merely resampled.
     #[test]
     fn banded_output_matches_a_single_context() {
         for (sw, sh, dw, dh) in [(1280u32, 720u32, 640u32, 360u32), (640, 360, 1280, 720)] {
@@ -319,14 +314,12 @@ mod tests {
         }
     }
 
-    /// A same-size conversion must not be split: swscale already reduces it to a per-row memcpy.
     #[test]
     fn same_size_conversion_stays_on_one_band() {
         let scaler = BandedScaler::new(Pixel::YUV420P, 1920, 1080, 1920, 1080).unwrap();
         assert_eq!(scaler.bands(), 1);
     }
 
-    /// Bands must tile the picture exactly: no dropped rows, no overlap, every cut chroma-aligned.
     #[test]
     fn bands_tile_the_picture_without_gaps() {
         for (sw, sh, dw, dh) in [(3840u32, 2160u32, 1920u32, 1080u32), (854, 480, 1918, 1078), (16, 2, 1920, 1080)] {

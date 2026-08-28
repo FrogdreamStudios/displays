@@ -1,8 +1,4 @@
-//! End-to-end smoke test against a real `FFmpeg` binary: spawns `testsrc`, reads frames
-//! through the session machinery, and checks EOF + exit-code handling.
-//!
-//! Skips (passes trivially) when no FFmpeg binary is available. Point `DD_TEST_FFMPEG`
-//! at a binary explicitly, otherwise a few well-known locations are probed.
+//! End-to-end smoke test against a real `FFmpeg` binary.
 
 use dreamdisplays_native::session::{PixFmt, READ_EOF, READ_OK, Sessions};
 

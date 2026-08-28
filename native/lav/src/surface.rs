@@ -166,7 +166,7 @@ unsafe fn describe_frame(
             #[cfg(target_os = "macos")]
             {
                 unsafe {
-                    // SAFETY: `frame` is an AVFrame cloned from ffmpeg-next and its format was
+                    // Safety: `frame` is an AVFrame cloned from ffmpeg-next and its format was
                     // verified as VideoToolbox before this descriptor path is reached.
                     macos::describe_videotoolbox(frame)
                 }

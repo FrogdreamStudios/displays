@@ -1,8 +1,4 @@
 //! FFmpeg child-process sessions: spawn, blocking frame reads, stderr capture, shutdown.
-//!
-//! The JVM side builds the full argv (it already knows how to construct FFmpeg command
-//! lines); this module owns the process so the pipe stays entirely on the native side —
-//! the JVM never touches a file descriptor.
 
 use std::collections::HashMap;
 use std::io::{ErrorKind, Read};
@@ -518,7 +514,7 @@ enum ReadOutcome {
 }
 
 /// `read_exact` that maps both clean EOF and mid-frame EOF to [`ReadOutcome::Eof`]
-/// (the JVM side distinguishes normal/abnormal end via the process exit code).
+/// (the JVM side distinguishes normal / abnormal end via the process exit code).
 fn read_exact_eof(stdout: &mut ChildStdout, buf: &mut [u8]) -> ReadOutcome {
     match stdout.read_exact(buf) {
         Ok(()) => ReadOutcome::Frame,

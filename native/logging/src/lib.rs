@@ -60,7 +60,6 @@ impl Log for StderrLogger {
         let thread = std::thread::current();
         let thread_name = thread.name().unwrap_or("?").to_owned();
         let level = level_label(record.level());
-        // Single write keeps concurrent lines from interleaving mid-line.
         let line = format!(
             "[{h:02}:{m:02}:{s:02}.{ms:03}] [{thread_name}/{level}] (dd-native) {}: {}\n",
             record.target(),

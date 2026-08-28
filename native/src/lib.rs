@@ -1,14 +1,5 @@
-//! C ABI surface for the Dream Displays native media pipeline, consumed from Kotlin via
-//! the Java FFM API (Project Panama).
-//!
-//! Design rules:
-//! - Every entry point is panic-safe (`catch_unwind`); panics become error codes, never UB.
-//! - Handles are opaque `i64` values; 0 is "no handle".
-//! - The reader contract mirrors the JVM `VideoFramePipe` loop: `dd_video_read_frame`
-//!   blocks until a full frame is read from the FFmpeg pipe, converts it to tightly
-//!   packed RGB24 with brightness applied, and writes it into the caller's buffer.
-//! - `dd_video_kill` unblocks a stuck reader; `dd_video_close` frees the session and
-//!   must only be called after the reader thread has been joined.
+//! C ABI surface for the `Dream Displays` native media pipeline, consumed from `Kotlin` via
+//! the `Java FFM API` (`Project Panama`).
 
 pub mod convert;
 pub mod session;
@@ -18,8 +9,7 @@ use std::any::Any;
 use std::panic::{AssertUnwindSafe, catch_unwind};
 use std::sync::OnceLock;
 
-/// Bumped on any breaking change of this ABI. The JVM bridge refuses to use a library
-/// whose version does not match what it was compiled against.
+/// Bumped on any breaking change of this ABI.
 pub const ABI_VERSION: u32 = 1;
 
 static SESSIONS: OnceLock<Sessions> = OnceLock::new();

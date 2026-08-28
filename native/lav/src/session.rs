@@ -1,10 +1,6 @@
 //! In-process decode sessions: avformat network input, avcodec decode (VideoToolbox,
-//! D3D11VA/DXVA2, VAAPI, or CUDA when requested and available; software otherwise),
+//! D3D11VA / DXVA2, VAAPI, or CUDA when requested and available; software otherwise),
 //! swscale aspect-fit, I420 output.
-//!
-//! One mutex-guarded reader per session, mirroring the process-based sessions in the main
-//! native library. The output contract matches `dd_video_read_frame_i420`: Y plane, then
-//! deinterleaved U and V quarter planes, aspect-fitted into the target size on black.
 
 use anyhow::{Context as AnyhowContext, Result, anyhow, bail};
 use log::{LevelFilter, debug, error, info, warn};
@@ -87,7 +83,7 @@ const BLACK_C: u8 = 128;
 
 static FFMPEG_LOG_INIT: Once = Once::new();
 
-/// libav I/O interrupt callback: returns non-zero to abort a blocked read. The opaque pointer is the
+/// libav I / O interrupt callback: returns non-zero to abort a blocked read. The opaque pointer is the
 /// session's `interrupted` flag (an `AtomicBool` kept alive for the format context's lifetime).
 unsafe extern "C" fn interrupt_cb(opaque: *mut c_void) -> i32 {
     if opaque.is_null() {
@@ -277,32 +273,17 @@ enum PacketSource {
 /// Mutable decode state; locked only by the (single) reader thread.
 struct ReadState {
     decoder: codec::decoder::Video,
-    /// Keeps the selected hardware format/device alive for libavcodec callbacks.
     _hw_selection: Option<Box<HwSelection>>,
     time_base: ffmpeg::Rational,
-    /// Cached scaler, rebuilt when the source format or size changes mid-stream.
     scaler: Option<BandedScaler>,
-    /// Scratch frame for hardware -> system memory transfers.
     sw_frame: VideoFrame,
     draining: bool,
-    /// Live seek target in normalized nanoseconds. Frames substantially before this target are
-    /// decoded only as pre-roll and are not returned to the JVM.
     seek_target_nanos: Option<i64>,
-    /// Diagnostics for the in-flight seek pre-roll; taken and logged when the target is reached.
     seek_debug: Option<SeekDebug>,
-    /// True while the decoder runs in the aggressive pre-roll discard mode (see
-    /// [set_preroll_discard]); cleared [PREROLL_FAST_CUTOFF_NANOS] before the seek target.
     preroll_fast: bool,
-    /// Cached packets scheduled ahead of the live demuxer: a cache-served seek replays these
-    /// (network-free) and then continues with live reads — the demuxer position was never moved,
-    /// so the stream stays contiguous after the replayed span.
     pending_replay: VecDeque<CachedPacket>,
-    /// Rolling cost of the three stages of a read, logged periodically.
     stats: ReadStats,
     source: PacketSource,
-    /// Bounded-request reader backing `source`, when the source is one that needs it. Held only
-    /// to own it: libavformat reads through it by pointer. Declared last on purpose — it must be
-    /// dropped after the demuxer that reads through it.
     #[allow(dead_code, reason = "owned for its lifetime, read through the AVIO pointer")]
     chunked: Option<crate::chunked::ChunkedIo>,
 }
@@ -328,7 +309,6 @@ struct ReadStats {
 }
 
 impl ReadStats {
-    /// Accounts one `packet.read`, classifying it by whether it reached the network.
     fn record_read(&mut self, nanos: u128, bytes: u64) {
         self.reads += 1;
         self.demux_bytes += bytes;
@@ -444,11 +424,8 @@ fn set_preroll_discard(decoder: &mut codec::decoder::Video, fast: bool) {
 /// the difference between a fast keyframe-adjacent seek and a silent multi-second decode-through.
 struct SeekDebug {
     started: std::time::Instant,
-    /// PTS of the first decoded frame after the demuxer seek, i.e. the landing keyframe.
     landed_pts_nanos: Option<i64>,
-    /// Frames decoded and discarded before the target was reached.
     dropped: u64,
-    /// Compressed bytes demuxed during the pre-roll.
     bytes: u64,
 }
 
@@ -469,7 +446,6 @@ impl SeekDebug {
 unsafe impl Send for ReadState {}
 
 impl ReadState {
-    /// Returns the live stream start timestamp; replay packets are already normalized.
     fn stream_start_time(&self) -> Option<i64> {
         match &self.source {
             PacketSource::Live {
@@ -479,7 +455,6 @@ impl ReadState {
         }
     }
 
-    /// True when a replay frame is keyframe pre-roll before the requested resume point.
     fn should_drop_replay_preroll(&self, pts_nanos: i64) -> bool {
         match &self.source {
             PacketSource::Replay { resume_nanos, .. } => {
@@ -504,17 +479,13 @@ impl SurfaceReadError {
 }
 
 pub struct LavSession {
-    /// Public handle, assigned at registration (0 until then); only used to tag log lines.
     id: AtomicI64,
     w: usize,
     h: usize,
     read: Mutex<ReadState>,
-    /// Rolling packet cache, owned by the session rather than the decode state so a snapshot can be
-    /// taken with a short, contention-free lock that never waits on a blocked network read.
     ring: Mutex<Option<PacketRing>>,
     interrupted: Arc<AtomicBool>,
     error: Mutex<String>,
-    /// Decoder parameters captured at open, needed to rebuild a decoder for replay (Phase 3).
     codec_params: CodecParams,
 }
 
@@ -538,8 +509,6 @@ impl LavSessions {
         self.map.lock().ok()?.get(&handle).cloned()
     }
 
-    /// Opens the stream and registers a session. Returns the new handle, or 0 on failure
-    /// (the cause is logged).
     pub fn open(&self, url: &str, w: usize, h: usize, start_micros: i64, hw_accel: u32) -> i64 {
         match LavSession::open(url, w, h, start_micros, hw_accel) {
             Ok(session) => {
@@ -559,7 +528,6 @@ impl LavSessions {
         }
     }
 
-    /// Opens a replay session from a serialized packet-ring snapshot.
     pub fn open_replay(&self, blob: &[u8], w: usize, h: usize, resume_nanos: i64) -> i64 {
         match LavSession::open_replay(blob, w, h, resume_nanos) {
             Ok(session) => {
@@ -581,7 +549,6 @@ impl LavSessions {
         }
     }
 
-    /// Registers a newly opened session and returns its opaque handle.
     fn insert(&self, session: LavSession) -> i64 {
         let handle = self.next.fetch_add(1, Ordering::Relaxed);
         session.id.store(handle, Ordering::Relaxed);
@@ -593,7 +560,6 @@ impl LavSessions {
         }
     }
 
-    /// Blocking decode of the next frame into `dst` as I420. See `dd_lav_read_frame_i420`.
     pub fn read_frame(&self, handle: i64, dst: &mut [u8]) -> i32 {
         let Some(session) = self.get(handle) else {
             return ERR_BAD_HANDLE;
@@ -601,7 +567,6 @@ impl LavSessions {
         session.read_frame(dst)
     }
 
-    /// Blocking decode of the next frame into `dst` as I420 and returns normalized frame PTS.
     pub fn read_frame_with_pts(&self, handle: i64, dst: &mut [u8], pts_nanos: &mut i64) -> i32 {
         let Some(session) = self.get(handle) else {
             return ERR_BAD_HANDLE;
@@ -609,7 +574,6 @@ impl LavSessions {
         session.read_frame_with_pts(dst, pts_nanos)
     }
 
-    /// Seeks a live session in place and flushes decoder state.
     pub fn seek(&self, handle: i64, target_micros: i64) -> i32 {
         let Some(session) = self.get(handle) else {
             return ERR_BAD_HANDLE;
@@ -647,7 +611,6 @@ impl LavSessions {
         }
     }
 
-    /// Blocking decode of the next hardware frame and registers it as a retained GPU-importable surface.
     pub fn read_surface(&self, handle: i64, desc: &mut LavSurfaceDesc) -> i32 {
         let Some(session) = self.get(handle) else {
             return ERR_BAD_HANDLE;
@@ -669,18 +632,15 @@ impl LavSessions {
         }
     }
 
-    /// Imports one retained surface plane into the OpenGL texture object supplied by the render thread.
     pub fn bind_surface_plane_gl(&self, surface_handle: i64, plane: u32, texture_id: u32) -> i32 {
         self.surfaces
             .bind_plane_gl(surface_handle, plane, texture_id)
     }
 
-    /// Releases a retained hardware surface returned by [`read_surface`].
     pub fn release_surface(&self, surface_handle: i64) {
         self.surfaces.release(surface_handle);
     }
 
-    /// Copies the last error description into `dst`, returning the number of bytes written.
     pub fn error(&self, handle: i64, dst: &mut [u8]) -> i32 {
         let Some(session) = self.get(handle) else {
             return ERR_BAD_HANDLE;
@@ -694,7 +654,6 @@ impl LavSessions {
         n as i32
     }
 
-    /// Enables / resizes the rolling packet cache on `handle`. See [`LavSession::enable_cache`].
     pub fn enable_cache(&self, handle: i64, window_nanos: i64, max_bytes: usize) -> i32 {
         let Some(session) = self.get(handle) else {
             return ERR_BAD_HANDLE;
@@ -708,9 +667,6 @@ impl LavSessions {
         READ_OK
     }
 
-    /// Copies the cache snapshot for `handle` into `dst`, returning the total blob length (which
-    /// may exceed `dst.len()`, in which case nothing is copied — the caller sizes its buffer and
-    /// retries). Returns 0 when no cache is active or it is empty.
     pub fn snapshot(&self, handle: i64, dst: &mut [u8]) -> i32 {
         let Some(session) = self.get(handle) else {
             return ERR_BAD_HANDLE;
@@ -719,12 +675,9 @@ impl LavSessions {
         if blob.len() <= dst.len() {
             dst[..blob.len()].copy_from_slice(&blob);
         }
-        // Length comfortably fits i32 for any sane window; clamp defensively
         blob.len().min(i32::MAX as usize) as i32
     }
 
-    /// Copies a position-aware cache snapshot for `handle`, topping up the live demuxer before
-    /// serialization so replay has packets after the resume point.
     pub fn snapshot_at(
         &self,
         handle: i64,
@@ -742,7 +695,6 @@ impl LavSessions {
         blob.len().min(i32::MAX as usize) as i32
     }
 
-    /// Flags the session as interrupted; the reader loop exits between packets.
     pub fn kill(&self, handle: i64) {
         if let Some(session) = self.get(handle) {
             debug!("Interrupting LAV session #{handle}");
@@ -750,7 +702,6 @@ impl LavSessions {
         }
     }
 
-    /// Removes the session from the table, dropping all libav state.
     pub fn close(&self, handle: i64) {
         if let Ok(mut map) = self.map.lock()
             && map.remove(&handle).is_some()
@@ -764,8 +715,6 @@ impl LavSession {
     fn open(url: &str, w: usize, h: usize, start_micros: i64, hw_accel: u32) -> Result<LavSession> {
         init_ffmpeg()?;
 
-        // Kept as a list because every bounded request the chunked reader makes repeats them; the
-        // format dictionary below passes the same set down to the protocol on the direct path.
         let mut net_opts: Vec<(&str, String)> = vec![
             ("user_agent", USER_AGENT.to_string()),
             ("reconnect", "1".into()),
@@ -947,23 +896,16 @@ impl LavSession {
         })
     }
 
-    /// Enables (or resizes) the rolling packet cache: retain up to `window_nanos` of stream, capped
-    /// at `max_bytes`. Capture begins with the next demuxed packet. Idempotent.
     fn enable_cache(&self, window_nanos: i64, max_bytes: usize) {
         if let Ok(mut ring) = self.ring.lock() {
             *ring = Some(PacketRing::new(window_nanos, max_bytes));
         }
     }
 
-    /// Serializes the current cache (codec params + retained packets from the first keyframe) into a
-    /// blob the JVM can retain across a soft unload, or returns an empty Vec when no cache is active.
     fn snapshot(&self) -> Vec<u8> {
         self.snapshot_at(i64::MIN, false)
     }
 
-    /// Serializes a position-aware snapshot from the rolling packet ring. The ring lives behind its
-    /// own short-held mutex (never the blocking decode lock), so this returns promptly even while the
-    /// reader thread is parked on a network read — fixing the empty-snapshot / teardown-freeze races.
     fn snapshot_at(&self, position_nanos: i64, _top_up: bool) -> Vec<u8> {
         let Ok(ring) = self.ring.lock() else {
             return Vec::new();
@@ -978,8 +920,6 @@ impl LavSession {
         crate::cache::serialize_snapshot(&self.codec_params, &packets)
     }
 
-    /// Mirrors a freshly demuxed live packet into the rolling cache, if one is active. Holds the ring
-    /// lock only for the push, so it never blocks a concurrent snapshot for more than that.
     fn capture_packet(
         &self,
         time_base: ffmpeg::Rational,
@@ -995,7 +935,6 @@ impl LavSession {
 
     fn read_frame(&self, dst: &mut [u8]) -> i32 {
         let mut pts_nanos = NO_PTS_NANOS;
-        // The PTS-less entry point has no way to flag a preview frame, so skip past it.
         loop {
             let rc = self.read_frame_with_pts(dst, &mut pts_nanos);
             if rc != READ_PREVIEW {
@@ -1018,7 +957,6 @@ impl LavSession {
                 *pts_nanos = pts;
                 if preview { READ_PREVIEW } else { READ_OK }
             }
-            // An empty result from an active interrupt is a seek abort, not a true EOF
             Ok(None) if self.interrupted.load(Ordering::Relaxed) => READ_INTERRUPTED,
             Ok(None) => READ_EOF,
             Err(e) => {
@@ -1031,8 +969,6 @@ impl LavSession {
         }
     }
 
-    /// Returns the cached packets serving a seek to `target_nanos`, or `None` when the ring does
-    /// not cover the target (no keyframe at / before it, or the target is past the newest packet).
     fn cached_packets_for_seek(&self, target_nanos: i64) -> Option<Vec<CachedPacket>> {
         let ring_guard = self.ring.lock().ok()?;
         let ring = ring_guard.as_ref()?;
@@ -1058,9 +994,6 @@ impl LavSession {
             bail!("replay sessions are not seekable.");
         }
         let target_nanos = target_micros.saturating_mul(1_000);
-        // Cache-served seek: when the packet ring still covers the target, replay from it instead
-        // of repositioning the demuxer — no network round-trip, and the ring stays valid (the live
-        // head was never moved), so repeated in-window scrubbing keeps hitting the cache.
         if let Some(packets) = self.cached_packets_for_seek(target_nanos) {
             debug!(
                 "LAV session #{}: seek to {} ms served from the packet cache ({} packets from {} ms).",
@@ -1071,7 +1004,6 @@ impl LavSession {
             );
             state.pending_replay = packets.into();
         } else {
-            // An unfinished cache replay must not leak into the new position.
             state.pending_replay.clear();
             let PacketSource::Live { ictx, .. } = &mut state.source else {
                 unreachable!("replay sources bail out above");
@@ -1090,8 +1022,6 @@ impl LavSession {
                 if bounded { "bounded" } else { "unbounded fallback" },
             );
             let _ = ictx.play();
-            // The demuxer position jumped: the retained window is no longer contiguous with what
-            // will be read next, so the cache must start over.
             if let Ok(mut ring) = self.ring.lock() {
                 if let Some(ring) = ring.as_mut() {
                     ring.clear();
@@ -1126,8 +1056,6 @@ impl LavSession {
         }
     }
 
-    /// Pulls packets until one frame is decoded and written to `dst`. Returns Ok(None) on EOF.
-    /// The boolean in the result is true for a pre-roll preview frame (see [READ_PREVIEW]).
     fn next_frame(&self, state: &mut ReadState, dst: &mut [u8]) -> Result<Option<(i64, bool)>> {
         loop {
             let Some(decoded) = self.receive_frame(state)? else {
@@ -1202,7 +1130,6 @@ impl LavSession {
         }
     }
 
-    /// Pulls packets until one decoded frame is available. Returns Ok(None) on EOF or interruption.
     fn receive_frame(&self, state: &mut ReadState) -> Result<Option<VideoFrame>> {
         let mut decoded = VideoFrame::empty();
         loop {
@@ -1307,7 +1234,6 @@ impl LavSession {
         }
     }
 
-    /// Downloads (if hardware), scales to fit, and writes `frame` into `dst` as padded I420.
     fn write_i420(&self, state: &mut ReadState, frame: &VideoFrame, dst: &mut [u8]) -> Result<()> {
         // Hardware frames live outside normal CPU memory; pull them down to the best software
         // format FFmpeg can provide before scaling to the target I420 frame.
@@ -1743,8 +1669,6 @@ unsafe extern "C" fn prefer_selected_hw_format(
 mod tests {
     use super::*;
 
-    /// Reads the next presentable frame, allowing (and validating) the optional keyframe preview
-    /// delivered ahead of a seek pre-roll.
     fn read_skipping_preview(
         sessions: &LavSessions,
         handle: i64,
@@ -1766,8 +1690,6 @@ mod tests {
         rc
     }
 
-    /// Decodes a locally generated test clip end-to-end and checks frame count and padding.
-    /// Requires the FFmpeg CLI to generate the input (skipped when unavailable).
     #[test]
     fn local_file_end_to_end() {
         let ffmpeg_bin = std::env::var("DD_TEST_FFMPEG").unwrap_or_else(|_| "ffmpeg".into());
@@ -1820,8 +1742,6 @@ mod tests {
         sessions.close(handle);
     }
 
-    /// A pasted host must never be told which site the request came from, and a lookalike domain
-    /// must not pass as a platform. The default used to be YouTube for everything.
     #[test]
     fn only_platform_hosts_get_a_referer() {
         assert_eq!(
@@ -1842,8 +1762,6 @@ mod tests {
         );
     }
 
-    /// Pins the per-stage report: it is built from a long argument list where every stage carries
-    /// the same unit, so a reordering would read as plausible numbers against the wrong labels.
     #[test]
     fn stats_report_attributes_each_stage() {
         let mut stats = ReadStats {
@@ -1875,10 +1793,6 @@ mod tests {
         }
     }
 
-    /// Fits a clip into targets that need horizontal and then vertical bars. swscale writes
-    /// straight into the destination planes, so the padding and the centering offsets are its
-    /// own address arithmetic — an off-by-one there shows up as a shifted or torn picture.
-    /// Requires the FFmpeg CLI to generate the input (skipped when unavailable).
     #[test]
     fn padded_targets_keep_bars_and_center_the_picture() {
         let ffmpeg_bin = std::env::var("DD_TEST_FFMPEG").unwrap_or_else(|_| "ffmpeg".into());
@@ -1941,8 +1855,6 @@ mod tests {
         }
     }
 
-    /// Captures packets while decoding a local clip, then snapshots and re-parses the cache blob.
-    /// Requires the FFmpeg CLI to generate the input (skipped when unavailable).
     #[test]
     fn cache_capture_and_snapshot() {
         let ffmpeg_bin = std::env::var("DD_TEST_FFMPEG").unwrap_or_else(|_| "ffmpeg".into());
@@ -1971,7 +1883,6 @@ mod tests {
         let sessions = LavSessions::new();
         let handle = sessions.open(clip.to_str().unwrap(), 640, 360, 0, 0);
         assert_ne!(handle, 0, "open failed.");
-        // Keep the whole clip so the assertions are deterministic
         assert_eq!(
             sessions.enable_cache(handle, i64::MAX / 4, 64 * 1024 * 1024),
             READ_OK
@@ -1986,7 +1897,6 @@ mod tests {
             }
         }
 
-        // Query size, then fill
         let len = sessions.snapshot(handle, &mut []);
         assert!(len > 0, "Snapshot should be non-empty after capture.");
         let mut blob = vec![0u8; len as usize];
@@ -2009,7 +1919,6 @@ mod tests {
             !params.extradata.is_empty(),
             "H.264 in MP4 carries extradata."
         );
-        // PTS should be monotonic and normalized (>= 0 from the start)
         let first_pts = packets.iter().find_map(|p| {
             if p.pts_nanos != crate::cache::NO_PTS {
                 Some(p.pts_nanos)
@@ -2023,8 +1932,6 @@ mod tests {
         sessions.close(handle);
     }
 
-    /// Replays a captured snapshot from the middle and discards keyframe pre-roll.
-    /// Requires the FFmpeg CLI to generate the input (skipped when unavailable).
     #[test]
     fn replay_from_snapshot_mid_stream() {
         let ffmpeg_bin = std::env::var("DD_TEST_FFMPEG").unwrap_or_else(|_| "ffmpeg".into());
@@ -2093,9 +2000,6 @@ mod tests {
         sessions.close(replay);
     }
 
-    /// Seeks an already-open live demuxer and verifies that decode resumes near the target instead
-    /// of returning the old keyframe pre-roll as the first presentable frame.
-    /// Requires the FFmpeg CLI to generate the input (skipped when unavailable).
     #[test]
     fn live_seek_discards_preroll_and_continues() {
         let ffmpeg_bin = std::env::var("DD_TEST_FFMPEG").unwrap_or_else(|_| "ffmpeg".into());
@@ -2184,9 +2088,6 @@ mod tests {
         sessions.close(handle);
     }
 
-    /// A backward seek whose target is still inside the rolling packet cache must be served from
-    /// the ring: frames resume near the target with no demuxer reposition, the ring survives the
-    /// seek (a demuxer seek clears it), and decode continues seamlessly into live reads.
     #[test]
     fn seek_within_cache_window_replays_from_ring() {
         let Some(clip) = generate_clip("dd-lav-cache-seek-test", &[]) else {
@@ -2197,7 +2098,6 @@ mod tests {
         assert_ne!(handle, 0, "Open failed.");
         assert_eq!(sessions.enable_cache(handle, 60_000_000_000, 64 << 20), READ_OK);
 
-        // Play ~3 s so the ring holds several GOPs.
         let mut dst = vec![0u8; 640 * 360 * 3 / 2];
         let mut pts = NO_PTS_NANOS;
         while pts < 3_000_000_000 {
@@ -2237,7 +2137,6 @@ mod tests {
         sessions.close(handle);
     }
 
-    /// Generates a clip via the `FFmpeg` (skipped when unavailable). Returns None on failure.
     fn generate_clip(dir_name: &str, extra_args: &[&str]) -> Option<std::path::PathBuf> {
         let ffmpeg_bin = std::env::var("DD_TEST_FFMPEG").unwrap_or_else(|_| "ffmpeg".into());
         let dir = std::env::temp_dir().join(dir_name);
@@ -2254,10 +2153,6 @@ mod tests {
         status.success().then_some(clip)
     }
 
-    /// Seeking to the very start of a stream whose timestamps begin above zero and whose container is
-    /// fragmented (the streamed DASH shape) must succeed via the unbounded-range retry instead of
-    /// failing the bounded "keyframe at or before 0" lookup — that failure used to kill the reader and
-    /// cascade into a full re-resolve restart from 0.
     #[test]
     fn seek_to_start_with_shifted_timestamps() {
         let Some(clip) = generate_clip(
@@ -2290,9 +2185,6 @@ mod tests {
         sessions.close(handle);
     }
 
-    /// A read aborted by `kill()` (as a live seek does) must report [READ_INTERRUPTED], distinct from
-    /// a real [READ_EOF], and decode must resume afterwards — so the JVM reader never terminates on
-    /// the transient interrupt that repeated seeks trigger.
     #[test]
     fn interrupted_read_is_distinct_from_eof() {
         let Some(clip) = generate_clip("dd-lav-interrupt-test", &[]) else {
@@ -2306,7 +2198,6 @@ mod tests {
         let mut dst = vec![0u8; 640 * 360 * 3 / 2];
         assert_eq!(sessions.read_frame(handle, &mut dst), READ_OK);
 
-        // Interrupt (mirrors a live seek's kill()): the next read aborts as INTERRUPTED, not EOF
         sessions.kill(handle);
         assert_eq!(
             sessions.read_frame(handle, &mut dst),
@@ -2314,7 +2205,6 @@ mod tests {
             "A killed read must be INTERRUPTED, not EOF.",
         );
 
-        // Seeking clears the interrupt; decode resumes normally
         assert_eq!(sessions.seek(handle, 0), READ_OK);
         assert_eq!(
             sessions.read_frame(handle, &mut dst),
