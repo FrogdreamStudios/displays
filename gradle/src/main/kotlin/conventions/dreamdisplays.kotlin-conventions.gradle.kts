@@ -1,3 +1,5 @@
+package conventions
+
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -84,6 +86,7 @@ run {
     val chiselDir = layout.buildDirectory.dir("generated/chisel/main/kotlin")
 
     val chiselSource = tasks.register("chiselSource") {
+        description = "Generate chisel source."
         val outDir = chiselDir.get().asFile
         if (sourceDir.exists()) {
             inputs.dir(sourceDir).withPathSensitivity(PathSensitivity.RELATIVE)

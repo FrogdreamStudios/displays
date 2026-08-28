@@ -1,3 +1,5 @@
+package conventions
+
 import support.natives.cargoAvailable
 import support.natives.hostNativeKey
 import support.natives.nativeLibraryBaseNames
