@@ -12,19 +12,17 @@ import kotlin.time.Duration.Companion.seconds
 /** TTL-bounded LRU memoizer with in-flight request deduplication. */
 class AsyncMemo<K : Any, V : Any>(
     maxSize: Int,
-    private val ttlMs: Long,
+    ttlMs: Long,
     private val scope: CoroutineScope,
     private val tag: String,
 ) {
     private val cacheEnabled = maxSize > 0 && ttlMs > 0
 
-    /** Fresh values. */
     private val cache: Cache<K, V> = Caffeine.newBuilder()
         .maximumSize(if (cacheEnabled) maxSize.toLong() else 0L)
         .expireAfterWrite(ttlMs.coerceAtLeast(1L), TimeUnit.MILLISECONDS)
         .build()
 
-    /** Deferreds for in-flight loads. */
     private val inFlight: ConcurrentMap<K, Deferred<V>> = ConcurrentHashMap()
 
     /** Returns the cached value for [key] if present and younger than the TTL, else null. */
@@ -36,6 +34,7 @@ class AsyncMemo<K : Any, V : Any>(
     }
 
     /** Drops [key] from both the cache and the in-flight map. */
+    @Suppress("DeferredResultUnused")
     fun invalidate(key: K) {
         cache.invalidate(key)
         inFlight.remove(key)

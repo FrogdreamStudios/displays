@@ -35,27 +35,12 @@ object DreamHttpClient {
     private const val DEFAULT_READ_TIMEOUT_MS = 30_000L
     private const val MAX_UNLIMITED_BODY_BYTES = 64 * 1024 * 1024
 
-    /** Sent whenever a caller names no identity of its own; see [request]. */
-    private const val DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
-            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+    private const val DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " + "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
 
-    /**
-     * Requests allowed to be in flight at once against one host that isn't a supported platform.
-     *
-     * A pasted link is fetched by every client that can see the display, and each of them probes,
-     * reads playlists and measures duration. Left uncapped, a room full of displays pointed at one
-     * address is a distributed hammer aimed by whoever pasted it; the platforms have the capacity
-     * (and the relationship with us) that a stranger's server does not.
-     */
     private const val THIRD_PARTY_HOST_CONCURRENCY = 4
-
-    /** How long a request waits for its turn before giving up rather than piling on. */
     private const val THIRD_PARTY_QUEUE_TIMEOUT_MS = 15_000L
-
-    /** Cap on remembered gates, so a session that visits many hosts can't grow this without bound. */
     private const val MAX_TRACKED_HOSTS = 256
 
-    /** Host gates. */
     private val hostGates = ConcurrentHashMap<String, Semaphore>()
 
     /**
@@ -193,7 +178,6 @@ object DreamHttpClient {
         return response.body
     }
 
-    /** Like [execute], but stops reading body after [maxBytes]; closes connection when needed. */
     @Throws(IOException::class)
     fun executeLimited(
         url: String,
@@ -274,9 +258,6 @@ object DreamHttpClient {
         for ((name, values) in options.headers) {
             for (value in values) builder.addHeader(name, value)
         }
-        // Anything a player pastes is fetched by every viewer's client, so the request must say no
-        // more about them than a browser visit would. Without this the default identifies the HTTP
-        // library — and therefore the mod — to whoever runs the host.
         if (options.headers.keys.none { it.equals("User-Agent", ignoreCase = true) }) {
             builder.header("User-Agent", DEFAULT_USER_AGENT)
         }
@@ -321,11 +302,6 @@ object DreamHttpClient {
             .getOrNull()
     }
 
-    /**
-     * Reads the body, throwing when it exceeds [MAX_UNLIMITED_BODY_BYTES] instead of silently
-     * buffering an arbitrarily large response into memory. Requests one byte past the cap so an
-     * oversized body is detected without reading the whole thing.
-     */
     private fun Response.readBodyBytes(url: String): ByteArray {
         val probe = bodyStream().use { it.readAtMost(MAX_UNLIMITED_BODY_BYTES + 1) }
         if (probe.size > MAX_UNLIMITED_BODY_BYTES) {
@@ -334,7 +310,6 @@ object DreamHttpClient {
         return probe
     }
 
-    /** Reads at most [maxBytes] from this stream, returning fewer when it ends first. */
     private fun java.io.InputStream.readAtMost(maxBytes: Int): ByteArray {
         val out = java.io.ByteArrayOutputStream(minOf(maxBytes, DEFAULT_BUFFER_SIZE))
         val buffer = ByteArray(DEFAULT_BUFFER_SIZE)

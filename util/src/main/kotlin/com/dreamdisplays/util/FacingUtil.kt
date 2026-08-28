@@ -8,22 +8,11 @@ import com.dreamdisplays.api.display.model.property.DisplayFacing
  * reorder.
  */
 enum class FacingUtil {
-    /** Facing north (−Z). Wire byte 0. */
     NORTH,
-
-    /** Facing east (+X). Wire byte 1. */
     EAST,
-
-    /** Facing south (+Z). Wire byte 2. */
     SOUTH,
-
-    /** Facing west (−X). Wire byte 3. */
     WEST,
-
-    /** Facing up (+Y). Wire byte 4. */
     UP,
-
-    /** Facing down (−Y). Wire byte 5. */
     DOWN;
 
     /** Serializes this facing to a single byte using its ordinal index. */
@@ -33,7 +22,6 @@ enum class FacingUtil {
     fun toDisplayFacing(): DisplayFacing = DisplayFacing.fromByte(toPacket())
 
     companion object {
-        /** Deserializes a facing from [data] byte; throws [IllegalArgumentException] for out-of-range values. */
         @JvmStatic
         fun fromPacket(data: Byte): FacingUtil {
             val values = entries

@@ -3,11 +3,6 @@ package com.dreamdisplays.util
 import com.dreamdisplays.util.json.DreamJson
 import kotlinx.serialization.json.*
 
-/**
- * Lenient field accessors for `kotlinx.serialization` [JsonObject]s. Each helper returns null instead
- * of throwing when the field is absent, JSON-null, or of the wrong type.
- */
-
 /** Returns [this] as a JSON object, or null when it has another shape. */
 fun JsonElement?.asJsonObjectOrNull(): JsonObject? = this as? JsonObject
 
