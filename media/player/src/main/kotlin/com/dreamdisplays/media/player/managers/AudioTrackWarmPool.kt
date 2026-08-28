@@ -65,7 +65,7 @@ internal class AudioTrackWarmPool(
                 drift >= 0L && drift <= MAX_TAKE_DRIFT_NANOS &&
                 runCatching { w.process.inputStream.available() > 0 }.getOrDefault(false)
         if (!usable) {
-            discardAsync(listOf(w))
+            discardAsync([w])
             return null
         }
         return w

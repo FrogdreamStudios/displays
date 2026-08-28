@@ -14,7 +14,7 @@ import io.github.arnodoelinger.platformweaver.PaperOnly
 @PaperOnly
 object ChannelRegistrar {
     /** Incoming plugin channels. */
-    private val incomingChannels = listOf(
+    private val incomingChannels = [
         "dreamdisplays:sync",
         "dreamdisplays:req_sync",
         "dreamdisplays:delete",
@@ -23,10 +23,10 @@ object ChannelRegistrar {
         "dreamdisplays:display_enabled",
         "dreamdisplays:set_video",
         "dreamdisplays:set_locked"
-    )
+    ]
 
     /** Outgoing plugin channels. */
-    private val outgoingChannels = listOf(
+    private val outgoingChannels = [
         "dreamdisplays:premium",
         "dreamdisplays:is_admin",
         "dreamdisplays:display_info",
@@ -35,7 +35,7 @@ object ChannelRegistrar {
         "dreamdisplays:display_enabled",
         "dreamdisplays:report_enabled",
         "dreamdisplays:clear_cache"
-    )
+    ]
 
     /** Registers all incoming and outgoing plugin messaging channels for this plugin. */
     fun registerChannels(plugin: PaperServer) {

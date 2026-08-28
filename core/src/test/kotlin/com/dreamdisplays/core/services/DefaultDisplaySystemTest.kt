@@ -27,7 +27,7 @@ class DefaultDisplaySystemTest {
         system.recordDisplay(display)
 
         assertEquals(display, system.getDisplay(id))
-        assertEquals(listOf(display), system.listDisplays())
+        assertEquals([display], system.listDisplays())
         assertIs<DisplayEvent.Created>(events.single())
     }
 
@@ -51,11 +51,11 @@ class DefaultDisplaySystemTest {
         )
 
         assertEquals(
-            listOf(
+            [
                 DisplayEvent.SettingsChanged::class,
                 DisplayEvent.StateChanged::class,
                 DisplayEvent.UrlChanged::class,
-            ),
+            ],
             events.map { it::class },
         )
     }

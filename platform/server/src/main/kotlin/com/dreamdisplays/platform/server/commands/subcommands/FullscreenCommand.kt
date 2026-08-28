@@ -253,7 +253,7 @@ object PaperFullscreenCommand {
     fun stop(sender: CommandSender, idOrAll: String) {
         val networkIds =
             if (idOrAll.equals("all", ignoreCase = true)) FullscreenCommand.list().map { it.sessionId }
-            else listOf(idOrAll)
+            else [idOrAll]
 
         val count = FullscreenCommand.stop(idOrAll)
 
@@ -457,7 +457,7 @@ object VanillaFullscreenCommand {
         val player = ctx.source.entity as? ServerPlayer
         val networkIds =
             if (idOrAll.equals("all", ignoreCase = true)) FullscreenCommand.list().map { it.sessionId }
-            else listOf(idOrAll)
+            else [idOrAll]
 
         val count = FullscreenCommand.stop(idOrAll)
 

@@ -45,7 +45,7 @@ object VanillaPlaybackTransport : PlaybackTransport {
     override fun sendTo(playerId: UUID, packet: DreamPacket) {
         val s = server ?: return
         val player = s.playerList.getPlayer(playerId) ?: return
-        if (V2PlayerTracker.isV2(playerId)) VanillaNetworking.adapter.sendV2(listOf(player), packet)
+        if (V2PlayerTracker.isV2(playerId)) VanillaNetworking.adapter.sendV2([player], packet)
     }
 
     /** UUIDs of players currently in range of [display] (watch-party nearby / ready-check denominator). */
@@ -82,7 +82,7 @@ object VanillaPlaybackTransport : PlaybackTransport {
     override fun sendDisplayInfo(playerId: UUID, display: DisplayData, forced: Boolean) {
         val vanilla = display as? VanillaDisplayData ?: return
         val player = server?.playerList?.getPlayer(playerId) ?: return
-        VanillaPacketUtil.sendDisplayInfo(listOf(player), vanilla, forced)
+        VanillaPacketUtil.sendDisplayInfo([player], vanilla, forced)
     }
 
     /** Runs [task] on the main server thread. */

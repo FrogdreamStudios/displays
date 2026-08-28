@@ -145,7 +145,7 @@ internal object RenderPipelineCompat {
         withBindGroupLayout.invoke(builder, vanillaLayout("FOG"))
         withBindGroupLayout.invoke(
             builder,
-            if (samplers == listOf("Sampler0")) vanillaLayout("SAMPLER0") else samplerLayout(samplers),
+            if (samplers == ["Sampler0"]) vanillaLayout("SAMPLER0") else samplerLayout(samplers),
         )
 
         builderClass.getMethod("withVertexBinding", Int::class.javaPrimitiveType, VertexFormat::class.java)

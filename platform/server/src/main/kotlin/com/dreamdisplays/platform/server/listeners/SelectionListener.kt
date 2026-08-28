@@ -61,7 +61,7 @@ class SelectionListener(plugin: PaperServer) : Listener {
         }
     }
 
-    private val Action.isRightClick get() = this in listOf(RIGHT_CLICK_AIR, RIGHT_CLICK_BLOCK)
+    private val Action.isRightClick get() = this in [RIGHT_CLICK_AIR, RIGHT_CLICK_BLOCK]
 
     private fun org.bukkit.entity.Player.facingDirection(): org.bukkit.block.BlockFace = when {
         location.pitch < -45f -> org.bukkit.block.BlockFace.DOWN

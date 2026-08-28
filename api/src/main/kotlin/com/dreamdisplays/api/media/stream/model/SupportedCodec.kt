@@ -28,7 +28,7 @@ enum class SupportedCodec(override val wire: String, private vararg val prefixes
 
     companion object {
         /** Codecs advertised by the default client capability detector. */
-        val advertised: List<SupportedCodec> = listOf(H264, HEVC, VP9, AV1)
+        val advertised: List<SupportedCodec> = [H264, HEVC, VP9, AV1]
 
         /** Returns the enum value corresponding to the given wire value, or [UNKNOWN] if not found. */
         fun fromWire(raw: String?): SupportedCodec = wireEnumValueOf(raw, UNKNOWN)

@@ -2,19 +2,19 @@ package support.natives
 
 import java.io.File
 
-val nativePlatformKeys = listOf(
+val nativePlatformKeys = [
     "linux-x64",
     "linux-aarch64",
     "macos-x64",
     "macos-aarch64",
     "windows-x64",
     "windows-aarch64",
-)
+]
 
-val nativeLibraryBaseNames = listOf(
+val nativeLibraryBaseNames = [
     "dreamdisplays_native",
     "dreamdisplays_lav",
-)
+]
 
 fun nativeLibraryName(platformKey: String, baseName: String): String = when {
     platformKey.startsWith("windows-") -> "$baseName.dll"

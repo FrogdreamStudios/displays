@@ -144,7 +144,7 @@ object StateManager {
         val state = playStates[displayId] ?: return
 
         val packet = state.createPacket()
-        PacketUtil.sendSync(listOf(player), packet)
+        PacketUtil.sendSync([player], packet)
     }
 
     /** Sends the current sync packet for display [id] to a single [player], if state exists. */
@@ -154,7 +154,7 @@ object StateManager {
         val state = playStates[displayId] ?: return
         val display = getDisplayData(displayId) as? VanillaDisplayData
         val packet = state.createPacket(display)
-        VanillaPacketUtil.sendSync(listOf(player), packet)
+        VanillaPacketUtil.sendSync([player], packet)
     }
 
     /**

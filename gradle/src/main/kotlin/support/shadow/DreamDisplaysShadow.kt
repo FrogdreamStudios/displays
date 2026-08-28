@@ -3,7 +3,7 @@ package support.shadow
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.gradle.api.file.CopySpec
 
-val dreamDisplaysSharedModules = listOf(
+val dreamDisplaysSharedModules = [
     ":platform:client:common",
     ":core",
     ":api",
@@ -12,9 +12,9 @@ val dreamDisplaysSharedModules = listOf(
     ":media:source",
     ":media:player",
     ":media:audio",
-)
+]
 
-val dreamDisplaysShadedDependencies = listOf(
+val dreamDisplaysShadedDependencies = [
     "org.jetbrains.kotlinx:kotlinx-serialization-core",
     "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm",
     "org.jetbrains.kotlinx:kotlinx-serialization-protobuf",
@@ -48,9 +48,9 @@ val dreamDisplaysShadedDependencies = listOf(
     "com.google.protobuf:protobuf-javalite",
     "org.mozilla:rhino",
     "org.mozilla:rhino-engine",
-)
+]
 
-val dreamDisplaysShadedPackages = listOf(
+val dreamDisplaysShadedPackages = [
     "org.apache.commons.compress",
     "org.tukaani.xz",
     "kotlin",
@@ -71,9 +71,9 @@ val dreamDisplaysShadedPackages = listOf(
     "com.google.protobuf",
     "org.mozilla.javascript",
     "org.mozilla.classfile",
-)
+]
 
-val dreamDisplaysSqliteNativeExcludes = listOf(
+val dreamDisplaysSqliteNativeExcludes = [
     "org/sqlite/native/Linux-Android/**",
     "org/sqlite/native/Linux-Musl/x86/**",
     "org/sqlite/native/FreeBSD/**",
@@ -86,7 +86,7 @@ val dreamDisplaysSqliteNativeExcludes = listOf(
     "org/sqlite/native/Windows/x86/**",
     "org/sqlite/native/Windows/armv7/**",
     "org/sqlite/native/Windows/aarch64/**",
-)
+]
 
 fun ShadowJar.includeDreamDisplaysSharedContents() {
     dependencies {

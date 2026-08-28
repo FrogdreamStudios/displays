@@ -239,7 +239,7 @@ class DisplayTextureResource(private val uuid: UUID) {
         var y: AbstractTexture? = null
         var u: AbstractTexture? = null
         var v: AbstractTexture? = null
-        val ids = listOf("y" to (w to h), "u" to (cw to ch), "v" to (cw to ch)).map { (plane, dims) ->
+        val ids = ["y" to (w to h), "u" to (cw to ch), "v" to (cw to ch)].map { (plane, dims) ->
             val id = Identifier.fromNamespaceAndPath(Initializer.MOD_ID, "screen-$plane-plane-$suffix.")
             val tex =
                 DisplayYuvRenderTypes.createPlaneTexture("dreamdisplays $plane plane $uuid.", dims.first, dims.second)

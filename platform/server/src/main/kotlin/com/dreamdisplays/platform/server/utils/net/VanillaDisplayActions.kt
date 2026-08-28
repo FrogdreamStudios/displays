@@ -93,12 +93,12 @@ object VanillaDisplayActions {
         val batchSize = 5
         displays.chunked(batchSize).forEachIndexed { index, batch ->
             if (index == 0) {
-                batch.forEach { VanillaPacketUtil.sendDisplayInfo(listOf(player), it) }
+                batch.forEach { VanillaPacketUtil.sendDisplayInfo([player], it) }
             } else {
                 val delayTicks = (index * 2).toLong()
                 VanillaServerScheduler.runLater(server, delayTicks) {
                     if (server.playerList.players.contains(player)) {
-                        batch.forEach { VanillaPacketUtil.sendDisplayInfo(listOf(player), it) }
+                        batch.forEach { VanillaPacketUtil.sendDisplayInfo([player], it) }
                     }
                 }
             }

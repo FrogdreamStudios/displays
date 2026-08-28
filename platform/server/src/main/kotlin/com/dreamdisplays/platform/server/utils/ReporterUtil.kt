@@ -69,15 +69,15 @@ object ReporterUtil {
             description = EMBED_TITLE,
             color = EMBED_COLOR,
             timestamp = Clock.System.now().toString(),
-            fields = listOf(
+            fields = [
                 createField("Location", locationStr),
                 createField("Video", videoLink),
                 createField("UUID", displayId.toString()),
                 createField("Reporter", reporterName),
                 createField("Owner", ownerName),
-            ),
+            ],
         )
-        return DreamJson.compact.encodeToString(WebhookPayload(listOf(embed)))
+        return DreamJson.compact.encodeToString(WebhookPayload([embed]))
     }
 
     /** Creates a Discord embed field with the given [name], [value], and [inline] status. */

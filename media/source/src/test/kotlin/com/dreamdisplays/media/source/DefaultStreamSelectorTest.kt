@@ -43,7 +43,7 @@ class DefaultStreamSelectorTest {
         val audioOnly =
             stream("https://euc12.playlist.ttvnw.net/v1/playlist/audio", MediaStreamType.AUDIO, bitrate = 160_000)
 
-        val set = selector.select(listOf(v1080, v720, audioOnly), StreamPreferences(720, false, null, null, false))
+        val set = selector.select([v1080, v720, audioOnly], StreamPreferences(720, false, null, null, false))
 
         assertEquals(v720.url, set.videoStream?.url)
         assertEquals(audioOnly.url, set.audioStream?.url)
@@ -56,7 +56,7 @@ class DefaultStreamSelectorTest {
         val adaptive =
             stream("https://rr1.googlevideo.com/videoplayback?itag=140", MediaStreamType.AUDIO, bitrate = 128_000)
 
-        val set = selector.select(listOf(muxed, adaptive), StreamPreferences(720, false, null, null, false))
+        val set = selector.select([muxed, adaptive], StreamPreferences(720, false, null, null, false))
 
         assertEquals(muxed.url, set.videoStream?.url)
         assertEquals(muxed.url, set.audioStream?.url)

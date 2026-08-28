@@ -37,10 +37,10 @@ import java.util.concurrent.CompletableFuture
 @PaperOnly
 object CommandRegistrar {
     /** Suggestion tokens for the fullscreen `quality` flag. */
-    private val QUALITY_SUGGESTIONS = listOf("auto", "360", "480", "720", "1080")
+    private val QUALITY_SUGGESTIONS = ["auto", "360", "480", "720", "1080"]
 
     /** Selector tokens suggested for the fullscreen `target` argument, alongside online player names. */
-    private val TARGET_SELECTORS = listOf("@a", "@p", "@r", "@s", "@e")
+    private val TARGET_SELECTORS = ["@a", "@p", "@r", "@s", "@e"]
 
     /**
      * The fullscreen-start flags, in the one order they may be given in. `server` comes first: it
@@ -48,7 +48,7 @@ object CommandRegistrar {
      * narrow who within that scope actually sees it.
      */
     private val FULLSCREEN_FLAGS =
-        listOf("server", "target", "radius", "mode", "forced", "transient", "volume", "looped", "quality")
+        ["server", "target", "radius", "mode", "forced", "transient", "volume", "looped", "quality"]
 
     /** Builds the full `Brigadier` tree for the `/display` command with all subcommands. */
     fun buildDisplayCommand(): LiteralCommandNode<CommandSourceStack> = Commands.literal("display")
@@ -408,7 +408,7 @@ object CommandRegistrar {
     private fun fullscreenFlagsNode(): List<CommandNode<CommandSourceStack>> {
         var following = emptyList<CommandNode<CommandSourceStack>>()
         for (name in FULLSCREEN_FLAGS.asReversed()) {
-            following = listOf(buildFullscreenFlagNode(name, following)) + following
+            following = [buildFullscreenFlagNode(name, following)] + following
         }
         return following
     }

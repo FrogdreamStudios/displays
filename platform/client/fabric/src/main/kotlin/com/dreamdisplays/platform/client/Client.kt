@@ -65,11 +65,11 @@ class Client : ClientModInitializer, Mod {
         }
 
         // Frozen v1 receivers for pre-v2 servers; payloads are lifted into v2 packets
-        listOf(
+        [
             Packets.Info.PACKET_ID, Packets.Premium.PACKET_ID, Packets.IsAdmin.PACKET_ID,
             Packets.Delete.PACKET_ID, Packets.DisplayEnabled.PACKET_ID, Packets.Sync.PACKET_ID,
             Packets.ReportEnabled.PACKET_ID, Packets.ClearCache.PACKET_ID,
-        ).forEach { type ->
+        ].forEach { type ->
             ClientPlayNetworking.registerGlobalReceiver(type) { payload, _ ->
                 Initializer.onLegacyPacket(payload)
             }

@@ -47,7 +47,7 @@ class CustomMediaPolicyTest {
         CustomMediaPolicy.Verdict.HOST_BLOCKED,
         CustomMediaPolicy.evaluate(
             "https://bad.example/v.mp4",
-            CustomMediaPolicy.Settings(blockedHosts = listOf("bad.example")),
+            CustomMediaPolicy.Settings(blockedHosts = ["bad.example"]),
         ),
     )
 
@@ -56,7 +56,7 @@ class CustomMediaPolicyTest {
         CustomMediaPolicy.Verdict.HOST_BLOCKED,
         CustomMediaPolicy.evaluate(
             "https://cdn.bad.example/v.mp4",
-            CustomMediaPolicy.Settings(blockedHosts = listOf("bad.example")),
+            CustomMediaPolicy.Settings(blockedHosts = ["bad.example"]),
         ),
     )
 
@@ -65,13 +65,13 @@ class CustomMediaPolicyTest {
         CustomMediaPolicy.Verdict.HOST_BLOCKED,
         CustomMediaPolicy.evaluate(
             "https://cdn.bad.example/v.mp4",
-            CustomMediaPolicy.Settings(blockedHosts = listOf("*.bad.example")),
+            CustomMediaPolicy.Settings(blockedHosts = ["*.bad.example"]),
         ),
     )
 
     @Test
     fun allowlistRefusesEverythingElse() {
-        val settings = CustomMediaPolicy.Settings(allowedHosts = listOf("files.myserver.net"))
+        val settings = CustomMediaPolicy.Settings(allowedHosts = ["files.myserver.net"])
         assertEquals(
             CustomMediaPolicy.Verdict.ALLOWED,
             CustomMediaPolicy.evaluate("https://files.myserver.net/v.mp4", settings),
@@ -88,8 +88,8 @@ class CustomMediaPolicyTest {
         CustomMediaPolicy.evaluate(
             "https://files.example/v.mp4",
             CustomMediaPolicy.Settings(
-                allowedHosts = listOf("files.example"),
-                blockedHosts = listOf("files.example"),
+                allowedHosts = ["files.example"],
+                blockedHosts = ["files.example"],
             ),
         ),
     )

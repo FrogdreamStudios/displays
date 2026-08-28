@@ -9,10 +9,10 @@ import kotlin.test.assertTrue
 class MediaProcessArgsTest {
     private val url = "https://cdn.example.com/vod/v1/prog_index.m3u8"
 
-    private val httpOnly = listOf(
+    private val httpOnly = [
         "-headers", "-reconnect", "-reconnect_streamed", "-reconnect_delay_max",
         "-reconnect_on_network_error", "-reconnect_on_http_error", "-multiple_requests",
-    )
+    ]
 
     private fun args(offsetNanos: Long, seekByDecoding: Boolean, trimmed: HlsSeekPlaylist.Trimmed? = null) =
         MediaProcess.inputCommand("FFMPEG", url, offsetNanos, HwAccelBackend.NONE, seekByDecoding, trimmed)
@@ -37,7 +37,7 @@ class MediaProcessArgsTest {
         assertEquals(trimmed.url, a.valueOf("-i"))
         httpOnly.forEach { assertFalse(it in a, "$it cannot be applied to a data: input.") }
         assertEquals("3", a.valueOf("-seg_max_retry"))
-        assertContentEquals(listOf("-f", "hls"), a.subList(a.indexOf("-f"), a.indexOf("-f") + 2))
+        assertContentEquals(["-f", "hls"], a.subList(a.indexOf("-f"), a.indexOf("-f") + 2))
         assertEquals("2.500000", a.valueOf("-ss"))
         assertTrue(a.indexOf("-ss") > a.indexOf("-i"), "The residual is an output-side skip.")
     }
@@ -54,7 +54,7 @@ class MediaProcessArgsTest {
 
     @Test
     fun `playback from the start never asks for a seek`() {
-        for (seekByDecoding in listOf(false, true)) {
+        for (seekByDecoding in [false, true]) {
             val a = args(0L, seekByDecoding)
             assertFalse("-ss" in a, "Nothing to seek to at offset 0 (seekByDecoding=$seekByDecoding).")
             assertEquals(url, a.valueOf("-i"))

@@ -37,19 +37,19 @@ class DefaultDreamDisplaysRuntimeTest {
         val runtime = DefaultRuntime()
         val events = mutableListOf<String>()
 
-        runtime.registerModule(recordingModule("test:feature", dependencies = listOf("test:base"), events))
+        runtime.registerModule(recordingModule("test:feature", dependencies = ["test:base"], events))
         runtime.registerModule(recordingModule("test:base", events = events))
 
         runtime.start()
         runtime.stop()
 
         assertEquals(
-            listOf(
+            [
                 "install:test:base",
                 "install:test:feature",
                 "uninstall:test:feature",
                 "uninstall:test:base",
-            ),
+            ],
             events,
         )
     }
@@ -60,7 +60,7 @@ class DefaultDreamDisplaysRuntimeTest {
         runtime.registerModule(
             recordingModule(
                 "test:feature",
-                dependencies = listOf("test:missing"),
+                dependencies = ["test:missing"],
                 events = mutableListOf()
             )
         )
@@ -76,17 +76,17 @@ class DefaultDreamDisplaysRuntimeTest {
         val events = mutableListOf<String>()
 
         runtime.registerModule(recordingModule("test:base", events = events))
-        runtime.registerModule(failingModule("test:feature", dependencies = listOf("test:base"), events))
+        runtime.registerModule(failingModule("test:feature", dependencies = ["test:base"], events))
 
         val error = runCatching { runtime.start() }.exceptionOrNull()
 
         assertEquals("boom:test:feature", error?.message)
         assertEquals(
-            listOf(
+            [
                 "install:test:base",
                 "install:test:feature",
                 "uninstall:test:base",
-            ),
+            ],
             events,
         )
         assertEquals(emptySet(), runtime.installedModuleIds)

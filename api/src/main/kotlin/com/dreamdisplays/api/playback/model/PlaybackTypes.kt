@@ -36,7 +36,7 @@ enum class PlaybackMode {
         fun fromWire(wire: Int): PlaybackMode = byWire[wire] ?: LOCAL
 
         /** Persistable base modes a display can hold; excludes the ephemeral [WATCH_PARTY]. */
-        val baseModes: List<PlaybackMode> = listOf(LOCAL, SYNCED, BROADCAST)
+        val baseModes: List<PlaybackMode> = [LOCAL, SYNCED, BROADCAST]
 
         /** True if [mode] is a valid persistent base mode (i.e. not [WATCH_PARTY]). */
         fun isBaseMode(mode: PlaybackMode): Boolean = mode != WATCH_PARTY

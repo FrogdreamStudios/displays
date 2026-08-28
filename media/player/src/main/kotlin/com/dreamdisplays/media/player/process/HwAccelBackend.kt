@@ -47,7 +47,7 @@ enum class HwAccelBackend(val ffmpegName: String?, val hwOutputFormat: String?, 
             return HWACCEL_FAIL_MARKERS.any { s.contains(it) }
         }
 
-        private val HWACCEL_FAIL_MARKERS = listOf(
+        private val HWACCEL_FAIL_MARKERS = [
             "hwaccel",
             "videotoolbox",
             "d3d11va",
@@ -63,6 +63,6 @@ enum class HwAccelBackend(val ffmpegName: String?, val hwOutputFormat: String?, 
             "decoder does not support",
             "scale_vt",
             "no such filter",
-        )
+        ]
     }
 }

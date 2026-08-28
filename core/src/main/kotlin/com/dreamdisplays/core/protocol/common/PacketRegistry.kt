@@ -62,7 +62,7 @@ object PacketRegistry {
         fun encode(proto: ProtoBuf, packet: DreamPacket): ByteArray = proto.encodeToByteArray(serializer, type.cast(packet))
     }
 
-    private val entries: List<Entry<out DreamPacket>> = listOf(
+    private val entries: List<Entry<out DreamPacket>> = [
         Entry(PacketType.CLIENT_HELLO, ClientHello::class, ClientHello.serializer()),
         Entry(PacketType.SERVER_HELLO, ServerHello::class, ServerHello.serializer()),
         Entry(PacketType.DISPLAY_INFO, DisplayInfo::class, DisplayInfo.serializer()),
@@ -85,7 +85,7 @@ object PacketRegistry {
         Entry(PacketType.PIP_PIN, PipPin::class, PipPin.serializer()),
         Entry(PacketType.REPORT_DURATION, ReportDuration::class, ReportDuration.serializer()),
         Entry(PacketType.REMOTE_PLAYBACK_TOGGLE, RemotePlaybackToggle::class, RemotePlaybackToggle.serializer()),
-    )
+    ]
 
     private val byId = entries.associateBy { it.id }
     private val byType = entries.associateBy { it.type }

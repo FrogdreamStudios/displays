@@ -166,7 +166,7 @@ object PacketUtil {
     /** Pushes the global displays-enabled flag for [player] to the client. */
     fun sendDisplayEnabled(player: Player, isEnabled: Boolean) {
         if (V2PlayerTracker.isV2(player.uniqueId)) {
-            PaperV2Networking.send(listOf(player), SetDisplaysEnabled(isEnabled))
+            PaperV2Networking.send([player], SetDisplaysEnabled(isEnabled))
         } else {
             sendBooleanPacket(player, CHANNEL_DISPLAY_ENABLED, isEnabled)
         }

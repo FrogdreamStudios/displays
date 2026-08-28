@@ -7,7 +7,7 @@ import kotlinx.serialization.protobuf.schema.ProtoBufSchemaGenerator
 import java.io.File
 
 fun generateProtoSchema(): String = ProtoBufSchemaGenerator.generateSchemaText(
-    listOf(Envelope.serializer().descriptor) + PacketRegistry.schemaDescriptors,
+    [Envelope.serializer().descriptor] + PacketRegistry.schemaDescriptors,
     packageName = "dreamdisplays.v2",
 )
 

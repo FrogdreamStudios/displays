@@ -103,7 +103,7 @@ private fun showCurrent(data: DisplayData, viewerId: UUID, localize: (String, Li
     val localSecond = ScheduleTimeUtil.localSecondOfDay(at, ScheduleTimeUtil.offsetMinutesOf(viewerId))
     return localize(
         "scheduleCurrentSet",
-        listOf(localize(actionKey(action), emptyList()), ScheduleTimeUtil.format(localSecond, withSeconds = true)),
+        [localize(actionKey(action), emptyList()), ScheduleTimeUtil.format(localSecond, withSeconds = true)],
     )
 }
 
@@ -123,7 +123,7 @@ private fun onAction(
     val offset = ScheduleTimeUtil.offsetMinutesOf(playerId)
     if (time == null) {
         val nowSecond = ScheduleTimeUtil.currentSecondOfDay(offset)
-        return localize("scheduleNeedsTime", listOf(ScheduleTimeUtil.format(nowSecond, withSeconds = true)))
+        return localize("scheduleNeedsTime", [ScheduleTimeUtil.format(nowSecond, withSeconds = true)])
     }
 
     val targetSecond = ScheduleTimeUtil.parseSecondOfDay(time)
@@ -139,25 +139,25 @@ private fun onAction(
     val countdown = when {
         secondsAhead >= 3600 -> localize(
             "scheduleCountdownHours",
-            listOf((secondsAhead / 3600).toString(), ((secondsAhead % 3600) / 60).toString())
+            [(secondsAhead / 3600).toString(), ((secondsAhead % 3600) / 60).toString()]
         )
 
         secondsAhead >= 60 -> localize(
             "scheduleCountdownMinutes",
-            listOf((secondsAhead / 60).toString(), (secondsAhead % 60).toString())
+            [(secondsAhead / 60).toString(), (secondsAhead % 60).toString()]
         )
 
-        else -> localize("scheduleCountdownSeconds", listOf(secondsAhead.toString()))
+        else -> localize("scheduleCountdownSeconds", [secondsAhead.toString()])
     }
     return localize(
         "scheduleSet",
-        listOf(
+        [
             ScheduleTimeUtil.format(nowSecond, withSeconds = true),
             data.shortLabel,
             localize(actionKey(action), emptyList()),
             ScheduleTimeUtil.format(targetSecond, withSeconds = true),
             countdown,
-        ),
+        ],
     )
 }
 

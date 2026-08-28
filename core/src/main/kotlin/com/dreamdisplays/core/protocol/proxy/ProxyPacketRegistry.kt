@@ -61,7 +61,7 @@ object ProxyPacketRegistry {
         fun encode(proto: ProtoBuf, packet: ProxyPacket): ByteArray = proto.encodeToByteArray(serializer, type.cast(packet))
     }
 
-    private val entries: List<Entry<out ProxyPacket>> = listOf(
+    private val entries: List<Entry<out ProxyPacket>> = [
         Entry(ProxyPacketType.BACKEND_HELLO, BackendHello::class, BackendHello.serializer()),
         Entry(ProxyPacketType.PROXY_WELCOME, ProxyWelcome::class, ProxyWelcome.serializer()),
         Entry(ProxyPacketType.CLOCK_PROBE, ClockProbe::class, ClockProbe.serializer()),
@@ -85,7 +85,7 @@ object ProxyPacketRegistry {
         Entry(ProxyPacketType.DISPLAY_TOKEN_RESOLVED, DisplayTokenResolved::class, DisplayTokenResolved.serializer()),
         Entry(ProxyPacketType.PLAYER_FULLSCREEN_MINIMIZED, PlayerFullscreenMinimized::class, PlayerFullscreenMinimized.serializer()),
         Entry(ProxyPacketType.BACKEND_DISPLAY_INDEX, BackendDisplayIndex::class, BackendDisplayIndex.serializer()),
-    )
+    ]
 
     private val byId = entries.associateBy { it.id }
     private val byType = entries.associateBy { it.type }

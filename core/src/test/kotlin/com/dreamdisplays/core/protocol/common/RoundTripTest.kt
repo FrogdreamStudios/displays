@@ -29,7 +29,7 @@ class RoundTripTest {
             modVersion = "1.8.0",
             supportsPopout = true,
             maxTextureSize = 8192,
-            supportedCodecs = listOf("h264", "vp9", "av1"),
+            supportedCodecs = ["h264", "vp9", "av1"],
             supportsAudio = false,
             systemRamMb = 16 * 1024,
             maxJvmMemoryMb = 4 * 1024,
@@ -45,7 +45,7 @@ class RoundTripTest {
             isAdmin = true,
             isReportingEnabled = true,
             maxDisplays = 25,
-            allowedFeatures = listOf("popout", "pip"),
+            allowedFeatures = ["popout", "pip"],
         )
     )
 
@@ -88,7 +88,7 @@ class RoundTripTest {
         roundTrip(SetLocked(id, locked = false))
         roundTrip(ReportDisplay(id))
         roundTrip(SetDisplaysEnabled(enabled = false))
-        roundTrip(ClearCache(listOf(id, owner)))
+        roundTrip(ClearCache([id, owner]))
         roundTrip(ClearCache(emptyList()))
     }
 

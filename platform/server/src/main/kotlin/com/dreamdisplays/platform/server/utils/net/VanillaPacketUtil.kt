@@ -101,7 +101,7 @@ object VanillaPacketUtil {
     /** Pushes the global displays-enabled flag for [player] to the client. */
     fun sendDisplayEnabled(player: ServerPlayer, isEnabled: Boolean) {
         if (V2PlayerTracker.isV2(player.uuid)) {
-            VanillaNetworking.adapter.sendV2(listOf(player), SetDisplaysEnabled(isEnabled))
+            VanillaNetworking.adapter.sendV2([player], SetDisplaysEnabled(isEnabled))
         } else {
             VanillaNetworking.adapter.sendLegacy(player, Packets.DisplayEnabled(isEnabled))
         }
