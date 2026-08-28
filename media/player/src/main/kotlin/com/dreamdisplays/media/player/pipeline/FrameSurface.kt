@@ -13,10 +13,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
 
-/**
- * Render-facing half of a frame pipe, shared by [VideoFramePipe] and [NativeVideoFramePipe]: the reusable direct-buffer
- * pool and GPU upload plumbing.
- */
+/** Render-facing half of [NativeVideoFramePipe]: the reusable direct-buffer pool and GPU upload plumbing. */
 internal class FrameSurface(
     private val debugLabel: String,
     uploaderFactory: FrameUploaderFactory,

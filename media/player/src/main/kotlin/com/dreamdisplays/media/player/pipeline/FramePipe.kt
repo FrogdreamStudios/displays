@@ -7,11 +7,7 @@ import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.locks.LockSupport
 
-/**
- * Render-facing contract shared by the JVM ([VideoFramePipe]) and native
- * ([NativeVideoFramePipe]) video pipes. Starting and stopping a session stays on the
- * concrete types because their inputs differ (an owned [Process] vs. a native handle).
- */
+/** Render-facing contract for the native ([NativeVideoFramePipe]) video pipe. */
 internal interface FramePipe {
     /** Updated by the reader thread on every frame; used by the watchdog to detect stalls. */
     val lastFrameReceivedNanos: AtomicLong

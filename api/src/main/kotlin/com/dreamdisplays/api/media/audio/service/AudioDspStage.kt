@@ -1,6 +1,7 @@
 package com.dreamdisplays.api.media.audio.service
 
 import com.dreamdisplays.api.Unstable
+import com.dreamdisplays.api.media.audio.model.SourceAcousticState
 
 /**
  * Per-source audio DSP stage applied to S16LE PCM in place; one per playback source.
@@ -14,6 +15,9 @@ interface AudioDspStage : AutoCloseable {
 
     /** Resets internal filter / delay-line state; called at the start of every fresh playback session. */
     fun reset()
+
+    /** The most recently published geometry / mix state, or null before the first [process] update. */
+    fun latestState(): SourceAcousticState? = null
 
     /** Close. */
     override fun close() {}

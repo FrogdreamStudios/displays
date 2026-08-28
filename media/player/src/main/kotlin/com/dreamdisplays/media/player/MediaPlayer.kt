@@ -14,6 +14,7 @@ import com.dreamdisplays.media.player.managers.PlaybackSessionManager
 import com.dreamdisplays.media.player.managers.StatsReporter
 import com.dreamdisplays.media.player.managers.StreamWatchdog
 import com.dreamdisplays.media.player.managers.WarmTrack
+import com.dreamdisplays.media.player.nativebridge.NativeMedia
 import com.dreamdisplays.media.player.pipeline.PlaybackClock
 import com.dreamdisplays.media.player.policy.RetryPolicy
 import com.dreamdisplays.media.player.preparation.MediaPreparationService
@@ -44,8 +45,18 @@ class MediaPlayer(
     replayBootstrap: ReplayBootstrap? = null,
     private val audioStage: AudioDspStage? = null,
 ) {
-    /** One-shot native packet-cache bootstrap for display reappearance (includes optional audio PCM). */
-    data class ReplayBootstrap(val snapshot: ByteArray, val positionNanos: Long, val audioPcm: ByteArray? = null) {
+    /**
+     * One-shot native packet-cache bootstrap for display reappearance (includes optional audio PCM).
+     * [audioSampleRate] / [audioChannels] describe [audioPcm]'s raw interleaved f32 format (the native
+     * audio engine's device format is not guaranteed to stay the same across a reappearance gap).
+     */
+    data class ReplayBootstrap(
+        val snapshot: ByteArray,
+        val positionNanos: Long,
+        val audioPcm: ByteArray? = null,
+        val audioSampleRate: Int = 0,
+        val audioChannels: Int = 0,
+    ) {
         /** Cached resolved streams for fast reappear (null = skip / re-resolve). */
         var prepared: PreparedMedia? = null
     }
@@ -547,7 +558,7 @@ class MediaPlayer(
     fun captureReplaySnapshot(): ByteArray? = sessionManager.captureVideoCacheSnapshot()
 
     /** Captures the recent PCM window (matching the replay video lead) for the reappearance audio bridge. */
-    fun captureReplayAudio(): ByteArray? = sessionManager.captureAudioPcm(REPLAY_LEAD_NS)
+    fun captureReplayAudio(): NativeMedia.PcmSnapshot? = sessionManager.captureAudioPcm(REPLAY_LEAD_NS)
 
     /**
      * Captures resolved streams for fast reappear (null for live streams or before init).
@@ -698,7 +709,10 @@ class MediaPlayer(
     private fun startReplayBootstrapVideo(boot: ReplayBootstrap) {
         if (terminated.get()) return
         val resume = (boot.positionNanos - REPLAY_LEAD_NS).coerceAtLeast(0L)
-        if (sessionManager.startReplayVideoOnly(boot.snapshot, resume, boot.positionNanos, boot.audioPcm)) {
+        if (sessionManager.startReplayVideoOnly(
+                boot.snapshot, resume, boot.positionNanos, boot.audioPcm, boot.audioSampleRate, boot.audioChannels,
+            )
+        ) {
             replayVideoActive.set(true)
             state.set(PlaybackState.PLAYING)
             logger.debug("$debugLabel Replay bootstrap shown instantly, resuming at ${"%.1f".format(resume / 1_000_000.0)}ms.")
@@ -839,10 +853,6 @@ class MediaPlayer(
         }
         if (!liveStream && durationHintNanos > 0L && durationHintNanos - clock.currentTime() <= AUDIO_EOS_NEAR_END_GUARD_NS) {
             logger.debug("$debugLabel Audio pipe ended near VOD end (pos=${clock.currentTime()}, dur=$durationHintNanos); deferring to video EOS.")
-            return
-        }
-        if (liveStream && sessionManager.audioSourceGone()) {
-            handleSessionStall("live audio source stopped serving")
             return
         }
         val now = System.nanoTime()
