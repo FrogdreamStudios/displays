@@ -31,6 +31,12 @@ interface PlaybackHost {
     /** Effective playback mode (Watch Party overrides the display's own mode). */
     val effectiveMode: PlaybackMode
 
+    /**
+     * False when a non-looping fullscreen mode should stop at the end of the VOD instead of
+     * restarting it; true everywhere else.
+     */
+    val shouldLoopOnEnd: Boolean
+
     /** Content aspect ratio of the resolved video; the player updates this on (re)resolve. */
     var videoContentAspect: Double
 

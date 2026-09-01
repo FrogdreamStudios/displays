@@ -773,6 +773,9 @@ class DisplayScreen(
     /** Whether the active fullscreen overlay should stay open (re-showing) past the video's end instead of auto-closing. */
     private var fullscreenLoop = false
 
+    /** [fullscreenLoop] exposed to [DisplayPlaybackHost]. */
+    internal val isFullscreenLoop: Boolean get() = fullscreenLoop
+
     /** Last applied fullscreen state; survives server switch but not display re-creation. */
     @Volatile
     internal var lastFullscreenState: FullscreenState? = null
