@@ -10,24 +10,21 @@ import java.io.*
 import java.net.URI
 import java.util.zip.ZipInputStream
 
-/** Downloads and unpacks FFmpeg shared libraries from BtbN for the in-process libav backend. */
+/** Downloads and unpacks `FFmpeg` shared libraries from BtbN for the in-process libav backend. */
 object LavFfmpeg {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     /** BtbN latest release API; keep the branch suffix in sync with `.github/workflows/_build.yml`. */
     private const val LATEST_RELEASE_API = "https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/latest"
-    private const val FFMPEG_BRANCH_SUFFIX = "8.1"
+    private const val FFMPEG_BRANCH_SUFFIX = "9.0"
 
     private data class Source(
-        /** BtbN asset name matcher for the latest release. */
         val assetNameRegex: Regex,
-        /** True for `.tar.xz` (Linux), false for `.zip` (Windows). */
         val isTarXz: Boolean,
-        /** In-archive directory holding the shared libraries (`bin` on Windows, `lib` on Linux). */
         val libDir: String,
     )
 
-    /** Ensures [dir] contains FFmpeg libraries, downloading and unpacking them on first run. */
+    /** Ensures [dir] contains `FFmpeg` libraries, downloading and unpacking them on first run. */
     fun ensure(dir: File): Boolean {
         if (hasFfmpeg(dir)) return true
         val source = source() ?: return false
@@ -77,7 +74,7 @@ object LavFfmpeg {
 
     private fun assetRegex(arch: String, extension: String): Regex =
         Regex(
-            """^ffmpeg-n8\..*-${Regex.escape(arch)}-lgpl-shared-${Regex.escape(FFMPEG_BRANCH_SUFFIX)}\.${
+            """^ffmpeg-n9\..*-${Regex.escape(arch)}-lgpl-shared-${Regex.escape(FFMPEG_BRANCH_SUFFIX)}\.${
                 Regex.escape(
                     extension
                 )
