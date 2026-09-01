@@ -26,6 +26,7 @@ import net.minecraft.resources.Identifier
 /*import net.minecraft.resources.ResourceLocation as Identifier*/
 import net.minecraft.sounds.SoundEvents
 import org.lwjgl.glfw.GLFW
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -37,7 +38,7 @@ class SuggestionsPanel(
 ) : UiWidget(Component.translatable("dreamdisplays.button.suggestions")) {
 
     init {
-        controller.onResults = { scrollOffset = 0 }
+        controller.onResults = { scrollOffset = 0; targetScroll = 0 }
     }
 
     private val searchBox: EditBox
@@ -53,6 +54,7 @@ class SuggestionsPanel(
     var available: () -> Boolean = { true }
 
     private var scrollOffset: Int = 0
+    private var targetScroll: Int = 0
     private var hoveredCard: Int = -1
 
     /** Scrollbar geometry captured in [drawScrollbar] so the mouse handlers can drag the thumb. */
@@ -248,7 +250,8 @@ class SuggestionsPanel(
         val th = thumbH(viewportW)
         val refCh = maxCardH(viewportW)
         val maxOff = maxScroll(viewportW, viewportH)
-        scrollOffset = scrollOffset.coerceIn(0, maxOff)
+        targetScroll = targetScroll.coerceIn(0, maxOff)
+        scrollOffset = easeScroll(scrollOffset.coerceIn(0, maxOff), targetScroll)
 
         val cards = controller.visibleCards
         //? if >=1.21.11 {
@@ -290,10 +293,7 @@ class SuggestionsPanel(
             }
         }
         g.disableScissor()
-        // Fires once the user has scrolled within one viewport of the end of the loaded cards; cheap
-        // to call every frame since loadMoreIfNeeded() no-ops while a page is already in flight or the
-        // list is exhausted.
-        if (cards.isNotEmpty() && scrollOffset >= maxOff - viewportH) {
+        if (cards.isNotEmpty() && targetScroll >= maxOff / 2) {
             controller.loadMoreIfNeeded()
         }
         //? if >=1.21.11 {
@@ -364,15 +364,24 @@ class SuggestionsPanel(
                 cross >= sbCross - SB_GRAB && cross <= sbCross + 2 + SB_GRAB
     }
 
-    /** Maps a cursor position along the scroll axis to [scrollOffset], centering the thumb on it. */
     private fun scrollFromPos(pos: Double) {
         val travel = sbViewport - sbThumbLen
         if (travel <= 0) {
             scrollOffset = 0
+            targetScroll = 0
             return
         }
         val rel = (pos - sbStart - sbThumbLen / 2.0).coerceIn(0.0, travel.toDouble())
-        scrollOffset = ((rel / travel) * sbMaxOff).roundToInt().coerceIn(0, sbMaxOff)
+        val offset = ((rel / travel) * sbMaxOff).roundToInt().coerceIn(0, sbMaxOff)
+        scrollOffset = offset
+        targetScroll = offset
+    }
+
+    private fun easeScroll(current: Int, target: Int): Int {
+        val diff = target - current
+        if (diff == 0) return current
+        if (abs(diff) <= 1) return target
+        return current + (diff * SCROLL_EASE).roundToInt()
     }
 
     /**
@@ -416,13 +425,11 @@ class SuggestionsPanel(
         val hoverBorder = ambient?.let { lightenRgb(it, 0.40f) } ?: UiTheme.CARD_BORDER_HOVER
         g.fill(x, y, x + w, y + cardH, if (hover) hoverBg else UiTheme.CARD_BG)
 
-        // Full-bleed thumbnail across the whole card width (no side inset): it's the largest the
-        // card can hold and the width/THUMB_H ratio matches 16:9, so the image stays crisp and
-        // un-stretched instead of being shrunk into a bordered box.
-        val thumbX = x
         val thumbY = y
-        val thumbW = w
+        val thumbW = if (vertical) w else (thumbH.toDouble() * CARD_W / THUMB_H).roundToInt().coerceAtMost(w)
+        val thumbX = x + (w - thumbW) / 2
         val thumb = cardThumbnail(info)
+
         // A card still has an image on the way when it is a custom-art card, a YouTube result whose
         // thumbnail is downloading, or a platform result carrying a thumbnail URL. Anything else has
         // nothing to load, so a shimmer would promise an image that never arrives - draw the plate.
@@ -572,7 +579,7 @@ class SuggestionsPanel(
         val viewportW = stripRight() - stripLeft()
         val maxOff = maxScroll(viewportW, stripBottom - stripTop)
         val delta = if (vertical) dy * 32 else (if (dx != 0.0) dx else dy) * 32
-        scrollOffset = (scrollOffset - delta.toInt()).coerceIn(0, maxOff)
+        targetScroll = (targetScroll - delta.toInt()).coerceIn(0, maxOff)
         return true
     }
 
@@ -759,6 +766,8 @@ class SuggestionsPanel(
 
     companion object {
         private const val HEADER_H = 14
+
+        private const val SCROLL_EASE = 0.3f
 
         /** Extra px around the thin scrollbar that still grabs it (a forgiving drag target). */
         private const val SB_GRAB = 4
