@@ -161,13 +161,11 @@ class SuggestionsPanel(
      */
     private fun textBlockH(lines: Int): Int {
         val lh = Minecraft.getInstance().font.lineHeight
-        // top gap (drawCard's `+ 4`) + that many title lines (each `lineHeight + 1`) + gap before the
-        // meta row (`+ 1`) + the meta row itself (one line) + breathing room below it.
         return 4 + lines * (lh + 1) + 1 + lh + BOTTOM_PAD
     }
 
     private fun dynThumbH(): Int {
-        val available = lastStripH - 2 - 3 - CARD_TEXT_H - 2
+        val available = lastStripH - 2 - 3 - CARD_TEXT_H - 2 - BOTTOM_MARGIN
         return max(30, min(THUMB_H, available))
     }
 
@@ -784,6 +782,8 @@ class SuggestionsPanel(
         /** Internal vertical paddings a card adds around its thumbnail + text (see [dynThumbH]/[dynCardH]). */
         private const val CARD_INNER_PAD = 2 + 3 + 2
 
+        private const val BOTTOM_MARGIN = 6
+
         /**
          * Vertical space the panel spends on its title + search row before the card strip begins,
          * plus the bottom padding below it. Keep in sync with [stripTop]/[stripBottom].
@@ -791,9 +791,9 @@ class SuggestionsPanel(
         const val STRIP_CHROME_H = 10 + HEADER_H + 6 + SEARCH_H + 8 + 10
 
         /** Strip viewport height at which horizontal cards reach their full [THUMB_H] thumbnails. */
-        const val FULL_CARD_VIEWPORT_H = CARD_H + CARD_INNER_PAD
+        const val FULL_CARD_VIEWPORT_H = CARD_H + CARD_INNER_PAD + BOTTOM_MARGIN
 
         /** Smallest strip viewport that still shows a card (min 30px thumbnail) without clipping it. */
-        const val MIN_CARD_VIEWPORT_H = 30 + CARD_TEXT_H + CARD_INNER_PAD
+        const val MIN_CARD_VIEWPORT_H = 30 + CARD_TEXT_H + CARD_INNER_PAD + BOTTOM_MARGIN
     }
 }
