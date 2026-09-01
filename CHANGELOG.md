@@ -1,3 +1,50 @@
+# 1.9.6 Release
+
+## Highlights
+
+- Minor display menu improvements and fixes
+- Fixed bad selection logic when trying to create a display
+- Fixed the picked audio track (language) not being remembered after rejoining
+- Codebase improvements, minor refactor and updated dependencies
+
+## Client
+
+### Improvements
+
+- Improved video suggestions panel scale on high GUI scale
+- Next suggestions now loads earlier instead of right before you hit the end
+- Smoother scrolling for video suggestions and the audio track dropdown
+- Enhanced versionizing mechanism ([#210](https://github.com/arnodoelinger/dreamdisplays/pull/210))
+- Codebase style improvements and minor refactor
+- Updated `FFmpeg` from 8.1.0 to 9.0.0
+- Updated project dependencies
+
+### Fixes
+
+- Fixed the picked audio track (language) not being remembered after rejoining, and videos now load directly on that track instead of switching to it right after starting
+- Fixed no audio for players whose network setup can't reach the TLS ([#209](https://github.com/arnodoelinger/dreamdisplays/issues/209))
+- Fixed videos failing to play entirely for players running an HTTP(S) proxy ([#218](https://github.com/arnodoelinger/dreamdisplays/issues/218))
+- Fixed HUD elements (hotbar, health / hunger, chat, minimaps, ...) staying visible over fullscreen videos ([#213](https://github.com/arnodoelinger/dreamdisplays/issues/213))
+- Fixed fullscreen videos looping forever even without the looped flag ([#214](https://github.com/arnodoelinger/dreamdisplays/issues/214))
+- Pressing Esc on a non-forced fullscreen video now fully stops it (audio included) instead of just hiding it and reappearing 
+  on rejoin ([#215](https://github.com/arnodoelinger/dreamdisplays/issues/215)) (server must be 1.9.6 or higher)
+- Fixed suggestion thumbnails looking squashed on a squeezed strip on high GUI scale
+- Fixed suggestion cards touching the scrollbar with no breathing room on a squeezed strip on high GUI scale
+- Fixed video suggestions being covered by a black bar on `1.21.1` ([#208](https://github.com/arnodoelinger/dreamdisplays/issues/208))
+- Use actual clicked block face for selection instead of player look direction ([#217](https://github.com/arnodoelinger/dreamdisplays/pull/217))
+  (server must be 1.9.6 or higher)
+- Resolve other platforms than YouTube using `/display video` command ([#207](https://github.com/arnodoelinger/dreamdisplays/pull/207))
+  (server must be 1.9.6 or higher)
+
+## Server
+
+### Fixes
+
+- Use actual clicked block face for selection instead of player look direction ([#217](https://github.com/arnodoelinger/dreamdisplays/pull/217))
+- Resolve other platforms than YouTube using `/display video` command ([#207](https://github.com/arnodoelinger/dreamdisplays/pull/207))
+- Pressing Esc on a non-forced fullscreen video now fully stops the session once nobody's left watching, instead of
+  leaving it dismissed-but-alive to reappear on rejoin ([#215](https://github.com/arnodoelinger/dreamdisplays/issues/215))
+
 # 1.9.5 Release
 
 ## Highlights
