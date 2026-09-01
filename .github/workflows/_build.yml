@@ -282,7 +282,7 @@ jobs:
           path = sys.argv[1]
           arch = os.environ["FFMPEG_ARCH"]
           ext = os.environ["FFMPEG_EXT"]
-          pattern = re.compile(rf"^ffmpeg-n8\..*-{re.escape(arch)}-lgpl-shared-8\.1\.{re.escape(ext)}$")
+          pattern = re.compile(rf"^ffmpeg-n9\..*-{re.escape(arch)}-lgpl-shared-9\.0\.{re.escape(ext)}$")
           with open(path, encoding="utf-8") as f:
               release = json.load(f)
           url = next(
@@ -311,7 +311,7 @@ jobs:
           # Use a prebuilt LGPL shared FFmpeg instead of compiling it from
           # source via vcpkg (which took 10+ min per run). ffmpeg-sys-next picks
           # it up through FFMPEG_DIR and runs bindgen against its headers, so any
-          # 8.x build works. BtbN publishes matching win64 / winarm64 archives.
+          # 9.x build works. BtbN publishes matching win64 / winarm64 archives.
           case "${{ matrix.native.target }}" in
             x86_64-*) ffmpeg_arch=win64 ;;
             aarch64-*) ffmpeg_arch=winarm64 ;;
@@ -341,7 +341,7 @@ jobs:
           path = sys.argv[1]
           arch = os.environ["FFMPEG_ARCH"]
           ext = os.environ["FFMPEG_EXT"]
-          pattern = re.compile(rf"^ffmpeg-n8\..*-{re.escape(arch)}-lgpl-shared-8\.1\.{re.escape(ext)}$")
+          pattern = re.compile(rf"^ffmpeg-n9\..*-{re.escape(arch)}-lgpl-shared-9\.0\.{re.escape(ext)}$")
           with open(path, encoding="utf-8") as f:
               release = json.load(f)
           url = next(
