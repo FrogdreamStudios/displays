@@ -329,20 +329,15 @@ jobs:
         id: versions
         run: |
           python3 - <<'EOF'
+          import json
           import os
           import re
 
           mc = "${{ matrix.task.mc }}"
-          props = {}
 
-          with open(f"versions/{mc}/gradle.properties") as f:
-              for line in f:
-                  line = line.strip()
-                  if not line or line.startswith("#") or "=" not in line:
-                      continue
-
-                  key, value = line.split("=", 1)
-                  props[key.strip()] = value.strip()
+          with open("versions.json") as f:
+              data = json.load(f)
+          props = data["versions"][mc]
 
           minecraft_version = props.get("minecraft.version", mc)
           base_mc = minecraft_version.split("-", 1)[0]
