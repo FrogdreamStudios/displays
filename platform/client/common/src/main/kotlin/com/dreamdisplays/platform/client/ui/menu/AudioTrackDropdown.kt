@@ -141,7 +141,7 @@ class AudioTrackDropdown(
                     )
                 }
                 // The playing track keeps a faint accent tint so it's always visible, even unhovered
-                isActive -> g.fill(innerLeft, itemY, textRight, itemY + ITEM_H, scaleAlpha(ACTIVE_FILL, animProgress))
+                isActive -> g.fill(innerLeft, itemY, textRight, itemY + ITEM_H, scaleAlpha(UiTheme.ACTIVE_ROW_FILL, animProgress))
             }
             val color =
                 scaleAlpha(if (row == hovered || isActive) UiTheme.TEXT_PRIMARY else UiTheme.TEXT_DIM, animProgress)
@@ -264,6 +264,5 @@ class AudioTrackDropdown(
 
         /** Extra px to the left of the scrollbar column that still grabs the thumb (a forgiving hit target). */
         private const val SB_GRAB = 3
-        private const val ACTIVE_FILL = 0x334A90E2
     }
 }

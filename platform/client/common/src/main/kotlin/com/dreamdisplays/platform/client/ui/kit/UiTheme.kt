@@ -21,6 +21,7 @@ object UiTheme {
     const val HOVER_FILL = 0x30FFFFFF
     const val SCROLLBAR_TRACK = 0xFF202020.toInt()
     const val SCROLLBAR_THUMB = 0xFF808080.toInt()
+    const val ACTIVE_ROW_FILL = 0x33808080
     const val VIDEO_BACKDROP = 0xFF000000.toInt()
     const val THUMB_DIM_SCRIM = 0x80000000.toInt()
     const val AMBIENT_SCRIM = 0x50000000

@@ -87,7 +87,7 @@ class SortDropdown(
                     scaleAlpha(UiTheme.CARD_BORDER_HOVER, animProgress),
                 )
             } else if (i == active) {
-                g.fill(rect.x + 1, itemY, rect.x + WIDTH - 1, itemY + ITEM_H, scaleAlpha(ACTIVE_FILL, animProgress))
+                g.fill(rect.x + 1, itemY, rect.x + WIDTH - 1, itemY + ITEM_H, scaleAlpha(UiTheme.ACTIVE_ROW_FILL, animProgress))
             }
             val color = scaleAlpha(
                 if (i == hovered || i == active) UiTheme.TEXT_PRIMARY else UiTheme.TEXT_DIM,
@@ -125,8 +125,5 @@ class SortDropdown(
     companion object {
         private const val WIDTH = 96
         private const val ITEM_H = 18
-
-        /** Tint for the currently active sort option's row. */
-        private const val ACTIVE_FILL = 0x334A90E2
     }
 }
