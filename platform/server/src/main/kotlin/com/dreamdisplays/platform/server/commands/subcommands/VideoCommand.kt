@@ -1,8 +1,7 @@
 package com.dreamdisplays.platform.server.commands.subcommands
 
 import com.dreamdisplays.platform.server.ModLoaderOnly
-import com.dreamdisplays.api.media.source.url.YouTubeUrls
-import com.dreamdisplays.api.media.source.url.CustomMediaUrls
+import com.dreamdisplays.api.media.source.model.MediaSource
 import com.dreamdisplays.api.playback.policy.PlaybackPermissions
 import com.dreamdisplays.api.security.model.LanguageTag
 import com.dreamdisplays.api.security.policy.MediaUrlPolicy
@@ -128,14 +127,14 @@ class VideoCommand : SubCommand {
 
 /**
  * Canonical URL for [raw] as typed on the command line, or null when it is not something the mod could ever play or is
- * blocked by [MediaUrlPolicy].
+ * blocked by [MediaUrlPolicy]. Routed through the same [MediaSource.from] parser the menu uses.
  */
 private fun canonicalUrl(raw: String): String? {
     val input = raw.trim()
     if (input.isEmpty()) return null
-    YouTubeUrls.extractVideoIdTyped(input)?.let { return YouTubeUrls.watchUrl(it) }
-    val normalized = CustomMediaUrls.normalize(input) ?: return null
-    return normalized.takeIf { MediaUrlPolicy.isAllowed(it) }
+    val resolvable = MediaSource.from(input).toResolvableUrl() ?: return null
+    if (!resolvable.contains("://")) return null
+    return resolvable.takeIf { MediaUrlPolicy.isAllowed(it) }
 }
 
 /**
