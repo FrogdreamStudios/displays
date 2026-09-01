@@ -41,3 +41,12 @@ fun GuiGraphicsCompat.drawText(font: Font, text: Component, x: Int, y: Int, colo
 /*fun GuiGraphicsCompat.drawText(font: Font, text: Component, x: Int, y: Int, color: Int, shadow: Boolean) {
     this.drawString(font, text, x, y, color, shadow)
 }*/
+
+//? if <1.21.11 {
+fun GuiGraphicsCompat.enableScissorPoseAware(x1: Int, y1: Int, x2: Int, y2: Int) {
+    val m = pose().last().pose()
+    val p1 = m.transformPosition(org.joml.Vector3f(x1.toFloat(), y1.toFloat(), 0f))
+    val p2 = m.transformPosition(org.joml.Vector3f(x2.toFloat(), y2.toFloat(), 0f))
+    enableScissor(p1.x.toInt(), p1.y.toInt(), p2.x.toInt(), p2.y.toInt())
+}
+//?}

@@ -3,6 +3,9 @@ package com.dreamdisplays.platform.client.ui.menu
 import com.dreamdisplays.api.media.stream.model.MediaStream
 import com.dreamdisplays.platform.client.ui.GuiGraphicsCompat
 import com.dreamdisplays.platform.client.ui.drawText
+//? if <1.21.11 {
+import com.dreamdisplays.platform.client.ui.enableScissorPoseAware
+//?}
 import com.dreamdisplays.platform.client.ui.kit.*
 //? if >=1.21.11 {
 import com.mojang.blaze3d.platform.cursor.CursorTypes
@@ -10,6 +13,7 @@ import com.mojang.blaze3d.platform.cursor.CursorTypes
 import net.minecraft.client.Minecraft
 import net.minecraft.client.resources.sounds.SimpleSoundInstance
 import net.minecraft.sounds.SoundEvents
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -29,6 +33,8 @@ class AudioTrackDropdown(
 
     /** Index of the first item in the visible page; scrolled via [handleScroll] or the drag-thumb. */
     private var scrollIndex = 0
+
+    private var scrollPx = 0f
 
     private var rect = UiRect(0, 0, WIDTH, ITEM_H)
 
@@ -57,6 +63,7 @@ class AudioTrackDropdown(
         val maxIndex = maxScrollIndex()
         val activeIdx = items.indexOfFirst { it.url == currentUrl() }.takeIf { it >= 0 } ?: 0
         scrollIndex = (activeIdx - MAX_VISIBLE / 2).coerceIn(0, maxIndex)
+        scrollPx = scrollIndex * ITEM_H.toFloat()
     }
 
     /** Hides the dropdown. */
@@ -89,6 +96,10 @@ class AudioTrackDropdown(
             return
         }
 
+        val targetScrollPx = scrollIndex * ITEM_H.toFloat()
+        val scrollDiff = targetScrollPx - scrollPx
+        scrollPx = if (abs(scrollDiff) < 0.05f) targetScrollPx else scrollPx + scrollDiff * minOf(1f, dt * SCROLL_EASE_RATE)
+
         visibleCount = items.size.coerceIn(1, MAX_VISIBLE)
         val paged = items.size > MAX_VISIBLE
         // PAD_V keeps the top/bottom rows from touching the frame's own border, the same way the
@@ -114,8 +125,8 @@ class AudioTrackDropdown(
 
         val rowTop = rect.y + PAD_V
         val rowBottom = rect.bottom - PAD_V
-        val hovered = if (visible && mouseX in rect.x..rect.right && mouseY in rowTop until rowBottom)
-            (mouseY - rowTop) / ITEM_H else -1
+        val hoveredIndex = if (visible && mouseX in rect.x..rect.right && mouseY in rowTop until rowBottom)
+            ((mouseY - rowTop + scrollPx) / ITEM_H).toInt() else -1
         val activeUrl = currentUrl()
 
         // DROPDOWN_SPRITE is a nine-slice with a 3px border; text/highlights stay clear of it via
@@ -125,15 +136,20 @@ class AudioTrackDropdown(
         val scrollbarRight = rect.right - SCROLLBAR_MARGIN
 
         val font = Minecraft.getInstance().font
-        val fy = rowTop + (ITEM_H - font.lineHeight) / 2
+        val fy = (ITEM_H - font.lineHeight) / 2
         val textRight = if (paged) scrollbarRight - SCROLLBAR_W - 2 else rect.right - BORDER
-        for (row in 0 until visibleCount) {
-            val i = scrollIndex + row
+        //? if >=1.21.11 {
+        g.enableScissor(rect.x, rowTop, rect.right, rowBottom)
+        //?} else
+        /*g.enableScissorPoseAware(rect.x, rowTop, rect.right, rowBottom)*/
+        val firstVisible = (scrollPx / ITEM_H).toInt().coerceAtLeast(0)
+        val lastVisible = ((scrollPx + (rowBottom - rowTop)) / ITEM_H).toInt().coerceAtMost(items.size - 1)
+        for (i in firstVisible..lastVisible) {
             val stream = items[i]
-            val itemY = rowTop + ITEM_H * row
+            val itemY = (rowTop - scrollPx + ITEM_H * i).roundToInt()
             val isActive = stream.url == activeUrl
             when {
-                row == hovered -> {
+                i == hoveredIndex -> {
                     g.fill(innerLeft, itemY, textRight, itemY + ITEM_H, scaleAlpha(UiTheme.HOVER_FILL, animProgress))
                     g.drawOutline(
                         UiRect(innerLeft, itemY, textRight - innerLeft, ITEM_H),
@@ -144,10 +160,11 @@ class AudioTrackDropdown(
                 isActive -> g.fill(innerLeft, itemY, textRight, itemY + ITEM_H, scaleAlpha(UiTheme.ACTIVE_ROW_FILL, animProgress))
             }
             val color =
-                scaleAlpha(if (row == hovered || isActive) UiTheme.TEXT_PRIMARY else UiTheme.TEXT_DIM, animProgress)
+                scaleAlpha(if (i == hoveredIndex || isActive) UiTheme.TEXT_PRIMARY else UiTheme.TEXT_DIM, animProgress)
             val textW = textRight - innerLeft - 6
-            g.drawText(font, UiText.trim(font, label(stream, i), textW), innerLeft + 4, fy + ITEM_H * row, color, false)
+            g.drawText(font, UiText.trim(font, label(stream, i), textW), innerLeft + 4, itemY + fy, color, false)
         }
+        g.disableScissor()
 
         sbPaged = paged
         if (paged) {
@@ -159,7 +176,7 @@ class AudioTrackDropdown(
         }
 
         //? if >=1.21.11 {
-        if (visible && hovered >= 0 && animProgress > 0.5f) g.requestCursor(CursorTypes.POINTING_HAND)
+        if (visible && hoveredIndex >= 0 && animProgress > 0.5f) g.requestCursor(CursorTypes.POINTING_HAND)
         val overScrollbar = sbPaged && mouseX in (sbColLeft - SB_GRAB)..(sbColRight + 1) &&
                 mouseY in sbTrackTop..sbTrackBottom
         if (visible && (draggingScrollbar || overScrollbar) && animProgress > 0.5f) g.requestCursor(CursorTypes.RESIZE_NS)
@@ -180,7 +197,7 @@ class AudioTrackDropdown(
         val maxIndex = maxScrollIndex()
         val thumbH = max(MIN_THUMB_H, trackH * visibleCount / items.size)
         val travel = trackH - thumbH
-        val thumbY = top + if (maxIndex > 0) travel * scrollIndex / maxIndex else 0
+        val thumbY = top + if (maxIndex > 0) (travel * scrollPx / (maxIndex * ITEM_H)).roundToInt() else 0
         g.fill(trackX, thumbY, trackX + 2, thumbY + thumbH, scaleAlpha(UiTheme.SCROLLBAR_THUMB, alpha))
     }
 
@@ -200,8 +217,7 @@ class AudioTrackDropdown(
         visible = false
         if (!inside || items.isEmpty()) return false
         val rowTop = rect.y + PAD_V
-        val row = ((my - rowTop) / ITEM_H).coerceIn(0, visibleCount - 1)
-        val index = (scrollIndex + row).coerceIn(0, items.size - 1)
+        val index = ((my - rowTop + scrollPx) / ITEM_H).toInt().coerceIn(0, items.size - 1)
         val s = SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK.value(), 1.0f)
         Minecraft.getInstance().soundManager.play(s)
         onSelect(items[index])
@@ -264,5 +280,7 @@ class AudioTrackDropdown(
 
         /** Extra px to the left of the scrollbar column that still grabs the thumb (a forgiving hit target). */
         private const val SB_GRAB = 3
+
+        private const val SCROLL_EASE_RATE = 8f
     }
 }

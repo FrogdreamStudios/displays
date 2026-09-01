@@ -4,6 +4,9 @@ import com.dreamdisplays.api.media.search.model.MediaSearchResult
 import com.dreamdisplays.platform.client.render.Thumbnails
 import com.dreamdisplays.platform.client.ui.GuiGraphicsCompat
 import com.dreamdisplays.platform.client.ui.drawText
+//? if <1.21.11 {
+import com.dreamdisplays.platform.client.ui.enableScissorPoseAware
+//?}
 import com.dreamdisplays.platform.client.ui.kit.*
 import com.dreamdisplays.platform.client.ui.widgets.SuggestionsPanel.Companion.THUMB_H
 //? if >=1.21.11 {
@@ -38,7 +41,7 @@ class SuggestionsPanel(
 ) : UiWidget(Component.translatable("dreamdisplays.button.suggestions")) {
 
     init {
-        controller.onResults = { scrollOffset = 0; targetScroll = 0 }
+        controller.onResults = { scrollOffset = 0; scrollOffsetF = 0f; targetScroll = 0 }
     }
 
     private val searchBox: EditBox
@@ -54,7 +57,11 @@ class SuggestionsPanel(
     var available: () -> Boolean = { true }
 
     private var scrollOffset: Int = 0
+
+    /** Sub-pixel shadow of [scrollOffset], eased toward [targetScroll] each frame; see [easeScroll]. */
+    private var scrollOffsetF: Float = 0f
     private var targetScroll: Int = 0
+    private var lastScrollFrameNanos = 0L
     private var hoveredCard: Int = -1
 
     /** Scrollbar geometry captured in [drawScrollbar] so the mouse handlers can drag the thumb. */
@@ -192,15 +199,6 @@ class SuggestionsPanel(
     private fun maxScroll(viewportW: Int, viewportH: Int): Int =
         max(0, contentExtent(viewportW) - if (vertical) viewportH else viewportW)
 
-    //? if <1.21.11 {
-    private fun GuiGraphicsCompat.enableScissorPoseAware(x1: Int, y1: Int, x2: Int, y2: Int) {
-        val m = pose().last().pose()
-        val p1 = m.transformPosition(org.joml.Vector3f(x1.toFloat(), y1.toFloat(), 0f))
-        val p2 = m.transformPosition(org.joml.Vector3f(x2.toFloat(), y2.toFloat(), 0f))
-        enableScissor(p1.x.toInt(), p1.y.toInt(), p2.x.toInt(), p2.y.toInt())
-    }
-    //?}
-
     override fun draw(g: GuiGraphicsCompat, mouseX: Int, mouseY: Int, partialTick: Float) {
         val r = UiRect(x, y, width, height)
         g.drawPanelSprite(r)
@@ -249,7 +247,8 @@ class SuggestionsPanel(
         val refCh = maxCardH(viewportW)
         val maxOff = maxScroll(viewportW, viewportH)
         targetScroll = targetScroll.coerceIn(0, maxOff)
-        scrollOffset = easeScroll(scrollOffset.coerceIn(0, maxOff), targetScroll)
+        scrollOffsetF = easeScroll(scrollOffsetF.coerceIn(0f, maxOff.toFloat()), targetScroll.toFloat())
+        scrollOffset = scrollOffsetF.roundToInt()
 
         val cards = controller.visibleCards
         //? if >=1.21.11 {
@@ -366,20 +365,24 @@ class SuggestionsPanel(
         val travel = sbViewport - sbThumbLen
         if (travel <= 0) {
             scrollOffset = 0
+            scrollOffsetF = 0f
             targetScroll = 0
             return
         }
         val rel = (pos - sbStart - sbThumbLen / 2.0).coerceIn(0.0, travel.toDouble())
         val offset = ((rel / travel) * sbMaxOff).roundToInt().coerceIn(0, sbMaxOff)
         scrollOffset = offset
+        scrollOffsetF = offset.toFloat()
         targetScroll = offset
     }
 
-    private fun easeScroll(current: Int, target: Int): Int {
+    private fun easeScroll(current: Float, target: Float): Float {
+        val now = System.nanoTime()
+        val dt = if (lastScrollFrameNanos == 0L) 0.016f else ((now - lastScrollFrameNanos) / 1e9f).coerceIn(0f, 0.1f)
+        lastScrollFrameNanos = now
         val diff = target - current
-        if (diff == 0) return current
-        if (abs(diff) <= 1) return target
-        return current + (diff * SCROLL_EASE).roundToInt()
+        if (abs(diff) < 0.05f) return target
+        return current + diff * minOf(1f, dt * SCROLL_EASE_RATE)
     }
 
     /**
@@ -502,7 +505,7 @@ class SuggestionsPanel(
 
         textY += 1
         var meta = info.uploader ?: ""
-        val views = info.formatViews()
+        val views = if (w <= 80) "" else info.formatViews()
         if (views.isNotEmpty()) {
             meta = if (meta.isEmpty()) views
             else UiText.trim(f, meta, max(20, textW - f.width(" • $views"))) + " • " + views
@@ -765,7 +768,7 @@ class SuggestionsPanel(
     companion object {
         private const val HEADER_H = 14
 
-        private const val SCROLL_EASE = 0.3f
+        private const val SCROLL_EASE_RATE = 8f
 
         /** Extra px around the thin scrollbar that still grabs it (a forgiving drag target). */
         private const val SB_GRAB = 4
