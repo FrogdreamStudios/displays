@@ -198,7 +198,10 @@ object FullscreenBroadcastManager {
         )
     }
 
-    /** Applies a client's [FullscreenAckAction] for [sessionId]. Dismissing an unforced session drops the player from its targets. */
+    /**
+     * Applies a client's [FullscreenAckAction] for [sessionId]. Dismissing an unforced session (Esc)
+     * drops the player from its targets and means stop.
+     */
     fun handleAck(sessionId: String, playerId: UUID, action: FullscreenAckAction) {
         val session = sessions[sessionId] ?: return
         when (action) {
@@ -212,6 +215,7 @@ object FullscreenBroadcastManager {
             FullscreenAckAction.DISMISSED -> if (!session.forced) {
                 session.shownTo.remove(playerId)
                 session.dismissedBy.add(playerId)
+                if (session.shownTo.isEmpty()) stop(sessionId)
             }
 
             FullscreenAckAction.MINIMIZED -> {
