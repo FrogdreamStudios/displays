@@ -36,6 +36,9 @@ interface ClientSettingsStorage {
     /** Sets the client-side URL and language override for [displayUuid] and saves. */
     fun setUrlOverride(displayUuid: UUID, url: String?, lang: String?)
 
+    /** Sets the viewer-picked audio track language for [displayUuid] and saves. */
+    fun setAudioTrackLang(displayUuid: UUID, lang: String?)
+
     /** Sets the last known playback position for [displayUuid] and saves. */
     fun setSavedTimeNanos(displayUuid: UUID, nanos: Long)
 

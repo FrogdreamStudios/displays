@@ -32,6 +32,9 @@ data class ClientDisplaySettings(
     /** Language override for the video, or null if not overridden. */
     var langOverride: String? = null,
 
+    /** Viewer-picked audio track language (from the audio-track dropdown), re-applied after rejoining. */
+    var audioTrackLang: String? = null,
+
     /** Last known playback position in nanoseconds, resumed on Local displays after a restart. */
     var savedTimeNanos: Long = 0,
 

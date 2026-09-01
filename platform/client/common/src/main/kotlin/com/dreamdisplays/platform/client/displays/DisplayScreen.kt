@@ -273,12 +273,34 @@ class DisplayScreen(
         }
     }
 
-    /** Requested audio track (stream URL); respawns audio only, not persisted. */
+    /**
+     * Requested audio track (stream URL); respawns audio only. [MinecraftDisplayCommands.setAudioTrack]
+     * persists the track's *language* alongside this (stream URLs aren't stable across resolves), so
+     * [restoreAudioTrackIfPending] can re-apply it once a later resolve exposes a matching track.
+     */
     var audioTrack: String = ""
         set(value) {
             field = value
+            pendingAudioTrackLangRestore = null
             mediaPlayer?.setAudioTrack(value)
         }
+
+    /**
+     * Viewer-saved audio track language still waiting for [audioTrackList] to resolve so it can be
+     * re-applied; re-armed on every video swap, cleared once tried (whether or not a match was found)
+     * or once the viewer picks a track manually in the meantime.
+     */
+    private var pendingAudioTrackLangRestore: String? = savedSettings.audioTrackLang
+
+    /** Applies [pendingAudioTrackLangRestore] once the current video has resolved its audio tracks. */
+    private fun restoreAudioTrackIfPending() {
+        val wanted = pendingAudioTrackLangRestore ?: return
+        val tracks = audioTrackList
+        if (tracks.isEmpty()) return
+        val match = tracks.firstOrNull { it.audioTrackLang == wanted }
+        pendingAudioTrackLangRestore = null
+        if (match != null) audioTrack = match.url
+    }
 
     /** Broadcast pins to cap; otherwise applies distance steps. */
     private fun effectiveQuality(requested: VideoQuality = quality): VideoQuality {
@@ -498,6 +520,7 @@ class DisplayScreen(
         this.lang = lang
         waitingForInitialTimeline = requiresServerTimeline()
         waitingSinceNanos = if (waitingForInitialTimeline) System.nanoTime() else 0L
+        pendingAudioTrackLangRestore = savedSettings.audioTrackLang
     }
 
     /** True while the screen is holding back the picture until the server's first timeline arrives. */
@@ -1028,6 +1051,7 @@ class DisplayScreen(
         val maxRadius = if (isPopoutActive) Double.MAX_VALUE else ClientStateManager.config.defaultDistance.toDouble()
         val distance = getDistanceToScreen(pos)
         mediaPlayer?.tick(distance, maxRadius)
+        restoreAudioTrackIfPending()
         if (isPopoutActive) {
             if (distanceQualitySteps != 0) {
                 distanceQualitySteps = 0

@@ -11,6 +11,7 @@ import com.dreamdisplays.core.protocol.common.packets.ReportDisplay
 import com.dreamdisplays.core.protocol.common.packets.SetLocked
 import com.dreamdisplays.core.services.DisplayStorage
 import com.dreamdisplays.platform.client.Initializer
+import com.dreamdisplays.platform.client.storage.ClientSettingsStore
 import kotlin.time.Duration
 
 /**
@@ -118,10 +119,16 @@ class MinecraftDisplayCommands : DisplayExecutor {
         return screen.toDisplay()
     }
 
-    /** Sets the active audio track by its resolved stream [trackUrl]. */
+    /**
+     * Sets the active audio track by its resolved stream [trackUrl]; remembers the track's language so
+     * [DisplayScreen] can re-apply the same pick once the same display resolves audio tracks again
+     * (e.g. after rejoining).
+     */
     override fun setAudioTrack(displayId: DisplayId, trackUrl: String): Display? {
         val screen = DisplayRegistry.screens[displayId.uuid] ?: return null
         screen.audioTrack = trackUrl
+        val lang = screen.audioTrackList.firstOrNull { it.url == trackUrl }?.audioTrackLang
+        ClientSettingsStore.setAudioTrackLang(displayId.uuid, lang)
         return screen.toDisplay()
     }
 
