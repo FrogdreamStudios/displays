@@ -27,6 +27,7 @@ class MinecraftDisplayCommands : DisplayExecutor {
         screen.brightness = settings.brightness
         screen.mute(settings.muted)
         screen.setPaused(settings.paused)
+        screen.renderDistance = settings.renderDistance
 
         val override = settings.urlOverride
         if (!override.isNullOrBlank()) {

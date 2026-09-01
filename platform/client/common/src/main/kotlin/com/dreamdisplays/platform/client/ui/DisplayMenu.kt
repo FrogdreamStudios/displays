@@ -19,6 +19,7 @@ import com.dreamdisplays.api.watchparty.service.keys.WatchPartyServices
 import com.dreamdisplays.media.source.youtube.cache.VideoMetadataCache
 import com.dreamdisplays.media.source.youtube.cache.VideoTitleCache
 import com.dreamdisplays.platform.client.core.DreamServices
+import com.dreamdisplays.platform.client.displays.DisplayRegistry
 import com.dreamdisplays.platform.client.displays.DisplayScreen
 import com.dreamdisplays.platform.client.managers.ClientStateManager
 import com.dreamdisplays.platform.client.popout.PopoutManager
@@ -68,6 +69,7 @@ class DisplayMenu private constructor(
     )
 
     private lateinit var volume: ValueSlider
+    private lateinit var renderD: ValueSlider
     private lateinit var quality: ValueSlider
     private lateinit var brightness: ValueSlider
     private lateinit var audio3d: ModeSlider<AcousticQuality>
@@ -96,6 +98,14 @@ class DisplayMenu private constructor(
         val videoReady = { ds.isVideoStarted && !ds.errored }
         val notErrored = { !ds.errored }
 
+        // Migrate legacy block-based renderDistance to the nearest valid chunk multiple (2–12 chunks).
+        val migratedChunks = (ds.renderDistance / 16.0).roundToInt().coerceIn(MIN_CHUNKS, MAX_CHUNKS)
+        val migratedBlocks = migratedChunks * CHUNK_BLOCKS
+        if (ds.renderDistance != migratedBlocks) {
+            ds.renderDistance = migratedBlocks
+            DisplayRegistry.saveScreenData(ds)
+        }
+
         volume = addUi(
             ValueSlider(
                 initial = ds.volume.toDouble(),
@@ -105,6 +115,19 @@ class DisplayMenu private constructor(
             ) { playback.setVolume(displayId, it.toFloat()) })
         volume.enabledWhen = videoReady
         volume.visibleWhen = notErrored
+
+        renderD = addUi(
+            ValueSlider(
+                initial = chunksToFraction(ds.renderDistance / CHUNK_BLOCKS),
+                label = { Component.translatable("dreamdisplays.button.render-distance.label", fractionToChunks(it)) },
+                // One chunk per stop: CHUNK_STEPS+1 fixed positions from MIN_CHUNKS to MAX_CHUNKS
+                step = 1.0 / CHUNK_STEPS,
+            ) {
+                ds.renderDistance = fractionToChunks(it) * CHUNK_BLOCKS
+                DisplayRegistry.saveScreenData(ds)
+            })
+        renderD.enabledWhen = { !ds.isPopoutActive }
+        renderD.visibleWhen = notErrored
 
         quality = addUi(
             ValueSlider(
@@ -178,6 +201,22 @@ class DisplayMenu private constructor(
             ds.canSetModeHere || (ds.watchParty != null && ds.canCloseWatchPartyHere)
         }
         sync.visibleWhen = notErrored
+
+        val renderDReset = addUi(IconButton("refresh") {
+            val defaultChunks =
+                (ClientStateManager.config.defaultDistance / CHUNK_BLOCKS).coerceIn(MIN_CHUNKS, MAX_CHUNKS)
+            ds.renderDistance = defaultChunks * CHUNK_BLOCKS
+            renderD.value = chunksToFraction(defaultChunks)
+            DisplayRegistry.saveScreenData(ds)
+        })
+        renderDReset.enabledWhen = {
+            val defaultBlocks = (ClientStateManager.config.defaultDistance / CHUNK_BLOCKS).coerceIn(
+                MIN_CHUNKS,
+                MAX_CHUNKS
+            ) * CHUNK_BLOCKS
+            !ds.isPopoutActive && ds.renderDistance != defaultBlocks
+        }
+        renderDReset.visibleWhen = notErrored
 
         val qualityReset = addUi(IconButton("refresh") {
             playback.setQuality(displayId, VideoQuality.DEFAULT)
@@ -315,7 +354,7 @@ class DisplayMenu private constructor(
                 dropdown, audioTrackDropdown,
             )
         settings = SettingsSection(
-            rows = settingsRows(qualityReset, brightnessReset, audio3dReset, syncReset),
+            rows = settingsRows(renderDReset, qualityReset, brightnessReset, audio3dReset, syncReset),
             ownerActions = listOf(reportButton, deleteButton, lockButton),
             buttonTooltips = listOf(
                 lockButton to {
@@ -337,11 +376,19 @@ class DisplayMenu private constructor(
 
     /** Builds the settings rows with their tooltip content. */
     private fun settingsRows(
-        qualityReset: IconButton,
+        renderDReset: IconButton, qualityReset: IconButton,
         brightnessReset: IconButton, audio3dReset: IconButton, syncReset: IconButton,
     ): List<SettingsSection.Row> {
         val ds = displayScreen
         return listOf(
+            SettingsSection.Row("dreamdisplays.button.render-distance", renderD, renderDReset) {
+                listOf(
+                    tooltipTitle("dreamdisplays.button.render-distance.tooltip.1"),
+                    tooltipBody("dreamdisplays.button.render-distance.tooltip.2"),
+                    Component.literal(""),
+                    tooltipValue("dreamdisplays.button.render-distance.tooltip.7", fractionToChunks(renderD.value)),
+                )
+            },
             SettingsSection.Row("dreamdisplays.button.quality", quality, qualityReset) {
                 val tip = mutableListOf(
                     tooltipTitle("dreamdisplays.button.quality.tooltip.1"),
@@ -619,6 +666,19 @@ class DisplayMenu private constructor(
         /** Minimum logical canvas the normal layout is comfortable in; smaller windows scale down. */
         private const val MIN_CONTENT_W = 640
         private const val MIN_CONTENT_H = 410
+
+        private const val CHUNK_BLOCKS = 16
+        private const val MIN_CHUNKS = 2
+        private const val MAX_CHUNKS = 12
+        private const val CHUNK_STEPS = MAX_CHUNKS - MIN_CHUNKS  // 10
+
+        /** Converts a chunk count (2–12) to a slider fraction (0.0–1.0). */
+        private fun chunksToFraction(chunks: Int): Double =
+            (chunks.coerceIn(MIN_CHUNKS, MAX_CHUNKS) - MIN_CHUNKS) / CHUNK_STEPS.toDouble()
+
+        /** Converts a slider fraction (0.0–1.0) to a snapped chunk count (2–12). */
+        private fun fractionToChunks(fraction: Double): Int =
+            (fraction * CHUNK_STEPS).roundToInt() + MIN_CHUNKS
 
         /** Translation key for the compact mode label shown inside the sync slider. */
         private fun syncModeLabel(mode: PlaybackMode): String = when (mode) {

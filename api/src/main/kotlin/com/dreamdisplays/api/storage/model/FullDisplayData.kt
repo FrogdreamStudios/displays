@@ -31,6 +31,7 @@ data class FullDisplayData(
     var mode: PlaybackMode? = PlaybackMode.LOCAL,
     @Serializable(with = UuidStringSerializer::class)
     var ownerUuid: UUID = uuid,
+    var renderDistance: Int = 96,
     var currentTimeNanos: Long = 0,
     var rotation: Int = 0,
     var qualityCap: Int = 0,

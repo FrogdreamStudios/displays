@@ -25,6 +25,9 @@ data class DisplaySettings(
     /** Indicates if the display is paused. */
     val paused: Boolean = false,
 
+    /** The display's render distance in blocks. Must be a multiple of 16 in the range [32, 192] (2–12 chunks). */
+    val renderDistance: Int = 96,
+
     /** The URL to override the default display URL. */
     val urlOverride: String? = null,
 
@@ -34,6 +37,7 @@ data class DisplaySettings(
     init {
         require(volume in 0f..2f) { "Volume must be in [0, 2], got $volume." }
         require(brightness in 0f..2f) { "Brightness must be in [0, 2], got $brightness." }
+        require(renderDistance in 32..192) { "Render distance must be in [32, 192] blocks (2–12 chunks), got $renderDistance." }
     }
 
     companion object {

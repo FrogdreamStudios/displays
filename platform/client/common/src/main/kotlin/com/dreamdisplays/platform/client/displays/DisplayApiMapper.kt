@@ -23,7 +23,7 @@ internal fun DisplayScreen.toDisplay(): Display = Display(
     ),
     settings = ApiDisplaySettings(
         volume = volume, quality = quality, brightness = brightness,
-        muted = muted, paused = isPaused,
+        muted = muted, paused = isPaused, renderDistance = renderDistance.coerceIn(32, 192),
         urlOverride = null, audioTrackName = lang,
     ),
     url = videoUrl,
@@ -62,6 +62,7 @@ internal fun DisplayScreen.toFullDisplayData(): FullDisplayData = FullDisplayDat
     muted = muted,
     mode = mode,
     ownerUuid = ownerUuid,
+    renderDistance = renderDistance,
     currentTimeNanos = currentTimeNanos,
     rotation = rotation.quarterTurns,
     qualityCap = qualityCap,
