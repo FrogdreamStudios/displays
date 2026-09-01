@@ -55,19 +55,13 @@ class SelectionListener(plugin: PaperServer) : Listener {
         event.isCancelled = true
 
         when (event.action) {
-            LEFT_CLICK_BLOCK -> SelectionManager.setFirstPoint(player, block.location, player.facingDirection())
+            LEFT_CLICK_BLOCK -> SelectionManager.setFirstPoint(player, block.location, event.blockFace)
             RIGHT_CLICK_BLOCK -> SelectionManager.setSecondPoint(player, block.location)
             else -> {}
         }
     }
 
     private val Action.isRightClick get() = this in listOf(RIGHT_CLICK_AIR, RIGHT_CLICK_BLOCK)
-
-    private fun org.bukkit.entity.Player.facingDirection(): org.bukkit.block.BlockFace = when {
-        location.pitch < -45f -> org.bukkit.block.BlockFace.DOWN
-        location.pitch > 45f -> org.bukkit.block.BlockFace.UP
-        else -> facing.oppositeFace
-    }
 }
 
 /**
@@ -77,7 +71,7 @@ class SelectionListener(plugin: PaperServer) : Listener {
 @ModLoaderOnly
 object VanillaSelectionListener {
     /** Left-click: sets pos1 if holding the selection tool over the base material. Returns true if handled. */
-    fun handleLeftClick(player: ServerPlayer, world: ServerLevel, pos: BlockPos): Boolean {
+    fun handleLeftClick(player: ServerPlayer, world: ServerLevel, pos: BlockPos, face: Direction): Boolean {
         val config = VanillaServerState.config
         val selMaterialKey = config.settings.selectionMaterialId
         val heldItem = player.mainHandItem
@@ -90,7 +84,6 @@ object VanillaSelectionListener {
         if (blockKey != baseMaterialKey) return false
 
         val worldKey = RegionUtil.getLevelKey(world)
-        val face = Direction.orderedByNearest(player)[0].opposite
         SelectionManager.setFirstPoint(player, pos, worldKey, face)
         return true
     }
@@ -128,12 +121,12 @@ object VanillaSelectionListener {
 object FabricSelectionListener {
     /** Registers the selection listener. */
     fun register() {
-        AttackBlockCallback.EVENT.register { player, world, hand, pos, _ ->
+        AttackBlockCallback.EVENT.register { player, world, hand, pos, direction ->
             if (hand != InteractionHand.MAIN_HAND) return@register InteractionResult.PASS
             if (player !is ServerPlayer) return@register InteractionResult.PASS
             if (world !is ServerLevel) return@register InteractionResult.PASS
 
-            if (VanillaSelectionListener.handleLeftClick(player, world, pos)) InteractionResult.SUCCESS
+            if (VanillaSelectionListener.handleLeftClick(player, world, pos, direction)) InteractionResult.SUCCESS
             else InteractionResult.PASS
         }
 
@@ -158,8 +151,9 @@ object NeoForgeSelectionListener {
         if (event.hand != InteractionHand.MAIN_HAND) return
         val player = event.entity as? ServerPlayer ?: return
         val world = event.level as? ServerLevel ?: return
+        val face = event.face ?: return
 
-        if (VanillaSelectionListener.handleLeftClick(player, world, event.pos)) event.setCanceled(true)
+        if (VanillaSelectionListener.handleLeftClick(player, world, event.pos, face)) event.setCanceled(true)
     }
 
     /** Right-click sets pos2; sneak + right-click resets. */
