@@ -192,6 +192,15 @@ class SuggestionsPanel(
     private fun maxScroll(viewportW: Int, viewportH: Int): Int =
         max(0, contentExtent(viewportW) - if (vertical) viewportH else viewportW)
 
+    //? if <1.21.11 {
+    private fun GuiGraphicsCompat.enableScissorPoseAware(x1: Int, y1: Int, x2: Int, y2: Int) {
+        val m = pose().last().pose()
+        val p1 = m.transformPosition(org.joml.Vector3f(x1.toFloat(), y1.toFloat(), 0f))
+        val p2 = m.transformPosition(org.joml.Vector3f(x2.toFloat(), y2.toFloat(), 0f))
+        enableScissor(p1.x.toInt(), p1.y.toInt(), p2.x.toInt(), p2.y.toInt())
+    }
+    //?}
+
     override fun draw(g: GuiGraphicsCompat, mouseX: Int, mouseY: Int, partialTick: Float) {
         val r = UiRect(x, y, width, height)
         g.drawPanelSprite(r)
@@ -242,7 +251,10 @@ class SuggestionsPanel(
         scrollOffset = scrollOffset.coerceIn(0, maxOff)
 
         val cards = controller.visibleCards
+        //? if >=1.21.11 {
         g.enableScissor(stripLeft, stripTop, stripRight, stripBottom)
+        //?} else
+        /*g.enableScissorPoseAware(stripLeft, stripTop, stripRight, stripBottom)*/
         hoveredCard = -1
         val rowY = if (vertical) 0 else stripTop + max(0, (viewportH - refCh) / 2)
         var pos = (if (vertical) stripTop else stripLeft) - scrollOffset
