@@ -210,7 +210,9 @@ object MediaProcess {
         return mutableListOf<String>().apply {
             add(ffmpeg)
             addAll(listOf("-hide_banner", "-loglevel", "error", "-nostats"))
-            addAll(listOf("-protocol_whitelist", "https,tls,tcp,crypto,data,http"))
+            // TODO: httpproxy is sus
+            addAll(listOf("-protocol_whitelist", "https,tls,tcp,crypto,data,http,httpproxy"))
+            // https://github.com/arnodoelinger/dreamdisplays/issues/218
             // TODO: i should rewrite some parts of code to fix tls issue properly but i'm too lazy
             addAll(listOf("-tls_verify", "0")) // https://github.com/arnodoelinger/dreamdisplays/issues/209
             if (hwAccel.ffmpegName != null) {
