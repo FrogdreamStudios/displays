@@ -41,4 +41,11 @@ data class MediaStream(
 
     /** True when seeking requires decoding from start instead of seeking via demuxer. */
     val seekByDecoding: Boolean = false,
-)
+) {
+    /**
+     * Key that identifies this audio track across separate resolves of the same video. Prefers [audioTrackLang]
+     * since it's the more stable / normalized field; many
+     * providers only populate [audioTrackName] though, so that's the fallback rather than giving up.
+     */
+    val audioIdentity: String? get() = audioTrackLang ?: audioTrackName
+}

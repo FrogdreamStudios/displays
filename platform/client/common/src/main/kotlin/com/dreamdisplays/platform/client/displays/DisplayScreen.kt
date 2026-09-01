@@ -297,9 +297,9 @@ class DisplayScreen(
         val wanted = pendingAudioTrackLangRestore ?: return
         val tracks = audioTrackList
         if (tracks.isEmpty()) return
-        val match = tracks.firstOrNull { it.audioTrackLang == wanted }
+        val match = tracks.firstOrNull { it.audioIdentity == wanted }
         pendingAudioTrackLangRestore = null
-        if (match != null) audioTrack = match.url
+        if (match != null && match.url != currentAudioTrackUrl) audioTrack = match.url
     }
 
     /** Broadcast pins to cap; otherwise applies distance steps. */
@@ -416,6 +416,13 @@ class DisplayScreen(
 
     /** Audio track / language of the current video, or `null` when idle. */
     var lang: String? = null; private set
+
+    /**
+     * The server's own [DisplayInfo.lang] as of the last packet, tracked separately from [lang] so that
+     * substituting the viewer's saved audio-track preference into the actual load (see [updateData])
+     * never fights the server's value on every following packet.
+     */
+    private var lastPacketLang: String? = null
 
     /** True once the video is effectively playing: not awaiting the initial timeline and a frame has filled. */
     val isVideoStarted: Boolean get() = !stillWaitingForInitialTimeline() && (hasEverRendered || mediaPlayer?.textureFilled() == true)
@@ -598,8 +605,9 @@ class DisplayScreen(
         scheduledAction = packet.scheduledAction
         owner = Minecraft.getInstance().player?.gameProfile?.id?.toString() == packet.ownerId.toString()
 
-        if (videoUrl != packet.url || lang != packet.lang) {
+        if (videoUrl != packet.url || lastPacketLang != packet.lang) {
             val previousUrl = videoUrl
+            lastPacketLang = packet.lang
             if (clientUrlOverride && canSetVideoHere) return
             if (clientUrlOverride) {
                 clientUrlOverride = false
@@ -622,7 +630,7 @@ class DisplayScreen(
 
             paused = false
             if (packet.url != previousUrl) savedTimeNanos = 0L
-            loadVideo(packet.url, packet.lang)
+            loadVideo(packet.url, ds.audioTrackLang ?: packet.lang)
             sendRequestSyncPacket()
         }
     }

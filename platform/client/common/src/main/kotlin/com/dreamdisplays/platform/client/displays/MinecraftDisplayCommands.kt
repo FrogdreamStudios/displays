@@ -127,7 +127,7 @@ class MinecraftDisplayCommands : DisplayExecutor {
     override fun setAudioTrack(displayId: DisplayId, trackUrl: String): Display? {
         val screen = DisplayRegistry.screens[displayId.uuid] ?: return null
         screen.audioTrack = trackUrl
-        val lang = screen.audioTrackList.firstOrNull { it.url == trackUrl }?.audioTrackLang
+        val lang = screen.audioTrackList.firstOrNull { it.url == trackUrl }?.audioIdentity
         ClientSettingsStore.setAudioTrackLang(displayId.uuid, lang)
         return screen.toDisplay()
     }
