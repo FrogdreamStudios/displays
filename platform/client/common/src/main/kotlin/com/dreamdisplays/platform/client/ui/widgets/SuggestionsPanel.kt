@@ -504,27 +504,38 @@ class SuggestionsPanel(
         }
 
         textY += 1
+        var metaX = textX
+        var metaW = textW
+        val avatar = info.channelAvatarUrl?.let { Thumbnails.get(it) }
+        if (avatar != null) {
+            val iconSize = f.lineHeight
+            metaX += iconSize + 3
+            metaW -= iconSize + 3
+        }
+        if (info.isVerified) {
+            val badgeSize = f.lineHeight - 1
+            metaX += badgeSize + 3
+            metaW -= badgeSize + 3
+        }
+
         var meta = info.uploader ?: ""
-        val views = if (w <= 80) "" else info.formatViews()
+        val showViews = w >= CARD_W
+        val views = if (showViews) info.formatViews() else ""
         if (views.isNotEmpty()) {
-            meta = if (meta.isEmpty()) views
-            else UiText.trim(f, meta, max(20, textW - f.width(" • $views"))) + " • " + views
+            meta = if (meta.isEmpty()) {
+                if (f.width(views) <= metaW) views else ""
+            } else {
+                val viewsW = f.width(" • $views")
+                val combined = if (viewsW >= metaW) null else "${UiText.trim(f, meta, metaW - viewsW)} • $views"
+                if (combined != null && f.width(combined) <= metaW) combined else meta
+            }
         }
         if (meta.isNotEmpty()) {
-            var metaX = textX
-            var metaW = textW
-            val avatar = info.channelAvatarUrl?.let { Thumbnails.get(it) }
-            if (avatar != null) {
-                val iconSize = f.lineHeight
-                blitTexture(g, avatar, metaX, textY - 1, iconSize, iconSize)
-                metaX += iconSize + 3
-                metaW -= iconSize + 3
-            }
+            if (avatar != null) blitTexture(g, avatar, textX, textY - 1, f.lineHeight, f.lineHeight)
             if (info.isVerified) {
                 val badgeSize = f.lineHeight - 1
-                g.drawVerifiedBadge(metaX, textY - 1, badgeSize, UiTheme.ACCENT)
-                metaX += badgeSize + 3
-                metaW -= badgeSize + 3
+                val badgeX = textX + if (avatar != null) f.lineHeight + 3 else 0
+                g.drawVerifiedBadge(badgeX, textY - 1, badgeSize, UiTheme.ACCENT)
             }
             g.drawText(f, UiText.trim(f, meta, metaW), metaX, textY, UiTheme.TEXT_META, true)
         }
