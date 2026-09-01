@@ -32,6 +32,12 @@ object FullscreenOverlayManager {
     /** True when any overlay (including a fading-out one) still needs rendering. */
     val isEmpty: Boolean get() = overlays.isEmpty()
 
+    /**
+     * True while the vanilla HUD (hotbar, health / hunger, chat, ...) should stay hidden behind a
+     * fullscreen video.
+     */
+    val shouldHideVanillaHud: Boolean get() = !isEmpty
+
     /** True while an immersive-mode overlay is active; used to suppress the crosshair. */
     val isImmersiveActive: Boolean
         get() = active?.mode == FullscreenMode.IMMERSIVE

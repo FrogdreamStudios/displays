@@ -6,6 +6,7 @@
   "client": [
     "Crosshair",
     "DisplayLatePass",
+    "HudSuppress",
     "ScreenOverlay"
   ],
   "injectors": {
