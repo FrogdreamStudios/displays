@@ -9,6 +9,7 @@ import com.dreamdisplays.platform.client.render.UnshadedDisplayPass
 import com.dreamdisplays.platform.client.Mod as DreamMod
 import net.minecraft.client.Camera
 import net.minecraft.client.Minecraft
+import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload
 import net.neoforged.api.distmarker.Dist
 import net.neoforged.bus.api.IEventBus
@@ -19,8 +20,10 @@ import net.neoforged.neoforge.client.event.ClientTickEvent
 import net.neoforged.neoforge.client.event.RenderGuiEvent
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent
 //? if >=1.21.11 {
+import net.neoforged.neoforge.client.event.ExtractBlockOutlineRenderStateEvent
 import net.neoforged.neoforge.client.event.lifecycle.ClientStoppingEvent
-//?}
+//?} else
+/*import net.neoforged.neoforge.client.event.RenderHighlightEvent*/
 import net.neoforged.neoforge.common.NeoForge
 
 @Mod(value = Initializer.MOD_ID, dist = [Dist.CLIENT])
@@ -95,6 +98,26 @@ class Client(modEventBus: IEventBus) : DreamMod {
     }
     //?}
     */
+
+    //? if >=1.21.11 {
+    @SubscribeEvent
+    fun onExtractBlockOutline(event: ExtractBlockOutlineRenderStateEvent) {
+        if (isDisplayBlock(event.blockPos)) {
+            event.isCanceled = true
+        }
+    }
+    //?} else
+    /*
+    @SubscribeEvent
+    fun onRenderBlockHighlight(event: RenderHighlightEvent.Block) {
+        if (isDisplayBlock(event.target.blockPos)) {
+            event.isCanceled = true
+        }
+    }
+    */
+
+    private fun isDisplayBlock(pos: BlockPos): Boolean =
+        DisplayRegistry.getScreens().any { it.isInScreen(pos) }
 
     /** Main camera accessor. */
     private fun mainCamera(mc: Minecraft): Camera {
