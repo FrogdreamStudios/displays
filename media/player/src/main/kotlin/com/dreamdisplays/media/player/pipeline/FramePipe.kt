@@ -81,10 +81,10 @@ internal class LastFrameCache {
     }
 }
 
-/** A/V pacing shared by both frame pipes: sleep until a frame is due, drop when too late. */
+/** A / V pacing shared by both frame pipes: sleep until a frame is due, drop when too late. */
 internal object FramePacing {
     /** Threshold under which we use busy-wait (spin) instead of sleep for precise timing. */
-    private const val SPIN_THRESHOLD_NS = 2L * 1_000_000L
+    private const val SPIN_THRESHOLD_NS = 300L * 1_000L
 
     /** Drop a frame when it's more than 80 ms behind the audio clock. */
     private const val DROP_THRESHOLD_NS = 80_000_000L
