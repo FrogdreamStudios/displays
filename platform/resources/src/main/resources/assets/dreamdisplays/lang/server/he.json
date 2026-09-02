@@ -16,7 +16,7 @@
   "displayWrongCommand": "&7D |&f הקלדת משהו לא נכון!",
   "displayCommandMissingPermission": "&7D |&f אין לך הרשאה להשתמש בפקודה זו!",
   "commandPlayersOnly": "&7D |&f פקודה זו ניתנת לשימוש רק על ידי שחקן בתוך המשחק",
-  "successfulCreation": "&7D |&f התצוגה נוצרה! כעת התרכז בה והקלד /display video <video_url> [lang] כדי להגדיר וידאו",
+  "successfulCreation": "&7D |&f התצוגה נוצרה! החזק Shift ולחץ קליק ימני תוך כדי מבט עליה כדי לפתוח את התפריט שלה",
   "noDisplay": "&7D |&f התצוגה לא נמצאה!",
   "settedURL": "&7D |&f הוידאו נטען!",
   "invalidURL": "&7D |&f הקישור שלך לא תקין! אנא השתמש בקישור וידאו תקין (YouTube, Twitch וכו')",

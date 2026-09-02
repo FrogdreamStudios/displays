@@ -16,7 +16,7 @@
   "displayWrongCommand": "&7D |&f You entered something wrong!",
   "displayCommandMissingPermission": "&7D |&f You don't have permission to use this command!",
   "commandPlayersOnly": "&7D |&f This command can only be used by a player in-game",
-  "successfulCreation": "&7D |&f Display has been created! Now focus on it and type /display video <video_url> [lang] to set a video",
+  "successfulCreation": "&7D |&f Display has been created! Sneak + Right-click while looking at it to open its menu",
   "noDisplay": "&7D |&f Display has not been found!",
   "settedURL": "&7D |&f Video has been loaded!",
   "invalidURL": "&7D |&f Your URL is invalid! Please use a valid video link (YouTube, Twitch, etc.)",

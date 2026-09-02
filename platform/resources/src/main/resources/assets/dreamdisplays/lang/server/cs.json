@@ -16,7 +16,7 @@
   "displayWrongCommand": "&7D |&f Zadali jste něco špatného!",
   "displayCommandMissingPermission": "&7D |&f Nemáte oprávnění k použití tohoto příkazu!",
   "commandPlayersOnly": "&7D |&f Tento příkaz může použít pouze hráč ve hře",
-  "successfulCreation": "&7D |&f Displej byl vytvořen! Nyní se na něj zaměřte a zadejte /display video <video_url> [lang] pro nastavení videa",
+  "successfulCreation": "&7D |&f Displej byl vytvořen! Podržte Shift a klikněte pravým tlačítkem při pohledu na něj, abyste otevřeli menu",
   "noDisplay": "&7D |&f Displej nebyl nalezen!",
   "settedURL": "&7D |&f Video bylo načteno!",
   "invalidURL": "&7D |&f Váš odkaz je neplatný! Použijte prosím platný odkaz na video (YouTube, Twitch atd.)",

@@ -16,7 +16,7 @@
   "displayWrongCommand": "&7D |&f Hai inserito qualcosa di sbagliato!",
   "displayCommandMissingPermission": "&7D |&f Non hai il permesso per usare questo comando!",
   "commandPlayersOnly": "&7D |&f Questo comando può essere usato solo da un giocatore in gioco",
-  "successfulCreation": "&7D |&f Display creato! Ora guardalo e digita /display video <video_url> [lang] per impostare un video",
+  "successfulCreation": "&7D |&f Display creato! Tieni premuto Shift e clicca con il tasto destro guardandolo per aprire il suo menu",
   "noDisplay": "&7D |&f Display non trovato!",
   "settedURL": "&7D |&f Video caricato!",
   "invalidURL": "&7D |&f Il tuo URL non è valido! Usa un link video valido (YouTube, Twitch, ecc.)",

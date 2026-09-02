@@ -16,7 +16,7 @@
   "displayWrongCommand": "&7D |&f Du hast etwas Falsches eingegeben!",
   "displayCommandMissingPermission": "&7D |&f Du hast keine Berechtigung, diesen Befehl zu verwenden!",
   "commandPlayersOnly": "&7D |&f Dieser Befehl kann nur von einem Spieler im Spiel verwendet werden",
-  "successfulCreation": "&7D |&f Display wurde erstellt! Richte nun deinen Blick darauf und gib /display video <video_url> [lang] ein, um ein Video festzulegen",
+  "successfulCreation": "&7D |&f Display wurde erstellt! Halte Shift gedrückt und klicke mit der rechten Maustaste, während du es ansiehst, um Menü zu öffnen",
   "noDisplay": "&7D |&f Display wurde nicht gefunden!",
   "settedURL": "&7D |&f Video wurde geladen!",
   "invalidURL": "&7D |&f Deine URL ist ungültig! Bitte verwende einen gültigen Video-Link (YouTube, Twitch usw.)",

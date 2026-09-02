@@ -16,7 +16,7 @@
   "displayWrongCommand": "&7D |&f Wprowadziłeś coś nieprawidłowego!",
   "displayCommandMissingPermission": "&7D |&f Nie masz uprawnień do użycia tego polecenia!",
   "commandPlayersOnly": "&7D |&f Tego polecenia może użyć tylko gracz w grze",
-  "successfulCreation": "&7D |&f Wyświetlacz utworzony! Teraz skup się na nim i wpisz /display video <video_url> [lang], aby ustawić wideo",
+  "successfulCreation": "&7D |&f Wyświetlacz utworzony! Przytrzymaj Shift i kliknij PPM patrząc na niego, aby otworzyć menu",
   "noDisplay": "&7D |&f Wyświetlacz nie został znaleziony!",
   "settedURL": "&7D |&f Wideo załadowane!",
   "invalidURL": "&7D |&f Twój link jest nieprawidłowy! Proszę użyć prawidłowego linku do wideo (YouTube, Twitch itd.)",
