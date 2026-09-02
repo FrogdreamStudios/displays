@@ -14,4 +14,13 @@ object ServerCoroutines {
     fun shutdown() {
         io.cancel()
     }
+
+    /**
+     * Runs everything [shutdown] will, on a throwaway scope, so the coroutine classes it needs — the
+     * scope's own, and the cancellation machinery, which nothing else here ever touches — are loaded
+     * while the plugin classloader is fresh.
+     */
+    fun warmUp() {
+        CoroutineScope(SupervisorJob()).cancel()
+    }
 }

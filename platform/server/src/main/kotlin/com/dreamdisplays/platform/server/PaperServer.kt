@@ -50,6 +50,9 @@ class PaperServer : JavaPlugin() {
 
     /** Initializes scheduler, storage, listeners, channels, and metrics. Safe to call from a reload. */
     fun doEnable() {
+        ServerCoroutines.warmUp()
+        TelemetryMetrics.warmUp()
+
         Scheduler.init(this)
 
         val s = Companion.config.storage
@@ -87,13 +90,21 @@ class PaperServer : JavaPlugin() {
         registrarClass.getMethod("runRepeatingTasks", PaperServer::class.java).invoke(registrar, this)
     }
 
-    /** Persists state and tears down resources. Safe to call from a reload. */
+    /**
+     * Persists state and tears down resources. Safe to call from a reload.
+     *
+     * Each step is isolated.
+     */
     fun doDisable() {
-        if (::storage.isInitialized) {
-            DisplayManager.save { data: PaperDisplayData -> storage.saveDisplay(data) }
-            ServerCoroutines.shutdown()
-            storage.disconnect()
-        }
+        if (!::storage.isInitialized) return
+        disableStep("save displays") { DisplayManager.save { data: PaperDisplayData -> storage.saveDisplay(data) } }
+        disableStep("stop background IO") { ServerCoroutines.shutdown() }
+        disableStep("close storage") { storage.disconnect() }
+    }
+
+    /** Runs one teardown [step], logging and swallowing whatever it throws. */
+    private fun disableStep(what: String, step: () -> Unit) {
+        runCatching(step).onFailure { Companion.logger.error("Failed to $what while disabling.", it) }
     }
 
     companion object {
