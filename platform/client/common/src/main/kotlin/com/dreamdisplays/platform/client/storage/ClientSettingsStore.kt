@@ -97,13 +97,6 @@ object ClientSettingsStore : ClientSettingsStorage {
         save()
     }
 
-    /** Sets the viewer-chosen render distance (in blocks) for [displayUuid] and saves. */
-    override fun setRenderDistance(displayUuid: UUID, blocks: Int) {
-        val s = getSettings(displayUuid)
-        s.renderDistance = blocks
-        save()
-    }
-
     /** Sets whether [displayUuid] is pinned to a Picture-in-Picture overlay and saves. */
     override fun setPipOpen(displayUuid: UUID, open: Boolean) {
         val s = getSettings(displayUuid)

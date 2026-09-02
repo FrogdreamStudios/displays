@@ -13,7 +13,7 @@ class Config(private val baseDir: File) {
     /** Whether to mute all displays while the game window is not focused. */
     var muteOnAltTab: Boolean = false
 
-    /** Default render distance for new displays, in blocks (snapped to a multiple of 16). */
+    /** Max radius (blocks) for audio distance falloff; display visibility itself follows the client's own render distance option. */
     var defaultDistance: Int = 96
 
     /** Default volume for new displays, in range `0.0`..`1.0`. */
