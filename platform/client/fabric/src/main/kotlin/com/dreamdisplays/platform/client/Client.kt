@@ -115,7 +115,14 @@ class Client : ClientModInitializer, Mod {
         //? if >=26 {
         LevelRenderEvents.BEFORE_BLOCK_OUTLINE.register { _, state -> !isDisplayBlock(state.pos()) }
         //?} else
-        /*WorldRenderEvents.BLOCK_OUTLINE.register { _, context -> !isDisplayBlock(context.blockPos()) }*/
+        /*
+        //? if ==1.21.11 {
+        WorldRenderEvents.BEFORE_BLOCK_OUTLINE.register { _, state -> !isDisplayBlock(state.pos()) }
+        //?}
+        //? if <1.21.11 {
+        WorldRenderEvents.BLOCK_OUTLINE.register { _, context -> !isDisplayBlock(context.blockPos()) }
+        //?}
+        */
 
         //? if >=1.21.11 {
         HudElementRegistry.addLast(
