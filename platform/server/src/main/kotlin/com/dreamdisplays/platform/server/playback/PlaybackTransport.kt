@@ -24,6 +24,13 @@ interface PlaybackTransport {
     /** True if [playerId] is recognised as an admin (op / delete permission). */
     fun isAdmin(playerId: UUID): Boolean
 
+    /**
+     * True if [playerId] is a member (or owner) of the `WorldGuard` region [display] stands in.
+     * Resolved live against the region, so it follows member-list edits; always false off-Paper,
+     * without `WorldGuard`, or where the display stands in no region.
+     */
+    fun isTerritoryMember(display: DisplayData, playerId: UUID): Boolean
+
     /** UUIDs of every online player; fullscreen radius targeting scans the whole player list, not just those near a display. */
     fun onlinePlayerIds(): List<UUID>
 

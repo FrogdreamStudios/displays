@@ -1,5 +1,6 @@
 package com.dreamdisplays.platform.server.commands.subcommands
 
+import com.dreamdisplays.api.playback.model.DisplayAccess
 import com.dreamdisplays.platform.server.*
 import com.dreamdisplays.platform.server.datatypes.selection.PaperSelectionData
 import com.dreamdisplays.platform.server.datatypes.selection.VanillaSelectionData
@@ -9,6 +10,7 @@ import com.dreamdisplays.platform.server.meta.ServerCoroutines
 import com.dreamdisplays.platform.server.utils.MessageUtil
 import com.dreamdisplays.platform.server.utils.RegionUtil
 import com.dreamdisplays.platform.server.utils.VanillaPermissions
+import com.dreamdisplays.platform.server.utils.WorldGuardRegions
 import com.dreamdisplays.platform.server.utils.net.VanillaPacketUtil
 import com.mojang.brigadier.context.CommandContext
 import io.github.arnodoelinger.platformweaver.PaperOnly
@@ -83,6 +85,13 @@ class CreateCommand : SubCommand {
         }
 
         val displayData = sel.generateDisplayData()
+        val pos1 = sel.pos1
+        val pos2 = sel.pos2
+        if (pos1 != null && pos2 != null &&
+            (WorldGuardRegions.isProtectedTerritory(pos1) || WorldGuardRegions.isProtectedTerritory(pos2))
+        ) {
+            displayData.access = DisplayAccess.REGION
+        }
         SelectionManager.selectionPoints.remove(player.uniqueId)
 
         DisplayManager.register(displayData)

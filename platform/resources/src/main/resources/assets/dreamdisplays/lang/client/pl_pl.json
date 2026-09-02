@@ -55,10 +55,6 @@
   "dreamdisplays.button.synchronization.tooltip.4": "wyświetlacz pozostaje zsynchronizowany z pobliskimi graczami",
   "dreamdisplays.button.synchronization.tooltip.5": "Obecnie: %s",
   "dreamdisplays.button.synchronization.tooltip.6": "świetne do reklam, banerów i stałych treści",
-  "dreamdisplays.button.lock.tooltip.1": "Zablokuj wyświetlacz",
-  "dreamdisplays.button.lock.tooltip.2": "Tylko ty możesz zmieniać ustawienia",
-  "dreamdisplays.button.unlock.tooltip.1": "Odblokuj wyświetlacz",
-  "dreamdisplays.button.unlock.tooltip.2": "Każdy może zmieniać ustawienia (oprócz usuwania)",
   "dreamdisplays.button.delete": "Usunąć",
   "dreamdisplays.button.delete.tooltip.1": "Usunąć wyświetlacz",
   "dreamdisplays.button.delete.tooltip.2": "Usunie na stałe ten wyświetlacz",
@@ -95,5 +91,16 @@
   "dreamdisplays.sort.watched": "Obejrzane",
   "dreamdisplays.ui.custom": "Link",
   "dreamdisplays.sort.my_links": "Moje linki",
-  "dreamdisplays.suggestions.no_links": "Brak zapisanych linków. Wklej powyżej link do filmu, aby go odtworzyć."
+  "dreamdisplays.suggestions.no_links": "Brak zapisanych linków. Wklej powyżej link do filmu, aby go odtworzyć.",
+  "dreamdisplays.button.access": "Dostęp",
+  "dreamdisplays.button.access.tooltip.1": "Kto może korzystać z tego wyświetlacza",
+  "dreamdisplays.button.access.tooltip.2": "Opcja dostępna tylko dla właściciela wyświetlacza",
+  "dreamdisplays.button.access.tooltip.3": "każdy gracz w pobliżu może zmieniać wideo i odtwarzanie",
+  "dreamdisplays.button.access.tooltip.4": "tylko członkowie regionu, w którym stoi wyświetlacz",
+  "dreamdisplays.button.access.tooltip.5": "tylko ty i administracja serwera",
+  "dreamdisplays.button.access.tooltip.6": "Teraz: %s",
+  "dreamdisplays.button.access.tooltip.no_region": "Ten wyświetlacz nie znajduje się w regionie, więc ten poziom nie wpuści nikogo poza tobą.",
+  "dreamdisplays.access.everyone": "Wszyscy",
+  "dreamdisplays.access.region": "Członkowie regionu",
+  "dreamdisplays.access.locked": "Zablokowany"
 }

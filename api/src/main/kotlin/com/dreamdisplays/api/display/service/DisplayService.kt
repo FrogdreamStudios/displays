@@ -1,5 +1,6 @@
 package com.dreamdisplays.api.display.service
 
+import com.dreamdisplays.api.playback.model.DisplayAccess
 import com.dreamdisplays.api.Unstable
 import com.dreamdisplays.api.display.event.DisplayEvent
 import com.dreamdisplays.api.display.model.Display
@@ -25,8 +26,8 @@ interface DisplayService {
     /** Requests a server-authoritative video change for [id], optionally with the audio-track [lang]. */
     fun setUrl(id: DisplayId, url: String?, lang: String? = null)
 
-    /** Locks or unlocks [id] (owner / admin); the server validates and echoes the new state. */
-    fun setLocked(id: DisplayId, locked: Boolean)
+    /** Sets who may use [id] (owner / admin); the server validates and echoes the new level. */
+    fun setAccess(id: DisplayId, access: DisplayAccess)
 
     /** Deletes [id] entirely: purges its persisted data and unregisters it (owner / admin). */
     fun delete(id: DisplayId)

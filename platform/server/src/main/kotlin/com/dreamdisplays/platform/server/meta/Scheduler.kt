@@ -141,6 +141,6 @@ object Scheduler {
     /** Updates the tracked player snapshot for [player]. */
     private fun refreshPlayerSnapshot(player: Player) {
         trackedNames[player.uniqueId] = player.name
-        trackedAdmins[player.uniqueId] = player.hasPermission(PaperServer.config.permissions.delete)
+        trackedAdmins[player.uniqueId] = player.hasPermission(PaperServer.config.permissions.deleteOthers)
     }
 }

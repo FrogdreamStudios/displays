@@ -14,6 +14,7 @@ import com.dreamdisplays.platform.server.managers.PlayerManager
 import com.dreamdisplays.platform.server.playback.FullscreenBroadcastManager
 import com.dreamdisplays.platform.server.playback.PipPinManager
 import com.dreamdisplays.platform.server.proxy.ProxyBridge
+import com.dreamdisplays.platform.server.utils.WorldGuardRegions
 import io.github.arnodoelinger.platformweaver.PaperOnly
 import org.bukkit.entity.Player
 import org.bukkit.plugin.messaging.PluginMessageListener
@@ -48,12 +49,23 @@ object PaperV2Networking : PluginMessageListener {
     /** The capability snapshot for [player], rebuilt from permissions and config. */
     fun buildServerHello(player: Player): ServerHello = ServerHello(
         isPremium = player.hasPermission(PaperServer.config.permissions.premium),
-        isAdmin = player.hasPermission(PaperServer.config.permissions.delete),
+        isAdmin = player.hasPermission(PaperServer.config.permissions.deleteOthers),
         isReportingEnabled = PaperServer.config.settings.webhookUrl.isNotEmpty(),
-        allowedFeatures = ServerFeature.playbackFeatureWires,
+        allowedFeatures = serverFeatureWires(),
         defaultVolume = PaperServer.config.settings.defaultVolume,
         maxDisplays = maxDisplaysFor(player.hasPermission(PaperServer.config.permissions.createBypass)),
     )
+
+    /**
+     * The feature tokens for this server: the unconditional playback set, plus region access only
+     * where `WorldGuard` is actually installed to answer membership questions.
+     */
+    private fun serverFeatureWires(): List<String> =
+        if (WorldGuardRegions.isAvailable()) {
+            ServerFeature.playbackFeatureWires + ServerFeature.REGION_ACCESS.wire
+        } else {
+            ServerFeature.playbackFeatureWires
+        }
 
     /** [ServerHello.maxDisplays] for a player: `-1` (unlimited) when [hasBypass] or no cap is configured. */
     private fun maxDisplaysFor(hasBypass: Boolean): Int {
@@ -75,7 +87,7 @@ object PaperV2Networking : PluginMessageListener {
             is DisplayDelete -> DisplayActions.delete(player, packet.id)
             is ReportDisplay -> DisplayManager.report(packet.id, player)
             is SetVideo -> DisplayActions.setVideo(player, packet.id, packet.url, packet.lang)
-            is SetLocked -> DisplayActions.setLocked(player, packet.id, packet.locked)
+            is SetLocked -> DisplayActions.setAccess(player, packet.id, packet.accessLevel())
             is SetMode -> DisplayActions.setMode(
                 player,
                 packet.id,

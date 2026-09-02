@@ -55,10 +55,6 @@
   "dreamdisplays.button.synchronization.tooltip.4": "displej zůstává synchronizovaný s okolními hráči",
   "dreamdisplays.button.synchronization.tooltip.5": "Nyní: %s",
   "dreamdisplays.button.synchronization.tooltip.6": "skvělé pro reklamy, bannery a trvalý obsah",
-  "dreamdisplays.button.lock.tooltip.1": "Zamknout displej",
-  "dreamdisplays.button.lock.tooltip.2": "Pouze vy můžete měnit nastavení",
-  "dreamdisplays.button.unlock.tooltip.1": "Odemknout displej",
-  "dreamdisplays.button.unlock.tooltip.2": "Kdokoli může měnit nastavení (kromě smazání)",
   "dreamdisplays.button.delete": "Smazat",
   "dreamdisplays.button.delete.tooltip.1": "Smazat displej",
   "dreamdisplays.button.delete.tooltip.2": "Trvale odstraní tento displej",
@@ -95,5 +91,16 @@
   "dreamdisplays.sort.watched": "Zhlédnuté",
   "dreamdisplays.ui.custom": "Odkaz",
   "dreamdisplays.sort.my_links": "Moje odkazy",
-  "dreamdisplays.suggestions.no_links": "Zatím žádné uložené odkazy. Vlož výše odkaz na video a přehraj ho."
+  "dreamdisplays.suggestions.no_links": "Zatím žádné uložené odkazy. Vlož výše odkaz na video a přehraj ho.",
+  "dreamdisplays.button.access": "Přístup",
+  "dreamdisplays.button.access.tooltip.1": "Kdo může tento displej používat",
+  "dreamdisplays.button.access.tooltip.2": "Možnost dostupná pouze vlastníkovi displeje",
+  "dreamdisplays.button.access.tooltip.3": "jakýkoli hráč poblíž může měnit video i přehrávání",
+  "dreamdisplays.button.access.tooltip.4": "pouze členové regionu, ve kterém displej stojí",
+  "dreamdisplays.button.access.tooltip.5": "pouze ty a personál serveru",
+  "dreamdisplays.button.access.tooltip.6": "Nyní: %s",
+  "dreamdisplays.button.access.tooltip.no_region": "Tento displej není v žádném regionu, takže tato úroveň nikoho kromě tebe nevpustí.",
+  "dreamdisplays.access.everyone": "Všichni",
+  "dreamdisplays.access.region": "Členové regionu",
+  "dreamdisplays.access.locked": "Uzamčeno"
 }

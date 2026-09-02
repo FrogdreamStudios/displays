@@ -7,6 +7,7 @@ import com.dreamdisplays.platform.server.datatypes.display.PaperDisplayData
 import com.dreamdisplays.platform.server.managers.DisplayManager
 import com.dreamdisplays.platform.server.meta.Scheduler
 import com.dreamdisplays.platform.server.utils.PlatformUtil
+import com.dreamdisplays.platform.server.utils.WorldGuardRegions
 import com.dreamdisplays.platform.server.utils.net.PaperV2Networking
 import com.dreamdisplays.platform.server.utils.net.V2PlayerTracker
 import io.github.arnodoelinger.platformweaver.PaperOnly
@@ -60,7 +61,14 @@ object PaperPlaybackTransport : PlaybackTransport {
     override fun isAdmin(playerId: UUID): Boolean {
         if (PlatformUtil.isFolia) return Scheduler.trackedPlayerIsAdmin(playerId)
         return PaperServer.getInstance().server.getPlayer(playerId)
-            ?.hasPermission(PaperServer.config.permissions.delete) == true
+            ?.hasPermission(PaperServer.config.permissions.deleteOthers) == true
+    }
+
+    /** True if [playerId] is a member (or owner) of the `WorldGuard` region [display] stands in. */
+    override fun isTerritoryMember(display: DisplayData, playerId: UUID): Boolean {
+        val paper = display as? PaperDisplayData ?: return false
+        val player = PaperServer.getInstance().server.getPlayer(playerId) ?: return false
+        return WorldGuardRegions.isRegionMember(player, paper.pos1)
     }
 
     /** UUIDs of every online player. */

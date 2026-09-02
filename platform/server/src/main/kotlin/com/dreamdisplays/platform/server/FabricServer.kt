@@ -148,8 +148,8 @@ class Server : ModInitializer {
         val storage: StorageManager?; get() = VanillaServerState.storage
 
         /** Copies the pre-1.8.1 global `SQLite DB` into [worldDataDir] on first startup for this world. */
-        @Deprecated("Will be removed in 1.10.0")
-        // TODO: remove
+        @Deprecated("Scheduled for removal in 2.0.0")
+        // TODO: scheduled for removal in 2.0.0
         private fun migrateGlobalDb(worldDataDir: File) {
             val oldDb = FabricLoader.getInstance().configDir
                 .resolve("dreamdisplays").resolve("dreamdisplays.db").toFile()

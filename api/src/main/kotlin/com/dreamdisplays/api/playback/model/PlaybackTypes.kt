@@ -43,6 +43,47 @@ enum class PlaybackMode {
     }
 }
 
+/**
+ * Who may change a display's playback and settings. Travels on the wire as its [ordinal] int
+ * ([wire] / [fromWire]); ordinals are append-only.
+ *
+ * The display's owner and server admins always keep access, at every level. [REGION] is resolved
+ * live against the `WorldGuard` region the display stands in, so it follows the region's member
+ * list as it changes (and grants nobody extra where there is no region).
+ *
+ * @since 1.10.x
+ */
+@Unstable
+@Serializable
+enum class DisplayAccess {
+    /** Any player may change the display, whether or not they belong to the region it stands in. */
+    EVERYONE,
+
+    /** Only members (and owners) of the `WorldGuard` region the display stands in. */
+    REGION,
+
+    /** Only the display's owner and server admins. */
+    LOCKED,
+
+    ;
+
+    /** The append-only wire value for this level. */
+    val wire: Int get() = ordinal
+
+    companion object {
+        private val byWire = entries.associateBy { it.ordinal }
+
+        /** The level a display starts at when it is not created inside a region. */
+        val DEFAULT: DisplayAccess = LOCKED
+
+        /** The level for [wire], or [DEFAULT] for unknown values (forward-compat with newer peers). */
+        fun fromWire(wire: Int): DisplayAccess = byWire[wire] ?: DEFAULT
+
+        /** Maps the frozen-v1 boolean (which only knew locked / unlocked) onto a level. */
+        fun fromLegacyLocked(locked: Boolean): DisplayAccess = if (locked) LOCKED else EVERYONE
+    }
+}
+
 /** Lifecycle state of a watch-party session (see `WatchPartyStart` / `WatchPartyState`). */
 @Unstable
 enum class WatchPartySessionState {

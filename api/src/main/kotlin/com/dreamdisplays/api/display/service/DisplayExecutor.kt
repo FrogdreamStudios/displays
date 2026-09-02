@@ -1,5 +1,6 @@
 package com.dreamdisplays.api.display.service
 
+import com.dreamdisplays.api.playback.model.DisplayAccess
 import com.dreamdisplays.api.Unstable
 import com.dreamdisplays.api.display.model.Display
 import com.dreamdisplays.api.display.model.property.DisplayId
@@ -21,8 +22,8 @@ interface DisplayExecutor {
     /** Sets the URL for [id]. */
     fun setUrl(id: DisplayId, url: String?, lang: String? = null): Display? = null
 
-    /** Locks or unlocks [id]. */
-    fun setLocked(id: DisplayId, locked: Boolean): Display? = null
+    /** Sets who may use [id]. */
+    fun setAccess(id: DisplayId, access: DisplayAccess): Display? = null
 
     /** Deletes [id]. */
     fun delete(id: DisplayId): Boolean = false

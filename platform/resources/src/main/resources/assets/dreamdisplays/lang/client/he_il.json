@@ -55,10 +55,6 @@
   "dreamdisplays.button.synchronization.tooltip.4": "התצוגה נשארת מסונכרנת עם שחקנים בסביבה",
   "dreamdisplays.button.synchronization.tooltip.5": "כעת: %s",
   "dreamdisplays.button.synchronization.tooltip.6": "מצוין לפרסומות, באנרים ותוכן קבוע",
-  "dreamdisplays.button.lock.tooltip.1": "נעל תצוגה",
-  "dreamdisplays.button.lock.tooltip.2": "רק אתה יכול לשנות הגדרות",
-  "dreamdisplays.button.unlock.tooltip.1": "בטל נעילת תצוגה",
-  "dreamdisplays.button.unlock.tooltip.2": "כל אחד יכול לשנות הגדרות (חוץ ממחיקה)",
   "dreamdisplays.button.delete": "מחק",
   "dreamdisplays.button.delete.tooltip.1": "מחק תצוגה",
   "dreamdisplays.button.delete.tooltip.2": "מוחק לצמיתות את התצוגה הזו",
@@ -95,5 +91,16 @@
   "dreamdisplays.sort.watched": "נצפו",
   "dreamdisplays.ui.custom": "קישור",
   "dreamdisplays.sort.my_links": "הקישורים שלי",
-  "dreamdisplays.suggestions.no_links": "אין עדיין קישורים שמורים. הדביקו קישור לסרטון למעלה כדי להפעיל אותו."
+  "dreamdisplays.suggestions.no_links": "אין עדיין קישורים שמורים. הדביקו קישור לסרטון למעלה כדי להפעיל אותו.",
+  "dreamdisplays.button.access": "גישה",
+  "dreamdisplays.button.access.tooltip.1": "מי רשאי להשתמש בתצוגה הזו",
+  "dreamdisplays.button.access.tooltip.2": "אפשרות זמינה רק לבעלים של התצוגה",
+  "dreamdisplays.button.access.tooltip.3": "כל שחקן בסביבה יכול לשנות את הסרטון ואת ההפעלה",
+  "dreamdisplays.button.access.tooltip.4": "רק חברי האזור שבו נמצאת התצוגה",
+  "dreamdisplays.button.access.tooltip.5": "רק אתה וצוות השרת",
+  "dreamdisplays.button.access.tooltip.6": "כעת: %s",
+  "dreamdisplays.button.access.tooltip.no_region": "התצוגה הזו אינה בתוך אזור, ולכן רמה זו לא תכניס איש מלבדך.",
+  "dreamdisplays.access.everyone": "כולם",
+  "dreamdisplays.access.region": "חברי האזור",
+  "dreamdisplays.access.locked": "נעול"
 }

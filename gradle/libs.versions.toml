@@ -22,6 +22,7 @@ paperweight = "2.0.0-beta.22"
 newpipeExtractor = "93eb70b4e6ab3be9bc6f0b1b381e371ec6bcd3d9"
 slf4j = "2.0.18"
 luckperms = "5.5"
+worldguard = "7.0.11"
 velocityApi = "3.1.1"
 bungeecordApi = "1.21-R0.4"
 
@@ -50,6 +51,7 @@ okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 newpipeExtractor = { module = "com.github.TeamNewPipe:NewPipeExtractor", version.ref = "newpipeExtractor" }
 slf4jApi = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 luckpermsApi = { module = "net.luckperms:api", version.ref = "luckperms" }
+worldguardApi = { module = "com.sk89q.worldguard:worldguard-bukkit", version.ref = "worldguard" }
 velocityApi = { module = "com.velocitypowered:velocity-api", version.ref = "velocityApi" }
 bungeecordApi = { module = "net.md-5:bungeecord-api", version.ref = "bungeecordApi" }
 

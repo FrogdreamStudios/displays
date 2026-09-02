@@ -2,6 +2,7 @@
 
 package com.dreamdisplays.core.protocol.common.packets
 
+import com.dreamdisplays.api.playback.model.DisplayAccess
 import com.dreamdisplays.core.protocol.common.UuidSerializer
 import com.dreamdisplays.core.protocol.common.ZERO_UUID
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -33,6 +34,16 @@ data class DisplayInfo(
     @ProtoNumber(17) val forced: Boolean = false,
     @ProtoNumber(18) val scheduledStartEpochMillis: Long = 0,
     @ProtoNumber(19) val scheduledAction: Int = -1,
+    /** Wire ordinal of the display's `DisplayAccess`; [isLocked] stays as its frozen-v1 mirror. */
+    @ProtoNumber(20) val access: Int = 2,
+    /** True when the display stands inside a `WorldGuard` region, so the region access level means something here. */
+    @ProtoNumber(21) val inRegion: Boolean = false,
+    /**
+     * Whether *the player this copy was addressed to* belongs to that region — the one thing a client
+     * cannot work out for itself, since region membership only exists server-side. Meaningful only
+     * while [access] is the region level; the other levels are the same for every viewer.
+     */
+    @ProtoNumber(22) val viewerInRegion: Boolean = false,
 ) : DreamPacket
 
 /** Removes a display (server broadcast) or requests its deletion (client action). */
@@ -68,12 +79,24 @@ data class SetVideo(
     @ProtoNumber(3) val lang: String = "",
 ) : DreamPacket
 
-/** Client toggles the locked flag of a display it owns. */
+/**
+ * Client changes who may use a display it owns. [locked] is what pre-1.10 clients send and all this
+ * packet could once express; [access] carries the full level and wins whenever it is present.
+ */
 @Serializable
 data class SetLocked(
     @ProtoNumber(1) val id: @Serializable(UuidSerializer::class) UUID = ZERO_UUID,
     @ProtoNumber(2) val locked: Boolean = true,
+    /** Wire ordinal of the requested `DisplayAccess`, or `-1` from a client that only knows [locked]. */
+    @ProtoNumber(3) val access: Int = -1,
 ) : DreamPacket
+
+/**
+ * The access level [SetLocked] asks for: its own [SetLocked.access] when the sending client knows
+ * about levels, otherwise the level its [SetLocked.locked] boolean maps onto.
+ */
+fun SetLocked.accessLevel(): DisplayAccess =
+    if (access >= 0) DisplayAccess.fromWire(access) else DisplayAccess.fromLegacyLocked(locked)
 
 /** Client reports a display to the server's configured webhook. */
 @Serializable

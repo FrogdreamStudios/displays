@@ -1,5 +1,6 @@
 package com.dreamdisplays.platform.server.managers
 
+import com.dreamdisplays.api.playback.model.DisplayAccess
 import com.dreamdisplays.api.playback.model.PlaybackAction
 import com.dreamdisplays.api.playback.model.PlaybackMode
 import com.dreamdisplays.api.security.policy.MediaUrlPolicy
@@ -80,8 +81,18 @@ class DisplaysTable(prefix: String = "") : Table("${prefix}displays") {
     /** String representing the language code of the video associated with the display. */
     val lang = varchar("lang", 255).default("")
 
-    /** Boolean indicating whether the display is locked to its owner. */
+    /**
+     * Legacy locked flag, still written so a downgrade keeps working. Superseded by [access], which
+     * distinguishes the region level the boolean could not express.
+     */
     val isLocked = bool("isLocked").default(true)
+
+    /**
+     * Wire ordinal of the display's [com.dreamdisplays.api.playback.model.DisplayAccess]. Nullable so
+     * rows written before this column existed are recognisable and fall back to [isLocked] on load,
+     * instead of every one of them reading as the column default.
+     */
+    val access = integer("access").nullable()
 
     /** Integer representing the playback mode of the display. */
     val mode = integer("mode").default(PlaybackMode.LOCAL.wire)
@@ -245,6 +256,7 @@ class StorageManager(
                 it[duration] = data.duration
                 it[lang] = data.lang
                 it[isLocked] = data.isLocked
+                it[access] = data.access.wire
                 it[mode] = data.mode.wire
                 it[name] = data.name
                 it[scheduledStart] = data.scheduledStart?.toEpochMilliseconds()
@@ -266,7 +278,9 @@ class StorageManager(
         else if (row[table.isSync]) PlaybackMode.SYNCED else PlaybackMode.LOCAL
         duration = row[table.duration]
         lang = row[table.lang]
-        isLocked = row[table.isLocked]
+        // Rows predating the access column carry only the old boolean; map it onto a level.
+        access = row[table.access]?.let(DisplayAccess::fromWire)
+            ?: DisplayAccess.fromLegacyLocked(row[table.isLocked])
         name = row[table.name]
         scheduledStart = row[table.scheduledStart]?.let(Instant::fromEpochMilliseconds)
         scheduledAction = row[table.scheduledAction]?.let(PlaybackAction::fromWire)

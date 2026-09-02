@@ -18,10 +18,16 @@ enum class ServerFeature(override val wire: String) : WireEnum {
     WATCH_PARTY("watch_party"),
 
     /** Server supports broadcast playback. */
-    BROADCAST("broadcast");
+    BROADCAST("broadcast"),
+
+    /**
+     * Server can resolve region membership (i.e. `WorldGuard` is installed), so the region access
+     * level is a real choice. Absent, the level would let nobody in and isn't worth offering.
+     */
+    REGION_ACCESS("region_access");
 
     companion object {
-        /** Playback-related features enabled by the current server implementation. */
+        /** Playback-related features every server implementation supports unconditionally. */
         val playbackFeatures: List<ServerFeature> = listOf(MODES, WATCH_PARTY, BROADCAST)
 
         /** Playback-related feature tokens for string-based wire protocols. */

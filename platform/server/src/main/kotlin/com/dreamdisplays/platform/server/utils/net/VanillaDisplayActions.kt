@@ -3,6 +3,7 @@ package com.dreamdisplays.platform.server.utils.net
 //? if >=1.21.11 {
 import net.minecraft.server.players.NameAndId
 //?}
+import com.dreamdisplays.api.playback.model.DisplayAccess
 import com.dreamdisplays.api.playback.model.PlaybackAction
 import com.dreamdisplays.api.playback.model.PlaybackMode
 import com.dreamdisplays.api.playback.policy.PlaybackPermissions
@@ -111,9 +112,12 @@ object VanillaDisplayActions {
             ?: return MessageUtil.sendMessage(player, "noDisplay")
 
         val perms = VanillaServerState.config.permissions
-        if (displayData.ownerId != player.uuid &&
-            !VanillaPermissions.has(player, perms.deleteOthers, VanillaPermissions.Fallback.OP)
-        ) {
+        val canDelete = if (displayData.ownerId == player.uuid) {
+            VanillaPermissions.has(player, perms.delete, VanillaPermissions.Fallback.EVERYONE)
+        } else {
+            VanillaPermissions.has(player, perms.deleteOthers, VanillaPermissions.Fallback.OP)
+        }
+        if (!canDelete) {
             MessageUtil.sendMessage(player, "displayCommandMissingPermission")
             return
         }
@@ -156,17 +160,21 @@ object VanillaDisplayActions {
         TimelineManager.onVideoChanged(displayData)
     }
 
-    /** Updates the locked flag of a display owned by [player] and rebroadcasts. */
-    fun setLocked(player: ServerPlayer, server: MinecraftServer, displayId: java.util.UUID, locked: Boolean) {
+    /** Sets who may use a display owned by [player] and rebroadcasts. */
+    fun setAccess(player: ServerPlayer, server: MinecraftServer, displayId: java.util.UUID, access: DisplayAccess) {
         val displayData = DisplayManager.getDisplayData(displayId) as? VanillaDisplayData
             ?: return MessageUtil.sendMessage(player, "noDisplay")
+        if (!VanillaPermissions.has(player, VanillaServerState.config.permissions.lock, VanillaPermissions.Fallback.EVERYONE)) {
+            MessageUtil.sendMessage(player, "displayCommandMissingPermission")
+            return
+        }
         if (!PlaybackPermissions.canToggleLock(lockContext(displayData, player))) {
             MessageUtil.sendMessage(player, "displayCommandMissingPermission")
             return
         }
         if (!DisplayManager.isPlayerInRange(player, displayData)) return
 
-        displayData.isLocked = locked
+        displayData.access = access
         ServerCoroutines.io.launch { VanillaServerState.storage?.saveDisplay(displayData) }
 
         val receivers = DisplayManager.getReceivers(displayData, server)
@@ -251,17 +259,8 @@ object VanillaDisplayActions {
     private fun context(display: VanillaDisplayData, player: ServerPlayer) =
         PlaybackContexts.of(display, player.uuid, isAdmin(player))
 
-    /** Like [context] but elevates [player] to admin if they hold the lock permission. */
-    private fun lockContext(display: VanillaDisplayData, player: ServerPlayer) =
-        PlaybackContexts.of(
-            display, player.uuid,
-            isAdmin(player) ||
-                    VanillaPermissions.has(
-                        player,
-                        VanillaServerState.config.permissions.lock,
-                        VanillaPermissions.Fallback.OP
-                    ),
-        )
+    /** Same as [context]; kept separate because lock toggling additionally requires the `lock` node (see [setAccess]). */
+    private fun lockContext(display: VanillaDisplayData, player: ServerPlayer) = context(display, player)
 
     /** Checks if [player] has permission to access the specified [mode]. */
     private fun canAccessMode(player: ServerPlayer, mode: PlaybackMode): Boolean {
@@ -275,9 +274,9 @@ object VanillaDisplayActions {
         return VanillaPermissions.has(player, node, VanillaPermissions.Fallback.EVERYONE)
     }
 
-    /** True if [player] counts as a display admin (the `delete` node, or op level 2 without LuckPerms). */
+    /** True if [player] counts as a display admin (the `delete` node, or op level 2 without `LuckPerms`). */
     fun isAdmin(player: ServerPlayer): Boolean =
-        VanillaPermissions.has(player, VanillaServerState.config.permissions.delete, VanillaPermissions.Fallback.OP)
+        VanillaPermissions.has(player, VanillaServerState.config.permissions.deleteOthers, VanillaPermissions.Fallback.OP)
 
     /** True if [player] holds the premium node (op level 2 without LuckPerms, matching legacy behavior). */
     fun isPremium(player: ServerPlayer): Boolean =

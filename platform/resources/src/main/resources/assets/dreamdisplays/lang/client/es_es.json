@@ -55,10 +55,6 @@
   "dreamdisplays.button.synchronization.tooltip.4": "la pantalla se mantiene sincronizada con los jugadores cercanos",
   "dreamdisplays.button.synchronization.tooltip.5": "Ahora: %s",
   "dreamdisplays.button.synchronization.tooltip.6": "ideal para anuncios, banners y contenido permanente",
-  "dreamdisplays.button.lock.tooltip.1": "Bloquear pantalla",
-  "dreamdisplays.button.lock.tooltip.2": "Solo tú puedes cambiar la configuración",
-  "dreamdisplays.button.unlock.tooltip.1": "Desbloquear pantalla",
-  "dreamdisplays.button.unlock.tooltip.2": "Cualquiera puede cambiar la configuración (excepto eliminar)",
   "dreamdisplays.button.delete": "Eliminar",
   "dreamdisplays.button.delete.tooltip.1": "Eliminar pantalla",
   "dreamdisplays.button.delete.tooltip.2": "Elimina permanentemente esta pantalla",
@@ -95,5 +91,16 @@
   "dreamdisplays.sort.watched": "Vistos",
   "dreamdisplays.ui.custom": "Enlace",
   "dreamdisplays.sort.my_links": "Mis enlaces",
-  "dreamdisplays.suggestions.no_links": "Aún no hay enlaces guardados. Pega arriba un enlace de vídeo para reproducirlo."
+  "dreamdisplays.suggestions.no_links": "Aún no hay enlaces guardados. Pega arriba un enlace de vídeo para reproducirlo.",
+  "dreamdisplays.button.access": "Acceso",
+  "dreamdisplays.button.access.tooltip.1": "Quién puede usar esta pantalla",
+  "dreamdisplays.button.access.tooltip.2": "Opción disponible solo para el propietario de la pantalla",
+  "dreamdisplays.button.access.tooltip.3": "cualquier jugador cercano puede cambiar el vídeo y la reproducción",
+  "dreamdisplays.button.access.tooltip.4": "solo los miembros de la región donde está la pantalla",
+  "dreamdisplays.button.access.tooltip.5": "solo tú y el personal del servidor",
+  "dreamdisplays.button.access.tooltip.6": "Ahora: %s",
+  "dreamdisplays.button.access.tooltip.no_region": "Esta pantalla no está dentro de una región, así que este nivel no deja entrar a nadie más que a ti.",
+  "dreamdisplays.access.everyone": "Todos",
+  "dreamdisplays.access.region": "Miembros de la región",
+  "dreamdisplays.access.locked": "Bloqueada"
 }

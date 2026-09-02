@@ -1,5 +1,6 @@
 package com.dreamdisplays.core.services
 
+import com.dreamdisplays.api.playback.model.DisplayAccess
 import com.dreamdisplays.api.display.event.DisplayEvent
 import com.dreamdisplays.api.display.model.Display
 import com.dreamdisplays.api.display.model.property.DisplayId
@@ -28,7 +29,7 @@ class DefaultDisplayService(
     override fun listDisplays(): List<Display> = lookup.listDisplays()
     override fun updateSettings(id: DisplayId, settings: DisplaySettings) = mutations.updateSettings(id, settings)
     override fun setUrl(id: DisplayId, url: String?, lang: String?) = mutations.setUrl(id, url, lang)
-    override fun setLocked(id: DisplayId, locked: Boolean) = mutations.setLocked(id, locked)
+    override fun setAccess(id: DisplayId, access: DisplayAccess) = mutations.setAccess(id, access)
     override fun delete(id: DisplayId) = mutations.delete(id)
     override fun report(id: DisplayId) = mutations.report(id)
     override fun on(listener: (DisplayEvent) -> Unit): AutoCloseable = lookup.onDisplayEvent(listener)

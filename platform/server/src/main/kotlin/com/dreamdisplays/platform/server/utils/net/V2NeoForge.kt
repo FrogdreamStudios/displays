@@ -85,7 +85,7 @@ object NeoForgeV2Networking {
             is DisplayDelete -> VanillaDisplayActions.delete(player, server, packet.id)
             is ReportDisplay -> DisplayManager.report(packet.id, player, server)
             is SetVideo -> VanillaDisplayActions.setVideo(player, server, packet.id, packet.url, packet.lang)
-            is SetLocked -> VanillaDisplayActions.setLocked(player, server, packet.id, packet.locked)
+            is SetLocked -> VanillaDisplayActions.setAccess(player, server, packet.id, packet.accessLevel())
             is SetMode -> VanillaDisplayActions.setMode(
                 player,
                 server,

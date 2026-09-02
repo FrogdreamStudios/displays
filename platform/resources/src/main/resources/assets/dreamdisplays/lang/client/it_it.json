@@ -55,10 +55,6 @@
   "dreamdisplays.button.synchronization.tooltip.4": "il display resta sincronizzato con i giocatori vicini",
   "dreamdisplays.button.synchronization.tooltip.5": "Attuale: %s",
   "dreamdisplays.button.synchronization.tooltip.6": "ideale per pubblicità, banner e contenuti permanenti",
-  "dreamdisplays.button.lock.tooltip.1": "Blocca display",
-  "dreamdisplays.button.lock.tooltip.2": "Solo tu puoi modificare le impostazioni",
-  "dreamdisplays.button.unlock.tooltip.1": "Sblocca display",
-  "dreamdisplays.button.unlock.tooltip.2": "Chiunque può modificare le impostazioni (tranne eliminare)",
   "dreamdisplays.button.delete": "Elimina",
   "dreamdisplays.button.delete.tooltip.1": "Elimina display",
   "dreamdisplays.button.delete.tooltip.2": "Rimuove definitivamente questo display",
@@ -95,5 +91,16 @@
   "dreamdisplays.sort.watched": "Visti",
   "dreamdisplays.ui.custom": "Link",
   "dreamdisplays.sort.my_links": "I miei link",
-  "dreamdisplays.suggestions.no_links": "Nessun link salvato. Incolla sopra un link a un video per riprodurlo."
+  "dreamdisplays.suggestions.no_links": "Nessun link salvato. Incolla sopra un link a un video per riprodurlo.",
+  "dreamdisplays.button.access": "Accesso",
+  "dreamdisplays.button.access.tooltip.1": "Chi può usare questo display",
+  "dreamdisplays.button.access.tooltip.2": "Opzione disponibile solo al proprietario del display",
+  "dreamdisplays.button.access.tooltip.3": "qualsiasi giocatore vicino può cambiare video e riproduzione",
+  "dreamdisplays.button.access.tooltip.4": "solo i membri della regione in cui si trova il display",
+  "dreamdisplays.button.access.tooltip.5": "solo tu e lo staff del server",
+  "dreamdisplays.button.access.tooltip.6": "Ora: %s",
+  "dreamdisplays.button.access.tooltip.no_region": "Questo display non è dentro una regione, quindi questo livello non fa entrare nessuno tranne te.",
+  "dreamdisplays.access.everyone": "Tutti",
+  "dreamdisplays.access.region": "Membri della regione",
+  "dreamdisplays.access.locked": "Bloccato"
 }

@@ -1,5 +1,6 @@
 package com.dreamdisplays.core.services
 
+import com.dreamdisplays.api.playback.model.DisplayAccess
 import com.dreamdisplays.api.Unstable
 import com.dreamdisplays.api.display.event.DisplayEvent
 import com.dreamdisplays.api.display.model.Display
@@ -63,8 +64,8 @@ class DefaultDisplaySystem(
         apply(commands.setUrl(id, url, lang))
     }
 
-    override fun setLocked(id: DisplayId, locked: Boolean) {
-        apply(commands.setLocked(id, locked))
+    override fun setAccess(id: DisplayId, access: DisplayAccess) {
+        apply(commands.setAccess(id, access))
     }
 
     override fun delete(id: DisplayId) {

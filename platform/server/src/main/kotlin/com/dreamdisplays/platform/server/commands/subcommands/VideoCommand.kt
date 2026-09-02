@@ -64,7 +64,7 @@ class VideoCommand : SubCommand {
         val data = resolvePaperDisplayTarget(sender, player, token) as? PaperDisplayData ?: return
 
         if (!PlaybackPermissions.canSetVideo(
-                PlaybackContexts.of(data, player.uniqueId, player.hasPermission(PaperServer.config.permissions.delete))
+                PlaybackContexts.of(data, player.uniqueId, player.hasPermission(PaperServer.config.permissions.deleteOthers))
             )
         ) {
             MessageUtil.sendMessage(player, "displayVideoNotOwner")

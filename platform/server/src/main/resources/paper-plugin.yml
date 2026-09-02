@@ -15,6 +15,10 @@ dependencies:
       load: BEFORE
       required: false
       join-classpath: true
+    WorldGuard:
+      load: BEFORE
+      required: false
+      join-classpath: true
 permissions:
   dreamdisplays.create:
     default: true
@@ -38,6 +42,8 @@ permissions:
     default: true
   dreamdisplays.delete:
     default: true
+  dreamdisplays.lock.bypass.worldguard:
+    default: op
   dreamdisplays.delete.others:
     default: op
   dreamdisplays.list:

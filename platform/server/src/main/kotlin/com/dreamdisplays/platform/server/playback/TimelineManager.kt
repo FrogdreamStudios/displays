@@ -71,7 +71,10 @@ object TimelineManager {
      */
     fun onCommand(display: DisplayData, senderId: UUID, action: PlaybackAction, positionMs: Long): Boolean {
         if (display.mode != PlaybackMode.SYNCED || WatchPartyManager.hasSession(display.id)) return false
-        val ctx = PlaybackContexts.of(display, senderId, transport.isAdmin(senderId))
+        val ctx = PlaybackContexts.of(
+            display, senderId, transport.isAdmin(senderId),
+            { transport.isTerritoryMember(display, senderId) },
+        )
         if (!PlaybackPermissions.canPlayPause(ctx)) return false
         if (!commandThrottle.tryAcquire(senderId, COMMAND_COOLDOWN_MS)) return false
         if (senderId !in transport.nearbyPlayerIds(display)) return false

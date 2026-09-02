@@ -55,10 +55,6 @@
   "dreamdisplays.button.synchronization.tooltip.4": "l'affichage reste synchronisé avec les joueurs à proximité",
   "dreamdisplays.button.synchronization.tooltip.5": "Actuel : %s",
   "dreamdisplays.button.synchronization.tooltip.6": "idéal pour les publicités, bannières et contenus permanents",
-  "dreamdisplays.button.lock.tooltip.1": "Verrouiller l'affichage",
-  "dreamdisplays.button.lock.tooltip.2": "Seul vous pouvez modifier les paramètres",
-  "dreamdisplays.button.unlock.tooltip.1": "Déverrouiller l'affichage",
-  "dreamdisplays.button.unlock.tooltip.2": "N'importe qui peut modifier les paramètres (sauf supprimer)",
   "dreamdisplays.button.delete": "Supprimer",
   "dreamdisplays.button.delete.tooltip.1": "Supprimer l'affichage",
   "dreamdisplays.button.delete.tooltip.2": "Supprime définitivement cet affichage",
@@ -95,5 +91,16 @@
   "dreamdisplays.sort.watched": "Vues",
   "dreamdisplays.ui.custom": "Lien",
   "dreamdisplays.sort.my_links": "Mes liens",
-  "dreamdisplays.suggestions.no_links": "Aucun lien enregistré. Collez un lien vidéo ci-dessus pour le lire."
+  "dreamdisplays.suggestions.no_links": "Aucun lien enregistré. Collez un lien vidéo ci-dessus pour le lire.",
+  "dreamdisplays.button.access": "Accès",
+  "dreamdisplays.button.access.tooltip.1": "Qui peut utiliser cet écran",
+  "dreamdisplays.button.access.tooltip.2": "Option réservée au propriétaire de l'écran",
+  "dreamdisplays.button.access.tooltip.3": "n'importe quel joueur à proximité peut changer la vidéo et la lecture",
+  "dreamdisplays.button.access.tooltip.4": "uniquement les membres de la région où se trouve l'écran",
+  "dreamdisplays.button.access.tooltip.5": "uniquement vous et le staff du serveur",
+  "dreamdisplays.button.access.tooltip.6": "Maintenant : %s",
+  "dreamdisplays.button.access.tooltip.no_region": "Cet écran n'est pas dans une région, ce niveau ne laisse donc entrer personne d'autre que vous.",
+  "dreamdisplays.access.everyone": "Tout le monde",
+  "dreamdisplays.access.region": "Membres de la région",
+  "dreamdisplays.access.locked": "Verrouillé"
 }

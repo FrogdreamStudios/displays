@@ -64,7 +64,10 @@ object WatchPartyManager {
     /** Starts a session on [display] with [hostId] as host. Returns false if a session already exists or the player lacks permission. */
     fun start(display: DisplayData, hostId: UUID, url: String, lang: String, virtual: Boolean = false): Boolean {
         if (hasSession(display.id)) return false
-        val ctx = PlaybackContexts.of(display, hostId, transport.isAdmin(hostId))
+        val ctx = PlaybackContexts.of(
+            display, hostId, transport.isAdmin(hostId),
+            { transport.isTerritoryMember(display, hostId) },
+        )
         if (!PlaybackPermissions.canStartWatchParty(ctx)) return false
 
         val now = transport.nowMs()
@@ -107,7 +110,10 @@ object WatchPartyManager {
         val now = transport.nowMs()
 
         if (action == WatchPartyAction.CLOSE) {
-            val ctx = PlaybackContexts.of(display, senderId, transport.isAdmin(senderId))
+            val ctx = PlaybackContexts.of(
+                display, senderId, transport.isAdmin(senderId),
+                { transport.isTerritoryMember(display, senderId) },
+            )
             if (!PlaybackPermissions.canCloseWatchParty(ctx)) return false
             close(display)
             return true

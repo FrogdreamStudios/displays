@@ -12,6 +12,7 @@ import com.dreamdisplays.api.media.audio.service.keys.AudioAcousticsServices
 import com.dreamdisplays.api.media.search.model.MediaSearchResult
 import com.dreamdisplays.api.playback.model.FullscreenMode
 import com.dreamdisplays.api.playback.model.PlaybackAction
+import com.dreamdisplays.api.playback.model.DisplayAccess
 import com.dreamdisplays.api.playback.model.PlaybackMode
 import com.dreamdisplays.api.playback.service.keys.PlaybackServices
 import com.dreamdisplays.api.runtime.registry.service.get
@@ -72,6 +73,7 @@ class DisplayMenu private constructor(
     private lateinit var brightness: ValueSlider
     private lateinit var audio3d: ModeSlider<AcousticQuality>
     private lateinit var sync: ModeSlider<PlaybackMode>
+    private lateinit var access: ModeSlider<DisplayAccess>
     private lateinit var progress: SeekBar
     private lateinit var suggestions: SuggestionsPanel
     private lateinit var preview: PreviewSection
@@ -179,6 +181,19 @@ class DisplayMenu private constructor(
         }
         sync.visibleWhen = notErrored
 
+        access = addUi(
+            ModeSlider(
+                modes = accessModesFor(ds),
+                initial = ds.access ?: DisplayAccess.DEFAULT,
+                current = { ds.access ?: DisplayAccess.DEFAULT },
+                enabledFor = { ds.canToggleLockHere },
+                label = { Component.translatable(accessLevelLabel(it)) },
+            ) { level ->
+                if (level != ds.access) displays.setAccess(displayId, level)
+            })
+        access.enabledWhen = { ds.canToggleLockHere }
+        access.visibleWhen = { ds.access != null && !ds.errored }
+
         val qualityReset = addUi(IconButton("refresh") {
             playback.setQuality(displayId, VideoQuality.DEFAULT)
             quality.value = qualityFraction(VideoQuality.DEFAULT.serialize())
@@ -206,6 +221,12 @@ class DisplayMenu private constructor(
         })
         syncReset.enabledWhen = { ds.canSetModeHere && ds.effectiveMode != PlaybackMode.LOCAL }
         syncReset.visibleWhen = notErrored
+
+        val accessReset = addUi(IconButton("refresh") {
+            if (ds.canToggleLockHere) displays.setAccess(displayId, ds.defaultAccess)
+        })
+        accessReset.enabledWhen = { ds.canToggleLockHere && ds.access != ds.defaultAccess }
+        accessReset.visibleWhen = { ds.access != null && !ds.errored }
 
         val muteButton = addUi(
             IconButton(
@@ -266,16 +287,6 @@ class DisplayMenu private constructor(
         progress.enabledWhen = { videoReady() && ds.canSeek() && !ds.isLive && ds.canSeekHere }
         progress.visibleWhen = notErrored
 
-        val lockButton = addUi(
-            IconButton(
-                icon = { IconButton.modIcon(if (ds.isLocked == true) "lock" else "unlock") },
-            ) {
-                val locked = ds.isLocked ?: return@IconButton
-                displays.setLocked(displayId, !locked)
-            })
-        lockButton.enabledWhen = { ds.canToggleLockHere }
-        lockButton.visibleWhen = { ds.isLocked != null && !ds.errored }
-
         val retryButton = addUi(IconButton("refresh") {
             playback.retry(displayId) // Local re-resolve; the error panel clears itself once it succeeds
         })
@@ -315,19 +326,9 @@ class DisplayMenu private constructor(
                 dropdown, audioTrackDropdown,
             )
         settings = SettingsSection(
-            rows = settingsRows(qualityReset, brightnessReset, audio3dReset, syncReset),
-            ownerActions = listOf(reportButton, deleteButton, lockButton),
+            rows = settingsRows(qualityReset, brightnessReset, audio3dReset, syncReset, accessReset),
+            ownerActions = listOf(reportButton, deleteButton),
             buttonTooltips = listOf(
-                lockButton to {
-                    ds.isLocked?.let { locked ->
-                        listOf(
-                            Component.translatable(if (locked) "dreamdisplays.button.unlock.tooltip.1" else "dreamdisplays.button.lock.tooltip.1")
-                                .withStyle { it.withColor(ChatFormatting.WHITE).withBold(true) },
-                            Component.translatable(if (locked) "dreamdisplays.button.unlock.tooltip.2" else "dreamdisplays.button.lock.tooltip.2")
-                                .withStyle { it.withColor(ChatFormatting.GRAY) },
-                        )
-                    }
-                },
                 deleteButton to { buttonTooltip("dreamdisplays.button.delete") },
                 reportButton to { buttonTooltip("dreamdisplays.button.report") },
             ),
@@ -339,6 +340,7 @@ class DisplayMenu private constructor(
     private fun settingsRows(
         qualityReset: IconButton,
         brightnessReset: IconButton, audio3dReset: IconButton, syncReset: IconButton,
+        accessReset: IconButton,
     ): List<SettingsSection.Row> {
         val ds = displayScreen
         return listOf(
@@ -394,6 +396,32 @@ class DisplayMenu private constructor(
                         Component.translatable(syncModeLabel(sync.mode)),
                     ),
                 )
+            },
+            SettingsSection.Row("dreamdisplays.button.access", access, accessReset) {
+                buildList {
+                    add(tooltipTitle("dreamdisplays.button.access.tooltip.1"))
+                    add(tooltipBody("dreamdisplays.button.access.tooltip.2"))
+                    add(Component.literal(""))
+                    add(tooltipModeBullet("dreamdisplays.access.everyone", "dreamdisplays.button.access.tooltip.3"))
+                    if (ds.supportsRegionAccess) {
+                        add(tooltipModeBullet("dreamdisplays.access.region", "dreamdisplays.button.access.tooltip.4"))
+                    }
+                    add(tooltipModeBullet("dreamdisplays.access.locked", "dreamdisplays.button.access.tooltip.5"))
+                    if (ds.supportsRegionAccess && !ds.inRegion) {
+                        add(Component.literal(""))
+                        add(
+                            Component.translatable("dreamdisplays.button.access.tooltip.no_region")
+                                .withStyle { it.withColor(ChatFormatting.YELLOW) },
+                        )
+                    }
+                    add(Component.literal(""))
+                    add(
+                        tooltipValue(
+                            "dreamdisplays.button.access.tooltip.6",
+                            Component.translatable(accessLevelLabel(access.mode)),
+                        ),
+                    )
+                }
             },
         )
     }
@@ -522,6 +550,7 @@ class DisplayMenu private constructor(
     /** Keeps the synchronization mode slider aligned with server echoes and watch-party state. */
     private fun resyncModeSlider() {
         sync.syncToCurrent()
+        access.syncToCurrent()
     }
 
     /** Points the suggestions panel at the currently playing video when it changes. */
@@ -643,6 +672,19 @@ class DisplayMenu private constructor(
 
         /** The three sync-mode notches exposed by the playback-mode slider. */
         private val SYNC_MODES = listOf(PlaybackMode.LOCAL, PlaybackMode.SYNCED, PlaybackMode.BROADCAST)
+
+        private fun accessModesFor(ds: DisplayScreen): List<DisplayAccess> =
+            if (ds.supportsRegionAccess || ds.access == DisplayAccess.REGION) {
+                listOf(DisplayAccess.EVERYONE, DisplayAccess.REGION, DisplayAccess.LOCKED)
+            } else {
+                listOf(DisplayAccess.EVERYONE, DisplayAccess.LOCKED)
+            }
+
+        private fun accessLevelLabel(access: DisplayAccess): String = when (access) {
+            DisplayAccess.EVERYONE -> "dreamdisplays.access.everyone"
+            DisplayAccess.REGION -> "dreamdisplays.access.region"
+            DisplayAccess.LOCKED -> "dreamdisplays.access.locked"
+        }
 
         /** Opens the menu for [displayScreen]. */
         fun open(displayScreen: DisplayScreen) {

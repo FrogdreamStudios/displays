@@ -1,5 +1,6 @@
 package com.dreamdisplays.platform.server.utils.net
 
+import com.dreamdisplays.api.playback.model.DisplayAccess
 import com.dreamdisplays.platform.client.Initializer
 import com.dreamdisplays.platform.client.net.Packets
 import com.dreamdisplays.platform.server.VanillaServerState
@@ -13,7 +14,7 @@ import com.dreamdisplays.platform.server.utils.net.VanillaDisplayActions.isAdmin
 import com.dreamdisplays.platform.server.utils.net.VanillaDisplayActions.isPremium
 import com.dreamdisplays.platform.server.utils.net.VanillaDisplayActions.recordVersionAndCheckUpdates
 import com.dreamdisplays.platform.server.utils.net.VanillaDisplayActions.sendAllDisplays
-import com.dreamdisplays.platform.server.utils.net.VanillaDisplayActions.setLocked
+import com.dreamdisplays.platform.server.utils.net.VanillaDisplayActions.setAccess
 import com.dreamdisplays.platform.server.utils.net.VanillaDisplayActions.setVideo
 import io.github.arnodoelinger.platformweaver.FabricOnly
 import io.github.arnodoelinger.platformweaver.NeoForgeOnly
@@ -111,7 +112,7 @@ object VanillaServerPacketHandler {
 
         ServerPlayNetworking.registerGlobalReceiver(Packets.SetLocked.PACKET_ID) { payload, context ->
             runCatching {
-                setLocked(context.player(), context.server(), payload.uuid, payload.locked)
+                setAccess(context.player(), context.server(), payload.uuid, DisplayAccess.fromLegacyLocked(payload.locked))
             }.onFailure { e ->
                 logger.warn("Failed to handle set_locked packet.", e)
             }
@@ -218,7 +219,7 @@ object VanillaServerPacketHandler {
         registrar.playToServer(Packets.SetLocked.PACKET_ID, Packets.SetLocked.PACKET_CODEC) { payload, context ->
             runCatching {
                 val player = context.player() as ServerPlayer
-                setLocked(player, RegionUtil.playerServer(player), payload.uuid, payload.locked)
+                setAccess(player, RegionUtil.playerServer(player), payload.uuid, DisplayAccess.fromLegacyLocked(payload.locked))
             }.onFailure { e ->
                 logger.warn("Failed to handle set_locked packet.", e)
             }

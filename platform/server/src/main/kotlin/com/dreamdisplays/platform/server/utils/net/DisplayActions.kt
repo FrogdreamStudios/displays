@@ -1,5 +1,6 @@
 package com.dreamdisplays.platform.server.utils.net
 
+import com.dreamdisplays.api.playback.model.DisplayAccess
 import com.dreamdisplays.api.playback.model.PlaybackAction
 import com.dreamdisplays.api.playback.model.PlaybackMode
 import com.dreamdisplays.api.playback.policy.PlaybackPermissions
@@ -20,6 +21,7 @@ import com.dreamdisplays.platform.server.playback.TimelineManager
 import com.dreamdisplays.platform.server.playback.WatchPartyManager
 import com.dreamdisplays.platform.server.utils.MessageUtil
 import com.dreamdisplays.platform.server.utils.VersionUtil
+import com.dreamdisplays.platform.server.utils.WorldGuardRegions
 import com.dreamdisplays.platform.server.utils.net.DisplayActions.context
 import io.github.arnodoelinger.platformweaver.PaperOnly
 import net.kyori.adventure.text.TextReplacementConfig
@@ -65,7 +67,8 @@ object DisplayActions {
             ?: return MessageUtil.sendMessage(player, "noDisplay")
 
         val isOwner = displayData.ownerId == player.uniqueId
-        val canDelete = isOwner || player.hasPermission(PaperServer.config.permissions.deleteOthers)
+        val canDelete = (isOwner && player.hasPermission(PaperServer.config.permissions.delete)) ||
+                player.hasPermission(PaperServer.config.permissions.deleteOthers)
         if (!canDelete) {
             MessageUtil.sendMessage(player, "displayCommandMissingPermission")
             return
@@ -106,13 +109,14 @@ object DisplayActions {
         TimelineManager.onVideoChanged(displayData)
     }
 
-    /** Updates the locked flag of a display owned by [player] and rebroadcasts. */
-    fun setLocked(player: Player, displayId: UUID, locked: Boolean) {
+    /** Sets who may use a display owned by [player] and rebroadcasts. */
+    fun setAccess(player: Player, displayId: UUID, access: DisplayAccess) {
         val displayData = DisplayManager.getDisplayData(displayId) as? PaperDisplayData ?: return
+        if (!player.hasPermission(PaperServer.config.permissions.lock)) return
         if (!PlaybackPermissions.canToggleLock(lockContext(displayData, player))) return
         if (!DisplayManager.isPlayerInRange(player, displayData)) return
 
-        displayData.isLocked = locked
+        displayData.access = access
 
         runAsync { PaperServer.getInstance().storage.saveDisplay(displayData) }
         DisplayManager.broadcastUpdate(displayData)
@@ -187,14 +191,14 @@ object DisplayActions {
 
     /** Builds the permission context for [player] acting on [display]. */
     private fun context(display: PaperDisplayData, player: Player) =
-        PlaybackContexts.of(display, player.uniqueId, player.hasPermission(PaperServer.config.permissions.delete))
+        PlaybackContexts.of(display, player.uniqueId, isAdmin(player)) {
+            WorldGuardRegions.isRegionMember(player, display.pos1)
+        }
 
-    /** Like [context] but elevates [player] to admin if they hold the [lock][PermissionsSection.lock] permission. */
-    private fun lockContext(display: PaperDisplayData, player: Player) =
-        PlaybackContexts.of(
-            display, player.uniqueId,
-            player.hasPermission(PaperServer.config.permissions.delete) || player.hasPermission(PaperServer.config.permissions.lock)
-        )
+    /** Same as [context]; kept separate because changing access additionally requires the [lock][PermissionsSection.lock] node (see [setAccess]). */
+    private fun lockContext(display: PaperDisplayData, player: Player) = context(display, player)
+
+    private fun isAdmin(player: Player) = player.hasPermission(PaperServer.config.permissions.deleteOthers)
 
     /** Checks if [player] has permission to access the specified [mode]. */
     private fun canAccessMode(player: Player, mode: PlaybackMode): Boolean {
@@ -256,9 +260,12 @@ object DisplayActions {
                 display.facing,
                 display.isSync,
                 display.isLocked,
+                display.access,
                 display.mode,
                 display.qualityCap,
                 display.rotation,
+                inRegion = WorldGuardRegions.isProtectedTerritory(display.pos1),
+                isRegionMember = { WorldGuardRegions.isRegionMember(it, display.pos1) },
             )
         }
     }

@@ -107,7 +107,7 @@ object StateManager {
         if (!applySyncPacket(
                 packet,
                 player.uniqueId,
-                player.hasPermission(PaperServer.config.permissions.delete)
+                player.hasPermission(PaperServer.config.permissions.deleteOthers)
             )
         ) return
         val data = getDisplayData(packet.id) ?: return

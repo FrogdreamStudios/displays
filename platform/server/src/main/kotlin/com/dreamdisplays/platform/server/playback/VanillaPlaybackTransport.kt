@@ -65,6 +65,9 @@ object VanillaPlaybackTransport : PlaybackTransport {
         return VanillaDisplayActions.isAdmin(player)
     }
 
+    /** `WorldGuard` is `Paper`-only; always false here. */
+    override fun isTerritoryMember(display: DisplayData, playerId: UUID): Boolean = false
+
     /** UUIDs of every online player. */
     override fun onlinePlayerIds(): List<UUID> = server?.playerList?.players?.map { it.uuid } ?: emptyList()
 

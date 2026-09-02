@@ -24,6 +24,7 @@ import com.dreamdisplays.platform.server.playback.WatchPartyManager
 import com.dreamdisplays.platform.server.utils.MessageUtil
 import com.dreamdisplays.platform.server.utils.PlatformUtil
 import com.dreamdisplays.platform.server.utils.RegionUtil
+import com.dreamdisplays.platform.server.utils.WorldGuardRegions
 import com.dreamdisplays.platform.server.utils.ReporterUtil
 import com.dreamdisplays.platform.server.utils.net.PacketUtil
 import com.dreamdisplays.platform.server.utils.net.PaperV2Networking
@@ -203,10 +204,12 @@ object DisplayManager {
             players,
             display.id, display.ownerId, display.box.min, display.width, display.height,
             display.url, display.lang, display.facing, display.isSync, display.isLocked,
-            display.mode, display.qualityCap, display.rotation,
+            display.access, display.mode, display.qualityCap, display.rotation,
             virtual = display.virtual, forced = forced,
             scheduledStartEpochMillis = display.scheduledStart?.toEpochMilliseconds() ?: 0,
             scheduledAction = display.scheduledAction?.wire ?: -1,
+            inRegion = WorldGuardRegions.isProtectedTerritory(display.pos1),
+            isRegionMember = { WorldGuardRegions.isRegionMember(it, display.pos1) },
         )
     }
 

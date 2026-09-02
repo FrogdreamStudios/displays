@@ -55,10 +55,6 @@
   "dreamdisplays.button.synchronization.tooltip.4": "das Display bleibt mit Spielern in der Nähe synchronisiert",
   "dreamdisplays.button.synchronization.tooltip.5": "Aktuell: %s",
   "dreamdisplays.button.synchronization.tooltip.6": "ideal für Werbung, Banner und dauerhafte Inhalte",
-  "dreamdisplays.button.lock.tooltip.1": "Anzeige sperren",
-  "dreamdisplays.button.lock.tooltip.2": "Nur Sie können die Einstellungen ändern",
-  "dreamdisplays.button.unlock.tooltip.1": "Anzeige entsperren",
-  "dreamdisplays.button.unlock.tooltip.2": "Jeder kann Einstellungen ändern (außer löschen)",
   "dreamdisplays.button.delete": "Löschen",
   "dreamdisplays.button.delete.tooltip.1": "Anzeige löschen",
   "dreamdisplays.button.delete.tooltip.2": "Entfernt diese Anzeige dauerhaft",
@@ -95,5 +91,16 @@
   "dreamdisplays.sort.watched": "Gesehen",
   "dreamdisplays.ui.custom": "Link",
   "dreamdisplays.sort.my_links": "Meine Links",
-  "dreamdisplays.suggestions.no_links": "Noch keine gespeicherten Links. Füge oben einen Videolink ein, um ihn abzuspielen."
+  "dreamdisplays.suggestions.no_links": "Noch keine gespeicherten Links. Füge oben einen Videolink ein, um ihn abzuspielen.",
+  "dreamdisplays.button.access": "Zugriff",
+  "dreamdisplays.button.access.tooltip.1": "Wer diesen Bildschirm nutzen darf",
+  "dreamdisplays.button.access.tooltip.2": "Option nur für den Besitzer des Bildschirms",
+  "dreamdisplays.button.access.tooltip.3": "jeder Spieler in der Nähe kann Video und Wiedergabe ändern",
+  "dreamdisplays.button.access.tooltip.4": "nur Mitglieder des Bereichs, in dem der Bildschirm steht",
+  "dreamdisplays.button.access.tooltip.5": "nur du und das Serverteam",
+  "dreamdisplays.button.access.tooltip.6": "Jetzt: %s",
+  "dreamdisplays.button.access.tooltip.no_region": "Dieser Bildschirm steht in keinem Bereich, daher lässt diese Stufe niemanden außer dir hinein.",
+  "dreamdisplays.access.everyone": "Alle",
+  "dreamdisplays.access.region": "Bereichsmitglieder",
+  "dreamdisplays.access.locked": "Gesperrt"
 }

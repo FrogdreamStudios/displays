@@ -1,5 +1,6 @@
 package com.dreamdisplays.platform.server.utils.net
 
+import com.dreamdisplays.api.playback.model.DisplayAccess
 import com.dreamdisplays.platform.server.PaperServer
 import com.dreamdisplays.platform.server.datatypes.sync.SyncData
 import com.dreamdisplays.platform.server.managers.DisplayManager
@@ -91,7 +92,7 @@ class PacketReceiver(private val plugin: PaperServer) : PluginMessageListener {
 
             DisplayActions.recordVersionAndCheckUpdates(player, version)
             PacketUtil.sendPremium(player, player.hasPermission(PaperServer.config.permissions.premium))
-            PacketUtil.sendIsAdmin(player, player.hasPermission(PaperServer.config.permissions.delete))
+            PacketUtil.sendIsAdmin(player, player.hasPermission(PaperServer.config.permissions.deleteOthers))
             PacketUtil.sendReportEnabled(player, PaperServer.config.settings.webhookUrl.isNotEmpty())
             DisplayActions.sendAllDisplays(player)
         }.onFailure { e ->
@@ -122,13 +123,13 @@ class PacketReceiver(private val plugin: PaperServer) : PluginMessageListener {
         }
     }
 
-    /** Updates the locked flag of a display via [DisplayActions.setLocked]. */
+    /** Applies the frozen-v1 locked boolean, which only ever meant everyone / owner-only. */
     private fun handleSetLocked(player: Player, message: ByteArray) {
         runCatching {
             val input = bufferOf(message)
             val displayId = input.readUUID()
             val locked = input.readBoolean()
-            DisplayActions.setLocked(player, displayId, locked)
+            DisplayActions.setAccess(player, displayId, DisplayAccess.fromLegacyLocked(locked))
         }.onFailure { e ->
             logger.warn("Failed to decode set_locked packet", e)
         }

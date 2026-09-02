@@ -107,6 +107,7 @@ repositories {
     maven("https://oss.sonatype.org/content/groups/public/")
     maven("https://jitpack.io")
     maven("https://maven.neoforged.net/releases")
+    maven("https://maven.enginehub.org/repo/")
 }
 
 platformweaver {
@@ -122,6 +123,11 @@ dependencies {
     paperweight.devBundle("io.papermc.paper", scVersion("paper.api.version"))
     compileOnly(libs.jspecify)
     compileOnly(libs.luckpermsApi)
+    compileOnly(libs.worldguardApi) {
+        exclude(group = "com.google.guava", module = "guava")
+        exclude(group = "com.google.code.gson", module = "gson")
+        exclude(group = "it.unimi.dsi", module = "fastutil")
+    }
     compileOnly(project(":core"))
     compileOnly(project(":platform:client:common"))
     compileOnly("net.fabricmc:fabric-loader:${scVersion("fabric.loader.version")}")

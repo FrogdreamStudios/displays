@@ -55,10 +55,6 @@
   "dreamdisplays.button.synchronization.tooltip.4": "дисплей синхронізується з гравцями поблизу",
   "dreamdisplays.button.synchronization.tooltip.5": "Зараз: %s",
   "dreamdisplays.button.synchronization.tooltip.6": "чудово підходить для реклами, банерів і постійного контенту",
-  "dreamdisplays.button.lock.tooltip.1": "Заблокувати дисплей",
-  "dreamdisplays.button.lock.tooltip.2": "Тільки ви можете змінювати налаштування",
-  "dreamdisplays.button.unlock.tooltip.1": "Розблокувати дисплей",
-  "dreamdisplays.button.unlock.tooltip.2": "Будь-який гравець може змінювати налаштування (крім видалення)",
   "dreamdisplays.button.delete": "Видалити",
   "dreamdisplays.button.delete.tooltip.1": "Видалити дисплей",
   "dreamdisplays.button.delete.tooltip.2": "Назавжди видаляє цей дисплей",
@@ -95,5 +91,16 @@
   "dreamdisplays.sort.watched": "Переглянуте",
   "dreamdisplays.ui.custom": "Посилання",
   "dreamdisplays.sort.my_links": "Мої посилання",
-  "dreamdisplays.suggestions.no_links": "Збережених посилань ще немає. Вставте посилання на відео вище, щоб увімкнути його."
+  "dreamdisplays.suggestions.no_links": "Збережених посилань ще немає. Вставте посилання на відео вище, щоб увімкнути його.",
+  "dreamdisplays.button.access": "Доступ",
+  "dreamdisplays.button.access.tooltip.1": "Хто може користуватися цим дисплеєм",
+  "dreamdisplays.button.access.tooltip.2": "Опція доступна лише власнику дисплея",
+  "dreamdisplays.button.access.tooltip.3": "будь-який гравець поруч може змінювати відео та відтворення",
+  "dreamdisplays.button.access.tooltip.4": "лише учасники регіону, в якому стоїть дисплей",
+  "dreamdisplays.button.access.tooltip.5": "лише ви та адміністрація сервера",
+  "dreamdisplays.button.access.tooltip.6": "Зараз: %s",
+  "dreamdisplays.button.access.tooltip.no_region": "Цей дисплей не в регіоні, тож цей рівень не впустить нікого, крім вас.",
+  "dreamdisplays.access.everyone": "Усі",
+  "dreamdisplays.access.region": "Учасники регіону",
+  "dreamdisplays.access.locked": "Заблоковано"
 }

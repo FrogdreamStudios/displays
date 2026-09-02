@@ -1,6 +1,7 @@
 package com.dreamdisplays.platform.server.datatypes.display
 
 import com.dreamdisplays.api.display.model.property.DisplayRotation
+import com.dreamdisplays.api.playback.model.DisplayAccess
 import com.dreamdisplays.api.playback.model.PlaybackAction
 import com.dreamdisplays.api.playback.model.PlaybackMode
 import com.dreamdisplays.api.playback.policy.PlaybackPermissions
@@ -44,8 +45,19 @@ interface DisplayData {
     /** The persistent base playback mode. Source of truth; never [PlaybackMode.WATCH_PARTY]. */
     var mode: PlaybackMode
 
-    /** Whether the display is locked to its owner. */
+    /**
+     * Who may change this display. Region membership behind [DisplayAccess.REGION] is resolved live
+     * against the display's location on every permission check, never stored — a stored snapshot goes
+     * stale the moment a region is created, resized, or has its member list edited.
+     */
+    var access: DisplayAccess
+
+    /** Legacy mirror of [access] for frozen-v1 peers, which only knew locked / unlocked. */
     var isLocked: Boolean
+        get() = access != DisplayAccess.EVERYONE
+        set(value) {
+            access = DisplayAccess.fromLegacyLocked(value)
+        }
 
     /** Duration of the video. */
     var duration: Long?
@@ -86,8 +98,8 @@ abstract class BaseDisplayData(override val virtual: Boolean = false) : DisplayD
     /** The persistent base playback mode. */
     override var mode: PlaybackMode = PlaybackMode.LOCAL
 
-    /** Is the display locked to its owner. */
-    override var isLocked: Boolean = true
+    /** Who may change this display. */
+    override var access: DisplayAccess = DisplayAccess.DEFAULT
 
     /** Duration of the video. */
     override var duration: Long? = null

@@ -22,6 +22,7 @@ import com.dreamdisplays.api.media.stream.model.MediaStream
 import com.dreamdisplays.api.playback.model.FullscreenMode
 import com.dreamdisplays.api.playback.model.PlaybackAction
 import com.dreamdisplays.api.playback.model.PlaybackContext
+import com.dreamdisplays.api.playback.model.DisplayAccess
 import com.dreamdisplays.api.playback.model.PlaybackMode
 import com.dreamdisplays.api.playback.model.WatchPartyAction
 import com.dreamdisplays.api.playback.model.WatchPartySessionState
@@ -107,6 +108,29 @@ class DisplayScreen(
     /** Server-reported lock state, or `null` until the server reports it. */
     var isLocked: Boolean? = null
 
+    /** Server-reported access level, or `null` until the server reports it. */
+    var access: DisplayAccess? = null
+
+    /**
+     * True when the display stands inside a `WorldGuard` region. Only affects presentation: the
+     * region access level is offered as a real choice here and explained as ineffective elsewhere.
+     */
+    var inRegion: Boolean = false
+
+    /** Whether the local player belongs to that region; only meaningful at the region access level. */
+    var viewerInRegion: Boolean = false
+
+    /** The level a display in this spot starts at: shared with the region when it stands in one. */
+    val defaultAccess: DisplayAccess
+        get() = if (inRegion) DisplayAccess.REGION else DisplayAccess.DEFAULT
+
+    /**
+     * True when the server can resolve region membership at all (it runs `WorldGuard`). Where it
+     * can't, the region level is left out of the UI entirely rather than offered as a dead option.
+     */
+    val supportsRegionAccess: Boolean
+        get() = ClientPacketManager.serverSnapshot.hasFeature(ServerFeature.REGION_ACCESS)
+
     /** Epoch millis of a pending scheduled play / pause, or `0` when none is set (see [com.dreamdisplays.core.protocol.common.packets.DisplayInfo]). */
     var scheduledStartEpochMillis: Long = 0
 
@@ -162,10 +186,22 @@ class DisplayScreen(
         mode = effectiveMode,
         isOwner = owner,
         isAdmin = isAdmin,
-        isLocked = PlaybackPermissions.isEffectivelyLocked(effectiveMode, isLocked == true),
+        isLocked = PlaybackPermissions.isEffectivelyLocked(effectiveMode, lockedForMe()),
         hasActiveParty = watchParty != null,
         isPartyHost = watchParty?.isHost == true,
     )
+
+    /**
+     * Whether the display's access level shuts *this* player out, mirroring the server's own rule
+     * (see `PlaybackContexts.of`). Region membership can only be answered server-side, so it arrives
+     * per-viewer in [viewerInRegion] rather than being derived here.
+     */
+    private fun lockedForMe(): Boolean = when (access) {
+        DisplayAccess.EVERYONE -> false
+        DisplayAccess.REGION -> !viewerInRegion
+        DisplayAccess.LOCKED -> true
+        null -> isLocked == true // Pre-hello, or a server too old to send a level
+    }
 
     /** True if the local player may play/pause here. Locked displays allow only owner / admin controls. */
     val canControlPlayback: Boolean get() = PlaybackPermissions.canPlayPause(ctx())
@@ -195,7 +231,7 @@ class DisplayScreen(
     val canCloseWatchPartyHere: Boolean get() = PlaybackPermissions.canCloseWatchParty(ctx())
 
     /** The lock the player actually sees: base lock, or forced on by Watch Party / Broadcast. */
-    val effectiveLocked: Boolean get() = PlaybackPermissions.isEffectivelyLocked(effectiveMode, isLocked == true)
+    val effectiveLocked: Boolean get() = PlaybackPermissions.isEffectivelyLocked(effectiveMode, lockedForMe())
 
     /** Backing store for this display's GPU texture(s) and render types. */
     private val textureResource = DisplayTextureResource(uuid)
@@ -597,6 +633,9 @@ class DisplayScreen(
 
         qualityCap = packet.qualityCap
         isLocked = packet.isLocked
+        access = DisplayAccess.fromWire(packet.access)
+        inRegion = packet.inRegion
+        viewerInRegion = packet.viewerInRegion
         scheduledStartEpochMillis = packet.scheduledStartEpochMillis
         scheduledAction = packet.scheduledAction
         owner = Minecraft.getInstance().player?.gameProfile?.id?.toString() == packet.ownerId.toString()

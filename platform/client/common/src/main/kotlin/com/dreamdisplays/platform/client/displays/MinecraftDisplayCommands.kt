@@ -1,5 +1,6 @@
 package com.dreamdisplays.platform.client.displays
 
+import com.dreamdisplays.api.playback.model.DisplayAccess
 import com.dreamdisplays.api.display.model.Display
 import com.dreamdisplays.api.display.model.property.DisplayId
 import com.dreamdisplays.api.display.model.settings.DisplaySettings
@@ -45,11 +46,15 @@ class MinecraftDisplayCommands : DisplayExecutor {
         return screen.toDisplay()
     }
 
-    /** Locks or unlocks the display and informs the server. */
-    override fun setLocked(id: DisplayId, locked: Boolean): Display? {
+    /** Sets who may use the display and informs the server. */
+    @Deprecated("Scheduled for removal in 2.0.0")
+    override fun setAccess(id: DisplayId, access: DisplayAccess): Display? {
         val screen = DisplayRegistry.screens[id.uuid] ?: return null
-        screen.isLocked = locked
-        Initializer.sendPacket(SetLocked(id.uuid, locked))
+        screen.access = access
+        screen.isLocked = access != DisplayAccess.EVERYONE
+        // TODO: remove this in 2.0.0
+        // locked is filled in as well so a pre-1.10 server still gets the closest thing it understands
+        Initializer.sendPacket(SetLocked(id.uuid, access != DisplayAccess.EVERYONE, access.wire))
         return screen.toDisplay()
     }
 
