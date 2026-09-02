@@ -148,12 +148,14 @@ class StorageManager(
     private val db = Database.connect(dataSource)
 
     /**
-     * Creates the displays table if missing, applies in-place column migrations (`lang`, `isLocked`, `videoCode` widening),
-     * and loads previously stored displays into the runtime registry.
+     * Creates the displays table if missing and applies in-place column migrations (`lang`, `isLocked`, `videoCode`
+     * widening). Drop-column statements are filtered out.
      */
     fun createSchema() {
         transaction(db) {
-            MigrationUtils.statementsRequiredForDatabaseMigration(table).forEach { stmt -> exec(stmt) }
+            MigrationUtils.statementsRequiredForDatabaseMigration(table)
+                .filterNot { it.contains("DROP COLUMN", ignoreCase = true) }
+                .forEach { stmt -> exec(stmt) }
         }
     }
 
