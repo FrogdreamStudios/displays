@@ -8,7 +8,11 @@ import com.dreamdisplays.api.media.player.GpuTextureRef
 import com.dreamdisplays.api.media.player.PlaybackEnvironment
 import com.dreamdisplays.api.media.player.PlaybackHost
 import com.dreamdisplays.api.media.stream.model.MediaStream
+import com.dreamdisplays.api.media.stream.model.SubtitleTrack
 import com.dreamdisplays.media.player.MediaPlayer.Companion.INIT_EXECUTOR
+import com.dreamdisplays.media.player.subtitle.SubtitleCue
+import com.dreamdisplays.media.player.subtitle.WebVttParser
+import com.dreamdisplays.util.net.DreamHttpClient
 import com.dreamdisplays.media.player.events.PlayerEvents
 import com.dreamdisplays.media.player.managers.PlaybackSessionManager
 import com.dreamdisplays.media.player.managers.StatsReporter
@@ -238,6 +242,20 @@ class MediaPlayer(
 
     @Volatile
     private var streams: ActiveStreams? = null
+
+    @Volatile
+    private var subtitleTracks: List<SubtitleTrack> = emptyList()
+
+    @Volatile
+    private var subtitleTrack: SubtitleTrack? = null
+
+    @Volatile
+    private var subtitleCues: List<SubtitleCue> = emptyList()
+
+    private val subtitlesEnabled = AtomicBoolean(false)
+
+    // Bumped on every setSubtitleTrack call
+    private val subtitleFetchId = AtomicInteger(0)
 
     @Volatile
     private var liveStream = false
@@ -508,6 +526,50 @@ class MediaPlayer(
     /** True while a [setAudioTrack] switch is in flight; the actual audio can lag the UI selection by a few seconds. */
     fun isSwitchingAudioTrack(): Boolean = audioTrackSwitching.get()
 
+    /** Selectable subtitle tracks for the current video (empty when the source exposed none). */
+    fun getAvailableSubtitleTracks(): List<SubtitleTrack> = subtitleTracks
+
+    /** Language of the currently selected subtitle track, or null when subtitles are off. */
+    fun getCurrentSubtitleLang(): String? = subtitleTrack?.lang
+
+    /** True while subtitles are enabled for this viewer, regardless of whether a cue is showing right now. */
+    fun isSubtitlesEnabled(): Boolean = subtitlesEnabled.get()
+
+    /**
+     * Selects the subtitle track by [lang] and enables display, or disables subtitles when [lang] is
+     * null /b lank. Fetches and parses the track's WebVTT file on a background thread; per-viewer only,
+     * never touches the decode pipeline.
+     */
+    fun setSubtitleTrack(lang: String?) {
+        val wanted = lang?.takeIf { it.isNotBlank() }
+        if (wanted == null) {
+            subtitlesEnabled.set(false)
+            subtitleTrack = null
+            subtitleCues = emptyList()
+            return
+        }
+        val track = subtitleTracks.firstOrNull { it.lang == wanted } ?: return
+        subtitlesEnabled.set(true)
+        if (track == subtitleTrack) return
+        subtitleTrack = track
+        subtitleCues = emptyList()
+        val requestId = subtitleFetchId.incrementAndGet()
+        INIT_EXECUTOR.submit {
+            val cues = runCatching {
+                WebVttParser.parse(DreamHttpClient.readText(track.url))
+            }.onFailure { e ->
+                logger.debug("$debugLabel subtitle fetch failed for lang=$wanted: ${e.message}")
+            }.getOrDefault(emptyList())
+            if (!terminated.get() && subtitleFetchId.get() == requestId) subtitleCues = cues
+        }
+    }
+
+    /** Current subtitle line for [getCurrentTime], or null when subtitles are off or no cue is active. */
+    fun getCurrentSubtitleText(): String? {
+        if (!subtitlesEnabled.get()) return null
+        return WebVttParser.cueAt(subtitleCues, getCurrentTime())?.text
+    }
+
     /**
      * True while a [setQuality] change is still being applied: the new resolution decodes in a second
      * channel and only replaces the picture once its first frame lands, so the switch outlives the click.
@@ -614,6 +676,10 @@ class MediaPlayer(
                 streams = it.streamSet
                 lastQuality = MediaStreamSelector.parseQuality(it.streamSet.currentVideo)
                 host.videoContentAspect = it.streamSet.currentVideo.contentAspect()
+                subtitleTracks = it.availableSubtitles
+                subtitleTrack = null
+                subtitleCues = emptyList()
+                subtitlesEnabled.set(false)
             }
 
             if (DEBUG) {

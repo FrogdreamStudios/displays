@@ -55,6 +55,9 @@ interface DisplayExecutor {
     /** Set the active audio track, identified by its resolved stream URL. */
     fun setAudioTrack(displayId: DisplayId, trackUrl: String): Display? = null
 
+    /** Sets the subtitle track language, or null to turn subtitles off. */
+    fun setSubtitleTrack(displayId: DisplayId, lang: String?): Display? = null
+
     /** Set the brightness multiplier. */
     fun setBrightness(displayId: DisplayId, brightness: Float): Display? = null
 

@@ -108,6 +108,10 @@ class DefaultDisplaySystem(
         apply(commands.setAudioTrack(displayId, trackUrl))
     }
 
+    override fun setSubtitleTrack(displayId: DisplayId, lang: String?) {
+        apply(commands.setSubtitleTrack(displayId, lang))
+    }
+
     override fun setBrightness(displayId: DisplayId, brightness: Float) {
         apply(commands.setBrightness(displayId, brightness))
     }

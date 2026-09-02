@@ -128,6 +128,44 @@ object ScreenRenderer : ClientRenderService {
                 lift,
             )
         }
+
+        renderSubtitleOverlay(displayScreen, stack, facing, w, h, lift, drawQuad)
+    }
+
+    private const val SUBTITLE_MAX_HEIGHT_FRAC = 0.16f
+    private const val SUBTITLE_MAX_WIDTH_FRAC = 0.86f
+    private const val SUBTITLE_BOTTOM_MARGIN_FRAC = 0.05f
+
+    private fun renderSubtitleOverlay(
+        displayScreen: DisplayScreen, stack: PoseStack, facing: DisplayFacing, w: Int, h: Int, lift: Float, drawQuad: QuadRenderer,
+    ) {
+        val overlay = displayScreen.subtitleOverlayTexture()
+        overlay.update(if (displayScreen.subtitlesEnabled) displayScreen.currentSubtitleText else null)
+        val type = overlay.renderType() ?: return
+
+        var unitH = SUBTITLE_MAX_HEIGHT_FRAC
+        var unitW = unitH * (h.toFloat() / w.toFloat()) * overlay.aspectRatio
+        if (unitW > SUBTITLE_MAX_WIDTH_FRAC) {
+            unitW = SUBTITLE_MAX_WIDTH_FRAC
+            unitH = unitW * (w.toFloat() / h.toFloat()) / overlay.aspectRatio
+        }
+        val x0 = 0.5f - unitW / 2f
+        val x1 = 0.5f + unitW / 2f
+        val y0 = SUBTITLE_BOTTOM_MARGIN_FRAC
+        val y1 = y0 + unitH
+
+        drawLayer(stack, facing, w, h, lift + OVERLAY_LIFT) {
+            drawQuad(type) { pose, vb -> appendTexturedRect(pose, vb, x0, y0, x1, y1) }
+        }
+    }
+
+    private fun appendTexturedRect(
+        pose: PoseStack.Pose, builder: VertexConsumer, x0: Float, y0: Float, x1: Float, y1: Float,
+    ) {
+        addVertex(pose, builder, x0, y0, 0f, 255, 255, 255, 0f, 1f)
+        addVertex(pose, builder, x1, y0, 0f, 255, 255, 255, 1f, 1f)
+        addVertex(pose, builder, x1, y1, 0f, 255, 255, 255, 1f, 0f)
+        addVertex(pose, builder, x0, y1, 0f, 255, 255, 255, 0f, 0f)
     }
 
     /** Draws a unit quad using the screen's GPU texture, ramping up the first-appear fade. */

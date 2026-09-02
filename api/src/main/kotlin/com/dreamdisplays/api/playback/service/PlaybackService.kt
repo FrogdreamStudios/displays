@@ -39,6 +39,9 @@ interface PlaybackService {
     /** Sets the active audio track for [displayId], identified by its resolved stream URL. */
     fun setAudioTrack(displayId: DisplayId, trackUrl: String)
 
+    /** Sets the subtitle track language for [displayId], or null to turn subtitles off. Client-local, per-viewer. */
+    fun setSubtitleTrack(displayId: DisplayId, lang: String?)
+
     /** Sets the brightness multiplier (0.0–2.0) for [displayId]. */
     fun setBrightness(displayId: DisplayId, brightness: Float)
 

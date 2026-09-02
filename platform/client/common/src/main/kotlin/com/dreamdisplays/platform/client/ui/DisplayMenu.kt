@@ -67,6 +67,14 @@ class DisplayMenu private constructor(
                 .setAudioTrack(DisplayId(displayScreen.uuid), it.url)
         },
     )
+    private val subtitleDropdown = SubtitleDropdown(
+        getTracks = { displayScreen.subtitleTrackList },
+        currentLang = { displayScreen.currentSubtitleLang.takeIf { displayScreen.subtitlesEnabled } },
+        onSelect = {
+            DreamServices.registry.get(PlaybackServices.PLAYBACK)
+                .setSubtitleTrack(DisplayId(displayScreen.uuid), it?.lang)
+        },
+    )
 
     private lateinit var volume: ValueSlider
     private lateinit var quality: ValueSlider
@@ -81,6 +89,7 @@ class DisplayMenu private constructor(
     private lateinit var errorPanel: ErrorPanel
     private lateinit var popoutButton: IconButton
     private lateinit var audioTrackButton: IconButton
+    private lateinit var subtitleButton: IconButton
 
     private var lastSuggestedVideoId: String? = null
     private var prevQualityListSize = 0
@@ -250,6 +259,10 @@ class DisplayMenu private constructor(
         audioTrackButton.enabledWhen = { videoReady() && ds.audioTrackList.size > 1 }
         audioTrackButton.visibleWhen = notErrored
 
+        subtitleButton = addUi(IconButton("cc") { subtitleDropdown.toggle() })
+        subtitleButton.enabledWhen = { videoReady() && ds.subtitleTrackList.isNotEmpty() }
+        subtitleButton.visibleWhen = notErrored
+
         val pauseButton = addUi(
             IconButton(
                 icon = { IconButton.modIcon(if (ds.isPaused) "play" else "pause") },
@@ -274,10 +287,6 @@ class DisplayMenu private constructor(
                 },
                 waitingLabel = { if (!ds.isVideoStarted) Component.translatable("dreamdisplays.ui.waiting").string else null },
                 scheduleLabel = { scheduleCountdownText() },
-                statusLabels = listOf(
-                    { Component.translatable("dreamdisplays.ui.quality_applying").string.takeIf { ds.isApplyingQuality } },
-                    { Component.translatable("dreamdisplays.ui.audio_track_loading").string.takeIf { ds.isSwitchingAudioTrack } },
-                ),
                 chapters = { DisplayChapters.of(ds) },
             ) { nanos ->
                 if (ds.canSeek() && !ds.isLive && ds.canSeekHere) {
@@ -322,8 +331,8 @@ class DisplayMenu private constructor(
 
         preview =
             PreviewSection(
-                ds, muteButton, volume, popoutButton, audioTrackButton, pauseButton, progress,
-                dropdown, audioTrackDropdown,
+                ds, muteButton, volume, popoutButton, audioTrackButton, subtitleButton, pauseButton, progress,
+                dropdown, audioTrackDropdown, subtitleDropdown,
             )
         settings = SettingsSection(
             rows = settingsRows(qualityReset, brightnessReset, audio3dReset, syncReset, accessReset),
@@ -564,7 +573,8 @@ class DisplayMenu private constructor(
     }
 
     override fun onMouseScrolled(mouseX: Double, mouseY: Double, scrollX: Double, scrollY: Double): Boolean =
-        audioTrackDropdown.handleScroll(mouseX.toInt(), mouseY.toInt(), scrollY)
+        audioTrackDropdown.handleScroll(mouseX.toInt(), mouseY.toInt(), scrollY) ||
+                subtitleDropdown.handleScroll(mouseX.toInt(), mouseY.toInt(), scrollY)
 
     //? if >=1.21.11 {
     override fun onMouseClicked(event: MouseButtonEvent, doubleClick: Boolean): Boolean {
@@ -578,14 +588,16 @@ class DisplayMenu private constructor(
                 my
             )
         ) return true
+        val onSubtitleButton = subtitleButton.isMouseOver(mx.toDouble(), my.toDouble())
+        if (subtitleDropdown.visible && event.button() == 0 && !onSubtitleButton && subtitleDropdown.handleClick(mx, my)) return true
         return modLabel.handleClick(mx, my)
     }
 
     override fun onMouseDragged(event: MouseButtonEvent, dragX: Double, dragY: Double): Boolean =
-        audioTrackDropdown.handleDrag(event.y().toInt())
+        audioTrackDropdown.handleDrag(event.y().toInt()) || subtitleDropdown.handleDrag(event.y().toInt())
 
     override fun onMouseReleased(event: MouseButtonEvent): Boolean =
-        audioTrackDropdown.handleRelease() || progress.commitDragIfActive()
+        audioTrackDropdown.handleRelease() || subtitleDropdown.handleRelease() || progress.commitDragIfActive()
     //?} else
     /*override fun onMouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
         val mx = mouseX.toInt()
@@ -594,14 +606,16 @@ class DisplayMenu private constructor(
         if (dropdown.visible && button == 0 && !onPopoutButton && dropdown.handleClick(mx, my)) return true
         val onAudioTrackButton = audioTrackButton.isMouseOver(mouseX, mouseY)
         if (audioTrackDropdown.visible && button == 0 && !onAudioTrackButton && audioTrackDropdown.handleClick(mx, my)) return true
+        val onSubtitleButton = subtitleButton.isMouseOver(mouseX, mouseY)
+        if (subtitleDropdown.visible && button == 0 && !onSubtitleButton && subtitleDropdown.handleClick(mx, my)) return true
         return modLabel.handleClick(mx, my)
     }
 
     override fun onMouseDragged(mouseX: Double, mouseY: Double, button: Int, dragX: Double, dragY: Double): Boolean =
-        audioTrackDropdown.handleDrag(mouseY.toInt())
+        audioTrackDropdown.handleDrag(mouseY.toInt()) || subtitleDropdown.handleDrag(mouseY.toInt())
 
     override fun onMouseReleased(mouseX: Double, mouseY: Double, button: Int): Boolean =
-        audioTrackDropdown.handleRelease() || progress.commitDragIfActive()*/
+        audioTrackDropdown.handleRelease() || subtitleDropdown.handleRelease() || progress.commitDragIfActive()*/
 
     override fun isPauseScreen(): Boolean = false
 

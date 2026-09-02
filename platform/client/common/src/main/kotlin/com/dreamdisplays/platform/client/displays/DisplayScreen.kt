@@ -19,6 +19,7 @@ import com.dreamdisplays.api.media.audio.model.SourceAcousticState
 import com.dreamdisplays.api.media.audio.model.SourcePlane
 import com.dreamdisplays.api.media.audio.service.keys.AudioAcousticsServices
 import com.dreamdisplays.api.media.stream.model.MediaStream
+import com.dreamdisplays.api.media.stream.model.SubtitleTrack
 import com.dreamdisplays.api.playback.model.FullscreenMode
 import com.dreamdisplays.api.playback.model.PlaybackAction
 import com.dreamdisplays.api.playback.model.PlaybackContext
@@ -338,6 +339,25 @@ class DisplayScreen(
         if (match != null && match.url != currentAudioTrackUrl) audioTrack = match.url
     }
 
+    /** Requested subtitle track language, or null to turn subtitles off. */
+    var subtitleTrack: String? = null
+        set(value) {
+            field = value
+            pendingSubtitleLangRestore = null
+            mediaPlayer?.setSubtitleTrack(value)
+        }
+
+    private var pendingSubtitleLangRestore: String? = savedSettings.subtitleTrackLang.takeIf { savedSettings.subtitlesEnabled }
+
+    private fun restoreSubtitleTrackIfPending() {
+        val wanted = pendingSubtitleLangRestore ?: return
+        val tracks = subtitleTrackList
+        if (tracks.isEmpty()) return
+        val match = tracks.firstOrNull { it.lang == wanted }
+        pendingSubtitleLangRestore = null
+        if (match != null) subtitleTrack = match.lang
+    }
+
     /** Broadcast pins to cap; otherwise applies distance steps. */
     private fun effectiveQuality(requested: VideoQuality = quality): VideoQuality {
         val base = if (qualityCap > 0) VideoQuality.Fixed(qualityCap) else requested
@@ -517,6 +537,22 @@ class DisplayScreen(
     val isSwitchingAudioTrack: Boolean
         get() = mediaPlayer?.isSwitchingAudioTrack() == true
 
+    /** Subtitle tracks available for the current video (empty unless the provider exposed captions). */
+    val subtitleTrackList: List<SubtitleTrack>
+        get() = mediaPlayer?.getAvailableSubtitleTracks() ?: emptyList()
+
+    /** Language of the currently selected subtitle track, or null when subtitles are off. */
+    val currentSubtitleLang: String?
+        get() = mediaPlayer?.getCurrentSubtitleLang()
+
+    /** True while this viewer has subtitles turned on for this display. */
+    val subtitlesEnabled: Boolean
+        get() = mediaPlayer?.isSubtitlesEnabled() == true
+
+    /** Subtitle line active at the current playback position, or null when off / between cues. */
+    val currentSubtitleText: String?
+        get() = mediaPlayer?.getCurrentSubtitleText()
+
     /** True while a quality change is still being applied; the new resolution lands a few seconds later. */
     val isApplyingQuality: Boolean
         get() = mediaPlayer?.isApplyingQuality() == true
@@ -560,6 +596,7 @@ class DisplayScreen(
         waitingForInitialTimeline = requiresServerTimeline()
         waitingSinceNanos = if (waitingForInitialTimeline) System.nanoTime() else 0L
         pendingAudioTrackLangRestore = savedSettings.audioTrackLang
+        pendingSubtitleLangRestore = savedSettings.subtitleTrackLang.takeIf { savedSettings.subtitlesEnabled }
     }
 
     /** True while the screen is holding back the picture until the server's first timeline arrives. */
@@ -611,6 +648,12 @@ class DisplayScreen(
     /** The display's persistent preview texture, created on first use and released in [unregister]. */
     internal fun previewFrameTexture(): PreviewFrameTexture =
         previewFrameCache ?: PreviewFrameTexture(uuid).also { previewFrameCache = it }
+
+    @Transient
+    private var subtitleOverlayCache: SubtitleOverlayTexture? = null
+
+    internal fun subtitleOverlayTexture(): SubtitleOverlayTexture =
+        subtitleOverlayCache ?: SubtitleOverlayTexture().also { subtitleOverlayCache = it }
 
     /** Updates position, dimensions, and video URL from an incoming [DisplayInfo] packet. */
     fun updateData(packet: DisplayInfo) {
@@ -933,6 +976,8 @@ class DisplayScreen(
         textureResource.releaseAsync()
         previewFrameCache?.closeAsync()
         previewFrameCache = null
+        subtitleOverlayCache?.dispose()
+        subtitleOverlayCache = null
 
         val mc = Minecraft.getInstance()
         val screen = MinecraftScreenUtil.currentScreen(mc)
@@ -1098,6 +1143,7 @@ class DisplayScreen(
         val distance = getDistanceToScreen(pos)
         mediaPlayer?.tick(distance, maxRadius)
         restoreAudioTrackIfPending()
+        restoreSubtitleTrackIfPending()
         if (isPopoutActive) {
             if (distanceQualitySteps != 0) {
                 distanceQualitySteps = 0

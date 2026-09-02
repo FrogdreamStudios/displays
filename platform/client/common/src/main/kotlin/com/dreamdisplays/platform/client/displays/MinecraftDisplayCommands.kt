@@ -136,6 +136,17 @@ class MinecraftDisplayCommands : DisplayExecutor {
         return screen.toDisplay()
     }
 
+    /**
+     * Sets the subtitle track by [lang] (null turns subtitles off) and persists the pick so
+     * [DisplayScreen] can re-apply it once the same display resolves subtitle tracks again.
+     */
+    override fun setSubtitleTrack(displayId: DisplayId, lang: String?): Display? {
+        val screen = DisplayRegistry.screens[displayId.uuid] ?: return null
+        screen.subtitleTrack = lang
+        ClientSettingsStore.setSubtitleTrackLang(displayId.uuid, lang)
+        return screen.toDisplay()
+    }
+
     /** Sets the display [brightness]. */
     override fun setBrightness(displayId: DisplayId, brightness: Float): Display? {
         val screen = DisplayRegistry.screens[displayId.uuid] ?: return null

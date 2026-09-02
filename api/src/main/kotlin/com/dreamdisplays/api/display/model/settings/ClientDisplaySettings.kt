@@ -35,6 +35,12 @@ data class ClientDisplaySettings(
     /** Viewer-picked audio track language (from the audio-track dropdown), re-applied after rejoining. */
     var audioTrackLang: String? = null,
 
+    /** Whether the viewer turned subtitles on for this display. */
+    var subtitlesEnabled: Boolean = false,
+
+    /** Viewer-picked subtitle track language, re-applied after rejoining or when the video changes. */
+    var subtitleTrackLang: String? = null,
+
     /** Last known playback position in nanoseconds, resumed on Local displays after a restart. */
     var savedTimeNanos: Long = 0,
 

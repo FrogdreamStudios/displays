@@ -113,6 +113,7 @@ object NewPipeResolver : MediaResolverService {
             ),
             isLive = resolved.isLive,
             isSeekable = resolved.isSeekable,
+            subtitles = resolved.subtitles,
         )
     }
 

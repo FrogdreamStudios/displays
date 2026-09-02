@@ -47,6 +47,7 @@ class DefaultPlaybackService(
     override fun setVolume(displayId: DisplayId, volume: Float) = playback.setVolume(displayId, volume)
     override fun setQuality(displayId: DisplayId, quality: VideoQuality) = playback.setQuality(displayId, quality)
     override fun setAudioTrack(displayId: DisplayId, trackUrl: String) = playback.setAudioTrack(displayId, trackUrl)
+    override fun setSubtitleTrack(displayId: DisplayId, lang: String?) = playback.setSubtitleTrack(displayId, lang)
     override fun setBrightness(displayId: DisplayId, brightness: Float) = playback.setBrightness(displayId, brightness)
     override fun mute(displayId: DisplayId, muted: Boolean) = playback.mute(displayId, muted)
     override fun getState(displayId: DisplayId): DisplayState = playback.getState(displayId)
