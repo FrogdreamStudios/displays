@@ -63,6 +63,13 @@ object Initializer {
      * the per-server flags, and emits [ClientLifecycleEvent.ServerLeft].
      */
     fun onServerLeft() {
+        // Fabric fires its disconnect event on the Netty IO thread
+        val mc = Minecraft.getInstance()
+        if (!mc.isSameThread) { // Not our problem
+            mc.execute(::onServerLeft)
+            return
+        }
+
         val serverId = ClientStateManager.connectedServerId
         DisplayRegistry.saveAllScreens()
         DisplayRegistry.unloadAll()
