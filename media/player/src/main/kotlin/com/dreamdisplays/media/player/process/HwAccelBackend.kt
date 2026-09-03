@@ -8,7 +8,7 @@ import com.dreamdisplays.util.OsInfo
  * Hardware-accelerated video decoder backends supported by `FFmpeg`.
  *
  * Offloads H.264 / HEVC / VP9 / AV1 decoding to the GPU's video-decode block:
- *   - Android (Zalith / MobileGlues): MediaCodec  (`h264_mediacodec`, etc.)
+ *   - Android (Zalith / MobileGlues): MediaCodec, when an Android Surface bridge is available
  *   - macOS:                          VideoToolbox
  *   - Windows:                        D3D11VA
  *   - Linux:                          VAAPI
@@ -78,7 +78,8 @@ enum class HwAccelBackend(val ffmpegName: String?, val hwOutputFormat: String?, 
          * the JVM inside Zalith is OpenJDK (not Dalvik), so the VM name alone
          * is not a reliable Android indicator in this context.
          */
-        private val isZalith: Boolean by lazy {
+        private val isAndroid: Boolean by lazy {
+            System.getProperty("os.version")?.contains("android", ignoreCase = true) == true ||
             System.getenv("POJAV_NATIVEDIR") != null ||
             System.getenv("POJAV_FFMPEG_PATH") != null
         }
@@ -100,17 +101,16 @@ enum class HwAccelBackend(val ffmpegName: String?, val hwOutputFormat: String?, 
          * Prefers broad compatibility over peak speed — a stream that fails to decode
          * is worse than one that decodes a little slower.
          *
-         * Zalith / Android → [MEDIACODEC]   (requires Surface wired in native layer)
+         * Android → [MEDIACODEC] only when a Surface bridge is wired into the native pipeline
          * macOS            → [VIDEOTOOLBOX]
          * Windows          → [D3D11VA]
          * Linux            → [VAAPI]
          * Unknown          → [NONE]
          */
         fun detectDefault(): HwAccelBackend = when {
-            // MediaCodec needs a Surface wired up by the native pipeline (see class doc); the
-            // JVM/subprocess ffmpeg pipeline can't supply one, so every attempt would fail
-            // ("No device available for decoder") and burn a codec instance on the way there.
-            isZalith && com.dreamdisplays.media.player.nativebridge.NativeMedia.isAvailable -> MEDIACODEC
+            // The guest JVM and FFmpeg subprocess cannot create or receive an Android Surface.
+            // Keep Android on software decoding until a launcher-provided Surface bridge exists.
+            isAndroid -> NONE
             OsInfo.isMac     -> VIDEOTOOLBOX
             OsInfo.isWindows -> D3D11VA
             OsInfo.isLinux   -> VAAPI
