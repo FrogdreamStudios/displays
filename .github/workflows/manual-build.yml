@@ -4,17 +4,17 @@ name: Manual Build
 # The reusable build workflow owns the platform/version matrix.
 on:
   workflow_dispatch:
-    inputs:
-      pull_request:
-        description: Build only the Linux native target and all loader versions
-        required: false
-        default: false
-        type: boolean
-      retention_days:
-        description: Number of days to retain the downloaded build bundle
-        required: false
-        default: 7
-        type: number
+    #inputs:
+      #pull_request:
+        #description: Build only the Linux native target and all loader versions
+        #required: false
+        #default: false
+        #type: boolean
+      #retention_days:
+        #description: Number of days to retain the downloaded build bundle
+        #required: false
+        #default: 7
+        #type: number
 
 permissions:
   contents: read
