@@ -1,0 +1,42 @@
+# Gradle
+mod/.gradle/
+.gradle
+build/
+out/
+classes/
+
+# Eclipse
+*.launch
+
+# IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# VS Code
+.settings/
+.vscode/
+bin/
+.classpath
+.project
+
+# macOS
+*.DS_Store
+
+# Fabric
+run/
+
+# Java / Kotlin
+hs_err_*.log
+replay_*.log
+*.hprof
+*.jfr
+.kotlin
+
+# Rust
+native/target/
+
+# Stonecutter
+versions/
+.gradle-user-home/ 
