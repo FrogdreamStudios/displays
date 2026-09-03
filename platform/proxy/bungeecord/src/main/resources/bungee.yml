@@ -1,5 +1,0 @@
-name: DreamDisplaysProxy
-main: com.dreamdisplays.platform.proxy.bungeecord.DreamDisplaysBungeecord
-version: ${version}
-author: arnodoelinger
-description: Network coordinator for Dream Displays.
