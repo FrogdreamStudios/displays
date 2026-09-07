@@ -1,3 +1,48 @@
+# 1.10.0 Preview 1
+
+## Highlights
+
+- Subtitles support
+- Added `WorldGuard` support
+- Replaced the display lock with three access levels: `Everyone`, `Region members` (WorldGuard) and `Locked`
+- Added Simplified Chinese translation
+- Fixes and improvements (like CPU reduction and displays being unaffected by outlines)
+
+## Client
+
+### Features
+
+- Added subtitles support
+- Added support for `WorldGuard` ([#194](https://github.com/arnodoelinger/dreamdisplays/issues/194))
+- Replaced the display lock with three access levels: `Everyone`, `Region members` (WorldGuard) and `Locked`
+- Removed per-display render distance setting; now displays use client's render distance instead
+- Added Simplified Chinese translation ([#180](https://github.com/arnodoelinger/dreamdisplays/pull/180))
+
+### Improvements
+
+- Reduced CPU use of video playback
+- Now displays are unaffected by outlines
+
+### Fixes
+
+- Fixed playback restarting itself a second after start when the first frame took longer to arrive
+- Fixed the game crashing when the server crashes while a display is playing
+- Fixed bad command suggestion syntax after creating a display
+
+## Server
+
+### Features
+
+- Added support for `WorldGuard` ([#194](https://github.com/arnodoelinger/dreamdisplays/issues/194))
+- Added Simplified Chinese translation ([#180](https://github.com/arnodoelinger/dreamdisplays/pull/180))
+
+### Fixes
+
+- Filter out drop-column statements during schema migration
+- Fixed the database connection pool leaking on plugin reload
+- Fixed coroutine error when stopping the server
+- Fixed rare `bStats` JSON warnings
+
 # 1.9.6 Release
 
 ## Highlights
