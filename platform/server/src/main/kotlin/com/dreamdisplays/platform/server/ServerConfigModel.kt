@@ -338,6 +338,7 @@ private fun stringList(t: TomlTable?, key: String): List<String> =
 internal val LANGUAGE_FILES = listOf(
     "en.json", "es.json", "fr.json", "it.json", "pl.json",
     "ru.json", "uk.json", "de.json", "cs.json", "be.json", "he.json",
+    "zh.json",
 )
 
 /** Maps a Minecraft locale string (e.g. `ru_ru`, `ru-ru`) to the plugin's short language code (e.g. `ru`). */
@@ -350,6 +351,7 @@ internal fun mapLocaleToLang(locale: String): String {
         "cs_cz", "cs-cz" -> "cs"
         "be_by", "be-by" -> "be"
         "he_il", "he-il" -> "he"
+        "zh_cn", "zh-cn" -> "zh"
         else -> normalized.substringBefore('_').substringBefore('-').ifEmpty { "en" }
     }
 }
